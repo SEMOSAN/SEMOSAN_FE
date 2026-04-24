@@ -1,0 +1,460 @@
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+:root {
+  --global-green-25: #f0fdf4;
+  --global-green-50: #dcfce7;
+  --global-green-100: #bbf7d0;
+  --global-green-200: #86efac;
+  --global-green-300: #4ade80;
+  --global-green-400: #00d864;
+  --global-green-500: #16a34a;
+  --global-green-600: #15803d;
+  --global-green-700: #166534;
+  --global-green-800: #14532d;
+  --global-green-900: #064e3b;
+  --global-blue-25: #f5f8ff;
+  --global-blue-50: #eff6ff;
+  --global-blue-100: #dbeafe;
+  --global-blue-200: #bfdbfe;
+  --global-blue-300: #93c5fd;
+  --global-blue-400: #60a5fa;
+  --global-blue-500: #507ef4;
+  --global-blue-600: #2563eb;
+  --global-blue-700: #1d4ed8;
+  --global-blue-800: #1e40af;
+  --global-blue-900: #1e3a8a;
+  --global-red-25: #fff5f5;
+  --global-red-50: #fef2f2;
+  --global-red-100: #fee2e2;
+  --global-red-200: #fecaca;
+  --global-red-300: #fca5a5;
+  --global-red-400: #f87171;
+  --global-red-500: #ff5249;
+  --global-red-600: #dc2626;
+  --global-red-700: #b91c1c;
+  --global-red-800: #991b1b;
+  --global-red-900: #7f1d1d;
+  --global-yellow-25: #fffdf0;
+  --global-yellow-50: #fffbeb;
+  --global-yellow-100: #fef3c7;
+  --global-yellow-200: #fde68a;
+  --global-yellow-300: #ffd40d;
+  --global-yellow-400: #facc15;
+  --global-yellow-500: #eab308;
+  --global-yellow-600: #ca8a04;
+  --global-yellow-700: #a16207;
+  --global-yellow-800: #854d0e;
+  --global-yellow-900: #713f12;
+  --global-neutral-25: #f9fafb;
+  --global-neutral-50: #f0f2f4;
+  --global-neutral-75: #e5e7eb;
+  --global-neutral-100: #d1d5db;
+  --global-neutral-200: #bfc4d1;
+  --global-neutral-300: #a4abc0;
+  --global-neutral-400: #8b92a6;
+  --global-neutral-500: #73798c;
+  --global-neutral-600: #5c6170;
+  --global-neutral-700: #464a57;
+  --global-neutral-800: #2f323a;
+  --global-neutral-900: #1a1b1f;
+  --global-common-0: #000000;
+  --global-common-100: #ffffff;
+  --font-family-pretendard: Pretendard;
+  --font-size-12: 12;
+  --font-size-13: 13;
+  --font-size-14: 14;
+  --font-size-15: 15;
+  --font-size-16: 16;
+  --font-size-17: 17;
+  --font-size-18: 18;
+  --font-size-20: 20;
+  --font-size-24: 24;
+  --font-size-28: 28;
+  --font-size-32: 32;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-line-height-heading: 1.3;
+  --font-line-height-body: 1.5;
+  --font-line-height-display: 1.2;
+  --spacing-2: 2;
+  --spacing-4: 4;
+  --spacing-6: 6;
+  --spacing-8: 8;
+  --spacing-12: 12;
+  --spacing-16: 16;
+  --spacing-24: 24;
+  --spacing-32: 32;
+  --spacing-40: 40;
+  --spacing-48: 48;
+  --spacing-64: 64;
+  --radius-none: 0;
+  --radius-xs: 2;
+  --radius-sm: 4;
+  --radius-md: 8;
+  --radius-xl: 12;
+  --radius-2xl: 16;
+  --radius-3xl: 20;
+  --radius-4xl: 24;
+  --radius-full: 999;
+  --radius-lg: 10;
+  --font-families-pretendard: Pretendard;
+  --line-heights-0: 1.2;
+  --line-heights-1: 1.2;
+  --line-heights-2: 1.2;
+  --line-heights-3: 1.2;
+  --line-heights-4: 1.2;
+  --line-heights-5: 1.2;
+  --line-heights-6: 1.3;
+  --line-heights-7: 1.3;
+  --line-heights-8: 1.3;
+  --line-heights-9: 1.5;
+  --line-heights-10: 1.5;
+  --line-heights-11: 1.5;
+  --line-heights-12: 1.5;
+  --line-heights-13: 1.5;
+  --line-heights-14: 1.5;
+  --line-heights-15: 1.6;
+  --line-heights-16: 1.6;
+  --line-heights-17: 1.6;
+  --line-heights-18: 1.5;
+  --line-heights-19: 1.5;
+  --line-heights-20: 1.5;
+  --line-heights-21: 1.5;
+  --line-heights-22: 1.5;
+  --line-heights-23: 1.5;
+  --line-heights-24: 1.4;
+  --line-heights-25: 1.4;
+  --line-heights-26: 1.4;
+  --line-heights-27: 1.3;
+  --line-heights-28: 1.3;
+  --line-heights-29: 1.3;
+  --line-heights-30: 1.5;
+  --line-heights-31: 1.5;
+  --line-heights-32: 1.5;
+  --font-weights-pretendard-0: 700;
+  --font-weights-pretendard-1: 500;
+  --font-weights-pretendard-2: 400;
+  --font-weights-pretendard-3: 600;
+  --font-size-0: 12px;
+  --font-size-1: 13px;
+  --font-size-2: 14px;
+  --font-size-3: 15px;
+  --font-size-4: 16px;
+  --font-size-5: 17px;
+  --font-size-6: 18px;
+  --font-size-7: 20px;
+  --font-size-8: 24px;
+  --font-size-9: 28px;
+  --letter-spacing-0: -0.025em;
+  --letter-spacing-1: -0.02em;
+  --letter-spacing-2: -0.015em;
+  --letter-spacing-3: 0.005em;
+  --letter-spacing-4: 0.015em;
+  --letter-spacing-5: 0.02em;
+  --letter-spacing-6: 0.025em;
+  --paragraph-spacing-0: 0;
+  --text-case-none: none;
+  --text-decoration-none: none;
+  --paragraph-indent-0: 0;
+  --title-1-bold-font-family: Pretendard; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-bold-font-weight: 700; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-bold-line-height: 1.2; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-bold-font-size: 28px; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-bold-letter-spacing: -0.025em; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-bold-paragraph-spacing: 0; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-bold-paragraph-indent: 0; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-bold-text-case: none; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-bold-text-decoration: none; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-medium-font-family: Pretendard; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-medium-font-weight: 500; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-medium-line-height: 1.2; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-medium-font-size: 28px; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-medium-letter-spacing: -0.025em; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-medium-paragraph-spacing: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-medium-paragraph-indent: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-medium-text-case: none; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-medium-text-decoration: none; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-regular-font-family: Pretendard; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-regular-font-weight: 400; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-regular-line-height: 1.2; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-regular-font-size: 28px; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-regular-letter-spacing: -0.025em; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-regular-paragraph-spacing: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-regular-paragraph-indent: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-regular-text-case: none; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-1-regular-text-decoration: none; /** 텍스트를 주요하게 나타낼 때사용합니다. 그 다음 크기로 사용합니다. */
+  --title-2-bold-font-family: Pretendard; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-bold-font-weight: 700; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-bold-line-height: 1.2; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-bold-font-size: 24px; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-bold-letter-spacing: -0.025em; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-bold-paragraph-spacing: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-bold-paragraph-indent: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-bold-text-case: none; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-bold-text-decoration: none; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-medium-font-family: Pretendard; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-medium-font-weight: 500; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-medium-line-height: 1.2; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-medium-font-size: 24px; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-medium-letter-spacing: -0.025em; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-medium-paragraph-spacing: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-medium-paragraph-indent: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-medium-text-case: none; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-medium-text-decoration: none; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-regular-font-family: Pretendard; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-regular-font-weight: 400; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-regular-line-height: 1.2; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-regular-font-size: 24px; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-regular-letter-spacing: -0.025em; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-regular-paragraph-spacing: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-regular-paragraph-indent: 0; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-regular-text-case: none; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --title-2-regular-text-decoration: none; /** 텍스트를 주요하게 나타낼 때사용합니다. Heading보다 큰 크기로 사용합니다. */
+  --heading-1-semi-bold-font-family: Pretendard; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-semi-bold-font-weight: 600; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-semi-bold-line-height: 1.3; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-semi-bold-font-size: 20px; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-semi-bold-letter-spacing: -0.02em; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-semi-bold-paragraph-spacing: 0; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-semi-bold-paragraph-indent: 0; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-semi-bold-text-case: none; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-semi-bold-text-decoration: none; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-medium-font-family: Pretendard; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-medium-font-weight: 500; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-medium-line-height: 1.3; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-medium-font-size: 20px; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-medium-letter-spacing: -0.02em; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-medium-paragraph-spacing: 0; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-medium-paragraph-indent: 0; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-medium-text-case: none; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-medium-text-decoration: none; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-regular-font-family: Pretendard; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-regular-font-weight: 400; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-regular-line-height: 1.3; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-regular-font-size: 20px; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-regular-letter-spacing: -0.02em; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-regular-paragraph-spacing: 0; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-regular-paragraph-indent: 0; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-regular-text-case: none; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --heading-1-regular-text-decoration: none; /** 섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다. */
+  --headline-1-semi-bold-font-family: Pretendard; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-semi-bold-font-weight: 600; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-semi-bold-line-height: 1.5; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-semi-bold-font-size: 18px; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-semi-bold-letter-spacing: -0.015em; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-semi-bold-paragraph-spacing: 0; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-semi-bold-paragraph-indent: 0; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-semi-bold-text-case: none; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-semi-bold-text-decoration: none; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-medium-font-family: Pretendard; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-medium-font-weight: 500; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-medium-line-height: 1.5; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-medium-font-size: 18px; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-medium-letter-spacing: -0.015em; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-medium-paragraph-spacing: 0; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-medium-paragraph-indent: 0; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-medium-text-case: none; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-medium-text-decoration: none; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-regular-font-family: Pretendard; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-regular-font-weight: 400; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-regular-line-height: 1.5; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-regular-font-size: 18px; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-regular-letter-spacing: -0.015em; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-regular-paragraph-spacing: 0; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-regular-paragraph-indent: 0; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-regular-text-case: none; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --headline-1-regular-text-decoration: none; /** 본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다. */
+  --body-1-normal-semi-bold-font-family: Pretendard; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-semi-bold-font-weight: 600; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-semi-bold-line-height: 1.5; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-semi-bold-font-size: 16px; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-semi-bold-letter-spacing: 0.005em; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-semi-bold-paragraph-spacing: 0; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-semi-bold-paragraph-indent: 0; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-semi-bold-text-case: none; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-semi-bold-text-decoration: none; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-medium-font-family: Pretendard; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-medium-font-weight: 500; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-medium-line-height: 1.5; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-medium-font-size: 16px; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-medium-letter-spacing: 0.005em; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-medium-paragraph-spacing: 0; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-medium-paragraph-indent: 0; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-medium-text-case: none; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-medium-text-decoration: none; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-regular-font-family: Pretendard; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-regular-font-weight: 400; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-regular-line-height: 1.5; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-regular-font-size: 16px; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-regular-letter-spacing: 0.005em; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-regular-paragraph-spacing: 0; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-regular-paragraph-indent: 0; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-regular-text-case: none; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-normal-regular-text-decoration: none; /** 기준 크기로 사용합니다. 일반적으로 사용합니다. */
+  --body-1-reading-semi-bold-font-family: Pretendard; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-semi-bold-font-weight: 600; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-semi-bold-line-height: 1.6; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-semi-bold-font-size: 16px; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-semi-bold-letter-spacing: 0.005em; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-semi-bold-paragraph-spacing: 0; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-semi-bold-paragraph-indent: 0; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-semi-bold-text-case: none; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-semi-bold-text-decoration: none; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-medium-font-family: Pretendard; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-medium-font-weight: 500; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-medium-line-height: 1.6; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-medium-font-size: 16px; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-medium-letter-spacing: 0.005em; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-medium-paragraph-spacing: 0; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-medium-paragraph-indent: 0; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-medium-text-case: none; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-medium-text-decoration: none; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-regular-font-family: Pretendard; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-regular-font-weight: 400; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-regular-line-height: 1.6; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-regular-font-size: 16px; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-regular-letter-spacing: 0.005em; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-regular-paragraph-spacing: 0; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-regular-paragraph-indent: 0; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-regular-text-case: none; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-1-reading-regular-text-decoration: none; /** 기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-normal-semi-bold-font-family: Pretendard; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-semi-bold-font-weight: 600; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-semi-bold-line-height: 1.5; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-semi-bold-font-size: 14px; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-semi-bold-letter-spacing: 0.015em; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-semi-bold-paragraph-spacing: 0; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-semi-bold-paragraph-indent: 0; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-semi-bold-text-case: none; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-semi-bold-text-decoration: none; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-medium-font-family: Pretendard; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-medium-font-weight: 500; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-medium-line-height: 1.5; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-medium-font-size: 14px; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-medium-letter-spacing: 0.015em; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-medium-paragraph-spacing: 0; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-medium-paragraph-indent: 0; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-medium-text-case: none; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-medium-text-decoration: none; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-regular-font-family: Pretendard; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-regular-font-weight: 400; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-regular-line-height: 1.5; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-regular-font-size: 14px; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-regular-letter-spacing: 0.015em; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-regular-paragraph-spacing: 0; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-regular-paragraph-indent: 0; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-regular-text-case: none; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-normal-regular-text-decoration: none; /** 참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --body-2-reading-semi-bold-font-family: Pretendard; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-semi-bold-font-weight: 600; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-semi-bold-line-height: 1.5; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-semi-bold-font-size: 14px; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-semi-bold-letter-spacing: 0.015em; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-semi-bold-paragraph-spacing: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-semi-bold-paragraph-indent: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-semi-bold-text-case: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-semi-bold-text-decoration: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-medium-font-family: Pretendard; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-medium-font-weight: 500; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-medium-line-height: 1.5; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-medium-font-size: 14px; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-medium-letter-spacing: 0.015em; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-medium-paragraph-spacing: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-medium-paragraph-indent: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-medium-text-case: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-medium-text-decoration: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-regular-font-family: Pretendard; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-regular-font-weight: 400; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-regular-line-height: 1.5; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-regular-font-size: 14px; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-regular-letter-spacing: 0.015em; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-regular-paragraph-spacing: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-regular-paragraph-indent: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-regular-text-case: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-2-reading-regular-text-decoration: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다. */
+  --body-3-semi-bold-font-family: Pretendard; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-semi-bold-font-weight: 600; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-semi-bold-line-height: 1.4; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-semi-bold-font-size: 13px; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-semi-bold-letter-spacing: 0.02em; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-semi-bold-paragraph-spacing: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-semi-bold-paragraph-indent: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-semi-bold-text-case: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-semi-bold-text-decoration: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-medium-font-family: Pretendard; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-medium-font-weight: 500; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-medium-line-height: 1.4; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-medium-font-size: 13px; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-medium-letter-spacing: 0.02em; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-medium-paragraph-spacing: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-medium-paragraph-indent: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-medium-text-case: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-medium-text-decoration: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-regular-font-family: Pretendard; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-regular-font-weight: 400; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-regular-line-height: 1.4; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-regular-font-size: 13px; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-regular-letter-spacing: 0.02em; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-regular-paragraph-spacing: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-regular-paragraph-indent: 0; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-regular-text-case: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --body-3-regular-text-decoration: none; /** 참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다. */
+  --caption-1-semi-bold-font-family: Pretendard; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-semi-bold-font-weight: 600; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-semi-bold-line-height: 1.3; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-semi-bold-font-size: 12px; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-semi-bold-letter-spacing: 0.025em; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-semi-bold-paragraph-spacing: 0; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-semi-bold-paragraph-indent: 0; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-semi-bold-text-case: none; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-semi-bold-text-decoration: none; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-medium-font-family: Pretendard; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-medium-font-weight: 500; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-medium-line-height: 1.3; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-medium-font-size: 12px; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-medium-letter-spacing: 0.025em; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-medium-paragraph-spacing: 0; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-medium-paragraph-indent: 0; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-medium-text-case: none; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-medium-text-decoration: none; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-regular-font-family: Pretendard; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-regular-font-weight: 400; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-regular-line-height: 1.3; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-regular-font-size: 12px; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-regular-letter-spacing: 0.025em; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-regular-paragraph-spacing: 0; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-regular-paragraph-indent: 0; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-regular-text-case: none; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --caption-1-regular-text-decoration: none; /** 부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다. */
+  --label-large-font-family: Pretendard; /** 버튼 라벨에서 사용합니다. */
+  --label-large-font-weight: 600; /** 버튼 라벨에서 사용합니다. */
+  --label-large-line-height: 1.5; /** 버튼 라벨에서 사용합니다. */
+  --label-large-font-size: 17px; /** 버튼 라벨에서 사용합니다. */
+  --label-large-letter-spacing: -0.015em; /** 버튼 라벨에서 사용합니다. */
+  --label-large-paragraph-spacing: 0; /** 버튼 라벨에서 사용합니다. */
+  --label-large-paragraph-indent: 0; /** 버튼 라벨에서 사용합니다. */
+  --label-large-text-case: none; /** 버튼 라벨에서 사용합니다. */
+  --label-large-text-decoration: none; /** 버튼 라벨에서 사용합니다. */
+  --label-medium-font-family: Pretendard; /** 버튼 라벨에서 사용합니다. */
+  --label-medium-font-weight: 600; /** 버튼 라벨에서 사용합니다. */
+  --label-medium-line-height: 1.5; /** 버튼 라벨에서 사용합니다. */
+  --label-medium-font-size: 15px; /** 버튼 라벨에서 사용합니다. */
+  --label-medium-letter-spacing: -0.015em; /** 버튼 라벨에서 사용합니다. */
+  --label-medium-paragraph-spacing: 0; /** 버튼 라벨에서 사용합니다. */
+  --label-medium-paragraph-indent: 0; /** 버튼 라벨에서 사용합니다. */
+  --label-medium-text-case: none; /** 버튼 라벨에서 사용합니다. */
+  --label-medium-text-decoration: none; /** 버튼 라벨에서 사용합니다. */
+  --label-small-font-family: Pretendard; /** 버튼 라벨에서 사용합니다. */
+  --label-small-font-weight: 600; /** 버튼 라벨에서 사용합니다. */
+  --label-small-line-height: 1.5; /** 버튼 라벨에서 사용합니다. */
+  --label-small-font-size: 13px; /** 버튼 라벨에서 사용합니다. */
+  --label-small-letter-spacing: -0.015em; /** 버튼 라벨에서 사용합니다. */
+  --label-small-paragraph-spacing: 0; /** 버튼 라벨에서 사용합니다. */
+  --label-small-paragraph-indent: 0; /** 버튼 라벨에서 사용합니다. */
+  --label-small-text-case: none; /** 버튼 라벨에서 사용합니다. */
+  --label-small-text-decoration: none; /** 버튼 라벨에서 사용합니다. */
+}
