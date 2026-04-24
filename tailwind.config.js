@@ -15,5 +15,10 @@ module.exports = {
       borderRadius: tokens.borderRadius,
     },
   },
+  safelist: [
+    {
+      pattern: /^typo-/,
+    },
+  ],
   plugins: [],
 };

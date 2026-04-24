@@ -46,7 +46,7 @@ StyleDictionary.registerFormat({
       const body = rules
         .map(({ cssProp, varName }) => `  ${cssProp}: var(--${varName});`)
         .join("\n");
-      return `.${prefix} {\n${body}\n}`;
+      return `.typo-${prefix} {\n${body}\n}`;
     });
 
     return `/**

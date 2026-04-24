@@ -2,7 +2,7 @@
  * Do not edit directly, this file was auto-generated.
  */
 
-.title-1-bold {
+.typo-title-1-bold {
   font-family: var(--title-1-bold-font-family);
   font-weight: var(--title-1-bold-font-weight);
   line-height: var(--title-1-bold-line-height);
@@ -13,7 +13,7 @@
   text-decoration: var(--title-1-bold-text-decoration);
 }
 
-.title-1-medium {
+.typo-title-1-medium {
   font-family: var(--title-1-medium-font-family);
   font-weight: var(--title-1-medium-font-weight);
   line-height: var(--title-1-medium-line-height);
@@ -24,7 +24,7 @@
   text-decoration: var(--title-1-medium-text-decoration);
 }
 
-.title-1-regular {
+.typo-title-1-regular {
   font-family: var(--title-1-regular-font-family);
   font-weight: var(--title-1-regular-font-weight);
   line-height: var(--title-1-regular-line-height);
@@ -35,7 +35,7 @@
   text-decoration: var(--title-1-regular-text-decoration);
 }
 
-.title-2-bold {
+.typo-title-2-bold {
   font-family: var(--title-2-bold-font-family);
   font-weight: var(--title-2-bold-font-weight);
   line-height: var(--title-2-bold-line-height);
@@ -46,7 +46,7 @@
   text-decoration: var(--title-2-bold-text-decoration);
 }
 
-.title-2-medium {
+.typo-title-2-medium {
   font-family: var(--title-2-medium-font-family);
   font-weight: var(--title-2-medium-font-weight);
   line-height: var(--title-2-medium-line-height);
@@ -57,7 +57,7 @@
   text-decoration: var(--title-2-medium-text-decoration);
 }
 
-.title-2-regular {
+.typo-title-2-regular {
   font-family: var(--title-2-regular-font-family);
   font-weight: var(--title-2-regular-font-weight);
   line-height: var(--title-2-regular-line-height);
@@ -68,7 +68,7 @@
   text-decoration: var(--title-2-regular-text-decoration);
 }
 
-.heading-1-semi-bold {
+.typo-heading-1-semi-bold {
   font-family: var(--heading-1-semi-bold-font-family);
   font-weight: var(--heading-1-semi-bold-font-weight);
   line-height: var(--heading-1-semi-bold-line-height);
@@ -79,7 +79,7 @@
   text-decoration: var(--heading-1-semi-bold-text-decoration);
 }
 
-.heading-1-medium {
+.typo-heading-1-medium {
   font-family: var(--heading-1-medium-font-family);
   font-weight: var(--heading-1-medium-font-weight);
   line-height: var(--heading-1-medium-line-height);
@@ -90,7 +90,7 @@
   text-decoration: var(--heading-1-medium-text-decoration);
 }
 
-.heading-1-regular {
+.typo-heading-1-regular {
   font-family: var(--heading-1-regular-font-family);
   font-weight: var(--heading-1-regular-font-weight);
   line-height: var(--heading-1-regular-line-height);
@@ -101,7 +101,7 @@
   text-decoration: var(--heading-1-regular-text-decoration);
 }
 
-.headline-1-semi-bold {
+.typo-headline-1-semi-bold {
   font-family: var(--headline-1-semi-bold-font-family);
   font-weight: var(--headline-1-semi-bold-font-weight);
   line-height: var(--headline-1-semi-bold-line-height);
@@ -112,7 +112,7 @@
   text-decoration: var(--headline-1-semi-bold-text-decoration);
 }
 
-.headline-1-medium {
+.typo-headline-1-medium {
   font-family: var(--headline-1-medium-font-family);
   font-weight: var(--headline-1-medium-font-weight);
   line-height: var(--headline-1-medium-line-height);
@@ -123,7 +123,7 @@
   text-decoration: var(--headline-1-medium-text-decoration);
 }
 
-.headline-1-regular {
+.typo-headline-1-regular {
   font-family: var(--headline-1-regular-font-family);
   font-weight: var(--headline-1-regular-font-weight);
   line-height: var(--headline-1-regular-line-height);
@@ -134,7 +134,7 @@
   text-decoration: var(--headline-1-regular-text-decoration);
 }
 
-.body-1-normal-semi-bold {
+.typo-body-1-normal-semi-bold {
   font-family: var(--body-1-normal-semi-bold-font-family);
   font-weight: var(--body-1-normal-semi-bold-font-weight);
   line-height: var(--body-1-normal-semi-bold-line-height);
@@ -145,7 +145,7 @@
   text-decoration: var(--body-1-normal-semi-bold-text-decoration);
 }
 
-.body-1-normal-medium {
+.typo-body-1-normal-medium {
   font-family: var(--body-1-normal-medium-font-family);
   font-weight: var(--body-1-normal-medium-font-weight);
   line-height: var(--body-1-normal-medium-line-height);
@@ -156,7 +156,7 @@
   text-decoration: var(--body-1-normal-medium-text-decoration);
 }
 
-.body-1-normal-regular {
+.typo-body-1-normal-regular {
   font-family: var(--body-1-normal-regular-font-family);
   font-weight: var(--body-1-normal-regular-font-weight);
   line-height: var(--body-1-normal-regular-line-height);
@@ -167,7 +167,7 @@
   text-decoration: var(--body-1-normal-regular-text-decoration);
 }
 
-.body-1-reading-semi-bold {
+.typo-body-1-reading-semi-bold {
   font-family: var(--body-1-reading-semi-bold-font-family);
   font-weight: var(--body-1-reading-semi-bold-font-weight);
   line-height: var(--body-1-reading-semi-bold-line-height);
@@ -178,7 +178,7 @@
   text-decoration: var(--body-1-reading-semi-bold-text-decoration);
 }
 
-.body-1-reading-medium {
+.typo-body-1-reading-medium {
   font-family: var(--body-1-reading-medium-font-family);
   font-weight: var(--body-1-reading-medium-font-weight);
   line-height: var(--body-1-reading-medium-line-height);
@@ -189,7 +189,7 @@
   text-decoration: var(--body-1-reading-medium-text-decoration);
 }
 
-.body-1-reading-regular {
+.typo-body-1-reading-regular {
   font-family: var(--body-1-reading-regular-font-family);
   font-weight: var(--body-1-reading-regular-font-weight);
   line-height: var(--body-1-reading-regular-line-height);
@@ -200,7 +200,7 @@
   text-decoration: var(--body-1-reading-regular-text-decoration);
 }
 
-.body-2-normal-semi-bold {
+.typo-body-2-normal-semi-bold {
   font-family: var(--body-2-normal-semi-bold-font-family);
   font-weight: var(--body-2-normal-semi-bold-font-weight);
   line-height: var(--body-2-normal-semi-bold-line-height);
@@ -211,7 +211,7 @@
   text-decoration: var(--body-2-normal-semi-bold-text-decoration);
 }
 
-.body-2-normal-medium {
+.typo-body-2-normal-medium {
   font-family: var(--body-2-normal-medium-font-family);
   font-weight: var(--body-2-normal-medium-font-weight);
   line-height: var(--body-2-normal-medium-line-height);
@@ -222,7 +222,7 @@
   text-decoration: var(--body-2-normal-medium-text-decoration);
 }
 
-.body-2-normal-regular {
+.typo-body-2-normal-regular {
   font-family: var(--body-2-normal-regular-font-family);
   font-weight: var(--body-2-normal-regular-font-weight);
   line-height: var(--body-2-normal-regular-line-height);
@@ -233,7 +233,7 @@
   text-decoration: var(--body-2-normal-regular-text-decoration);
 }
 
-.body-2-reading-semi-bold {
+.typo-body-2-reading-semi-bold {
   font-family: var(--body-2-reading-semi-bold-font-family);
   font-weight: var(--body-2-reading-semi-bold-font-weight);
   line-height: var(--body-2-reading-semi-bold-line-height);
@@ -244,7 +244,7 @@
   text-decoration: var(--body-2-reading-semi-bold-text-decoration);
 }
 
-.body-2-reading-medium {
+.typo-body-2-reading-medium {
   font-family: var(--body-2-reading-medium-font-family);
   font-weight: var(--body-2-reading-medium-font-weight);
   line-height: var(--body-2-reading-medium-line-height);
@@ -255,7 +255,7 @@
   text-decoration: var(--body-2-reading-medium-text-decoration);
 }
 
-.body-2-reading-regular {
+.typo-body-2-reading-regular {
   font-family: var(--body-2-reading-regular-font-family);
   font-weight: var(--body-2-reading-regular-font-weight);
   line-height: var(--body-2-reading-regular-line-height);
@@ -266,7 +266,7 @@
   text-decoration: var(--body-2-reading-regular-text-decoration);
 }
 
-.body-3-semi-bold {
+.typo-body-3-semi-bold {
   font-family: var(--body-3-semi-bold-font-family);
   font-weight: var(--body-3-semi-bold-font-weight);
   line-height: var(--body-3-semi-bold-line-height);
@@ -277,7 +277,7 @@
   text-decoration: var(--body-3-semi-bold-text-decoration);
 }
 
-.body-3-medium {
+.typo-body-3-medium {
   font-family: var(--body-3-medium-font-family);
   font-weight: var(--body-3-medium-font-weight);
   line-height: var(--body-3-medium-line-height);
@@ -288,7 +288,7 @@
   text-decoration: var(--body-3-medium-text-decoration);
 }
 
-.body-3-regular {
+.typo-body-3-regular {
   font-family: var(--body-3-regular-font-family);
   font-weight: var(--body-3-regular-font-weight);
   line-height: var(--body-3-regular-line-height);
@@ -299,7 +299,7 @@
   text-decoration: var(--body-3-regular-text-decoration);
 }
 
-.caption-1-semi-bold {
+.typo-caption-1-semi-bold {
   font-family: var(--caption-1-semi-bold-font-family);
   font-weight: var(--caption-1-semi-bold-font-weight);
   line-height: var(--caption-1-semi-bold-line-height);
@@ -310,7 +310,7 @@
   text-decoration: var(--caption-1-semi-bold-text-decoration);
 }
 
-.caption-1-medium {
+.typo-caption-1-medium {
   font-family: var(--caption-1-medium-font-family);
   font-weight: var(--caption-1-medium-font-weight);
   line-height: var(--caption-1-medium-line-height);
@@ -321,7 +321,7 @@
   text-decoration: var(--caption-1-medium-text-decoration);
 }
 
-.caption-1-regular {
+.typo-caption-1-regular {
   font-family: var(--caption-1-regular-font-family);
   font-weight: var(--caption-1-regular-font-weight);
   line-height: var(--caption-1-regular-line-height);
@@ -332,7 +332,7 @@
   text-decoration: var(--caption-1-regular-text-decoration);
 }
 
-.label-large {
+.typo-label-large {
   font-family: var(--label-large-font-family);
   font-weight: var(--label-large-font-weight);
   line-height: var(--label-large-line-height);
@@ -343,7 +343,7 @@
   text-decoration: var(--label-large-text-decoration);
 }
 
-.label-medium {
+.typo-label-medium {
   font-family: var(--label-medium-font-family);
   font-weight: var(--label-medium-font-weight);
   line-height: var(--label-medium-line-height);
@@ -354,7 +354,7 @@
   text-decoration: var(--label-medium-text-decoration);
 }
 
-.label-small {
+.typo-label-small {
   font-family: var(--label-small-font-family);
   font-weight: var(--label-small-font-weight);
   line-height: var(--label-small-line-height);
