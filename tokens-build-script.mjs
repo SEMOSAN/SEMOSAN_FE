@@ -96,13 +96,13 @@ StyleDictionary.registerFormat({
     const colors = {};
 
     dictionary.allTokens.forEach((token) => {
-      if (token.path[0] !== "global") return;
+      const type = token.$type ?? token.type;
+      if (type !== "color") return;
 
-      // 👇 $value 우선, 없으면 value
       const value = token.$value ?? token.value;
       if (typeof value !== "string") return;
 
-      const rest = token.path.slice(1);
+      const rest = token.path.map((k) => k.toLowerCase()).slice(1);
       setDeep(colors, rest, value);
     });
 
@@ -115,7 +115,44 @@ module.exports = {
 });
 
 /* =========================================
- * 3) spacing/radius/font-size에 px 단위 붙이기
+ * 3) Tailwind 타이포그래피 플러그인 포맷
+ *    - .typo-* 유틸리티를 실제 값으로 addUtilities
+ * ========================================= */
+StyleDictionary.registerFormat({
+  name: "tailwind/typography-plugin",
+  format: ({ dictionary }) => {
+    const groups = {};
+    dictionary.allTokens.forEach((token) => {
+      const match = extractTypographyPrefix(token.name);
+      if (!match) return;
+      const { prefix, prop } = match;
+      const cssProp = TYPO_PROP_MAP[prop];
+      if (!cssProp) return;
+      const value = token.$value ?? token.value;
+      if (value == null) return;
+      if (!groups[prefix]) groups[prefix] = {};
+      groups[prefix][cssProp] = String(value);
+    });
+
+    const utilities = Object.fromEntries(
+      Object.entries(groups).map(([prefix, styles]) => [
+        `.typo-${prefix}`,
+        styles,
+      ])
+    );
+
+    return `// 이 파일은 자동 생성됩니다. 직접 수정하지 마세요.
+const plugin = require('tailwindcss/plugin');
+
+module.exports = plugin(function({ addUtilities }) {
+  addUtilities(${JSON.stringify(utilities, null, 2)});
+});
+`;
+  },
+});
+
+/* =========================================
+ * 4) spacing/radius/font-size에 px 단위 붙이기
  * ========================================= */
 StyleDictionary.registerTransform({
   name: "size/append-px",
@@ -137,7 +174,7 @@ StyleDictionary.registerTransform({
  * 4) 빌드 설정
  * ========================================= */
 const sd = new StyleDictionary({
-  source: ["tokens/global/global.json"],
+  source: ["tokens/global/global.json", "tokens/semantic/Mode 1.json"],
   preprocessors: ["tokens-studio"],
   log: { verbosity: "verbose" },
   expand: {
@@ -158,6 +195,17 @@ const sd = new StyleDictionary({
       transforms: ["name/kebab", "size/append-px"],
       buildPath: "./",
       files: [{ destination: "tokens.cjs", format: "tailwind/tokens" }],
+    },
+    tailwindTypography: {
+      transformGroup: "tokens-studio",
+      transforms: ["name/kebab", "size/append-px"],
+      buildPath: "./",
+      files: [
+        {
+          destination: "typography-plugin.cjs",
+          format: "tailwind/typography-plugin",
+        },
+      ],
     },
   },
 });

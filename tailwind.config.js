@@ -1,4 +1,5 @@
 const tokens = require("./tokens.cjs");
+const typographyPlugin = require("./typography-plugin.cjs");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -20,5 +21,5 @@ module.exports = {
       pattern: /^typo-/,
     },
   ],
-  plugins: [],
+  plugins: [typographyPlugin],
 };

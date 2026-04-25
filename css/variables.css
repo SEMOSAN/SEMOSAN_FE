@@ -160,6 +160,33 @@
   --text-case-none: none;
   --text-decoration-none: none;
   --paragraph-indent-0: 0;
+  --color-primary-normal: #1a1b1f;
+  --color-primary-subtle: #2f323a;
+  --color-secondary-strong: #16a34a;
+  --color-secondary-normal: #00d864;
+  --color-label-normal: #1a1b1f;
+  --color-label-subtle: #464a57;
+  --color-label-disabled: #8b92a6;
+  --color-label-normal-inverse: #ffffff;
+  --color-label-subtler: #73798c;
+  --color-line-normal: #d1d5db;
+  --color-line-subtle: #e5e7eb;
+  --color-line-primary: #1a1b1f;
+  --color-fill-normal: #ffffff;
+  --color-fill-strong: #f9fafb;
+  --color-fill-stronger: #f0f2f4;
+  --color-fill-disabled: #e5e7eb;
+  --color-fill-strongest: #e5e7eb;
+  --color-fill-neutral: #d1d5db;
+  --color-interaction-subtle: rgba(26, 27, 31, 0.05);
+  --color-interaction-normal: rgba(26, 27, 31, 0.1);
+  --color-interaction-normal-inverse: rgba(255, 255, 255, 0.1);
+  --color-status-negative-normal: #ff5249;
+  --padding-card-small: 16;
+  --padding-card-x-large: 32;
+  --padding-card-medium: 20;
+  --padding-card-large: 24;
+  --padding-card-x-small: 12;
   --title-1-bold-font-family: Pretendard; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
   --title-1-bold-font-weight: 700; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
   --title-1-bold-line-height: 1.2; /** 텍스트를 주요하게 나타낼 때 사용합니다. 그 다음 크기로 사용합니다. */
