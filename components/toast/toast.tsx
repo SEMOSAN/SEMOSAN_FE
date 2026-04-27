@@ -11,7 +11,7 @@ type Props = {
   gap?: number;
 };
 
-export default function ToastHost({ containerClassName, gap = 8 }: Props) {
+export default function Toast({ containerClassName, gap = 8 }: Props) {
   const { queue, current, setCurrent } = useToastStore();
 
   const opacity = useRef(new Animated.Value(0)).current;
@@ -90,7 +90,9 @@ export default function ToastHost({ containerClassName, gap = 8 }: Props) {
         }}
       >
         {/* TODO : 토스트 디자인 나오면 변경 필요. */}
-        <Text>{current.message}</Text>
+        <View className="rounded-xl bg-white px-4 py-3 shadow-md shadow-black/20">
+          <Text className="text-black">{current.message}</Text>
+        </View>
       </Animated.View>
     </View>
   );

@@ -74,9 +74,15 @@ client.interceptors.response.use(
   },
 );
 
+type CallOptions = {
+  /** `true`로 설정하면 에러 발생 시 toast를 표시하지 않습니다. */
+  ignoreErrorToast?: boolean;
+};
+
 async function request<T>(
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
   { path, params, headers, body }: RequestOptions,
+  { ignoreErrorToast = false }: CallOptions = {},
 ): Promise<{ data: T; status: number }> {
   const url = `${path}${buildQueryParams(params)}`;
 
@@ -98,7 +104,10 @@ async function request<T>(
 
     const errorMessage = `API Error: ${status ?? "N/A"}`;
 
-    if (status === 500 || status === 401) {
+    if (
+      !ignoreErrorToast &&
+      (status === 500 || status === 401 || status === 403)
+    ) {
       toast.show(errorMessage);
     }
 
@@ -107,9 +116,14 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T>(options: RequestOptions) => request<T>("GET", options),
-  post: <T>(options: RequestOptions) => request<T>("POST", options),
-  put: <T>(options: RequestOptions) => request<T>("PUT", options),
-  delete: <T>(options: RequestOptions) => request<T>("DELETE", options),
-  patch: <T>(options: RequestOptions) => request<T>("PATCH", options),
+  get: <T>(options: RequestOptions, callOptions?: CallOptions) =>
+    request<T>("GET", options, callOptions),
+  post: <T>(options: RequestOptions, callOptions?: CallOptions) =>
+    request<T>("POST", options, callOptions),
+  put: <T>(options: RequestOptions, callOptions?: CallOptions) =>
+    request<T>("PUT", options, callOptions),
+  delete: <T>(options: RequestOptions, callOptions?: CallOptions) =>
+    request<T>("DELETE", options, callOptions),
+  patch: <T>(options: RequestOptions, callOptions?: CallOptions) =>
+    request<T>("PATCH", options, callOptions),
 };
