@@ -1,0 +1,1546 @@
+{
+  "global": {
+    "green": {
+      "25": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#f0fdf4"
+      },
+      "50": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#dcfce7"
+      },
+      "100": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#bbf7d0"
+      },
+      "200": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#86efac"
+      },
+      "300": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#4ade80"
+      },
+      "400": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#00d864"
+      },
+      "500": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#16a34a"
+      },
+      "600": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#15803d"
+      },
+      "700": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#166534"
+      },
+      "800": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#14532d"
+      },
+      "900": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#064e3b"
+      }
+    },
+    "blue": {
+      "25": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#f5f8ff"
+      },
+      "50": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#eff6ff"
+      },
+      "100": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#dbeafe"
+      },
+      "200": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#bfdbfe"
+      },
+      "300": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#93c5fd"
+      },
+      "400": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#60a5fa"
+      },
+      "500": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#507ef4"
+      },
+      "600": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#2563eb"
+      },
+      "700": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#1d4ed8"
+      },
+      "800": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#1e40af"
+      },
+      "900": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#1e3a8a"
+      }
+    },
+    "red": {
+      "25": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#fff5f5"
+      },
+      "50": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#fef2f2"
+      },
+      "100": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#fee2e2"
+      },
+      "200": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#fecaca"
+      },
+      "300": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#fca5a5"
+      },
+      "400": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#f87171"
+      },
+      "500": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#ff5249"
+      },
+      "600": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#dc2626"
+      },
+      "700": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#b91c1c"
+      },
+      "800": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#991b1b"
+      },
+      "900": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#7f1d1d"
+      }
+    },
+    "yellow": {
+      "25": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#fffdf0"
+      },
+      "50": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#fffbeb"
+      },
+      "100": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#fef3c7"
+      },
+      "200": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#fde68a"
+      },
+      "300": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#ffd40d"
+      },
+      "400": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#facc15"
+      },
+      "500": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#eab308"
+      },
+      "600": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#ca8a04"
+      },
+      "700": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#a16207"
+      },
+      "800": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#854d0e"
+      },
+      "900": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#713f12"
+      }
+    },
+    "neutral": {
+      "25": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#f9fafb"
+      },
+      "50": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#f0f2f4"
+      },
+      "75": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#e5e7eb"
+      },
+      "100": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#d1d5db"
+      },
+      "200": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#bfc4d1"
+      },
+      "300": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#a4abc0"
+      },
+      "400": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#8b92a6"
+      },
+      "500": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#73798c"
+      },
+      "600": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#5c6170"
+      },
+      "700": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#464a57"
+      },
+      "800": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#2f323a"
+      },
+      "900": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#1a1b1f"
+      }
+    },
+    "common": {
+      "0": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#000000"
+      },
+      "100": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "#ffffff"
+      }
+    }
+  },
+  "font": {
+    "family": {
+      "pretendard": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "text",
+        "$value": "Pretendard"
+      }
+    },
+    "size": {
+      "12": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 12
+      },
+      "13": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 13
+      },
+      "14": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 14
+      },
+      "15": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 15
+      },
+      "16": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 16
+      },
+      "17": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 17
+      },
+      "18": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 18
+      },
+      "20": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 20
+      },
+      "24": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 24
+      },
+      "28": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 28
+      },
+      "32": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 32
+      }
+    },
+    "weight": {
+      "regular": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 400
+      },
+      "medium": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 500
+      },
+      "semibold": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 600
+      },
+      "bold": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 700
+      }
+    },
+    "lineHeight": {
+      "heading": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 1.3
+      },
+      "body": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 1.5
+      },
+      "display": {
+        "$extensions": {
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "number",
+        "$value": 1.2
+      }
+    }
+  },
+  "spacing": {
+    "2": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 2
+    },
+    "4": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 4
+    },
+    "6": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 6
+    },
+    "8": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 8
+    },
+    "12": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 12
+    },
+    "16": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 16
+    },
+    "24": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 24
+    },
+    "32": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 32
+    },
+    "40": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 40
+    },
+    "48": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 48
+    },
+    "64": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "GAP"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 64
+    }
+  },
+  "radius": {
+    "none": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 0
+    },
+    "xs": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 2
+    },
+    "sm": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 4
+    },
+    "md": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 8
+    },
+    "xl": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 12
+    },
+    "2xl": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 16
+    },
+    "3xl": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 20
+    },
+    "4xl": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 24
+    },
+    "full": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 999
+    },
+    "lg": {
+      "$extensions": {
+        "com.figma.scopes": [
+          "CORNER_RADIUS"
+        ],
+        "com.figma.hiddenFromPublishing": false
+      },
+      "$type": "number",
+      "$value": 10
+    }
+  },
+  "fontFamilies": {
+    "pretendard": {
+      "$type": "fontFamilies",
+      "$value": "Pretendard"
+    }
+  },
+  "lineHeights": {
+    "0": {
+      "$type": "lineHeights",
+      "$value": "120%"
+    },
+    "1": {
+      "$type": "lineHeights",
+      "$value": "120%"
+    },
+    "2": {
+      "$type": "lineHeights",
+      "$value": "120%"
+    },
+    "3": {
+      "$type": "lineHeights",
+      "$value": "120%"
+    },
+    "4": {
+      "$type": "lineHeights",
+      "$value": "120%"
+    },
+    "5": {
+      "$type": "lineHeights",
+      "$value": "120%"
+    },
+    "6": {
+      "$type": "lineHeights",
+      "$value": "130%"
+    },
+    "7": {
+      "$type": "lineHeights",
+      "$value": "130%"
+    },
+    "8": {
+      "$type": "lineHeights",
+      "$value": "130%"
+    },
+    "9": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "10": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "11": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "12": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "13": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "14": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "15": {
+      "$type": "lineHeights",
+      "$value": "160%"
+    },
+    "16": {
+      "$type": "lineHeights",
+      "$value": "160%"
+    },
+    "17": {
+      "$type": "lineHeights",
+      "$value": "160%"
+    },
+    "18": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "19": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "20": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "21": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "22": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "23": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "24": {
+      "$type": "lineHeights",
+      "$value": "140%"
+    },
+    "25": {
+      "$type": "lineHeights",
+      "$value": "140%"
+    },
+    "26": {
+      "$type": "lineHeights",
+      "$value": "140%"
+    },
+    "27": {
+      "$type": "lineHeights",
+      "$value": "130%"
+    },
+    "28": {
+      "$type": "lineHeights",
+      "$value": "130%"
+    },
+    "29": {
+      "$type": "lineHeights",
+      "$value": "130%"
+    },
+    "30": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "31": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    },
+    "32": {
+      "$type": "lineHeights",
+      "$value": "150%"
+    }
+  },
+  "fontWeights": {
+    "pretendard-0": {
+      "$type": "fontWeights",
+      "$value": "Bold"
+    },
+    "pretendard-1": {
+      "$type": "fontWeights",
+      "$value": "Medium"
+    },
+    "pretendard-2": {
+      "$type": "fontWeights",
+      "$value": "Regular"
+    },
+    "pretendard-3": {
+      "$type": "fontWeights",
+      "$value": "SemiBold"
+    }
+  },
+  "fontSize": {
+    "0": {
+      "$type": "fontSizes",
+      "$value": 12
+    },
+    "1": {
+      "$type": "fontSizes",
+      "$value": 13
+    },
+    "2": {
+      "$type": "fontSizes",
+      "$value": 14
+    },
+    "3": {
+      "$type": "fontSizes",
+      "$value": 15
+    },
+    "4": {
+      "$type": "fontSizes",
+      "$value": 16
+    },
+    "5": {
+      "$type": "fontSizes",
+      "$value": 17
+    },
+    "6": {
+      "$type": "fontSizes",
+      "$value": 18
+    },
+    "7": {
+      "$type": "fontSizes",
+      "$value": 20
+    },
+    "8": {
+      "$type": "fontSizes",
+      "$value": 24
+    },
+    "9": {
+      "$type": "fontSizes",
+      "$value": 28
+    }
+  },
+  "letterSpacing": {
+    "0": {
+      "$type": "letterSpacing",
+      "$value": "-2.5%"
+    },
+    "1": {
+      "$type": "letterSpacing",
+      "$value": "-2%"
+    },
+    "2": {
+      "$type": "letterSpacing",
+      "$value": "-1.5%"
+    },
+    "3": {
+      "$type": "letterSpacing",
+      "$value": "0.5%"
+    },
+    "4": {
+      "$type": "letterSpacing",
+      "$value": "1.5%"
+    },
+    "5": {
+      "$type": "letterSpacing",
+      "$value": "2%"
+    },
+    "6": {
+      "$type": "letterSpacing",
+      "$value": "2.5%"
+    }
+  },
+  "paragraphSpacing": {
+    "0": {
+      "$type": "paragraphSpacing",
+      "$value": 0
+    }
+  },
+  "Title 1": {
+    "Bold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-0}",
+        "lineHeight": "{lineHeights.0}",
+        "fontSize": "{fontSize.9}",
+        "letterSpacing": "{letterSpacing.0}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "텍스트를 주요하게 나타낼 때\b 사용합니다. 그 다음 크기로 사용합니다."
+    },
+    "Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.0}",
+        "fontSize": "{fontSize.9}",
+        "letterSpacing": "{letterSpacing.0}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "텍스트를 주요하게 나타낼 때\b사용합니다. 그 다음 크기로 사용합니다."
+    },
+    "Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.0}",
+        "fontSize": "{fontSize.9}",
+        "letterSpacing": "{letterSpacing.0}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "텍스트를 주요하게 나타낼 때\b사용합니다. 그 다음 크기로 사용합니다."
+    }
+  },
+  "Title 2": {
+    "Bold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-0}",
+        "lineHeight": "{lineHeights.0}",
+        "fontSize": "{fontSize.8}",
+        "letterSpacing": "{letterSpacing.0}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "텍스트를 주요하게 나타낼 때\b사용합니다. Heading보다 큰 크기로 사용합니다."
+    },
+    "Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.0}",
+        "fontSize": "{fontSize.8}",
+        "letterSpacing": "{letterSpacing.0}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "텍스트를 주요하게 나타낼 때\b사용합니다. Heading보다 큰 크기로 사용합니다."
+    },
+    "Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.0}",
+        "fontSize": "{fontSize.8}",
+        "letterSpacing": "{letterSpacing.0}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "텍스트를 주요하게 나타낼 때\b사용합니다. Heading보다 큰 크기로 사용합니다."
+    }
+  },
+  "Heading 1": {
+    "SemiBold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.6}",
+        "fontSize": "{fontSize.7}",
+        "letterSpacing": "{letterSpacing.1}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다."
+    },
+    "Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.6}",
+        "fontSize": "{fontSize.7}",
+        "letterSpacing": "{letterSpacing.1}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다."
+    },
+    "Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.6}",
+        "fontSize": "{fontSize.7}",
+        "letterSpacing": "{letterSpacing.1}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "섹션에서 주제를 나타낼 때 사용합니다. 작은 화면에서 사용합니다."
+    }
+  },
+  "Headline 1": {
+    "SemiBold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.6}",
+        "letterSpacing": "{letterSpacing.2}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다."
+    },
+    "Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.6}",
+        "letterSpacing": "{letterSpacing.2}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다."
+    },
+    "Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.6}",
+        "letterSpacing": "{letterSpacing.2}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "본문 상위로 내용을 강조해야 할 때 사용합니다. 큰 화면에서 사용합니다."
+    }
+  },
+  "Body 1": {
+    "Normal - SemiBold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.4}",
+        "letterSpacing": "{letterSpacing.3}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "기준 크기로 사용합니다. 일반적으로 사용합니다."
+    },
+    "Normal - Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.4}",
+        "letterSpacing": "{letterSpacing.3}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "기준 크기로 사용합니다. 일반적으로 사용합니다."
+    },
+    "Normal - Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.4}",
+        "letterSpacing": "{letterSpacing.3}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "기준 크기로 사용합니다. 일반적으로 사용합니다."
+    },
+    "Reading - SemiBold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.15}",
+        "fontSize": "{fontSize.4}",
+        "letterSpacing": "{letterSpacing.3}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다."
+    },
+    "Reading - Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.15}",
+        "fontSize": "{fontSize.4}",
+        "letterSpacing": "{letterSpacing.3}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다."
+    },
+    "Reading - Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.15}",
+        "fontSize": "{fontSize.4}",
+        "letterSpacing": "{letterSpacing.3}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "기준 크기로 사용합니다. 보다 길게 읽어야 할 때 사용합니다."
+    }
+  },
+  "Body 2": {
+    "Normal - SemiBold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.2}",
+        "letterSpacing": "{letterSpacing.4}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다."
+    },
+    "Normal - Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.2}",
+        "letterSpacing": "{letterSpacing.4}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다."
+    },
+    "Normal - Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.2}",
+        "letterSpacing": "{letterSpacing.4}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "참고 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다."
+    },
+    "Reading - SemiBold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.2}",
+        "letterSpacing": "{letterSpacing.4}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다."
+    },
+    "Reading - Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.2}",
+        "letterSpacing": "{letterSpacing.4}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다."
+    },
+    "Reading - Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.2}",
+        "letterSpacing": "{letterSpacing.4}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "참고 내용을 나타낼 때 사용합니다. 보다 길게 읽어야 할 때 사용합니다."
+    }
+  },
+  "Body 3": {
+    "SemiBold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.24}",
+        "fontSize": "{fontSize.1}",
+        "letterSpacing": "{letterSpacing.5}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다."
+    },
+    "Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.24}",
+        "fontSize": "{fontSize.1}",
+        "letterSpacing": "{letterSpacing.5}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다."
+    },
+    "Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.24}",
+        "fontSize": "{fontSize.1}",
+        "letterSpacing": "{letterSpacing.5}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "참고 내용을 나타낼 때 사용합니다. 보다 낮은 위계로 사용합니다."
+    }
+  },
+  "Caption 1": {
+    "SemiBold": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.6}",
+        "fontSize": "{fontSize.0}",
+        "letterSpacing": "{letterSpacing.6}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다."
+    },
+    "Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-1}",
+        "lineHeight": "{lineHeights.6}",
+        "fontSize": "{fontSize.0}",
+        "letterSpacing": "{letterSpacing.6}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다."
+    },
+    "Regular": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-2}",
+        "lineHeight": "{lineHeights.6}",
+        "fontSize": "{fontSize.0}",
+        "letterSpacing": "{letterSpacing.6}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "부가적인 내용을 나타낼 때 사용합니다. 일반적으로 사용합니다."
+    }
+  },
+  "Label": {
+    "Large": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.5}",
+        "letterSpacing": "{letterSpacing.2}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "버튼 라벨에서 사용합니다."
+    },
+    "Medium": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.3}",
+        "letterSpacing": "{letterSpacing.2}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "버튼 라벨에서 사용합니다."
+    },
+    "Small": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{fontFamilies.pretendard}",
+        "fontWeight": "{fontWeights.pretendard-3}",
+        "lineHeight": "{lineHeights.9}",
+        "fontSize": "{fontSize.1}",
+        "letterSpacing": "{letterSpacing.2}",
+        "paragraphSpacing": "{paragraphSpacing.0}",
+        "paragraphIndent": "{paragraphIndent.0}",
+        "textCase": "{textCase.none}",
+        "textDecoration": "{textDecoration.none}"
+      },
+      "$description": "버튼 라벨에서 사용합니다."
+    }
+  },
+  "textCase": {
+    "none": {
+      "$type": "textCase",
+      "$value": "none"
+    }
+  },
+  "textDecoration": {
+    "none": {
+      "$type": "textDecoration",
+      "$value": "none"
+    }
+  },
+  "paragraphIndent": {
+    "0": {
+      "$type": "dimension",
+      "$value": "0px"
+    }
+  }
+}

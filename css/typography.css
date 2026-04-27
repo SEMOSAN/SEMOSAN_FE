@@ -1,0 +1,366 @@
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+.typo-title-1-bold {
+  font-family: var(--title-1-bold-font-family);
+  font-weight: var(--title-1-bold-font-weight);
+  line-height: var(--title-1-bold-line-height);
+  font-size: var(--title-1-bold-font-size);
+  letter-spacing: var(--title-1-bold-letter-spacing);
+  text-indent: var(--title-1-bold-paragraph-indent);
+  text-transform: var(--title-1-bold-text-case);
+  text-decoration: var(--title-1-bold-text-decoration);
+}
+
+.typo-title-1-medium {
+  font-family: var(--title-1-medium-font-family);
+  font-weight: var(--title-1-medium-font-weight);
+  line-height: var(--title-1-medium-line-height);
+  font-size: var(--title-1-medium-font-size);
+  letter-spacing: var(--title-1-medium-letter-spacing);
+  text-indent: var(--title-1-medium-paragraph-indent);
+  text-transform: var(--title-1-medium-text-case);
+  text-decoration: var(--title-1-medium-text-decoration);
+}
+
+.typo-title-1-regular {
+  font-family: var(--title-1-regular-font-family);
+  font-weight: var(--title-1-regular-font-weight);
+  line-height: var(--title-1-regular-line-height);
+  font-size: var(--title-1-regular-font-size);
+  letter-spacing: var(--title-1-regular-letter-spacing);
+  text-indent: var(--title-1-regular-paragraph-indent);
+  text-transform: var(--title-1-regular-text-case);
+  text-decoration: var(--title-1-regular-text-decoration);
+}
+
+.typo-title-2-bold {
+  font-family: var(--title-2-bold-font-family);
+  font-weight: var(--title-2-bold-font-weight);
+  line-height: var(--title-2-bold-line-height);
+  font-size: var(--title-2-bold-font-size);
+  letter-spacing: var(--title-2-bold-letter-spacing);
+  text-indent: var(--title-2-bold-paragraph-indent);
+  text-transform: var(--title-2-bold-text-case);
+  text-decoration: var(--title-2-bold-text-decoration);
+}
+
+.typo-title-2-medium {
+  font-family: var(--title-2-medium-font-family);
+  font-weight: var(--title-2-medium-font-weight);
+  line-height: var(--title-2-medium-line-height);
+  font-size: var(--title-2-medium-font-size);
+  letter-spacing: var(--title-2-medium-letter-spacing);
+  text-indent: var(--title-2-medium-paragraph-indent);
+  text-transform: var(--title-2-medium-text-case);
+  text-decoration: var(--title-2-medium-text-decoration);
+}
+
+.typo-title-2-regular {
+  font-family: var(--title-2-regular-font-family);
+  font-weight: var(--title-2-regular-font-weight);
+  line-height: var(--title-2-regular-line-height);
+  font-size: var(--title-2-regular-font-size);
+  letter-spacing: var(--title-2-regular-letter-spacing);
+  text-indent: var(--title-2-regular-paragraph-indent);
+  text-transform: var(--title-2-regular-text-case);
+  text-decoration: var(--title-2-regular-text-decoration);
+}
+
+.typo-heading-1-semi-bold {
+  font-family: var(--heading-1-semi-bold-font-family);
+  font-weight: var(--heading-1-semi-bold-font-weight);
+  line-height: var(--heading-1-semi-bold-line-height);
+  font-size: var(--heading-1-semi-bold-font-size);
+  letter-spacing: var(--heading-1-semi-bold-letter-spacing);
+  text-indent: var(--heading-1-semi-bold-paragraph-indent);
+  text-transform: var(--heading-1-semi-bold-text-case);
+  text-decoration: var(--heading-1-semi-bold-text-decoration);
+}
+
+.typo-heading-1-medium {
+  font-family: var(--heading-1-medium-font-family);
+  font-weight: var(--heading-1-medium-font-weight);
+  line-height: var(--heading-1-medium-line-height);
+  font-size: var(--heading-1-medium-font-size);
+  letter-spacing: var(--heading-1-medium-letter-spacing);
+  text-indent: var(--heading-1-medium-paragraph-indent);
+  text-transform: var(--heading-1-medium-text-case);
+  text-decoration: var(--heading-1-medium-text-decoration);
+}
+
+.typo-heading-1-regular {
+  font-family: var(--heading-1-regular-font-family);
+  font-weight: var(--heading-1-regular-font-weight);
+  line-height: var(--heading-1-regular-line-height);
+  font-size: var(--heading-1-regular-font-size);
+  letter-spacing: var(--heading-1-regular-letter-spacing);
+  text-indent: var(--heading-1-regular-paragraph-indent);
+  text-transform: var(--heading-1-regular-text-case);
+  text-decoration: var(--heading-1-regular-text-decoration);
+}
+
+.typo-headline-1-semi-bold {
+  font-family: var(--headline-1-semi-bold-font-family);
+  font-weight: var(--headline-1-semi-bold-font-weight);
+  line-height: var(--headline-1-semi-bold-line-height);
+  font-size: var(--headline-1-semi-bold-font-size);
+  letter-spacing: var(--headline-1-semi-bold-letter-spacing);
+  text-indent: var(--headline-1-semi-bold-paragraph-indent);
+  text-transform: var(--headline-1-semi-bold-text-case);
+  text-decoration: var(--headline-1-semi-bold-text-decoration);
+}
+
+.typo-headline-1-medium {
+  font-family: var(--headline-1-medium-font-family);
+  font-weight: var(--headline-1-medium-font-weight);
+  line-height: var(--headline-1-medium-line-height);
+  font-size: var(--headline-1-medium-font-size);
+  letter-spacing: var(--headline-1-medium-letter-spacing);
+  text-indent: var(--headline-1-medium-paragraph-indent);
+  text-transform: var(--headline-1-medium-text-case);
+  text-decoration: var(--headline-1-medium-text-decoration);
+}
+
+.typo-headline-1-regular {
+  font-family: var(--headline-1-regular-font-family);
+  font-weight: var(--headline-1-regular-font-weight);
+  line-height: var(--headline-1-regular-line-height);
+  font-size: var(--headline-1-regular-font-size);
+  letter-spacing: var(--headline-1-regular-letter-spacing);
+  text-indent: var(--headline-1-regular-paragraph-indent);
+  text-transform: var(--headline-1-regular-text-case);
+  text-decoration: var(--headline-1-regular-text-decoration);
+}
+
+.typo-body-1-normal-semi-bold {
+  font-family: var(--body-1-normal-semi-bold-font-family);
+  font-weight: var(--body-1-normal-semi-bold-font-weight);
+  line-height: var(--body-1-normal-semi-bold-line-height);
+  font-size: var(--body-1-normal-semi-bold-font-size);
+  letter-spacing: var(--body-1-normal-semi-bold-letter-spacing);
+  text-indent: var(--body-1-normal-semi-bold-paragraph-indent);
+  text-transform: var(--body-1-normal-semi-bold-text-case);
+  text-decoration: var(--body-1-normal-semi-bold-text-decoration);
+}
+
+.typo-body-1-normal-medium {
+  font-family: var(--body-1-normal-medium-font-family);
+  font-weight: var(--body-1-normal-medium-font-weight);
+  line-height: var(--body-1-normal-medium-line-height);
+  font-size: var(--body-1-normal-medium-font-size);
+  letter-spacing: var(--body-1-normal-medium-letter-spacing);
+  text-indent: var(--body-1-normal-medium-paragraph-indent);
+  text-transform: var(--body-1-normal-medium-text-case);
+  text-decoration: var(--body-1-normal-medium-text-decoration);
+}
+
+.typo-body-1-normal-regular {
+  font-family: var(--body-1-normal-regular-font-family);
+  font-weight: var(--body-1-normal-regular-font-weight);
+  line-height: var(--body-1-normal-regular-line-height);
+  font-size: var(--body-1-normal-regular-font-size);
+  letter-spacing: var(--body-1-normal-regular-letter-spacing);
+  text-indent: var(--body-1-normal-regular-paragraph-indent);
+  text-transform: var(--body-1-normal-regular-text-case);
+  text-decoration: var(--body-1-normal-regular-text-decoration);
+}
+
+.typo-body-1-reading-semi-bold {
+  font-family: var(--body-1-reading-semi-bold-font-family);
+  font-weight: var(--body-1-reading-semi-bold-font-weight);
+  line-height: var(--body-1-reading-semi-bold-line-height);
+  font-size: var(--body-1-reading-semi-bold-font-size);
+  letter-spacing: var(--body-1-reading-semi-bold-letter-spacing);
+  text-indent: var(--body-1-reading-semi-bold-paragraph-indent);
+  text-transform: var(--body-1-reading-semi-bold-text-case);
+  text-decoration: var(--body-1-reading-semi-bold-text-decoration);
+}
+
+.typo-body-1-reading-medium {
+  font-family: var(--body-1-reading-medium-font-family);
+  font-weight: var(--body-1-reading-medium-font-weight);
+  line-height: var(--body-1-reading-medium-line-height);
+  font-size: var(--body-1-reading-medium-font-size);
+  letter-spacing: var(--body-1-reading-medium-letter-spacing);
+  text-indent: var(--body-1-reading-medium-paragraph-indent);
+  text-transform: var(--body-1-reading-medium-text-case);
+  text-decoration: var(--body-1-reading-medium-text-decoration);
+}
+
+.typo-body-1-reading-regular {
+  font-family: var(--body-1-reading-regular-font-family);
+  font-weight: var(--body-1-reading-regular-font-weight);
+  line-height: var(--body-1-reading-regular-line-height);
+  font-size: var(--body-1-reading-regular-font-size);
+  letter-spacing: var(--body-1-reading-regular-letter-spacing);
+  text-indent: var(--body-1-reading-regular-paragraph-indent);
+  text-transform: var(--body-1-reading-regular-text-case);
+  text-decoration: var(--body-1-reading-regular-text-decoration);
+}
+
+.typo-body-2-normal-semi-bold {
+  font-family: var(--body-2-normal-semi-bold-font-family);
+  font-weight: var(--body-2-normal-semi-bold-font-weight);
+  line-height: var(--body-2-normal-semi-bold-line-height);
+  font-size: var(--body-2-normal-semi-bold-font-size);
+  letter-spacing: var(--body-2-normal-semi-bold-letter-spacing);
+  text-indent: var(--body-2-normal-semi-bold-paragraph-indent);
+  text-transform: var(--body-2-normal-semi-bold-text-case);
+  text-decoration: var(--body-2-normal-semi-bold-text-decoration);
+}
+
+.typo-body-2-normal-medium {
+  font-family: var(--body-2-normal-medium-font-family);
+  font-weight: var(--body-2-normal-medium-font-weight);
+  line-height: var(--body-2-normal-medium-line-height);
+  font-size: var(--body-2-normal-medium-font-size);
+  letter-spacing: var(--body-2-normal-medium-letter-spacing);
+  text-indent: var(--body-2-normal-medium-paragraph-indent);
+  text-transform: var(--body-2-normal-medium-text-case);
+  text-decoration: var(--body-2-normal-medium-text-decoration);
+}
+
+.typo-body-2-normal-regular {
+  font-family: var(--body-2-normal-regular-font-family);
+  font-weight: var(--body-2-normal-regular-font-weight);
+  line-height: var(--body-2-normal-regular-line-height);
+  font-size: var(--body-2-normal-regular-font-size);
+  letter-spacing: var(--body-2-normal-regular-letter-spacing);
+  text-indent: var(--body-2-normal-regular-paragraph-indent);
+  text-transform: var(--body-2-normal-regular-text-case);
+  text-decoration: var(--body-2-normal-regular-text-decoration);
+}
+
+.typo-body-2-reading-semi-bold {
+  font-family: var(--body-2-reading-semi-bold-font-family);
+  font-weight: var(--body-2-reading-semi-bold-font-weight);
+  line-height: var(--body-2-reading-semi-bold-line-height);
+  font-size: var(--body-2-reading-semi-bold-font-size);
+  letter-spacing: var(--body-2-reading-semi-bold-letter-spacing);
+  text-indent: var(--body-2-reading-semi-bold-paragraph-indent);
+  text-transform: var(--body-2-reading-semi-bold-text-case);
+  text-decoration: var(--body-2-reading-semi-bold-text-decoration);
+}
+
+.typo-body-2-reading-medium {
+  font-family: var(--body-2-reading-medium-font-family);
+  font-weight: var(--body-2-reading-medium-font-weight);
+  line-height: var(--body-2-reading-medium-line-height);
+  font-size: var(--body-2-reading-medium-font-size);
+  letter-spacing: var(--body-2-reading-medium-letter-spacing);
+  text-indent: var(--body-2-reading-medium-paragraph-indent);
+  text-transform: var(--body-2-reading-medium-text-case);
+  text-decoration: var(--body-2-reading-medium-text-decoration);
+}
+
+.typo-body-2-reading-regular {
+  font-family: var(--body-2-reading-regular-font-family);
+  font-weight: var(--body-2-reading-regular-font-weight);
+  line-height: var(--body-2-reading-regular-line-height);
+  font-size: var(--body-2-reading-regular-font-size);
+  letter-spacing: var(--body-2-reading-regular-letter-spacing);
+  text-indent: var(--body-2-reading-regular-paragraph-indent);
+  text-transform: var(--body-2-reading-regular-text-case);
+  text-decoration: var(--body-2-reading-regular-text-decoration);
+}
+
+.typo-body-3-semi-bold {
+  font-family: var(--body-3-semi-bold-font-family);
+  font-weight: var(--body-3-semi-bold-font-weight);
+  line-height: var(--body-3-semi-bold-line-height);
+  font-size: var(--body-3-semi-bold-font-size);
+  letter-spacing: var(--body-3-semi-bold-letter-spacing);
+  text-indent: var(--body-3-semi-bold-paragraph-indent);
+  text-transform: var(--body-3-semi-bold-text-case);
+  text-decoration: var(--body-3-semi-bold-text-decoration);
+}
+
+.typo-body-3-medium {
+  font-family: var(--body-3-medium-font-family);
+  font-weight: var(--body-3-medium-font-weight);
+  line-height: var(--body-3-medium-line-height);
+  font-size: var(--body-3-medium-font-size);
+  letter-spacing: var(--body-3-medium-letter-spacing);
+  text-indent: var(--body-3-medium-paragraph-indent);
+  text-transform: var(--body-3-medium-text-case);
+  text-decoration: var(--body-3-medium-text-decoration);
+}
+
+.typo-body-3-regular {
+  font-family: var(--body-3-regular-font-family);
+  font-weight: var(--body-3-regular-font-weight);
+  line-height: var(--body-3-regular-line-height);
+  font-size: var(--body-3-regular-font-size);
+  letter-spacing: var(--body-3-regular-letter-spacing);
+  text-indent: var(--body-3-regular-paragraph-indent);
+  text-transform: var(--body-3-regular-text-case);
+  text-decoration: var(--body-3-regular-text-decoration);
+}
+
+.typo-caption-1-semi-bold {
+  font-family: var(--caption-1-semi-bold-font-family);
+  font-weight: var(--caption-1-semi-bold-font-weight);
+  line-height: var(--caption-1-semi-bold-line-height);
+  font-size: var(--caption-1-semi-bold-font-size);
+  letter-spacing: var(--caption-1-semi-bold-letter-spacing);
+  text-indent: var(--caption-1-semi-bold-paragraph-indent);
+  text-transform: var(--caption-1-semi-bold-text-case);
+  text-decoration: var(--caption-1-semi-bold-text-decoration);
+}
+
+.typo-caption-1-medium {
+  font-family: var(--caption-1-medium-font-family);
+  font-weight: var(--caption-1-medium-font-weight);
+  line-height: var(--caption-1-medium-line-height);
+  font-size: var(--caption-1-medium-font-size);
+  letter-spacing: var(--caption-1-medium-letter-spacing);
+  text-indent: var(--caption-1-medium-paragraph-indent);
+  text-transform: var(--caption-1-medium-text-case);
+  text-decoration: var(--caption-1-medium-text-decoration);
+}
+
+.typo-caption-1-regular {
+  font-family: var(--caption-1-regular-font-family);
+  font-weight: var(--caption-1-regular-font-weight);
+  line-height: var(--caption-1-regular-line-height);
+  font-size: var(--caption-1-regular-font-size);
+  letter-spacing: var(--caption-1-regular-letter-spacing);
+  text-indent: var(--caption-1-regular-paragraph-indent);
+  text-transform: var(--caption-1-regular-text-case);
+  text-decoration: var(--caption-1-regular-text-decoration);
+}
+
+.typo-label-large {
+  font-family: var(--label-large-font-family);
+  font-weight: var(--label-large-font-weight);
+  line-height: var(--label-large-line-height);
+  font-size: var(--label-large-font-size);
+  letter-spacing: var(--label-large-letter-spacing);
+  text-indent: var(--label-large-paragraph-indent);
+  text-transform: var(--label-large-text-case);
+  text-decoration: var(--label-large-text-decoration);
+}
+
+.typo-label-medium {
+  font-family: var(--label-medium-font-family);
+  font-weight: var(--label-medium-font-weight);
+  line-height: var(--label-medium-line-height);
+  font-size: var(--label-medium-font-size);
+  letter-spacing: var(--label-medium-letter-spacing);
+  text-indent: var(--label-medium-paragraph-indent);
+  text-transform: var(--label-medium-text-case);
+  text-decoration: var(--label-medium-text-decoration);
+}
+
+.typo-label-small {
+  font-family: var(--label-small-font-family);
+  font-weight: var(--label-small-font-weight);
+  line-height: var(--label-small-line-height);
+  font-size: var(--label-small-font-size);
+  letter-spacing: var(--label-small-letter-spacing);
+  text-indent: var(--label-small-paragraph-indent);
+  text-transform: var(--label-small-text-case);
+  text-decoration: var(--label-small-text-decoration);
+}
