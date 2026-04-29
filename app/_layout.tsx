@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import "../global.css";
 
+import Toast from "@/components/toast/toast";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export const unstable_settings = {
@@ -26,6 +27,7 @@ export default function RootLayout() {
           options={{ presentation: "modal", title: "Modal" }}
         />
       </Stack>
+      <Toast />
       <StatusBar style="auto" />
     </ThemeProvider>
   );
