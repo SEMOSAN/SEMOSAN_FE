@@ -32,17 +32,6 @@
     "plugins": [
       "expo-router",
       [
-        "@mj-studio/react-native-naver-map",
-        {
-          "ios": {
-            "CLIENT_ID": "dmio3jqd3m"
-          },
-          "android": {
-            "CLIENT_ID": "dmio3jqd3m"
-          }
-        }
-      ],
-      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
