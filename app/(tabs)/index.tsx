@@ -45,7 +45,7 @@ export default function HomeScreen() {
         }}
         isShowLocationButton
         onCameraChanged={(params) =>
-          setRegion((prev) => ({ ...prev, zoom: params.zoom }))
+          setRegion({ latitude: params.latitude, longitude: params.longitude, zoom: params.zoom })
         }
       />
 
