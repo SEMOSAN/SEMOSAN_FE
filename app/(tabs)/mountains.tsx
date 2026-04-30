@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FilterBottomSheet } from '@/features/mountains/filter-bottom-sheet';
+import { RegionFilterContent } from '@/features/mountains/region-filter-content';
 
 type Difficulty = '하' | '중' | '상';
 
@@ -57,9 +60,12 @@ function CaretDownIcon() {
   );
 }
 
-function FilterChip({ label }: { label: string }) {
+function FilterChip({ label, onPress }: { label: string; onPress?: () => void }) {
   return (
-    <TouchableOpacity className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border border-line-subtle">
+    <TouchableOpacity
+      onPress={onPress}
+      className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border border-line-subtle"
+    >
       <Text className="typo-body-3-semi-bold text-label-normal">{label}</Text>
       <CaretDownIcon />
     </TouchableOpacity>
@@ -87,8 +93,11 @@ function MountainCard({ mountain }: { mountain: Mountain }) {
   );
 }
 
+type FilterKey = '인기순' | '지역' | '소요시간' | '난이도';
+
 export default function MountainsScreen() {
   const insets = useSafeAreaInsets();
+  const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
 
   return (
     <View className="flex-1 bg-fill-normal" style={{ paddingTop: insets.top }}>
@@ -100,11 +109,24 @@ export default function MountainsScreen() {
 
       {/* Filter bar */}
       <View className="flex-row items-center gap-2 px-5 h-[52px]">
-        <FilterChip label="인기순" />
-        <FilterChip label="지역" />
-        <FilterChip label="소요시간" />
-        <FilterChip label="난이도" />
+        {(['인기순', '지역', '소요시간', '난이도'] as FilterKey[]).map((label) => (
+          <FilterChip key={label} label={label} onPress={() => setOpenFilter(label)} />
+        ))}
       </View>
+
+      {/* 지역 필터 바텀시트 */}
+      <FilterBottomSheet
+        visible={openFilter === '지역'}
+        onClose={() => setOpenFilter(null)}
+        title="지역"
+      >
+        <RegionFilterContent
+          onApply={(_selections) => {
+            // TODO: 필터 적용 로직
+            setOpenFilter(null);
+          }}
+        />
+      </FilterBottomSheet>
 
       {/* Mountain list */}
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
