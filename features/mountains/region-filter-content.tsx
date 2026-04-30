@@ -1,6 +1,7 @@
 import { CheckIcon } from "@/components/icons/check-icon";
 import { useState } from "react";
 import {
+  Keyboard,
   Pressable,
   ScrollView,
   Text,
@@ -228,11 +229,14 @@ export function RegionFilterContent({ onApply }: Props) {
   const districts = DISTRICTS[selectedRegion] ?? [];
   const listItems: Selection[] = searchQuery
     ? Object.entries(DISTRICTS).flatMap(([region, dists]) =>
-        dists.filter((d) => d.includes(searchQuery)).map((d) => ({ region, district: d }))
+        dists
+          .filter((d) => d.includes(searchQuery))
+          .map((d) => ({ region, district: d })),
       )
     : districts.map((d) => ({ region: selectedRegion, district: d }));
 
   const handleDistrictPress = (region: string, district: string) => {
+    Keyboard.dismiss();
     const current: Selection = { region, district };
     const isAll = district.endsWith("전체");
 
@@ -258,11 +262,12 @@ export function RegionFilterContent({ onApply }: Props) {
   };
 
   const handleApply = () => {
+    Keyboard.dismiss();
     onApply(selectedDistricts);
   };
 
   return (
-    <View className="flex-col" style={{ maxHeight: 440 }}>
+    <View className="flex-col" style={{ height: 440 }}>
       {/* 검색 */}
       <View className="px-5 pt-3">
         <View className="h-12 flex-row items-center gap-2 rounded-full bg-fill-strong px-4">
@@ -279,40 +284,49 @@ export function RegionFilterContent({ onApply }: Props) {
 
       {/* 시/도 탭 */}
       {!searchQuery && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="pb-2 pt-3"
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-        >
-          {REGIONS.map((region) => {
-            const isSelected = region === selectedRegion;
-            return (
-              <TouchableOpacity
-                key={region}
-                onPress={() => setSelectedRegion(region)}
-                className={`rounded-full px-3 py-1.5 ${
-                  isSelected ? "bg-primary-subtle" : "border border-line-subtle"
-                }`}
-              >
-                <Text
-                  className={`typo-body-2-normal-medium ${
-                    isSelected ? "text-common-100" : "text-label-normal"
+        <View style={{ flexShrink: 0 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            className="pb-2 pt-3"
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+          >
+            {REGIONS.map((region) => {
+              const isSelected = region === selectedRegion;
+              return (
+                <Pressable
+                  key={region}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setSelectedRegion(region);
+                  }}
+                  className={`rounded-full px-3 py-1.5 ${
+                    isSelected
+                      ? "bg-primary-subtle"
+                      : "border border-line-subtle"
                   }`}
                 >
-                  {region}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                  <Text
+                    className={`typo-body-2-normal-medium ${
+                      isSelected ? "text-common-100" : "text-label-normal"
+                    }`}
+                  >
+                    {region}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
       )}
 
       {/* 구/군 목록 + 선택됨 플로팅 */}
-      <View className="relative" style={{ height: 240 }}>
+      <View className="relative flex-1">
         <ScrollView
           className="pt-3"
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={
             selectedDistricts.length > 0 ? { paddingBottom: 80 } : undefined
           }
@@ -327,7 +341,7 @@ export function RegionFilterContent({ onApply }: Props) {
                 onPress={() => handleDistrictPress(item.region, item.district)}
                 className="flex-row items-center px-5 py-3"
               >
-                <View className="flex-1">
+                <View>
                   <Text
                     className={`typo-body-2-normal-medium ${
                       isSelected ? "text-label-normal" : "text-label-subtler"
@@ -336,7 +350,7 @@ export function RegionFilterContent({ onApply }: Props) {
                     {item.district}
                   </Text>
                   {searchQuery && (
-                    <Text className="typo-body-3-medium text-label-subtler">
+                    <Text className="text-label-subtler typo-body-3-medium">
                       {item.region}
                     </Text>
                   )}
@@ -376,7 +390,8 @@ export function RegionFilterContent({ onApply }: Props) {
                     {s.district}
                   </Text>
                   <Pressable
-                    onPress={() =>
+                    onPress={() => {
+                      Keyboard.dismiss();
                       setSelectedDistricts((prev) =>
                         prev.filter(
                           (d) =>
@@ -384,8 +399,8 @@ export function RegionFilterContent({ onApply }: Props) {
                               d.region === s.region && d.district === s.district
                             ),
                         ),
-                      )
-                    }
+                      );
+                    }}
                   >
                     <XIcon />
                   </Pressable>

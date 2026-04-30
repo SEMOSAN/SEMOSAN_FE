@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Keyboard, Modal, Pressable, Text, TouchableWithoutFeedback, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -103,17 +103,21 @@ export function FilterBottomSheet({ visible, onClose, title, children }: Props) 
             className="absolute bottom-0 left-0 right-0 bg-fill-normal rounded-tl-[20px] rounded-tr-[20px] overflow-hidden"
             style={[{ paddingBottom: insets.bottom }, sheetStyle]}
           >
-            {/* Drag handle */}
-            <View className="items-center pt-3 pb-1">
-              <View className="w-10 h-1 rounded-full bg-line-subtle" />
-            </View>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+              <View>
+                {/* Drag handle */}
+                <View className="items-center pt-3 pb-1">
+                  <View className="w-10 h-1 rounded-full bg-line-subtle" />
+                </View>
 
-            {/* Title */}
-            <View className="px-5 pt-3 pb-1">
-              <Text className="typo-body-2-normal-medium text-label-subtle">{title}</Text>
-            </View>
+                {/* Title */}
+                <View className="px-5 pt-3 pb-1">
+                  <Text className="typo-body-2-normal-medium text-label-subtle">{title}</Text>
+                </View>
 
-            {children}
+                {children}
+              </View>
+            </TouchableWithoutFeedback>
           </Animated.View>
         </GestureDetector>
       </GestureHandlerRootView>
