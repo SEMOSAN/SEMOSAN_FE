@@ -226,29 +226,31 @@ export function RegionFilterContent({ onApply }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const districts = DISTRICTS[selectedRegion] ?? [];
-  const filteredDistricts = searchQuery
-    ? districts.filter((d) => d.includes(searchQuery))
-    : districts;
+  const listItems: Selection[] = searchQuery
+    ? Object.entries(DISTRICTS).flatMap(([region, dists]) =>
+        dists.filter((d) => d.includes(searchQuery)).map((d) => ({ region, district: d }))
+      )
+    : districts.map((d) => ({ region: selectedRegion, district: d }));
 
-  const handleDistrictPress = (district: string) => {
-    const current: Selection = { region: selectedRegion, district };
+  const handleDistrictPress = (region: string, district: string) => {
+    const current: Selection = { region, district };
     const isAll = district.endsWith("전체");
 
     setSelectedDistricts((prev) => {
       const alreadySelected = prev.some(
-        (s) => s.region === selectedRegion && s.district === district,
+        (s) => s.region === region && s.district === district,
       );
       if (alreadySelected) {
         return prev.filter(
-          (s) => !(s.region === selectedRegion && s.district === district),
+          (s) => !(s.region === region && s.district === district),
         );
       }
       if (isAll) {
-        return [...prev.filter((s) => s.region !== selectedRegion), current];
+        return [...prev.filter((s) => s.region !== region), current];
       }
       return [
         ...prev.filter(
-          (s) => !(s.region === selectedRegion && s.district.endsWith("전체")),
+          (s) => !(s.region === region && s.district.endsWith("전체")),
         ),
         current,
       ];
@@ -276,35 +278,35 @@ export function RegionFilterContent({ onApply }: Props) {
       </View>
 
       {/* 시/도 탭 */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="pb-2 pt-3"
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-      >
-        {REGIONS.map((region) => {
-          const isSelected = region === selectedRegion;
-          return (
-            <TouchableOpacity
-              key={region}
-              onPress={() => {
-                setSelectedRegion(region);
-              }}
-              className={`rounded-full px-3 py-1.5 ${
-                isSelected ? "bg-primary-subtle" : "border border-line-subtle"
-              }`}
-            >
-              <Text
-                className={`typo-body-2-normal-medium ${
-                  isSelected ? "text-common-100" : "text-label-normal"
+      {!searchQuery && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="pb-2 pt-3"
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+        >
+          {REGIONS.map((region) => {
+            const isSelected = region === selectedRegion;
+            return (
+              <TouchableOpacity
+                key={region}
+                onPress={() => setSelectedRegion(region)}
+                className={`rounded-full px-3 py-1.5 ${
+                  isSelected ? "bg-primary-subtle" : "border border-line-subtle"
                 }`}
               >
-                {region}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+                <Text
+                  className={`typo-body-2-normal-medium ${
+                    isSelected ? "text-common-100" : "text-label-normal"
+                  }`}
+                >
+                  {region}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
 
       {/* 구/군 목록 + 선택됨 플로팅 */}
       <View className="relative" style={{ height: 240 }}>
@@ -315,23 +317,30 @@ export function RegionFilterContent({ onApply }: Props) {
             selectedDistricts.length > 0 ? { paddingBottom: 80 } : undefined
           }
         >
-          {filteredDistricts.map((district) => {
+          {listItems.map((item) => {
             const isSelected = selectedDistricts.some(
-              (s) => s.region === selectedRegion && s.district === district,
+              (s) => s.region === item.region && s.district === item.district,
             );
             return (
               <Pressable
-                key={district}
-                onPress={() => handleDistrictPress(district)}
+                key={`${item.region}-${item.district}`}
+                onPress={() => handleDistrictPress(item.region, item.district)}
                 className="flex-row items-center px-5 py-3"
               >
-                <Text
-                  className={`typo-body-2-normal-medium ${
-                    isSelected ? "text-label-normal" : "text-label-subtler"
-                  }`}
-                >
-                  {district}
-                </Text>
+                <View className="flex-1">
+                  <Text
+                    className={`typo-body-2-normal-medium ${
+                      isSelected ? "text-label-normal" : "text-label-subtler"
+                    }`}
+                  >
+                    {item.district}
+                  </Text>
+                  {searchQuery && (
+                    <Text className="typo-body-3-medium text-label-subtler">
+                      {item.region}
+                    </Text>
+                  )}
+                </View>
                 {isSelected && (
                   <View className="ml-[6px]">
                     <CheckIcon size={16} color="#00D864" />
