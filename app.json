@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tastyhiking.semosan"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +20,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [],
+      "package": "com.tastyhiking.semosan"
     },
     "web": {
       "output": "static",
@@ -28,6 +31,17 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "@mj-studio/react-native-naver-map",
+        {
+          "ios": {
+            "CLIENT_ID": "dmio3jqd3m"
+          },
+          "android": {
+            "CLIENT_ID": "dmio3jqd3m"
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
