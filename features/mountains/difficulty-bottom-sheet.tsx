@@ -1,4 +1,5 @@
 import { LongButton } from "@/components/long-button";
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { FilterBottomSheet } from "./filter-bottom-sheet";
 
@@ -45,16 +46,20 @@ export function DifficultyBottomSheet({
   selected,
   onApply,
 }: Props) {
-  const toggle = (option: DifficultyOption, current: DifficultyOption[]) =>
-    current.includes(option)
-      ? current.filter((o) => o !== option)
-      : [...current, option];
+  const [localSelected, setLocalSelected] = useState<DifficultyOption[]>(selected);
 
-  // 내부 임시 선택 상태 없이 부모가 상태 관리
-  // onApply 호출 시 닫힘
-  const handleApply = () => {
-    onApply(selected);
-    onClose();
+  useEffect(() => {
+    if (visible) setLocalSelected(selected);
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggle = (option: DifficultyOption): void => {
+    setLocalSelected((prev) =>
+      prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option]
+    );
+  };
+
+  const handleApply = (): void => {
+    onApply(localSelected);
   };
 
   return (
@@ -62,11 +67,11 @@ export function DifficultyBottomSheet({
       <View className="px-5 pt-3">
         <View className="flex-row justify-center gap-3">
           {DIFFICULTY_OPTIONS.map(({ value, label, selectedStyle }) => {
-            const isSelected = selected.includes(value);
+            const isSelected = localSelected.includes(value);
             return (
               <Pressable
                 key={value}
-                onPress={() => onApply(toggle(value, selected))}
+                onPress={() => toggle(value)}
                 className={`rounded-full border px-3 py-1.5 ${
                   isSelected
                     ? selectedStyle.chip

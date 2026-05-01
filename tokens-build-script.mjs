@@ -102,7 +102,7 @@ StyleDictionary.registerFormat({
       const value = token.$value ?? token.value;
       if (typeof value !== "string") return;
 
-      const rest = token.path.map((k) => k.toLowerCase()).slice(1);
+      const rest = token.path.map((k) => k.toLowerCase().replace(/\s+/g, "-")).slice(1);
       setDeep(colors, rest, value);
     });
 

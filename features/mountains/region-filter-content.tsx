@@ -201,7 +201,7 @@ const DISTRICTS: Record<string, string[]> = {
   제주: ["제주 전체", "제주시", "서귀포시"],
 };
 
-type Selection = { region: string; district: string };
+export type Selection = { region: string; district: string };
 
 type Props = {
   onApply: (selections: Selection[]) => void;

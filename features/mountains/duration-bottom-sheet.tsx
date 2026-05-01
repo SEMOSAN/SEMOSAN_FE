@@ -8,7 +8,7 @@ const MIN_HOURS = 0;
 const MAX_HOURS = 7;
 const STEP = 0.5;
 
-function formatDuration(hours: number, isMin: boolean): string {
+export function formatDuration(hours: number, isMin: boolean): string {
   if (isMin && hours === MIN_HOURS) return '30분 이하';
   if (!isMin && hours === MAX_HOURS) return '7시간 이상';
   const h = Math.floor(hours);
