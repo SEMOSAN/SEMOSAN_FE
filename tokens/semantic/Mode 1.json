@@ -42,6 +42,16 @@
         },
         "$type": "color",
         "$value": "{global.green.400}"
+      },
+      "Subtle": {
+        "$extensions": {
+          "com.figma.scopes": [
+            "ALL_SCOPES"
+          ],
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "{global.green.50}"
       }
     },
     "Label": {
@@ -188,6 +198,16 @@
         },
         "$type": "color",
         "$value": "{global.neutral.100}"
+      },
+      "Heavy": {
+        "$extensions": {
+          "com.figma.scopes": [
+            "ALL_SCOPES"
+          ],
+          "com.figma.hiddenFromPublishing": false
+        },
+        "$type": "color",
+        "$value": "{global.neutral.800}"
       }
     },
     "Interaction": {
@@ -233,6 +253,60 @@
           },
           "$type": "color",
           "$value": "{global.red.500}"
+        },
+        "Subtle": {
+          "$extensions": {
+            "com.figma.scopes": [
+              "ALL_SCOPES"
+            ],
+            "com.figma.hiddenFromPublishing": false
+          },
+          "$type": "color",
+          "$value": "{global.red.50}"
+        }
+      },
+      "Positive": {
+        "Subtle": {
+          "$extensions": {
+            "com.figma.scopes": [
+              "ALL_SCOPES"
+            ],
+            "com.figma.hiddenFromPublishing": false
+          },
+          "$type": "color",
+          "$value": "{global.blue.50}"
+        },
+        "Normal": {
+          "$extensions": {
+            "com.figma.scopes": [
+              "ALL_SCOPES"
+            ],
+            "com.figma.hiddenFromPublishing": false
+          },
+          "$type": "color",
+          "$value": "{global.blue.500}"
+        }
+      },
+      "Warning": {
+        "Subtle": {
+          "$extensions": {
+            "com.figma.scopes": [
+              "ALL_SCOPES"
+            ],
+            "com.figma.hiddenFromPublishing": false
+          },
+          "$type": "color",
+          "$value": "{global.yellow.50}"
+        },
+        "Normal": {
+          "$extensions": {
+            "com.figma.scopes": [
+              "ALL_SCOPES"
+            ],
+            "com.figma.hiddenFromPublishing": false
+          },
+          "$type": "color",
+          "$value": "{global.yellow.500}"
         }
       }
     }
@@ -289,6 +363,17 @@
         "$type": "number",
         "$value": 12
       }
+    }
+  },
+  "drop shadow-01": {
+    "$type": "boxShadow",
+    "$value": {
+      "color": "#0000001a",
+      "type": "dropShadow",
+      "x": 0,
+      "y": 2,
+      "blur": 4,
+      "spread": 0
     }
   }
 }
