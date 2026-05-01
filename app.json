@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.wini-kirikiri.semosan"
+      "bundleIdentifier": "com.tastyhiking.semosan"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +21,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.wini_kirikiri.semosan"
+      "permissions": [],
+      "package": "com.tastyhiking.semosan"
     },
     "web": {
       "output": "static",

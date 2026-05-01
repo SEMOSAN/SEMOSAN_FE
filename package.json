@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@mj-studio/react-native-naver-map": "^2.8.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
@@ -27,6 +28,7 @@
     "expo-image": "~3.0.11",
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.11",
+    "expo-location": "~19.0.8",
     "expo-router": "~6.0.23",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
@@ -49,6 +51,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "dotenv": "^17.4.2",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "prettier": "^3.8.3",
