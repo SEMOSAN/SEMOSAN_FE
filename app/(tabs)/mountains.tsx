@@ -1,3 +1,5 @@
+import { ResetIcon } from "@/components/icons/reset-icon";
+import { SearchIcon } from "@/components/icons/search-icon";
 import {
   DifficultyBottomSheet,
   DifficultyOption,
@@ -8,7 +10,10 @@ import {
 } from "@/features/mountains/components/duration-bottom-sheet";
 import { FilterBottomSheet } from "@/features/mountains/components/filter-bottom-sheet";
 import { FilterChip } from "@/features/mountains/components/filter-chip";
-import { MountainCard, MOCK_MOUNTAINS } from "@/features/mountains/components/mountain-card";
+import {
+  MOCK_MOUNTAINS,
+  MountainCard,
+} from "@/features/mountains/components/mountain-card";
 import {
   RegionFilterContent,
   Selection,
@@ -20,41 +25,6 @@ import {
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Path, Svg } from "react-native-svg";
-
-function SearchIcon(): React.JSX.Element {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M21 21L16.514 16.506M19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z"
-        stroke="#1A1B1F"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function ResetIcon(): React.JSX.Element {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 16 16" fill="none">
-      <Path
-        d="M2 8C2 11.3137 4.68629 14 8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C5.92286 2 4.07719 3.05771 3 4.66667"
-        stroke="#1A1B1F"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <Path
-        d="M3 2V5H6"
-        stroke="#1A1B1F"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
 
 type FilterKey = "인기순" | "지역" | "소요시간" | "난이도";
 
@@ -73,7 +43,9 @@ export default function MountainsScreen() {
   const insets = useSafeAreaInsets();
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>("popularity");
-  const [difficultyOptions, setDifficultyOptions] = useState<DifficultyOption[]>([]);
+  const [difficultyOptions, setDifficultyOptions] = useState<
+    DifficultyOption[]
+  >([]);
   const [durationRange, setDurationRange] = useState<[number, number]>([0, 7]);
   const [regionSelections, setRegionSelections] = useState<Selection[]>([]);
 
@@ -106,7 +78,12 @@ export default function MountainsScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ alignItems: "center", gap: 8, paddingHorizontal: 20, height: 52 }}
+          contentContainerStyle={{
+            alignItems: "center",
+            gap: 8,
+            paddingHorizontal: 20,
+            height: 52,
+          }}
         >
           {hasActiveFilter && (
             <TouchableOpacity
@@ -137,7 +114,12 @@ export default function MountainsScreen() {
                 isActive: difficultyOptions.length > 0,
                 count: difficultyOptions.length,
               },
-            ] as { key: FilterKey; label: string; isActive?: boolean; count?: number }[]
+            ] as {
+              key: FilterKey;
+              label: string;
+              isActive?: boolean;
+              count?: number;
+            }[]
           )
             .slice()
             .sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0))
