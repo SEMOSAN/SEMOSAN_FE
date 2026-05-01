@@ -59,7 +59,10 @@ export function FilterBottomSheet({
       // MODAL_UNMOUNT_DELAY 후에 setModalVisible(false) 호출.
       translateY.value = withTiming(600, CLOSE_CONFIG);
       backdropOpacity.value = withTiming(0, { duration: 200 });
-      const timer = setTimeout(() => setModalVisible(false), MODAL_UNMOUNT_DELAY);
+      const timer = setTimeout(
+        () => setModalVisible(false),
+        MODAL_UNMOUNT_DELAY,
+      );
       return () => clearTimeout(timer);
     }
   }, [visible]);
@@ -111,6 +114,7 @@ export function FilterBottomSheet({
       transparent
       animationType="none"
       onRequestClose={handleDismiss}
+      presentationStyle="overFullScreen"
       statusBarTranslucent
     >
       {/* Modal은 별도 네이티브 뷰 계층에 렌더링되므로 GestureHandlerRootView를 직접 감싸야 함 */}
@@ -135,9 +139,7 @@ export function FilterBottomSheet({
             >
               <View>
                 {/* Drag handle */}
-                <View className="items-center pb-1 pt-3">
-                  <View className="h-1 w-10 rounded-full bg-line-subtle" />
-                </View>
+                <View className="items-center pb-2" />
 
                 {/* Title */}
                 <View className="px-5 pb-1 pt-3">

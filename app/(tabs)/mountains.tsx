@@ -19,7 +19,7 @@ import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
-  useSharedValue,
+  useDerivedValue,
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -165,8 +165,9 @@ function FilterChip({
   count?: number;
   onPress?: () => void;
 }): React.JSX.Element {
-  const rotation = useSharedValue(0);
-  rotation.value = withTiming(isOpen ? 180 : 0, { duration: 250 });
+  const rotation = useDerivedValue(() =>
+    withTiming(isOpen ? 180 : 0, { duration: 250 })
+  );
 
   const iconStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotation.value}deg` }],
@@ -372,6 +373,7 @@ export default function MountainsScreen() {
         title="지역"
       >
         <RegionFilterContent
+          initialSelections={regionSelections}
           onApply={(selections) => {
             setRegionSelections(selections);
             setOpenFilter(null);

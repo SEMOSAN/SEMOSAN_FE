@@ -204,15 +204,16 @@ const DISTRICTS: Record<string, string[]> = {
 export type Selection = { region: string; district: string };
 
 type Props = {
+  initialSelections?: Selection[];
   onApply: (selections: Selection[]) => void;
 };
 
 function SearchIcon() {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
       <Path
         d="M21 21L16.514 16.506M19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z"
-        stroke="#8b92a6"
+        stroke="#464A57"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -221,9 +222,9 @@ function SearchIcon() {
   );
 }
 
-export function RegionFilterContent({ onApply }: Props) {
+export function RegionFilterContent({ initialSelections = [], onApply }: Props) {
   const [selectedRegion, setSelectedRegion] = useState("서울");
-  const [selectedDistricts, setSelectedDistricts] = useState<Selection[]>([]);
+  const [selectedDistricts, setSelectedDistricts] = useState<Selection[]>(initialSelections);
   const [searchQuery, setSearchQuery] = useState("");
 
   const districts = DISTRICTS[selectedRegion] ?? [];
