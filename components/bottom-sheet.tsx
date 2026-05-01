@@ -5,7 +5,7 @@ import CourseBottomSheet from './course-bottom-sheet';
 import { InfoIcon } from './icons/info-icon';
 import { TrendingCardList } from './trending-card';
 
-type Tab = '내 기록' | '지금 뜨는' | '큐레이션';
+export type Tab = '내 기록' | '지금 뜨는' | '큐레이션';
 
 type MountainCard = {
   id: string;
@@ -20,6 +20,9 @@ type Props = {
   cards?: MountainCard[];
   title?: string;
   titleCount?: number;
+  activeTab?: Tab;
+  onTabChange?: (tab: Tab) => void;
+  onCardSelect?: (id: string) => void;
 };
 
 const TABS: Tab[] = ['내 기록', '지금 뜨는', '큐레이션'];
@@ -35,8 +38,16 @@ export default function BottomSheet({
   cards = MOCK_CARDS,
   title = '타이틀',
   titleCount = 1,
+  activeTab: activeTabProp,
+  onTabChange,
+  onCardSelect,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('내 기록');
+  const [internalTab, setInternalTab] = useState<Tab>('내 기록');
+  const activeTab = activeTabProp ?? internalTab;
+  const setActiveTab = (tab: Tab) => {
+    setInternalTab(tab);
+    onTabChange?.(tab);
+  };
   const [selectedCard, setSelectedCard] = useState<MountainCard | null>(null);
 
   if (selectedCard) {
@@ -93,7 +104,7 @@ export default function BottomSheet({
           {Array.from({ length: Math.ceil(cards.length / 2) }).map((_, rowIdx) => (
             <View key={rowIdx} className="flex-row gap-x-[9px]">
               {cards.slice(rowIdx * 2, rowIdx * 2 + 2).map((card) => (
-                <MountainCard key={card.id} card={card} onPress={() => setSelectedCard(card)} />
+                <MountainCard key={card.id} card={card} onPress={() => { setSelectedCard(card); onCardSelect?.(card.id); }} />
               ))}
             </View>
           ))}
