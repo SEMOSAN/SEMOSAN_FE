@@ -1,106 +1,28 @@
 import {
   DifficultyBottomSheet,
   DifficultyOption,
-} from "@/features/mountains/difficulty-bottom-sheet";
+} from "@/features/mountains/components/difficulty-bottom-sheet";
 import {
   DurationBottomSheet,
   formatDuration,
-} from "@/features/mountains/duration-bottom-sheet";
-import { FilterBottomSheet } from "@/features/mountains/filter-bottom-sheet";
+} from "@/features/mountains/components/duration-bottom-sheet";
+import { FilterBottomSheet } from "@/features/mountains/components/filter-bottom-sheet";
+import { FilterChip } from "@/features/mountains/components/filter-chip";
+import { MountainCard, MOCK_MOUNTAINS } from "@/features/mountains/components/mountain-card";
 import {
   RegionFilterContent,
   Selection,
-} from "@/features/mountains/region-filter-content";
+} from "@/features/mountains/components/region-filter-content";
 import {
   SortBottomSheet,
   SortOption,
-} from "@/features/mountains/sort-bottom-sheet";
+} from "@/features/mountains/components/sort-bottom-sheet";
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Path, Svg } from "react-native-svg";
 
-type Difficulty = "하" | "중" | "상";
-
-type Mountain = {
-  id: number;
-  name: string;
-  location: string;
-  altitude: number;
-  difficulty: Difficulty;
-};
-
-const MOCK_MOUNTAINS: Mountain[] = [
-  {
-    id: 1,
-    name: "관악산",
-    location: "경기 과천시 중앙동",
-    altitude: 632,
-    difficulty: "중",
-  },
-  {
-    id: 2,
-    name: "관악산",
-    location: "경기 과천시 중앙동",
-    altitude: 632,
-    difficulty: "상",
-  },
-  {
-    id: 3,
-    name: "관악산",
-    location: "경기 과천시 중앙동",
-    altitude: 632,
-    difficulty: "하",
-  },
-  {
-    id: 4,
-    name: "관악산",
-    location: "경기 과천시 중앙동",
-    altitude: 632,
-    difficulty: "중",
-  },
-  {
-    id: 5,
-    name: "관악산",
-    location: "경기 과천시 중앙동",
-    altitude: 632,
-    difficulty: "상",
-  },
-  {
-    id: 6,
-    name: "관악산",
-    location: "경기 과천시 중앙동",
-    altitude: 632,
-    difficulty: "하",
-  },
-  {
-    id: 7,
-    name: "관악산",
-    location: "경기 과천시 중앙동",
-    altitude: 632,
-    difficulty: "중",
-  },
-  {
-    id: 8,
-    name: "관악산",
-    location: "경기 과천시 중앙동",
-    altitude: 632,
-    difficulty: "상",
-  },
-];
-
-const DIFFICULTY_STYLE: Record<Difficulty, string> = {
-  하: "text-green-500",
-  중: "text-blue-500",
-  상: "text-red-500",
-};
-
-function SearchIcon() {
+function SearchIcon(): React.JSX.Element {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
@@ -114,7 +36,7 @@ function SearchIcon() {
   );
 }
 
-function ResetIcon() {
+function ResetIcon(): React.JSX.Element {
   return (
     <Svg width={14} height={14} viewBox="0 0 16 16" fill="none">
       <Path
@@ -134,100 +56,6 @@ function ResetIcon() {
   );
 }
 
-function CaretDownIcon({
-  color = "#1A1B1F",
-}: {
-  color?: string;
-}): React.JSX.Element {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-      <Path
-        d="M4 6L8 10L12 6"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function FilterChip({
-  label,
-  isOpen,
-  isActive,
-  count,
-  onPress,
-}: {
-  label: string;
-  isOpen?: boolean;
-  isActive?: boolean;
-  count?: number;
-  onPress?: () => void;
-}): React.JSX.Element {
-  const rotation = useDerivedValue(() =>
-    withTiming(isOpen ? 180 : 0, { duration: 250 })
-  );
-
-  const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className={`flex-row items-center gap-1 rounded-full border px-3 py-1.5 ${
-        isActive
-          ? "border-fill-heavy bg-fill-heavy"
-          : "border-line-subtle bg-fill-normal"
-      }`}
-    >
-      <Text
-        className={`typo-body-3-semi-bold ${
-          isActive ? "text-label-normal-inverse" : "text-label-normal"
-        }`}
-      >
-        {label}
-      </Text>
-      {isActive && count !== undefined && count > 0 && (
-        <Text className="text-green-400 typo-body-3-semi-bold">{count}</Text>
-      )}
-      <Animated.View style={iconStyle}>
-        <CaretDownIcon color={isActive ? "#D1D5DB" : "#1A1B1F"} />
-      </Animated.View>
-    </TouchableOpacity>
-  );
-}
-
-function MountainCard({ mountain }: { mountain: Mountain }) {
-  return (
-    <View className="flex-row items-center gap-4">
-      <View className="h-[72px] w-[86px] rounded-[10px] bg-fill-stronger" />
-      <View className="flex-col gap-1.5">
-        <View className="flex-row items-end gap-[9px]">
-          <Text className="text-label-normal typo-headline-1-semi-bold">
-            {mountain.name}
-          </Text>
-          <Text className="pb-[3px] text-label-subtler typo-body-3-medium">
-            {mountain.location}
-          </Text>
-        </View>
-        <View className="flex-row items-center gap-1.5">
-          <Text className="text-label-subtle typo-body-3-medium">
-            고도 {mountain.altitude}m
-          </Text>
-          <View className="h-0.5 w-0.5 rounded-full bg-label-subtler" />
-          <Text
-            className={`typo-body-3-semi-bold ${DIFFICULTY_STYLE[mountain.difficulty]}`}
-          >
-            난이도 {mountain.difficulty}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
 type FilterKey = "인기순" | "지역" | "소요시간" | "난이도";
 
 const SORT_LABELS: Record<SortOption, string> = {
@@ -236,20 +64,16 @@ const SORT_LABELS: Record<SortOption, string> = {
   height: "높이순",
 };
 
-
 function getDurationLabel(range: [number, number]): string {
   if (range[0] === 0 && range[1] === 7) return "소요시간";
   return `${formatDuration(range[0], true)}~${formatDuration(range[1], false)}`;
 }
 
-
 export default function MountainsScreen() {
   const insets = useSafeAreaInsets();
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>("popularity");
-  const [difficultyOptions, setDifficultyOptions] = useState<
-    DifficultyOption[]
-  >([]);
+  const [difficultyOptions, setDifficultyOptions] = useState<DifficultyOption[]>([]);
   const [durationRange, setDurationRange] = useState<[number, number]>([0, 7]);
   const [regionSelections, setRegionSelections] = useState<Selection[]>([]);
 
@@ -279,60 +103,55 @@ export default function MountainsScreen() {
 
       {/* Filter bar */}
       <View style={{ height: 52 }}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ alignItems: "center", gap: 8, paddingHorizontal: 20, height: 52 }}
-      >
-        {hasActiveFilter && (
-          <TouchableOpacity
-            onPress={resetFilters}
-            className="size-8 items-center justify-center rounded-full border border-line-subtle bg-fill-normal"
-          >
-            <ResetIcon />
-          </TouchableOpacity>
-        )}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ alignItems: "center", gap: 8, paddingHorizontal: 20, height: 52 }}
+        >
+          {hasActiveFilter && (
+            <TouchableOpacity
+              onPress={resetFilters}
+              className="size-8 items-center justify-center rounded-full border border-line-subtle bg-fill-normal"
+            >
+              <ResetIcon />
+            </TouchableOpacity>
+          )}
 
-        {(
-          [
-            { key: "인기순", label: SORT_LABELS[sortOption] },
-            {
-              key: "지역",
-              label: "지역",
-              isActive: regionSelections.length > 0,
-              count: regionSelections.length,
-            },
-            {
-              key: "소요시간",
-              label: getDurationLabel(durationRange),
-              isActive: durationRange[0] !== 0 || durationRange[1] !== 7,
-            },
-            {
-              key: "난이도",
-              label: "난이도",
-              isActive: difficultyOptions.length > 0,
-              count: difficultyOptions.length,
-            },
-          ] as {
-            key: FilterKey;
-            label: string;
-            isActive?: boolean;
-            count?: number;
-          }[]
-        )
-          .slice()
-          .sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0))
-          .map(({ key, label, isActive, count }) => (
-          <FilterChip
-            key={key}
-            label={label}
-            isOpen={openFilter === key}
-            isActive={isActive}
-            count={count}
-            onPress={() => setOpenFilter(key)}
-          />
-        ))}
-      </ScrollView>
+          {(
+            [
+              { key: "인기순", label: SORT_LABELS[sortOption] },
+              {
+                key: "지역",
+                label: "지역",
+                isActive: regionSelections.length > 0,
+                count: regionSelections.length,
+              },
+              {
+                key: "소요시간",
+                label: getDurationLabel(durationRange),
+                isActive: durationRange[0] !== 0 || durationRange[1] !== 7,
+              },
+              {
+                key: "난이도",
+                label: "난이도",
+                isActive: difficultyOptions.length > 0,
+                count: difficultyOptions.length,
+              },
+            ] as { key: FilterKey; label: string; isActive?: boolean; count?: number }[]
+          )
+            .slice()
+            .sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0))
+            .map(({ key, label, isActive, count }) => (
+              <FilterChip
+                key={key}
+                label={label}
+                isOpen={openFilter === key}
+                isActive={isActive}
+                count={count}
+                onPress={() => setOpenFilter(key)}
+              />
+            ))}
+        </ScrollView>
       </View>
 
       {/* 정렬 바텀시트 */}
