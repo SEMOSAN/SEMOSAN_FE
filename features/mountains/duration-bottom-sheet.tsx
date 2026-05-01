@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { LongButton } from '@/components/long-button';
 import { RangeSlider } from '@/components/slider';
 import { FilterBottomSheet } from './filter-bottom-sheet';
 
@@ -59,13 +60,7 @@ export function DurationBottomSheet({ visible, onClose, low, high, onApply }: Pr
       <View className="h-[45px]" />
 
       <View className="px-5 pt-4 pb-4">
-        <TouchableOpacity
-          onPress={handleApply}
-          activeOpacity={0.8}
-          className="h-12 items-center justify-center rounded-[10px] bg-primary-normal"
-        >
-          <Text className="typo-label-large-semi-bold text-white">적용하기</Text>
-        </TouchableOpacity>
+        <LongButton label="적용하기" onPress={handleApply} />
       </View>
     </FilterBottomSheet>
   );

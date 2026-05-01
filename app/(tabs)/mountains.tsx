@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Path, Svg } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FilterBottomSheet } from '@/features/mountains/filter-bottom-sheet';
@@ -63,14 +64,23 @@ function CaretDownIcon() {
   );
 }
 
-function FilterChip({ label, onPress }: { label: string; onPress?: () => void }) {
+function FilterChip({ label, isOpen, onPress }: { label: string; isOpen?: boolean; onPress?: () => void }) {
+  const rotation = useSharedValue(0);
+  rotation.value = withTiming(isOpen ? 180 : 0, { duration: 250 });
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
   return (
     <TouchableOpacity
       onPress={onPress}
       className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border border-line-subtle"
     >
       <Text className="typo-body-3-semi-bold text-label-normal">{label}</Text>
-      <CaretDownIcon />
+      <Animated.View style={iconStyle}>
+        <CaretDownIcon />
+      </Animated.View>
     </TouchableOpacity>
   );
 }
@@ -116,7 +126,7 @@ export default function MountainsScreen() {
       {/* Filter bar */}
       <View className="flex-row items-center gap-2 px-5 h-[52px]">
         {(['인기순', '지역', '소요시간', '난이도'] as FilterKey[]).map((label) => (
-          <FilterChip key={label} label={label} onPress={() => setOpenFilter(label)} />
+          <FilterChip key={label} label={label} isOpen={openFilter === label} onPress={() => setOpenFilter(label)} />
         ))}
       </View>
 

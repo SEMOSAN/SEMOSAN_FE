@@ -1,4 +1,5 @@
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { LongButton } from "@/components/long-button";
+import { Pressable, Text, View } from "react-native";
 import { FilterBottomSheet } from "./filter-bottom-sheet";
 
 export type DifficultyOption = "high" | "medium" | "low";
@@ -88,16 +89,7 @@ export function DifficultyBottomSheet({
       <View className="h-[45px]" />
 
       <View className="px-5 pb-4 pt-4">
-        <TouchableOpacity
-          onPress={handleApply}
-          activeOpacity={0.8}
-          className="h-12 items-center justify-center rounded-[10px] bg-primary-normal"
-        >
-          {/* TODO : 적용하기 버튼 컴포넌트화 */}
-          <Text className="typo-label-large-semi-bold text-white">
-            적용하기
-          </Text>
-        </TouchableOpacity>
+        <LongButton label="적용하기" onPress={handleApply} />
       </View>
     </FilterBottomSheet>
   );

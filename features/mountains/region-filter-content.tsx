@@ -1,4 +1,5 @@
 import { CheckIcon } from "@/components/icons/check-icon";
+import { LongButton } from "@/components/long-button";
 import { useState } from "react";
 import {
   Keyboard,
@@ -6,7 +7,6 @@ import {
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { Path, Svg } from "react-native-svg";
@@ -413,12 +413,7 @@ export function RegionFilterContent({ onApply }: Props) {
 
       {/* 적용하기 버튼 */}
       <View className="px-5 pb-2 pt-4">
-        <TouchableOpacity
-          onPress={handleApply}
-          className="h-12 items-center justify-center rounded-[10px] bg-primary-normal"
-        >
-          <Text className="text-common-100 typo-label-large">적용하기</Text>
-        </TouchableOpacity>
+        <LongButton label="적용하기" onPress={handleApply} />
       </View>
     </View>
   );
