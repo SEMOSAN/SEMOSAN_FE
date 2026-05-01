@@ -4,6 +4,9 @@ import { Path, Svg } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FilterBottomSheet } from '@/features/mountains/filter-bottom-sheet';
 import { RegionFilterContent } from '@/features/mountains/region-filter-content';
+import { SortBottomSheet, SortOption } from '@/features/mountains/sort-bottom-sheet';
+import { DifficultyBottomSheet, DifficultyOption } from '@/features/mountains/difficulty-bottom-sheet';
+import { DurationBottomSheet } from '@/features/mountains/duration-bottom-sheet';
 
 type Difficulty = '하' | '중' | '상';
 
@@ -98,6 +101,9 @@ type FilterKey = '인기순' | '지역' | '소요시간' | '난이도';
 export default function MountainsScreen() {
   const insets = useSafeAreaInsets();
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>('popularity');
+  const [difficultyOptions, setDifficultyOptions] = useState<DifficultyOption[]>([]);
+  const [durationRange, setDurationRange] = useState<[number, number]>([0, 7]);
 
   return (
     <View className="flex-1 bg-fill-normal" style={{ paddingTop: insets.top }}>
@@ -113,6 +119,37 @@ export default function MountainsScreen() {
           <FilterChip key={label} label={label} onPress={() => setOpenFilter(label)} />
         ))}
       </View>
+
+      {/* 정렬 바텀시트 */}
+      <SortBottomSheet
+        visible={openFilter === '인기순'}
+        onClose={() => setOpenFilter(null)}
+        selected={sortOption}
+        onSelect={setSortOption}
+      />
+
+      {/* 난이도 필터 바텀시트 */}
+      <DifficultyBottomSheet
+        visible={openFilter === '난이도'}
+        onClose={() => setOpenFilter(null)}
+        selected={difficultyOptions}
+        onApply={(options) => {
+          setDifficultyOptions(options);
+          setOpenFilter(null);
+        }}
+      />
+
+      {/* 소요시간 필터 바텀시트 */}
+      <DurationBottomSheet
+        visible={openFilter === '소요시간'}
+        onClose={() => setOpenFilter(null)}
+        low={durationRange[0]}
+        high={durationRange[1]}
+        onApply={(l, h) => {
+          setDurationRange([l, h]);
+          setOpenFilter(null);
+        }}
+      />
 
       {/* 지역 필터 바텀시트 */}
       <FilterBottomSheet
