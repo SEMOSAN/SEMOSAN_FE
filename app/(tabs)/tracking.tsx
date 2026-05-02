@@ -34,6 +34,7 @@ export default function TrackingScreen() {
   const [collapsed, setCollapsed] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showTooltip, setShowTooltip] = useState(true);
   const [trackingSheetHeight, setTrackingSheetHeight] = useState(TRACKING_SHEET_HEIGHT);
@@ -58,15 +59,18 @@ export default function TrackingScreen() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  // 트래킹 중 경과 시간 카운트업
+  // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
   useEffect(() => {
-    if (!isTracking) return;
+    if (!isTracking || isPaused) return;
     const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
     return () => clearInterval(interval);
-  }, [isTracking]);
+  }, [isTracking, isPaused]);
 
+  const pauseTracking = () => setIsPaused(true);
+  const resumeTracking = () => setIsPaused(false);
   const stopTracking = () => {
     setIsTracking(false);
+    setIsPaused(false);
     setElapsedSeconds(0);
     setShowTooltip(true);
     setCollapsed(false);
@@ -176,8 +180,11 @@ export default function TrackingScreen() {
         <View onLayout={(e: LayoutChangeEvent) => setTrackingSheetHeight(e.nativeEvent.layout.height)}>
           <TrackingSheet
             elapsedSeconds={elapsedSeconds}
+            isPaused={isPaused}
             showTooltip={showTooltip}
             onDismissTooltip={() => setShowTooltip(false)}
+            onPause={pauseTracking}
+            onResume={resumeTracking}
             onStop={stopTracking}
           />
         </View>
