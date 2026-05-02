@@ -13,6 +13,7 @@ import {
   MOCK_COURSES,
   SHADOW,
   TRAIL_BAR_COLORS,
+  LOCATION_BUTTON_GAP,
   TRACKING_COURSE_CARD_HEIGHT,
   TRACKING_COURSE_CARD_TOP,
   TRACKING_SHEET_HEIGHT,
@@ -24,7 +25,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { LayoutChangeEvent, Text, TouchableOpacity, View } from 'react-native';
 
 export default function TrackingScreen() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export default function TrackingScreen() {
   const [isTracking, setIsTracking] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showTooltip, setShowTooltip] = useState(true);
+  const [trackingSheetHeight, setTrackingSheetHeight] = useState(TRACKING_SHEET_HEIGHT);
 
   const selectedCourse = MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
 
@@ -122,7 +124,7 @@ export default function TrackingScreen() {
         className="absolute right-4 bg-fill-normal rounded-full w-12 h-12 items-center justify-center"
         style={{
           bottom: isTracking
-            ? TRACKING_SHEET_HEIGHT + FLOATING_CARD_GAP
+            ? trackingSheetHeight + LOCATION_BUTTON_GAP
             : collapsed
               ? floatingCardBottom + FLOATING_CARD_GAP
               : 448 + FLOATING_CARD_GAP,
@@ -153,12 +155,14 @@ export default function TrackingScreen() {
 
       {/* 트래킹 중 바텀시트 */}
       {isTracking && (
-        <TrackingSheet
-          elapsedSeconds={elapsedSeconds}
-          showTooltip={showTooltip}
-          onDismissTooltip={() => setShowTooltip(false)}
-          onStop={stopTracking}
-        />
+        <View onLayout={(e: LayoutChangeEvent) => setTrackingSheetHeight(e.nativeEvent.layout.height)}>
+          <TrackingSheet
+            elapsedSeconds={elapsedSeconds}
+            showTooltip={showTooltip}
+            onDismissTooltip={() => setShowTooltip(false)}
+            onStop={stopTracking}
+          />
+        </View>
       )}
 
       {/* 카운트다운 오버레이 */}

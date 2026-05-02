@@ -86,6 +86,9 @@ export const TRACKING_COURSE_CARD_HEIGHT = 44;
 /** 그라데이션 바와 코스 카드/바텀시트 사이 간격 */
 export const TRAIL_BAR_GAP = 18;
 
+/** 위치 버튼과 트래킹 바텀시트 사이 간격 */
+export const LOCATION_BUTTON_GAP = 18;
+
 // ─── 트래킹 바텀시트 ──────────────────────────────────────
 /**
  * TrackingSheet 높이 (툴팁 표시 기준 추정치)
@@ -101,8 +104,6 @@ export const FLOATING_CARD_GAP = 16;
 /** 플로팅 카드 좌우 마진 */
 export const FLOATING_CARD_HORIZONTAL_MARGIN = 16;
 
-// ─── 유틸 ─────────────────────────────────────────────────
-/** 경과 시간을 m:ss / h:mm:ss 형식으로 변환 */
 export function formatElapsedTime(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
