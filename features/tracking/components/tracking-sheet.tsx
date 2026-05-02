@@ -20,9 +20,17 @@ export function TrackingSheet({ elapsedSeconds, showTooltip, onDismissTooltip, o
       className="w-full bg-fill-normal overflow-hidden"
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
     >
-      {/* 핸들 */}
+      {/* 핸들 — chevron 아이콘 */}
       <View className="items-center pt-3 pb-1">
-        <View className="w-10 h-1 rounded-full bg-fill-neutral" />
+        <Svg width={23} height={9} viewBox="0 0 23 9" fill="none">
+          <Path
+            d="M21.5 1.49988L11.4972 7.50195L1.5 1.49988"
+            stroke="#D1D5DB"
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
       </View>
 
       {/* 등산 시간 + 타이머 */}
@@ -61,8 +69,8 @@ export function TrackingSheet({ elapsedSeconds, showTooltip, onDismissTooltip, o
 
         {/* 카메라 + 기록 중단 */}
         <View className="flex-row gap-2">
-          <TouchableOpacity className="w-12 h-12 rounded-full bg-fill-stronger items-center justify-center">
-            <CameraIcon color="#73798C" />
+          <TouchableOpacity className="w-12 h-12 rounded-full bg-fill-normal border border-line-normal items-center justify-center">
+            <CameraIcon />
           </TouchableOpacity>
           <TouchableOpacity
             className="flex-1 h-12 bg-label-normal rounded-[10px] items-center justify-center"
