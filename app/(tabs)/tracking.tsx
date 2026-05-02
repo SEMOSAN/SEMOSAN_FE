@@ -12,7 +12,16 @@ import {
   FLOATING_CARD_GAP,
   MOCK_COURSES,
   SHADOW,
+  TRAIL_BAR_COLORS,
+  TRACKING_COURSE_CARD_HEIGHT,
+  TRACKING_COURSE_CARD_TOP,
+  TRACKING_SHEET_HEIGHT,
+  TRAIL_BAR_GAP,
+  TRAIL_BAR_LEFT,
+  TRAIL_BAR_LOCATIONS,
+  TRAIL_BAR_WIDTH,
 } from '@/features/tracking/constants';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -69,13 +78,31 @@ export default function TrackingScreen() {
         onPress={() => !isTracking && setCollapsed(true)}
       >
         <Text className="typo-body-2-normal-medium text-label-disabled">지도 영역</Text>
+
+        {/* 트래킹 중 — 고도 그라데이션 바 (아래=파랑, 위=빨강) */}
+        {isTracking && (
+          <LinearGradient
+            colors={TRAIL_BAR_COLORS}
+            locations={TRAIL_BAR_LOCATIONS}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 0, y: 0 }}
+            style={{
+              position: 'absolute',
+              left: TRAIL_BAR_LEFT,
+              top: TRACKING_COURSE_CARD_TOP + TRACKING_COURSE_CARD_HEIGHT + TRAIL_BAR_GAP,
+              bottom: TRAIL_BAR_GAP,
+              width: TRAIL_BAR_WIDTH,
+              borderRadius: 999,
+            }}
+          />
+        )}
       </TouchableOpacity>
 
       {/* 트래킹 중 — 상단 코스 카드 */}
       {isTracking && (
         <View
           className="absolute left-4 right-4 flex-row items-center p-3 gap-2.5 bg-fill-normal overflow-hidden"
-          style={{ top: 56, borderRadius: 12, ...CARD_SHADOW }}
+          style={{ top: TRACKING_COURSE_CARD_TOP, borderRadius: 12, ...CARD_SHADOW }}
         >
           {/* 난이도 뱃지 */}
           <View className={`rounded px-1 py-0.5 ${DIFFICULTY_BG[selectedCourse.difficulty]}`}>
@@ -95,7 +122,7 @@ export default function TrackingScreen() {
         className="absolute right-4 bg-fill-normal rounded-full w-12 h-12 items-center justify-center"
         style={{
           bottom: isTracking
-            ? 200 + FLOATING_CARD_GAP
+            ? TRACKING_SHEET_HEIGHT + FLOATING_CARD_GAP
             : collapsed
               ? floatingCardBottom + FLOATING_CARD_GAP
               : 448 + FLOATING_CARD_GAP,

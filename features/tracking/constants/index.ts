@@ -66,6 +66,33 @@ export const TRACKING_TIMER_STYLE = {
   letterSpacing: -0.75,
 } as const;
 
+// ─── 트레일 고도 바 ───────────────────────────────────────
+/**
+ * 지도 위 세로 고도 그라데이션 바 (Figma 미토큰 색상)
+ * linear-gradient(0deg): 아래 → 위 = 파랑 → 초록 → 노랑 → 빨강
+ */
+export const TRAIL_BAR_COLORS = ['#507EF4', '#4ADE80', '#FFD40D', '#FF5249'] as const;
+export const TRAIL_BAR_LOCATIONS = [0, 0.33, 0.66, 1] as const;
+/** 바 너비 (Figma: 10px) */
+export const TRAIL_BAR_WIDTH = 10;
+/** 화면 왼쪽 가장자리로부터의 간격 */
+export const TRAIL_BAR_LEFT = 12;
+/** 바 높이 */
+export const TRAIL_BAR_HEIGHT = 450;
+/** 코스 카드 상단 기준 top (status bar 아래) */
+export const TRACKING_COURSE_CARD_TOP = 56;
+/** 코스 카드 높이 (p-3 상하패딩 24 + 콘텐츠 행 ~20) */
+export const TRACKING_COURSE_CARD_HEIGHT = 44;
+/** 그라데이션 바와 코스 카드/바텀시트 사이 간격 */
+export const TRAIL_BAR_GAP = 18;
+
+// ─── 트래킹 바텀시트 ──────────────────────────────────────
+/**
+ * TrackingSheet 높이 (툴팁 표시 기준 추정치)
+ * 핸들(20) + 타이머 영역(100) + 버튼 영역(툴팁 포함 ~100) = 220
+ */
+export const TRACKING_SHEET_HEIGHT = 220;
+
 // ─── 레이아웃 상수 ────────────────────────────────────────
 /** 바텀시트가 collapsed 상태일 때 네비게이션 바 위로 노출되는 높이 */
 export const COLLAPSED_PEEK_HEIGHT = 24;
