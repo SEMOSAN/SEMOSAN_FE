@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import BottomSheetShell from './bottom-sheet-shell';
@@ -42,6 +43,7 @@ export default function BottomSheet({
   onTabChange,
   onCardSelect,
 }: Props) {
+  const router = useRouter();
   const [internalTab, setInternalTab] = useState<Tab>('내 기록');
   const activeTab = activeTabProp ?? internalTab;
   const setActiveTab = (tab: Tab) => {
@@ -104,7 +106,10 @@ export default function BottomSheet({
           {Array.from({ length: Math.ceil(cards.length / 2) }).map((_, rowIdx) => (
             <View key={rowIdx} className="flex-row gap-x-[9px]">
               {cards.slice(rowIdx * 2, rowIdx * 2 + 2).map((card) => (
-                <MountainCard key={card.id} card={card} onPress={() => { setSelectedCard(card); onCardSelect?.(card.id); }} />
+                <MountainCard key={card.id} card={card} onPress={() => {
+                  onCardSelect?.(card.id);
+                  router.push({ pathname: '/record/[id]', params: { id: card.id, name: card.name, imageUri: card.imageUri ?? '' } });
+                }} />
               ))}
             </View>
           ))}
