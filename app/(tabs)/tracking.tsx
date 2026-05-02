@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from '@/components/icons/chevron-down-icon';
 import { LocationIcon } from '@/components/icons/location-icon';
 import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-course-card';
 import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
@@ -12,9 +13,9 @@ import {
   MOCK_COURSES,
   SHADOW,
 } from '@/features/tracking/constants';
+import { Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { Path, Svg } from 'react-native-svg';
 
 export default function TrackingScreen() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
@@ -58,6 +59,9 @@ export default function TrackingScreen() {
 
   return (
     <View className="flex-1 bg-fill-stronger">
+      {/* 트래킹 중 탭바 숨기기 */}
+      <Tabs.Screen options={{ tabBarStyle: isTracking ? { display: 'none' } : undefined }} />
+
       {/* 지도 영역 */}
       <TouchableOpacity
         activeOpacity={1}
@@ -70,20 +74,19 @@ export default function TrackingScreen() {
       {/* 트래킹 중 — 상단 코스 카드 */}
       {isTracking && (
         <View
-          className="absolute left-4 bg-fill-normal overflow-hidden"
-          style={{ top: 56, borderRadius: 20, ...CARD_SHADOW }}
+          className="absolute left-4 right-4 flex-row items-center p-3 gap-2.5 bg-fill-normal overflow-hidden"
+          style={{ top: 56, borderRadius: 12, ...CARD_SHADOW }}
         >
-          <View className="flex-row items-center gap-2 px-3 py-2">
-            <View className={`rounded px-1 py-0.5 ${DIFFICULTY_BG[selectedCourse.difficulty]}`}>
-              <Text className={`typo-caption-1-medium ${DIFFICULTY_TEXT_COLOR[selectedCourse.difficulty]}`}>
-                {selectedCourse.difficulty}
-              </Text>
-            </View>
-            <Text className="typo-body-1-normal-semi-bold text-label-normal">{selectedCourse.name}</Text>
-            <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-              <Path d="M5 7.5L10 12.5L15 7.5" stroke="#73798C" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
+          {/* 난이도 뱃지 */}
+          <View className={`rounded px-1 py-0.5 ${DIFFICULTY_BG[selectedCourse.difficulty]}`}>
+            <Text className={`typo-caption-1-medium ${DIFFICULTY_TEXT_COLOR[selectedCourse.difficulty]}`}>
+              {selectedCourse.difficulty}
+            </Text>
           </View>
+          {/* 코스 이름 — flex-1로 남은 공간 채워 chevron을 오른쪽으로 밀기 */}
+          <Text className="flex-1 typo-body-1-normal-semi-bold text-label-normal">{selectedCourse.name}</Text>
+          {/* 드롭다운 chevron */}
+          <ChevronDownIcon />
         </View>
       )}
 
