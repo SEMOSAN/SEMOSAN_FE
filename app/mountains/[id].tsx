@@ -1,5 +1,15 @@
 import { CaretDownIcon } from "@/components/icons/caret-down-icon";
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
+import { BusIcon } from "@/components/icons/bus-icon";
+import { CarIcon } from "@/components/icons/car-icon";
+import { SubwayIcon } from "@/components/icons/subway-icon";
+import { InfoCenterIcon } from "@/components/icons/info-center-icon";
+import { MagicWandIcon } from "@/components/icons/magic-wand-icon";
+import { MegaphoneIcon } from "@/components/icons/megaphone-icon";
+import { ParkingIcon } from "@/components/icons/parking-icon";
+import { ShelterIcon } from "@/components/icons/shelter-icon";
+import { StoreIcon } from "@/components/icons/store-icon";
+import { ToiletIcon } from "@/components/icons/toilet-icon";
 import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import {
@@ -69,7 +79,7 @@ function buildWeatherDays(): WeatherDay[] {
   });
 }
 
-function HeartIcon(): React.JSX.Element {
+function HeartIcon() {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
@@ -83,7 +93,7 @@ function HeartIcon(): React.JSX.Element {
   );
 }
 
-function SunriseSunset({ sunrise, sunset }: { sunrise: string; sunset: string }): React.JSX.Element {
+function SunriseSunset({ sunrise, sunset }: { sunrise: string; sunset: string }) {
   return (
     <View className="flex-row items-center gap-3">
       <View className="flex-row items-center gap-1.5">
@@ -104,7 +114,7 @@ function SunriseSunset({ sunrise, sunset }: { sunrise: string; sunset: string })
   );
 }
 
-function CourseBadge({ difficulty }: { difficulty: CourseDifficulty }): React.JSX.Element {
+function CourseBadge({ difficulty }: { difficulty: CourseDifficulty }) {
   const { bg, text } = COURSE_BADGE[difficulty];
   return (
     <View className={`items-center justify-center rounded-[4px] px-1 ${bg}`}>
@@ -113,7 +123,7 @@ function CourseBadge({ difficulty }: { difficulty: CourseDifficulty }): React.JS
   );
 }
 
-function CourseCard({ course }: { course: Course }): React.JSX.Element {
+function CourseCard({ course }: { course: Course }) {
   return (
     <View className="flex-row items-center gap-4">
       <View className="h-[72px] w-16 rounded-[10px] bg-fill-stronger" />
@@ -143,6 +153,7 @@ type TransportItem = {
   id: number;
   title: string;
   description: string;
+  icon?: React.JSX.Element;
 };
 type TransportSection = {
   heading: string;
@@ -152,15 +163,15 @@ const TRANSPORT_SECTIONS: TransportSection[] = [
   {
     heading: "대중교통",
     items: [
-      { id: 1, title: "지하철", description: "2호선 서울대입구역 하차 후 5511번 버스 탑승" },
-      { id: 2, title: "버스", description: "5511, 5513번 버스 이용 (관악산 입구 하차)" },
+      { id: 1, title: "지하철", description: "2호선 서울대입구역 하차 후 5511번 버스 탑승", icon: <SubwayIcon /> },
+      { id: 2, title: "버스", description: "5511, 5513번 버스 이용 (관악산 입구 하차)", icon: <BusIcon /> },
     ],
   },
   {
     heading: "주차장",
     items: [
-      { id: 1, title: "서울대 정문", description: "서울대학교 정문 주차장 (유료, 30분 1,000원)" },
-      { id: 2, title: "과천 향교 방면", description: "과천 방면 공영주차장 (무료, 100대 수용)" },
+      { id: 1, title: "서울대 정문", description: "서울대학교 정문 주차장 (유료, 30분 1,000원)", icon: <CarIcon /> },
+      { id: 2, title: "과천 향교 방면", description: "과천 방면 공영주차장 (무료, 100대 수용)", icon: <CarIcon /> },
     ],
   },
 ];
@@ -225,29 +236,29 @@ type Review = {
 const MOCK_REVIEWS: Review[] = [
   {
     id: 1,
-    userName: "등산왕",
-    text: "경치가 정말 좋아요. 정상에서 보는 서울 야경이 최고입니다!",
-    courseName: "관악산 코스 1",
+    userName: "나는야엄홍길",
+    text: "서울대입구 쪽으로 올라갔는데 초반은 그냥 산책 느낌이라 방심했음. 중간부터 슬슬 힘들어지더...",
+    courseName: "과천향교 출발 코스",
     difficulty: "초급",
   },
   {
     id: 2,
-    userName: "산악인",
-    text: "코스가 잘 정비되어 있어 초보자도 쉽게 오를 수 있어요.",
-    courseName: "관악산 코스 2",
-    difficulty: "중급",
+    userName: "나는야엄홍길",
+    text: "서울대입구 쪽으로 올라갔는데 초반은 그냥 산책 느낌이라 방심했음. 중간부터 슬슬 힘들어지더...",
+    courseName: "과천향교 출발 코스",
+    difficulty: "초급",
   },
   {
     id: 3,
-    userName: "주말등산러",
-    text: "가족과 함께 방문했는데 아이들도 잘 따라왔어요.",
-    courseName: "관악산 코스 1",
+    userName: "나는야엄홍길",
+    text: "서울대입구 쪽으로 올라갔는데 초반은 그냥 산책 느낌이라 방심했음. 중간부터 슬슬 힘들어지더...",
+    courseName: "과천향교 출발 코스",
     difficulty: "초급",
   },
 ];
 
 // ── 탭 컴포넌트 ──────────────────────────────────────────
-function TransportTab(): React.JSX.Element {
+function TransportTab() {
   return (
     <View className="w-full gap-10 px-5">
       {TRANSPORT_SECTIONS.map((section) => (
@@ -258,7 +269,9 @@ function TransportTab(): React.JSX.Element {
           <View className="gap-4">
             {section.items.map((item) => (
               <View key={item.id} className="flex-row items-start gap-3">
-                <View className="mt-0.5 size-5 rounded-[4px] bg-fill-stronger" />
+                <View className="mt-0.5">
+                  {item.icon ?? <View className="size-5 rounded-[4px] bg-fill-stronger" />}
+                </View>
                 <View className="flex-1 gap-1">
                   <Text className="typo-body-1-normal-semi-bold text-label-normal">
                     {item.title}
@@ -276,7 +289,15 @@ function TransportTab(): React.JSX.Element {
   );
 }
 
-function AmenityTab(): React.JSX.Element {
+const FACILITY_ICON: Record<Facility, React.JSX.Element> = {
+  화장실: <ToiletIcon />,
+  안내소: <InfoCenterIcon />,
+  쉼터: <ShelterIcon />,
+  주차장: <ParkingIcon />,
+  매점: <StoreIcon />,
+};
+
+function AmenityTab() {
   return (
     <View className="w-full gap-8 px-5">
       <Text className="typo-headline-1-semi-bold text-label-normal">
@@ -290,7 +311,7 @@ function AmenityTab(): React.JSX.Element {
           <View className="flex-row flex-wrap gap-2">
             {area.facilities.map((facility) => (
               <View key={facility} className="w-16 items-center gap-1.5">
-                <View className="size-8 rounded-full bg-fill-stronger" />
+                {FACILITY_ICON[facility]}
                 <Text className="typo-caption-1-medium text-center text-label-subtle">
                   {facility}
                 </Text>
@@ -303,7 +324,7 @@ function AmenityTab(): React.JSX.Element {
   );
 }
 
-function RestaurantTab(): React.JSX.Element {
+function RestaurantTab() {
   return (
     <View className="w-full gap-8">
       {RESTAURANT_SECTIONS.map((section) => (
@@ -344,73 +365,90 @@ function RestaurantTab(): React.JSX.Element {
   );
 }
 
-function ReviewTab(): React.JSX.Element {
+function ReviewTab() {
   return (
-    <View className="w-full gap-6 px-5">
+    <View className="w-full gap-8 px-5">
+      {/* 요약 카드 */}
       <View className="gap-3">
-        <View className="gap-1 rounded-[12px] bg-blue-50 p-4">
-          <Text className="typo-body-2-normal-semi-bold text-blue-500">
-            좋아요
-          </Text>
-          <Text className="typo-body-3-medium text-label-subtle">
-            경치가 아름답고 코스가 잘 정비되어 있어요
+        <View className="gap-2 rounded-[12px] bg-[#f5f8ff] px-5 py-[18px]">
+          <View className="flex-row items-center gap-2">
+            <MagicWandIcon />
+            <Text className="typo-body-1-normal-semi-bold text-label-normal">
+              한줄 경험 요약
+            </Text>
+          </View>
+          <Text className="typo-body-2-normal-regular text-label-subtle">
+            생각보다 더 힘들고, 그만큼 정상에서의 보람이 큰 산
           </Text>
         </View>
-        <View className="gap-1 rounded-[12px] bg-red-50 p-4">
-          <Text className="typo-body-2-normal-semi-bold text-red-500">
-            아쉬워요
-          </Text>
-          <Text className="typo-body-3-medium text-label-subtle">
-            주말에는 사람이 너무 많아 혼잡해요
+        <View className="gap-2 rounded-[12px] bg-[#fff5f5] px-5 py-[18px]">
+          <View className="flex-row items-center gap-2">
+            <MegaphoneIcon />
+            <Text className="typo-body-1-normal-semi-bold text-label-normal">
+              가기 전에 꼭 알아야 할 한 가지
+            </Text>
+          </View>
+          <Text className="typo-body-2-normal-regular text-label-subtle">
+            중간에 화장실 거의 없음, 초입에서 미리 다녀오세요
           </Text>
         </View>
       </View>
 
-      <Text className="typo-headline-1-semi-bold text-label-normal">
-        커뮤니티 리뷰 54
-      </Text>
+      {/* 커뮤니티 리뷰 */}
+      <View className="gap-4">
+        <View className="flex-row items-center gap-2">
+          <Text className="typo-headline-1-semi-bold text-label-normal">
+            커뮤니티 리뷰
+          </Text>
+          <Text className="typo-headline-1-semi-bold text-[#A4ABC0]">
+            54
+          </Text>
+        </View>
 
-      <View>
-        {MOCK_REVIEWS.map((review) => (
-          <View
-            key={review.id}
-            className="flex-row gap-3 border-b border-line-subtle py-4"
-          >
-            <View className="size-[92px] rounded-[10px] bg-fill-stronger" />
-            <View className="flex-1 gap-2">
-              <View className="flex-row items-center gap-2">
-                <View className="size-7 rounded-full bg-fill-stronger" />
-                <Text className="typo-body-2-normal-semi-bold text-label-normal">
-                  {review.userName}
-                </Text>
+        <View className="gap-4">
+          {MOCK_REVIEWS.map((review) => (
+            <View
+              key={review.id}
+              className="gap-3 px-1 pb-4 pt-1"
+            >
+              <View className="flex-row gap-4">
+                <View className="size-[92px] rounded-[10px] bg-fill-stronger" />
+                <View className="flex-1 gap-1.5">
+                  <View className="flex-row items-center gap-1.5">
+                    <View className="size-5 rounded-full bg-fill-stronger" />
+                    <Text className="typo-body-2-normal-semi-bold text-label-normal">
+                      {review.userName}
+                    </Text>
+                  </View>
+                  <Text
+                    className="typo-body-2-normal-regular text-label-normal"
+                    numberOfLines={2}
+                  >
+                    {review.text}
+                  </Text>
+                </View>
               </View>
-              <Text
-                className="typo-body-3-medium text-label-subtle"
-                numberOfLines={2}
-              >
-                {review.text}
-              </Text>
-              <View className="flex-row items-center gap-1.5">
+              <View className="flex-row items-center gap-2">
                 <CourseBadge difficulty={review.difficulty} />
-                <Text className="typo-caption-1-medium text-label-subtler">
+                <Text className="typo-body-2-normal-medium text-label-normal">
                   {review.courseName}
                 </Text>
               </View>
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
 
-      <TouchableOpacity className="items-center justify-center rounded-[8px] bg-fill-stronger py-3">
-        <Text className="typo-body-2-normal-semi-bold text-label-subtle">
-          더보기
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity className="h-[38px] items-center justify-center rounded-[8px] bg-fill-stronger">
+          <Text className="typo-label-medium text-label-subtle">
+            더보기
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
-export default function MountainDetailScreen(): React.JSX.Element {
+export default function MountainDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -487,7 +525,10 @@ export default function MountainDetailScreen(): React.JSX.Element {
                     sunset={weatherDays[0].sunset}
                   />
                 </View>
-                <View className="w-5 items-center justify-center">
+                <View
+                  className="w-5 items-center justify-center"
+                  style={{ transform: [{ rotate: accordionOpen ? "180deg" : "0deg" }] }}
+                >
                   <CaretDownIcon color="#73798C" />
                 </View>
               </TouchableOpacity>
