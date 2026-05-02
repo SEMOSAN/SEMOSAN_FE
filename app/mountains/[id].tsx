@@ -138,6 +138,278 @@ function CourseCard({ course }: { course: Course }): React.JSX.Element {
   );
 }
 
+// ── 교통 ──────────────────────────────────────────────
+type TransportItem = {
+  id: number;
+  title: string;
+  description: string;
+};
+type TransportSection = {
+  heading: string;
+  items: TransportItem[];
+};
+const TRANSPORT_SECTIONS: TransportSection[] = [
+  {
+    heading: "대중교통",
+    items: [
+      { id: 1, title: "지하철", description: "2호선 서울대입구역 하차 후 5511번 버스 탑승" },
+      { id: 2, title: "버스", description: "5511, 5513번 버스 이용 (관악산 입구 하차)" },
+    ],
+  },
+  {
+    heading: "주차장",
+    items: [
+      { id: 1, title: "서울대 정문", description: "서울대학교 정문 주차장 (유료, 30분 1,000원)" },
+      { id: 2, title: "과천 향교 방면", description: "과천 방면 공영주차장 (무료, 100대 수용)" },
+    ],
+  },
+];
+
+// ── 편의시설 ────────────────────────────────────────────
+type Facility = "화장실" | "안내소" | "쉼터" | "주차장" | "매점";
+type AmenityArea = {
+  name: string;
+  facilities: Facility[];
+};
+const AMENITY_AREAS: AmenityArea[] = [
+  { name: "서울대 입구", facilities: ["화장실", "안내소", "쉼터", "주차장", "매점"] },
+  { name: "신림 방향", facilities: ["화장실", "쉼터", "매점"] },
+  { name: "과천 방향", facilities: ["화장실", "안내소", "주차장"] },
+];
+
+// ── 맛집 ──────────────────────────────────────────────
+type RestaurantItem = {
+  id: number;
+  name: string;
+  category: string;
+};
+type RestaurantSection = {
+  title: string;
+  items: RestaurantItem[];
+};
+const RESTAURANT_SECTIONS: RestaurantSection[] = [
+  {
+    title: "정상에서 꺼내는 짜릿한 한입",
+    items: [
+      { id: 1, name: "하산주막", category: "막걸리·안주" },
+      { id: 2, name: "산중카페", category: "카페·디저트" },
+      { id: 3, name: "정상마트", category: "편의점·간식" },
+    ],
+  },
+  {
+    title: "하산 후 국룰 한잔",
+    items: [
+      { id: 1, name: "막걸리타운", category: "막걸리·안주" },
+      { id: 2, name: "산밑식당", category: "한식·백반" },
+      { id: 3, name: "냉면집", category: "냉면·분식" },
+    ],
+  },
+  {
+    title: "체력 회복 필수 코스",
+    items: [
+      { id: 1, name: "해장국집", category: "해장국·국밥" },
+      { id: 2, name: "삼겹살타운", category: "삼겹살·구이" },
+      { id: 3, name: "칼국수집", category: "칼국수·수제비" },
+    ],
+  },
+];
+
+// ── 리뷰 ──────────────────────────────────────────────
+type Review = {
+  id: number;
+  userName: string;
+  text: string;
+  courseName: string;
+  difficulty: CourseDifficulty;
+};
+const MOCK_REVIEWS: Review[] = [
+  {
+    id: 1,
+    userName: "등산왕",
+    text: "경치가 정말 좋아요. 정상에서 보는 서울 야경이 최고입니다!",
+    courseName: "관악산 코스 1",
+    difficulty: "초급",
+  },
+  {
+    id: 2,
+    userName: "산악인",
+    text: "코스가 잘 정비되어 있어 초보자도 쉽게 오를 수 있어요.",
+    courseName: "관악산 코스 2",
+    difficulty: "중급",
+  },
+  {
+    id: 3,
+    userName: "주말등산러",
+    text: "가족과 함께 방문했는데 아이들도 잘 따라왔어요.",
+    courseName: "관악산 코스 1",
+    difficulty: "초급",
+  },
+];
+
+// ── 탭 컴포넌트 ──────────────────────────────────────────
+function TransportTab(): React.JSX.Element {
+  return (
+    <View className="w-full gap-10 px-5">
+      {TRANSPORT_SECTIONS.map((section) => (
+        <View key={section.heading} className="gap-5">
+          <Text className="typo-headline-1-semi-bold text-label-normal">
+            {section.heading}
+          </Text>
+          <View className="gap-4">
+            {section.items.map((item) => (
+              <View key={item.id} className="flex-row items-start gap-3">
+                <View className="mt-0.5 size-5 rounded-[4px] bg-fill-stronger" />
+                <View className="flex-1 gap-1">
+                  <Text className="typo-body-1-normal-semi-bold text-label-normal">
+                    {item.title}
+                  </Text>
+                  <Text className="typo-body-2-normal-regular text-label-subtle">
+                    {item.description}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function AmenityTab(): React.JSX.Element {
+  return (
+    <View className="w-full gap-8 px-5">
+      <Text className="typo-headline-1-semi-bold text-label-normal">
+        주요 편의시설
+      </Text>
+      {AMENITY_AREAS.map((area) => (
+        <View key={area.name} className="gap-3">
+          <Text className="typo-body-1-normal-semi-bold text-label-subtle">
+            {area.name}
+          </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {area.facilities.map((facility) => (
+              <View key={facility} className="w-16 items-center gap-1.5">
+                <View className="size-8 rounded-full bg-fill-stronger" />
+                <Text className="typo-caption-1-medium text-center text-label-subtle">
+                  {facility}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function RestaurantTab(): React.JSX.Element {
+  return (
+    <View className="w-full gap-8">
+      {RESTAURANT_SECTIONS.map((section) => (
+        <View key={section.title} className="gap-4">
+          <Text className="typo-headline-1-semi-bold px-5 text-label-normal">
+            {section.title}
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+          >
+            {section.items.map((item) => (
+              <View key={item.id} className="gap-2">
+                <View className="h-[116px] w-[188px] rounded-[10px] bg-fill-stronger" />
+                <View className="gap-0.5">
+                  <Text className="typo-body-1-normal-semi-bold text-label-normal">
+                    {item.name}
+                  </Text>
+                  <Text className="typo-caption-1-medium text-label-subtler">
+                    {item.category}
+                  </Text>
+                </View>
+              </View>
+            ))}
+            <View className="h-[116px] w-[188px] items-center justify-center gap-1 rounded-[10px] bg-fill-stronger">
+              <Text className="typo-body-2-normal-semi-bold text-center text-label-subtle">
+                {section.title}
+              </Text>
+              <Text className="typo-body-2-normal-regular text-label-subtler">
+                {"더보기 >"}
+              </Text>
+            </View>
+          </ScrollView>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function ReviewTab(): React.JSX.Element {
+  return (
+    <View className="w-full gap-6 px-5">
+      <View className="gap-3">
+        <View className="gap-1 rounded-[12px] bg-blue-50 p-4">
+          <Text className="typo-body-2-normal-semi-bold text-blue-500">
+            좋아요
+          </Text>
+          <Text className="typo-body-3-medium text-label-subtle">
+            경치가 아름답고 코스가 잘 정비되어 있어요
+          </Text>
+        </View>
+        <View className="gap-1 rounded-[12px] bg-red-50 p-4">
+          <Text className="typo-body-2-normal-semi-bold text-red-500">
+            아쉬워요
+          </Text>
+          <Text className="typo-body-3-medium text-label-subtle">
+            주말에는 사람이 너무 많아 혼잡해요
+          </Text>
+        </View>
+      </View>
+
+      <Text className="typo-headline-1-semi-bold text-label-normal">
+        커뮤니티 리뷰 54
+      </Text>
+
+      <View>
+        {MOCK_REVIEWS.map((review) => (
+          <View
+            key={review.id}
+            className="flex-row gap-3 border-b border-line-subtle py-4"
+          >
+            <View className="size-[92px] rounded-[10px] bg-fill-stronger" />
+            <View className="flex-1 gap-2">
+              <View className="flex-row items-center gap-2">
+                <View className="size-7 rounded-full bg-fill-stronger" />
+                <Text className="typo-body-2-normal-semi-bold text-label-normal">
+                  {review.userName}
+                </Text>
+              </View>
+              <Text
+                className="typo-body-3-medium text-label-subtle"
+                numberOfLines={2}
+              >
+                {review.text}
+              </Text>
+              <View className="flex-row items-center gap-1.5">
+                <CourseBadge difficulty={review.difficulty} />
+                <Text className="typo-caption-1-medium text-label-subtler">
+                  {review.courseName}
+                </Text>
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      <TouchableOpacity className="items-center justify-center rounded-[8px] bg-fill-stronger py-3">
+        <Text className="typo-body-2-normal-semi-bold text-label-subtle">
+          더보기
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function MountainDetailScreen(): React.JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -266,6 +538,10 @@ export default function MountainDetailScreen(): React.JSX.Element {
                   ))}
                 </View>
               )}
+              {activeTab === "교통" && <TransportTab />}
+              {activeTab === "편의" && <AmenityTab />}
+              {activeTab === "맛집" && <RestaurantTab />}
+              {activeTab === "리뷰" && <ReviewTab />}
             </View>
           </View>
         </ScrollView>
