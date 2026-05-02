@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from '@/components/icons/chevron-down-icon';
 import { LocationIcon } from '@/components/icons/location-icon';
 import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-course-card';
+import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
 import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
 import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
 import { TrackingSheet } from '@/features/tracking/components/tracking-sheet';
@@ -19,6 +20,7 @@ import {
   TRACKING_SHEET_HEIGHT,
   TRAIL_BAR_GAP,
   TRAIL_BAR_LEFT,
+  TRAIL_MARKER_LEFT,
   TRAIL_BAR_LOCATIONS,
   TRAIL_BAR_WIDTH,
 } from '@/features/tracking/constants';
@@ -35,6 +37,10 @@ export default function TrackingScreen() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showTooltip, setShowTooltip] = useState(true);
   const [trackingSheetHeight, setTrackingSheetHeight] = useState(TRACKING_SHEET_HEIGHT);
+  // 그라데이션 바 레이아웃 (map 영역 내 좌표)
+  const [barLayout, setBarLayout] = useState<{ top: number; height: number } | null>(null);
+  // 마커 Y 비율: 0.0(바 상단/최고도) ~ 1.0(바 하단/최저도), 추후 실제 고도로 대체
+  const markerRatio = 0.8;
 
   const selectedCourse = MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
 
@@ -81,22 +87,34 @@ export default function TrackingScreen() {
       >
         <Text className="typo-body-2-normal-medium text-label-disabled">지도 영역</Text>
 
-        {/* 트래킹 중 — 고도 그라데이션 바 (아래=파랑, 위=빨강) */}
+        {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 */}
         {isTracking && (
-          <LinearGradient
-            colors={TRAIL_BAR_COLORS}
-            locations={TRAIL_BAR_LOCATIONS}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 0, y: 0 }}
-            style={{
-              position: 'absolute',
-              left: TRAIL_BAR_LEFT,
-              top: TRACKING_COURSE_CARD_TOP + TRACKING_COURSE_CARD_HEIGHT + TRAIL_BAR_GAP,
-              bottom: TRAIL_BAR_GAP,
-              width: TRAIL_BAR_WIDTH,
-              borderRadius: 999,
-            }}
-          />
+          <>
+            <LinearGradient
+              colors={TRAIL_BAR_COLORS}
+              locations={TRAIL_BAR_LOCATIONS}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 0, y: 0 }}
+              onLayout={(e) => {
+                const { y, height } = e.nativeEvent.layout;
+                setBarLayout({ top: y, height });
+              }}
+              style={{
+                position: 'absolute',
+                left: TRAIL_BAR_LEFT,
+                top: TRACKING_COURSE_CARD_TOP + TRACKING_COURSE_CARD_HEIGHT + TRAIL_BAR_GAP,
+                bottom: TRAIL_BAR_GAP,
+                width: TRAIL_BAR_WIDTH,
+                borderRadius: 999,
+              }}
+            />
+            {barLayout && (
+              <TrailAvatarMarker
+                left={TRAIL_MARKER_LEFT}
+                centerY={barLayout.top + barLayout.height * markerRatio}
+              />
+            )}
+          </>
         )}
       </TouchableOpacity>
 
