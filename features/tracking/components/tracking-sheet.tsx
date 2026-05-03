@@ -1,18 +1,23 @@
 import { CameraIcon } from '@/components/icons/camera-icon';
 import { CloseSmallIcon } from '@/components/icons/close-small-icon';
+import { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 import { TRACKING_TIMER_STYLE, formatElapsedTime } from '../constants';
 
-// secondary-weak 토큰 (#4ADE80) — 현재 tokens.cjs 미포함, Figma: Color/Secondary/Weak
 const TOOLTIP_BG = '#4ADE80';
-/** 말풍선 꼬리와 본체의 겹침 (Figma gap: -10px) */
 const TOOLTIP_TAIL_OVERLAP = 10;
 
 type Props = {
   elapsedSeconds: number;
   isPaused: boolean;
   showTooltip: boolean;
+  /** 정상 인증 후 true → 라벨이 "하산까지"로 전환 */
+  hasSummited: boolean;
+  /** 정상/하산까지 남은 시간 */
+  timeToTarget: string;
+  /** 정상/하산까지 남은 거리 */
+  distanceToTarget: string;
   onDismissTooltip: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -23,19 +28,37 @@ export function TrackingSheet({
   elapsedSeconds,
   isPaused,
   showTooltip,
+  hasSummited,
+  timeToTarget,
+  distanceToTarget,
   onDismissTooltip,
   onPause,
   onResume,
   onStop,
 }: Props) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const timeLabel = hasSummited ? '하산까지 시간' : '정상까지 시간';
+  const distanceLabel = hasSummited ? '하산까지 거리' : '정상까지 거리';
+
   return (
     <View
       className="w-full bg-fill-normal overflow-hidden"
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
     >
-      {/* 핸들 — chevron 아이콘 */}
-      <View className="items-center pt-3 pb-1">
-        <Svg width={23} height={9} viewBox="0 0 23 9" fill="none">
+      {/* 핸들 — 탭하면 펼침/접힘 */}
+      <TouchableOpacity
+        className="items-center pt-3 pb-1"
+        onPress={() => setIsExpanded((v) => !v)}
+        activeOpacity={0.7}
+      >
+        <Svg
+          width={23}
+          height={9}
+          viewBox="0 0 23 9"
+          fill="none"
+          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
+        >
           <Path
             d="M21.5 1.49988L11.4972 7.50195L1.5 1.49988"
             stroke="#D1D5DB"
@@ -44,7 +67,7 @@ export function TrackingSheet({
             strokeLinejoin="round"
           />
         </Svg>
-      </View>
+      </TouchableOpacity>
 
       {/* 등산 시간 + 타이머 */}
       <View className="items-center py-3">
@@ -53,6 +76,24 @@ export function TrackingSheet({
           {formatElapsedTime(elapsedSeconds)}
         </Text>
       </View>
+
+      {/* 펼침 상태 — 정상/하산까지 시간 & 거리 */}
+      {isExpanded && (
+        <View className="border-t border-line-subtle flex-row">
+          <View className="flex-1 items-center gap-1 py-3">
+            <Text className="typo-caption-1-medium text-label-subtler">{timeLabel}</Text>
+            <Text className="typo-body-1-normal-semi-bold text-label-normal">{timeToTarget}</Text>
+          </View>
+
+          <View className="w-px bg-line-subtle self-stretch" />
+
+          {/* 거리 */}
+          <View className="flex-1 items-center gap-1 py-3">
+            <Text className="typo-caption-1-medium text-label-subtler">{distanceLabel}</Text>
+            <Text className="typo-body-1-normal-semi-bold text-label-normal">{distanceToTarget}</Text>
+          </View>
+        </View>
+      )}
 
       {/* 버튼 영역 */}
       <View className="px-4 pb-4 gap-2">
@@ -82,7 +123,6 @@ export function TrackingSheet({
           </TouchableOpacity>
 
           {isPaused ? (
-            /* 일시정지 상태: 기록 재개 + 기록 종료 */
             <>
               <TouchableOpacity
                 className="flex-1 bg-secondary-normal rounded-[10px] items-center justify-center"
@@ -100,7 +140,6 @@ export function TrackingSheet({
               </TouchableOpacity>
             </>
           ) : (
-            /* 트래킹 중: 기록 중단 */
             <TouchableOpacity
               className="flex-1 bg-label-normal rounded-[10px] items-center justify-center"
               style={{ minHeight: 48, maxHeight: 48, paddingVertical: 11, paddingHorizontal: 20 }}

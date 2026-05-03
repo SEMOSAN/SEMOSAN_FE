@@ -203,6 +203,9 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
+              hasSummited={false}
+              timeToTarget="04:00"
+              distanceToTarget="500m"
               onDismissTooltip={() => setShowTooltip(false)}
               onPause={pauseTracking}
               onResume={resumeTracking}
