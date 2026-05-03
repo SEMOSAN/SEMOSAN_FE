@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from '@/components/icons/chevron-down-icon';
 import { LocationIcon } from '@/components/icons/location-icon';
 import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-course-card';
+import { SummitSheet } from '@/features/tracking/components/summit-sheet';
 import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
 import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
 import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
@@ -37,6 +38,9 @@ export default function TrackingScreen() {
   const [isPaused, setIsPaused] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showTooltip, setShowTooltip] = useState(true);
+  // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
+  const [isAtSummit, setIsAtSummit] = useState(true); // 목 값
+  const [showSummitSheet, setShowSummitSheet] = useState(false);
   const [trackingSheetHeight, setTrackingSheetHeight] = useState(TRACKING_SHEET_HEIGHT);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{ top: number; height: number } | null>(null);
@@ -68,13 +72,24 @@ export default function TrackingScreen() {
 
   const pauseTracking = () => setIsPaused(true);
   const resumeTracking = () => setIsPaused(false);
-  const stopTracking = () => {
+
+  /** 트래킹 완전 종료 */
+  const finishTracking = () => {
     setIsTracking(false);
     setIsPaused(false);
     setElapsedSeconds(0);
     setShowTooltip(true);
+    setShowSummitSheet(false);
     setCollapsed(false);
   };
+
+  // GPS로 정상 부근 감지 시 자동으로 정상 시트 표시
+  // TODO: 실제 구현 시 GPS 좌표와 정상 좌표를 비교해 isAtSummit 업데이트
+  useEffect(() => {
+    if (isTracking && isAtSummit) {
+      setShowSummitSheet(true);
+    }
+  }, [isAtSummit, isTracking]);
 
   const floatingCardBottom = COLLAPSED_PEEK_HEIGHT + FLOATING_CARD_GAP;
 
@@ -178,15 +193,22 @@ export default function TrackingScreen() {
       {/* 트래킹 중 바텀시트 */}
       {isTracking && (
         <View onLayout={(e: LayoutChangeEvent) => setTrackingSheetHeight(e.nativeEvent.layout.height)}>
-          <TrackingSheet
-            elapsedSeconds={elapsedSeconds}
-            isPaused={isPaused}
-            showTooltip={showTooltip}
-            onDismissTooltip={() => setShowTooltip(false)}
-            onPause={pauseTracking}
-            onResume={resumeTracking}
-            onStop={stopTracking}
-          />
+          {showSummitSheet ? (
+            <SummitSheet
+              onCertify={finishTracking}
+              onNotYet={() => setShowSummitSheet(false)}
+            />
+          ) : (
+            <TrackingSheet
+              elapsedSeconds={elapsedSeconds}
+              isPaused={isPaused}
+              showTooltip={showTooltip}
+              onDismissTooltip={() => setShowTooltip(false)}
+              onPause={pauseTracking}
+              onResume={resumeTracking}
+              onStop={finishTracking}
+            />
+          )}
         </View>
       )}
 
