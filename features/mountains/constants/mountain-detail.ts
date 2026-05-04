@@ -9,11 +9,41 @@ export type Course = {
 };
 
 export const MOCK_COURSES: Course[] = [
-  { id: 1, title: "관악산 코스 1", difficulty: "초급", distanceKm: 10, durationHours: 3 },
-  { id: 2, title: "관악산 코스 2", difficulty: "중급", distanceKm: 10, durationHours: 3 },
-  { id: 3, title: "관악산 코스 3", difficulty: "상급", distanceKm: 10, durationHours: 3 },
-  { id: 4, title: "관악산 코스 4", difficulty: "상급", distanceKm: 10, durationHours: 3 },
-  { id: 5, title: "관악산 코스 5", difficulty: "초급", distanceKm: 10, durationHours: 3 },
+  {
+    id: 1,
+    title: "관악산 코스 1",
+    difficulty: "초급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
+  {
+    id: 2,
+    title: "관악산 코스 2",
+    difficulty: "중급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
+  {
+    id: 3,
+    title: "관악산 코스 3",
+    difficulty: "상급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
+  {
+    id: 4,
+    title: "관악산 코스 4",
+    difficulty: "상급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
+  {
+    id: 5,
+    title: "관악산 코스 5",
+    difficulty: "초급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
 ];
 
 export type RestaurantItem = {
@@ -69,21 +99,21 @@ export const MOCK_REVIEWS: Review[] = [
   {
     id: 1,
     userName: "나는야엄홍길",
-    text: "서울대입구 쪽으로 올라갔는데 초반은 그냥 산책 느낌이라 방심했음. 중간부터 슬슬 힘들어지더...",
+    text: "서울대입구 쪽으로 올라갔는데 초반은 그냥 산책 느낌이라 방심했음. 중간부터 슬슬 힘들어지더라구요. 정말정말 힘들었어요. 그렇지만, 재밌었답니다.",
     courseName: "과천향교 출발 코스",
     difficulty: "초급",
   },
   {
     id: 2,
     userName: "나는야엄홍길",
-    text: "서울대입구 쪽으로 올라갔는데 초반은 그냥 산책 느낌이라 방심했음. 중간부터 슬슬 힘들어지더...",
+    text: "서울대입구 쪽으로 올라갔는데 초반은 그냥 산책 느낌이라 방심했음. 중간부터 슬슬 힘들어지더라구요. 정말정말 힘들었어요. 그렇지만, 재밌었답니다.",
     courseName: "과천향교 출발 코스",
     difficulty: "초급",
   },
   {
     id: 3,
     userName: "나는야엄홍길",
-    text: "서울대입구 쪽으로 올라갔는데 초반은 그냥 산책 느낌이라 방심했음. 중간부터 슬슬 힘들어지더...",
+    text: "서울대입구 쪽으로 올라갔는데 초반은 그냥 산책 느낌이라 방심했음. 중간부터 슬슬 힘들어지더라구요. 정말정말 힘들었어요. 그렇지만, 재밌었답니다.",
     courseName: "과천향교 출발 코스",
     difficulty: "초급",
   },

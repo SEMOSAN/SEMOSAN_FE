@@ -37,7 +37,6 @@ const COURSE_BADGE: Record<CourseDifficulty, { bg: string; text: string }> = {
   상급: { bg: "bg-red-50", text: "text-red-500" },
 };
 
-
 type TabKey = "코스" | "교통" | "편의" | "맛집" | "리뷰";
 const TABS: TabKey[] = ["코스", "교통", "편의", "맛집", "리뷰"];
 
@@ -331,7 +330,7 @@ function ReviewTab() {
                   </View>
                   <Text
                     className="text-label-normal typo-body-2-normal-regular"
-                    numberOfLines={2}
+                    numberOfLines={3}
                   >
                     {review.text}
                   </Text>
