@@ -2,6 +2,7 @@ import { BusIcon } from "@/components/icons/bus-icon";
 import { CarIcon } from "@/components/icons/car-icon";
 import { CaretDownIcon } from "@/components/icons/caret-down-icon";
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
+import { UserIcon } from "@/components/icons/user-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
 import { InfoCenterIcon } from "@/components/icons/info-center-icon";
 import { MagicWandIcon } from "@/components/icons/magic-wand-icon";
@@ -17,6 +18,7 @@ import {
   DIFFICULTY_STYLE,
   MOCK_MOUNTAINS,
 } from "@/features/mountains/components/mountain-card";
+import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import {
   MOCK_COURSES,
   MOCK_REVIEWS,
@@ -31,11 +33,6 @@ import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const COURSE_BADGE: Record<CourseDifficulty, { bg: string; text: string }> = {
-  초급: { bg: "bg-green-50", text: "text-green-500" },
-  중급: { bg: "bg-blue-50", text: "text-blue-500" },
-  상급: { bg: "bg-red-50", text: "text-red-500" },
-};
 
 type TabKey = "코스" | "교통" | "편의" | "맛집" | "리뷰";
 const TABS: TabKey[] = ["코스", "교통", "편의", "맛집", "리뷰"];
@@ -77,8 +74,13 @@ function CourseBadge({ difficulty }: { difficulty: CourseDifficulty }) {
 }
 
 function CourseCard({ course }: { course: Course }) {
+  const router = useRouter();
   return (
-    <View className="flex-row items-center gap-4">
+    <TouchableOpacity
+      className="flex-row items-center gap-4"
+      activeOpacity={0.7}
+      onPress={() => router.push(`/mountains/courses/${course.id}`)}
+    >
       <View className="h-[72px] w-16 rounded-[10px] bg-fill-stronger" />
       <View className="gap-1.5">
         <View className="flex-row items-center gap-1.5">
@@ -97,7 +99,7 @@ function CourseCard({ course }: { course: Course }) {
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -323,7 +325,12 @@ function ReviewTab() {
                 <View className="size-[92px] rounded-[10px] bg-fill-stronger" />
                 <View className="flex-1 gap-1.5">
                   <View className="flex-row items-center gap-1.5">
-                    <View className="size-5 rounded-full bg-fill-stronger" />
+                    <View
+                    className="items-center justify-center rounded-full p-[3px]"
+                    style={{ backgroundColor: "#A4ABC0" }}
+                  >
+                    <UserIcon />
+                  </View>
                     <Text className="text-label-normal typo-body-2-normal-semi-bold">
                       {review.userName}
                     </Text>

@@ -1,3 +1,4 @@
+import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import React from "react";
 import { Text, View } from "react-native";
 
@@ -23,9 +24,9 @@ export const MOCK_MOUNTAINS: Mountain[] = [
 ];
 
 export const DIFFICULTY_STYLE: Record<Difficulty, string> = {
-  하: "text-green-500",
-  중: "text-blue-500",
-  상: "text-red-500",
+  하: COURSE_BADGE.초급.text,
+  중: COURSE_BADGE.중급.text,
+  상: COURSE_BADGE.상급.text,
 };
 
 export function MountainCard({ mountain }: { mountain: Mountain }): React.JSX.Element {
