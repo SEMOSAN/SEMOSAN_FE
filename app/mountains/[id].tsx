@@ -18,13 +18,12 @@ import {
   DIFFICULTY_STYLE,
   MOCK_MOUNTAINS,
 } from "@/features/mountains/components/mountain-card";
-import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
+import { CourseBadge } from "@/features/mountains/components/course-badge";
 import {
   MOCK_COURSES,
   MOCK_REVIEWS,
   RESTAURANT_SECTIONS,
   type Course,
-  type CourseDifficulty,
 } from "@/features/mountains/constants/mountain-detail";
 import { buildWeatherDays } from "@/features/mountains/modules/weather";
 import { LinearGradient } from "expo-linear-gradient";
@@ -59,15 +58,6 @@ function SunriseSunset({
         </View>
         <Text className="text-label-subtle typo-body-3-medium">{sunset}</Text>
       </View>
-    </View>
-  );
-}
-
-function CourseBadge({ difficulty }: { difficulty: CourseDifficulty }) {
-  const { bg, text } = COURSE_BADGE[difficulty];
-  return (
-    <View className={`items-center justify-center rounded-[4px] px-1 ${bg}`}>
-      <Text className={`typo-body-2-normal-medium ${text}`}>{difficulty}</Text>
     </View>
   );
 }

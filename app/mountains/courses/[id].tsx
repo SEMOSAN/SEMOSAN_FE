@@ -2,7 +2,7 @@ import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
 import { RouteIcon } from "@/components/icons/route-icon";
 import { UserIcon } from "@/components/icons/user-icon";
-import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
+import { CourseBadge } from "@/features/mountains/components/course-badge";
 import {
   MOCK_REVIEWS,
   type CourseDifficulty,
@@ -36,15 +36,6 @@ const STAT_ROWS = [
     { label: "내리막길", value: `${MOCK_COURSE.downhillM}m` },
   ],
 ];
-
-function CourseBadge({ difficulty }: { difficulty: CourseDifficulty }) {
-  const { bg, text } = COURSE_BADGE[difficulty];
-  return (
-    <View className={`items-center justify-center rounded-[4px] px-1 ${bg}`}>
-      <Text className={`typo-body-2-normal-medium ${text}`}>{difficulty}</Text>
-    </View>
-  );
-}
 
 export default function CourseDetailScreen(): React.JSX.Element {
   const router = useRouter();
