@@ -196,11 +196,13 @@ type RestaurantItem = {
 };
 type RestaurantSection = {
   title: string;
+  moreLabel: string;
   items: RestaurantItem[];
 };
 const RESTAURANT_SECTIONS: RestaurantSection[] = [
   {
     title: "정상에서 꺼내는 짜릿한 한입",
+    moreLabel: "포장 맛집",
     items: [
       { id: 1, name: "하산주막", category: "막걸리·안주" },
       { id: 2, name: "산중카페", category: "카페·디저트" },
@@ -209,6 +211,7 @@ const RESTAURANT_SECTIONS: RestaurantSection[] = [
   },
   {
     title: "하산 후 국룰 한잔",
+    moreLabel: "하산 맛집",
     items: [
       { id: 1, name: "막걸리타운", category: "막걸리·안주" },
       { id: 2, name: "산밑식당", category: "한식·백반" },
@@ -217,6 +220,7 @@ const RESTAURANT_SECTIONS: RestaurantSection[] = [
   },
   {
     title: "체력 회복 필수 코스",
+    moreLabel: "보양식 맛집",
     items: [
       { id: 1, name: "해장국집", category: "해장국·국밥" },
       { id: 2, name: "삼겹살타운", category: "삼겹살·구이" },
@@ -352,7 +356,7 @@ function RestaurantTab() {
             ))}
             <View className="h-[116px] w-[188px] items-center justify-center gap-1 rounded-[10px] bg-fill-stronger">
               <Text className="typo-body-2-normal-semi-bold text-center text-label-subtle">
-                {section.title}
+                {section.moreLabel}
               </Text>
               <Text className="typo-body-2-normal-regular text-label-subtler">
                 {"더보기 >"}
@@ -549,14 +553,14 @@ export default function MountainDetailScreen() {
             </View>
 
             {/* Tab section */}
-            <View className="items-center gap-6 py-6">
+            <View className="gap-6 py-6">
               {/* Tab toggle bar */}
-              <View className="flex-row gap-1 rounded-[10px] bg-fill-stronger p-1">
+              <View className="mx-[20.5px] flex-row gap-1 rounded-[10px] bg-fill-stronger p-1">
                 {TABS.map((tab) => (
                   <TouchableOpacity
                     key={tab}
                     onPress={() => setActiveTab(tab)}
-                    className={`w-[62px] items-center justify-center rounded-[6px] px-[10px] py-[6px] ${
+                    className={`flex-1 items-center justify-center rounded-[6px] px-[10px] py-[6px] ${
                       activeTab === tab ? "bg-fill-normal" : ""
                     }`}
                   >
