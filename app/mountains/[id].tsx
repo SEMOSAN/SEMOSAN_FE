@@ -1,17 +1,17 @@
-import { CaretDownIcon } from "@/components/icons/caret-down-icon";
-import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
 import { BusIcon } from "@/components/icons/bus-icon";
 import { CarIcon } from "@/components/icons/car-icon";
-import { SubwayIcon } from "@/components/icons/subway-icon";
+import { CaretDownIcon } from "@/components/icons/caret-down-icon";
+import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
 import { InfoCenterIcon } from "@/components/icons/info-center-icon";
 import { MagicWandIcon } from "@/components/icons/magic-wand-icon";
 import { MegaphoneIcon } from "@/components/icons/megaphone-icon";
 import { ParkingIcon } from "@/components/icons/parking-icon";
 import { ShelterIcon } from "@/components/icons/shelter-icon";
 import { StoreIcon } from "@/components/icons/store-icon";
-import { ToiletIcon } from "@/components/icons/toilet-icon";
+import { SubwayIcon } from "@/components/icons/subway-icon";
 import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
+import { ToiletIcon } from "@/components/icons/toilet-icon";
 import {
   MOCK_MOUNTAINS,
   type Difficulty,
@@ -34,11 +34,41 @@ type Course = {
 };
 
 const MOCK_COURSES: Course[] = [
-  { id: 1, title: "관악산 코스 1", difficulty: "초급", distanceKm: 10, durationHours: 3 },
-  { id: 2, title: "관악산 코스 2", difficulty: "중급", distanceKm: 10, durationHours: 3 },
-  { id: 3, title: "관악산 코스 3", difficulty: "상급", distanceKm: 10, durationHours: 3 },
-  { id: 4, title: "관악산 코스 4", difficulty: "상급", distanceKm: 10, durationHours: 3 },
-  { id: 5, title: "관악산 코스 5", difficulty: "초급", distanceKm: 10, durationHours: 3 },
+  {
+    id: 1,
+    title: "관악산 코스 1",
+    difficulty: "초급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
+  {
+    id: 2,
+    title: "관악산 코스 2",
+    difficulty: "중급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
+  {
+    id: 3,
+    title: "관악산 코스 3",
+    difficulty: "상급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
+  {
+    id: 4,
+    title: "관악산 코스 4",
+    difficulty: "상급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
+  {
+    id: 5,
+    title: "관악산 코스 5",
+    difficulty: "초급",
+    distanceKm: 10,
+    durationHours: 3,
+  },
 ];
 
 const COURSE_BADGE: Record<CourseDifficulty, { bg: string; text: string }> = {
@@ -93,22 +123,28 @@ function HeartIcon() {
   );
 }
 
-function SunriseSunset({ sunrise, sunset }: { sunrise: string; sunset: string }) {
+function SunriseSunset({
+  sunrise,
+  sunset,
+}: {
+  sunrise: string;
+  sunset: string;
+}) {
   return (
     <View className="flex-row items-center gap-3">
       <View className="flex-row items-center gap-1.5">
         <View className="flex-row items-center gap-1">
           <SunriseIcon />
-          <Text className="typo-body-3-medium text-label-subtler">일출</Text>
+          <Text className="text-label-subtler typo-body-3-medium">일출</Text>
         </View>
-        <Text className="typo-body-3-medium text-label-subtle">{sunrise}</Text>
+        <Text className="text-label-subtle typo-body-3-medium">{sunrise}</Text>
       </View>
       <View className="flex-row items-center gap-1.5">
         <View className="flex-row items-center gap-1">
           <SunsetIcon />
-          <Text className="typo-body-3-medium text-label-subtler">일몰</Text>
+          <Text className="text-label-subtler typo-body-3-medium">일몰</Text>
         </View>
-        <Text className="typo-body-3-medium text-label-subtle">{sunset}</Text>
+        <Text className="text-label-subtle typo-body-3-medium">{sunset}</Text>
       </View>
     </View>
   );
@@ -130,16 +166,16 @@ function CourseCard({ course }: { course: Course }) {
       <View className="gap-1.5">
         <View className="flex-row items-center gap-1.5">
           <CourseBadge difficulty={course.difficulty} />
-          <Text className="typo-body-1-normal-semi-bold text-label-normal">
+          <Text className="text-label-normal typo-body-1-normal-semi-bold">
             {course.title}
           </Text>
         </View>
         <View className="flex-row items-center gap-1.5">
-          <Text className="typo-caption-1-medium text-label-subtler">
+          <Text className="text-label-subtler typo-caption-1-medium">
             {course.distanceKm}km
           </Text>
           <View className="size-[2px] rounded-full bg-label-subtler" />
-          <Text className="typo-caption-1-medium text-label-subtler">
+          <Text className="text-label-subtler typo-caption-1-medium">
             {course.durationHours}시간
           </Text>
         </View>
@@ -163,15 +199,35 @@ const TRANSPORT_SECTIONS: TransportSection[] = [
   {
     heading: "대중교통",
     items: [
-      { id: 1, title: "지하철", description: "2호선 서울대입구역 하차 후 5511번 버스 탑승", icon: <SubwayIcon /> },
-      { id: 2, title: "버스", description: "5511, 5513번 버스 이용 (관악산 입구 하차)", icon: <BusIcon /> },
+      {
+        id: 1,
+        title: "지하철",
+        description: "2호선 서울대입구역 하차 후 5511번 버스 탑승",
+        icon: <SubwayIcon size={16} color="#5C6170" />,
+      },
+      {
+        id: 2,
+        title: "버스",
+        description: "5511, 5513번 버스 이용 (관악산 입구 하차)",
+        icon: <BusIcon size={16} color="#5C6170" />,
+      },
     ],
   },
   {
     heading: "주차장",
     items: [
-      { id: 1, title: "서울대 정문", description: "서울대학교 정문 주차장 (유료, 30분 1,000원)", icon: <CarIcon /> },
-      { id: 2, title: "과천 향교 방면", description: "과천 방면 공영주차장 (무료, 100대 수용)", icon: <CarIcon /> },
+      {
+        id: 1,
+        title: "서울대 정문",
+        description: "서울대학교 정문 주차장 (유료, 30분 1,000원)",
+        icon: <CarIcon size={16} color="#5C6170" />,
+      },
+      {
+        id: 2,
+        title: "과천 향교 방면",
+        description: "과천 방면 공영주차장 (무료, 100대 수용)",
+        icon: <CarIcon size={16} color="#5C6170" />,
+      },
     ],
   },
 ];
@@ -183,7 +239,10 @@ type AmenityArea = {
   facilities: Facility[];
 };
 const AMENITY_AREAS: AmenityArea[] = [
-  { name: "서울대 입구", facilities: ["화장실", "안내소", "쉼터", "주차장", "매점"] },
+  {
+    name: "서울대 입구",
+    facilities: ["화장실", "안내소", "쉼터", "주차장", "매점"],
+  },
   { name: "신림 방향", facilities: ["화장실", "쉼터", "매점"] },
   { name: "과천 방향", facilities: ["화장실", "안내소", "주차장"] },
 ];
@@ -264,23 +323,25 @@ const MOCK_REVIEWS: Review[] = [
 // ── 탭 컴포넌트 ──────────────────────────────────────────
 function TransportTab() {
   return (
-    <View className="w-full gap-10 px-5">
+    <View className="w-full gap-10 px-6">
       {TRANSPORT_SECTIONS.map((section) => (
-        <View key={section.heading} className="gap-5">
-          <Text className="typo-headline-1-semi-bold text-label-normal">
+        <View key={section.heading} className="gap-4">
+          <Text className="text-label-normal typo-headline-1-semi-bold">
             {section.heading}
           </Text>
           <View className="gap-4">
             {section.items.map((item) => (
               <View key={item.id} className="flex-row items-start gap-3">
-                <View className="mt-0.5">
-                  {item.icon ?? <View className="size-5 rounded-[4px] bg-fill-stronger" />}
+                <View className="items-center justify-center rounded-full bg-fill-stronger p-1">
+                  {item.icon ?? (
+                    <View className="size-5 rounded-[4px] bg-fill-stronger" />
+                  )}
                 </View>
-                <View className="flex-1 gap-1">
-                  <Text className="typo-body-1-normal-semi-bold text-label-normal">
+                <View className="flex-1 gap-2">
+                  <Text className="text-label-normal typo-body-1-normal-semi-bold">
                     {item.title}
                   </Text>
-                  <Text className="typo-body-2-normal-regular text-label-subtle">
+                  <Text className="text-label-subtle typo-body-2-reading-regular">
                     {item.description}
                   </Text>
                 </View>
@@ -303,27 +364,29 @@ const FACILITY_ICON: Record<Facility, React.JSX.Element> = {
 
 function AmenityTab() {
   return (
-    <View className="w-full gap-8 px-5">
-      <Text className="typo-headline-1-semi-bold text-label-normal">
+    <View className="w-full px-5">
+      <Text className="mb-4 text-label-normal typo-headline-1-semi-bold">
         주요 편의시설
       </Text>
-      {AMENITY_AREAS.map((area) => (
-        <View key={area.name} className="gap-3">
-          <Text className="typo-body-1-normal-semi-bold text-label-subtle">
-            {area.name}
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {area.facilities.map((facility) => (
-              <View key={facility} className="w-16 items-center gap-1.5">
-                {FACILITY_ICON[facility]}
-                <Text className="typo-caption-1-medium text-center text-label-subtle">
-                  {facility}
-                </Text>
-              </View>
-            ))}
+      <View className="gap-8">
+        {AMENITY_AREAS.map((area) => (
+          <View key={area.name} className="gap-3">
+            <Text className="text-label-subtle typo-body-1-normal-semi-bold">
+              {area.name}
+            </Text>
+            <View className="flex-row flex-wrap">
+              {area.facilities.map((facility) => (
+                <View key={facility} className="items-center gap-1.5 p-4">
+                  {FACILITY_ICON[facility]}
+                  <Text className="text-center text-label-subtle typo-body-3-regular">
+                    {facility}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
-      ))}
+        ))}
+      </View>
     </View>
   );
 }
@@ -333,32 +396,32 @@ function RestaurantTab() {
     <View className="w-full gap-8">
       {RESTAURANT_SECTIONS.map((section) => (
         <View key={section.title} className="gap-4">
-          <Text className="typo-headline-1-semi-bold px-5 text-label-normal">
+          <Text className="px-5 text-label-normal typo-headline-1-semi-bold">
             {section.title}
           </Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+            contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
           >
             {section.items.map((item) => (
               <View key={item.id} className="gap-2">
                 <View className="h-[116px] w-[188px] rounded-[10px] bg-fill-stronger" />
                 <View className="gap-0.5">
-                  <Text className="typo-body-1-normal-semi-bold text-label-normal">
+                  <Text className="text-label-normal typo-body-1-normal-semi-bold">
                     {item.name}
                   </Text>
-                  <Text className="typo-caption-1-medium text-label-subtler">
+                  <Text className="text-label-subtler typo-caption-1-medium">
                     {item.category}
                   </Text>
                 </View>
               </View>
             ))}
             <View className="h-[116px] w-[188px] items-center justify-center gap-1 rounded-[10px] bg-fill-stronger">
-              <Text className="typo-body-2-normal-semi-bold text-center text-label-subtle">
+              <Text className="text-center text-label-subtle typo-body-2-normal-semi-bold">
                 {section.moreLabel}
               </Text>
-              <Text className="typo-body-2-normal-regular text-label-subtler">
+              <Text className="text-label-subtler typo-body-2-normal-regular">
                 {"더보기 >"}
               </Text>
             </View>
@@ -377,22 +440,22 @@ function ReviewTab() {
         <View className="gap-2 rounded-[12px] bg-[#f5f8ff] px-5 py-[18px]">
           <View className="flex-row items-center gap-2">
             <MagicWandIcon />
-            <Text className="typo-body-1-normal-semi-bold text-label-normal">
+            <Text className="text-label-normal typo-body-1-normal-semi-bold">
               한줄 경험 요약
             </Text>
           </View>
-          <Text className="typo-body-2-normal-regular text-label-subtle">
+          <Text className="text-label-subtle typo-body-2-normal-regular">
             생각보다 더 힘들고, 그만큼 정상에서의 보람이 큰 산
           </Text>
         </View>
         <View className="gap-2 rounded-[12px] bg-[#fff5f5] px-5 py-[18px]">
           <View className="flex-row items-center gap-2">
             <MegaphoneIcon />
-            <Text className="typo-body-1-normal-semi-bold text-label-normal">
+            <Text className="text-label-normal typo-body-1-normal-semi-bold">
               가기 전에 꼭 알아야 할 한 가지
             </Text>
           </View>
-          <Text className="typo-body-2-normal-regular text-label-subtle">
+          <Text className="text-label-subtle typo-body-2-normal-regular">
             중간에 화장실 거의 없음, 초입에서 미리 다녀오세요
           </Text>
         </View>
@@ -401,31 +464,26 @@ function ReviewTab() {
       {/* 커뮤니티 리뷰 */}
       <View className="gap-4">
         <View className="flex-row items-center gap-2">
-          <Text className="typo-headline-1-semi-bold text-label-normal">
+          <Text className="text-label-normal typo-headline-1-semi-bold">
             커뮤니티 리뷰
           </Text>
-          <Text className="typo-headline-1-semi-bold text-[#A4ABC0]">
-            54
-          </Text>
+          <Text className="text-[#A4ABC0] typo-headline-1-semi-bold">54</Text>
         </View>
 
         <View className="gap-4">
           {MOCK_REVIEWS.map((review) => (
-            <View
-              key={review.id}
-              className="gap-3 px-1 pb-4 pt-1"
-            >
+            <View key={review.id} className="gap-3 px-1 pb-4 pt-1">
               <View className="flex-row gap-4">
                 <View className="size-[92px] rounded-[10px] bg-fill-stronger" />
                 <View className="flex-1 gap-1.5">
                   <View className="flex-row items-center gap-1.5">
                     <View className="size-5 rounded-full bg-fill-stronger" />
-                    <Text className="typo-body-2-normal-semi-bold text-label-normal">
+                    <Text className="text-label-normal typo-body-2-normal-semi-bold">
                       {review.userName}
                     </Text>
                   </View>
                   <Text
-                    className="typo-body-2-normal-regular text-label-normal"
+                    className="text-label-normal typo-body-2-normal-regular"
                     numberOfLines={2}
                   >
                     {review.text}
@@ -434,7 +492,7 @@ function ReviewTab() {
               </View>
               <View className="flex-row items-center gap-2">
                 <CourseBadge difficulty={review.difficulty} />
-                <Text className="typo-body-2-normal-medium text-label-normal">
+                <Text className="text-label-normal typo-body-2-normal-medium">
                   {review.courseName}
                 </Text>
               </View>
@@ -443,9 +501,7 @@ function ReviewTab() {
         </View>
 
         <TouchableOpacity className="h-[38px] items-center justify-center rounded-[8px] bg-fill-stronger">
-          <Text className="typo-label-medium text-label-subtle">
-            더보기
-          </Text>
+          <Text className="text-label-subtle typo-label-medium">더보기</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -487,10 +543,10 @@ export default function MountainDetailScreen() {
             <View className="gap-[7px] px-5 pt-5">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-end gap-3">
-                  <Text className="typo-title-2-bold text-label-normal">
+                  <Text className="text-label-normal typo-title-2-bold">
                     {mountain.name}
                   </Text>
-                  <Text className="pb-px typo-body-2-normal-regular text-label-subtler">
+                  <Text className="pb-px text-label-subtler typo-body-2-normal-regular">
                     {mountain.location}
                   </Text>
                 </View>
@@ -500,7 +556,7 @@ export default function MountainDetailScreen() {
               </View>
 
               <View className="flex-row items-center gap-2">
-                <Text className="typo-body-2-normal-medium text-label-subtle">
+                <Text className="text-label-subtle typo-body-2-normal-medium">
                   고도 {mountain.altitude}m
                 </Text>
                 <View className="size-[2px] rounded-full bg-label-subtler" />
@@ -521,7 +577,7 @@ export default function MountainDetailScreen() {
                 activeOpacity={0.7}
               >
                 <View className="mr-3 flex-1 flex-row items-center justify-between">
-                  <Text className="typo-body-3-semi-bold text-label-normal">
+                  <Text className="text-label-normal typo-body-3-semi-bold">
                     {weatherDays[0].label}
                   </Text>
                   <SunriseSunset
@@ -531,7 +587,9 @@ export default function MountainDetailScreen() {
                 </View>
                 <View
                   className="w-5 items-center justify-center"
-                  style={{ transform: [{ rotate: accordionOpen ? "180deg" : "0deg" }] }}
+                  style={{
+                    transform: [{ rotate: accordionOpen ? "180deg" : "0deg" }],
+                  }}
                 >
                   <CaretDownIcon color="#73798C" />
                 </View>
@@ -542,10 +600,13 @@ export default function MountainDetailScreen() {
                 weatherDays.slice(1).map((day) => (
                   <View key={day.label} className="h-5 flex-row items-center">
                     <View className="mr-3 flex-1 flex-row items-center justify-between">
-                      <Text className="typo-body-3-medium text-label-subtle">
+                      <Text className="text-label-subtle typo-body-3-medium">
                         {day.label}
                       </Text>
-                      <SunriseSunset sunrise={day.sunrise} sunset={day.sunset} />
+                      <SunriseSunset
+                        sunrise={day.sunrise}
+                        sunset={day.sunset}
+                      />
                     </View>
                     <View className="w-5" />
                   </View>
@@ -566,7 +627,9 @@ export default function MountainDetailScreen() {
                   >
                     <Text
                       className={`typo-label-medium ${
-                        activeTab === tab ? "text-label-normal" : "text-label-subtler"
+                        activeTab === tab
+                          ? "text-label-normal"
+                          : "text-label-subtler"
                       }`}
                     >
                       {tab}
@@ -594,7 +657,13 @@ export default function MountainDetailScreen() {
         {/* Top gradient overlay (non-interactive) */}
         <LinearGradient
           colors={["rgba(255,255,255,0.9)", "transparent"]}
-          style={{ position: "absolute", top: 0, left: 0, right: 0, height: 108 }}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 108,
+          }}
           pointerEvents="none"
         />
 
@@ -604,7 +673,10 @@ export default function MountainDetailScreen() {
           style={{ paddingTop: insets.top }}
           pointerEvents="box-none"
         >
-          <View className="h-14 flex-row items-center px-5" pointerEvents="box-none">
+          <View
+            className="h-14 flex-row items-center px-5"
+            pointerEvents="box-none"
+          >
             <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
               <CaretLeftIcon />
             </TouchableOpacity>
