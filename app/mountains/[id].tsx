@@ -324,10 +324,7 @@ function ReviewTab() {
                 <View className="size-[92px] rounded-[10px] bg-fill-stronger" />
                 <View className="flex-1 gap-1.5">
                   <View className="flex-row items-center gap-1.5">
-                    <View
-                      className="items-center justify-center rounded-full p-[3px]"
-                      style={{ backgroundColor: "#A4ABC0" }}
-                    >
+                    <View className="items-center justify-center rounded-full bg-fill-strongest p-[3px]">
                       <UserIcon />
                     </View>
                     <Text className="text-label-normal typo-body-2-normal-semi-bold">
