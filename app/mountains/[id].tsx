@@ -2,7 +2,6 @@ import { BusIcon } from "@/components/icons/bus-icon";
 import { CarIcon } from "@/components/icons/car-icon";
 import { CaretDownIcon } from "@/components/icons/caret-down-icon";
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
-import { UserIcon } from "@/components/icons/user-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
 import { InfoCenterIcon } from "@/components/icons/info-center-icon";
 import { MagicWandIcon } from "@/components/icons/magic-wand-icon";
@@ -14,6 +13,7 @@ import { SubwayIcon } from "@/components/icons/subway-icon";
 import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { ToiletIcon } from "@/components/icons/toilet-icon";
+import { UserIcon } from "@/components/icons/user-icon";
 import {
   DIFFICULTY_STYLE,
   MOCK_MOUNTAINS,
@@ -32,7 +32,6 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 
 type TabKey = "코스" | "교통" | "편의" | "맛집" | "리뷰";
 const TABS: TabKey[] = ["코스", "교통", "편의", "맛집", "리뷰"];
@@ -285,7 +284,7 @@ function ReviewTab() {
     <View className="w-full gap-8 px-5">
       {/* 요약 카드 */}
       <View className="gap-3">
-        <View className="gap-2 rounded-[12px] bg-[#f5f8ff] px-5 py-[18px]">
+        <View className="gap-2 rounded-[12px] bg-blue-25 px-5 py-[18px]">
           <View className="flex-row items-center gap-2">
             <MagicWandIcon />
             <Text className="text-label-normal typo-body-1-normal-semi-bold">
@@ -296,7 +295,7 @@ function ReviewTab() {
             생각보다 더 힘들고, 그만큼 정상에서의 보람이 큰 산
           </Text>
         </View>
-        <View className="gap-2 rounded-[12px] bg-[#fff5f5] px-5 py-[18px]">
+        <View className="gap-2 rounded-[12px] bg-red-25 px-5 py-[18px]">
           <View className="flex-row items-center gap-2">
             <MegaphoneIcon />
             <Text className="text-label-normal typo-body-1-normal-semi-bold">
@@ -315,7 +314,7 @@ function ReviewTab() {
           <Text className="text-label-normal typo-headline-1-semi-bold">
             커뮤니티 리뷰
           </Text>
-          <Text className="text-[#A4ABC0] typo-headline-1-semi-bold">54</Text>
+          <Text className="text-neutral-300 typo-headline-1-semi-bold">54</Text>
         </View>
 
         <View className="gap-4">
@@ -326,11 +325,11 @@ function ReviewTab() {
                 <View className="flex-1 gap-1.5">
                   <View className="flex-row items-center gap-1.5">
                     <View
-                    className="items-center justify-center rounded-full p-[3px]"
-                    style={{ backgroundColor: "#A4ABC0" }}
-                  >
-                    <UserIcon />
-                  </View>
+                      className="items-center justify-center rounded-full p-[3px]"
+                      style={{ backgroundColor: "#A4ABC0" }}
+                    >
+                      <UserIcon />
+                    </View>
                     <Text className="text-label-normal typo-body-2-normal-semi-bold">
                       {review.userName}
                     </Text>

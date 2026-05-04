@@ -18,7 +18,7 @@ const MOCK_COURSE = {
   start: "서울시 관악구 00동",
   end: "서울시 관악구 00동",
   distanceKm: 13.95,
-  altitude: "2.43Nm",
+  altitude: "2.43m",
   uphillM: 1436,
   downhillM: 1354,
   durationHours: 4,
@@ -131,7 +131,7 @@ export default function CourseDetailScreen(): React.JSX.Element {
               <Text className="text-label-normal typo-headline-1-semi-bold">
                 커뮤니티 리뷰
               </Text>
-              <Text className="text-[#A4ABC0] typo-headline-1-semi-bold">
+              <Text className="text-neutral-300 typo-headline-1-semi-bold">
                 54
               </Text>
             </View>
@@ -199,7 +199,12 @@ export default function CourseDetailScreen(): React.JSX.Element {
           style={{ bottom: insets.bottom + 8 }}
           pointerEvents="box-none"
         >
-          <TouchableOpacity className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3">
+          <TouchableOpacity
+            onPress={() => {
+              /** TODO : 트래킹 페이지 연동 */
+            }}
+            className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3"
+          >
             <RouteIcon />
             <Text className="text-label-normal-inverse typo-label-large">
               코스 따라가기
