@@ -3,11 +3,7 @@ import { type CourseDifficulty } from "@/features/mountains/constants/mountain-d
 import React from "react";
 import { Text, View } from "react-native";
 
-export function CourseBadge({
-  difficulty,
-}: {
-  difficulty: CourseDifficulty;
-}): React.JSX.Element {
+export function CourseBadge({ difficulty }: { difficulty: CourseDifficulty }) {
   const { bg, text } = COURSE_BADGE[difficulty];
   return (
     <View className={`items-center justify-center rounded-[4px] px-1 ${bg}`}>
