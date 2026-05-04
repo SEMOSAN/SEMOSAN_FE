@@ -36,8 +36,7 @@ const config = {
     [
       '@mj-studio/react-native-naver-map',
       {
-        ios: { CLIENT_ID: process.env.NAVER_MAP_CLIENT_ID },
-        android: { CLIENT_ID: process.env.NAVER_MAP_CLIENT_ID },
+        client_id: process.env.NAVER_MAP_CLIENT_ID,
       },
     ],
     [

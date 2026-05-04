@@ -10,10 +10,31 @@ export type TrendingMountain = {
 };
 
 export const MOCK_TRENDING: TrendingMountain[] = [
-  { id: '1', rank: 1, name: '산 이름', tags: ['태그1', '태그2'] },
-  { id: '2', rank: 2, name: '산 이름', tags: ['태그1', '태그2'] },
-  { id: '3', rank: 3, name: '산 이름', tags: ['태그1', '태그2'] },
-  { id: '4', rank: 4, name: '산 이름', tags: ['태그1', '태그2'] },
+  {
+    id: '1', rank: 1, name: '북한산',
+    tags: ['초보 가능', '단풍 명소'],
+    imageUri: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    id: '2', rank: 2, name: '인왕산',
+    tags: ['서울 야경', '접근 쉬움'],
+    imageUri: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    id: '3', rank: 3, name: '청계산',
+    tags: ['가족 코스', '맑은 계곡'],
+    imageUri: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    id: '4', rank: 4, name: '관악산',
+    tags: ['암릉 코스', '전망 좋음'],
+    imageUri: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    id: '5', rank: 5, name: '도봉산',
+    tags: ['바위 능선', '사계절 명산'],
+    imageUri: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=600&q=80',
+  },
 ];
 
 export function TrendingCardList({ mountains = MOCK_TRENDING }: { mountains?: TrendingMountain[] }) {
