@@ -1,8 +1,8 @@
 import { BusIcon } from "@/components/icons/bus-icon";
 import { CarIcon } from "@/components/icons/car-icon";
 import { CaretDownIcon } from "@/components/icons/caret-down-icon";
-import { HeartIcon } from "@/components/icons/heart-icon";
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
+import { HeartIcon } from "@/components/icons/heart-icon";
 import { InfoCenterIcon } from "@/components/icons/info-center-icon";
 import { MagicWandIcon } from "@/components/icons/magic-wand-icon";
 import { MegaphoneIcon } from "@/components/icons/megaphone-icon";
@@ -14,23 +14,22 @@ import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { ToiletIcon } from "@/components/icons/toilet-icon";
 import {
-  MOCK_COURSES,
-  MOCK_REVIEWS,
-  RESTAURANT_SECTIONS,
-  type CourseDifficulty,
-  type Course,
-} from "@/features/mountains/constants/mountain-detail";
-import {
   MOCK_MOUNTAINS,
   type Difficulty,
 } from "@/features/mountains/components/mountain-card";
+import {
+  MOCK_COURSES,
+  MOCK_REVIEWS,
+  RESTAURANT_SECTIONS,
+  type Course,
+  type CourseDifficulty,
+} from "@/features/mountains/constants/mountain-detail";
 import { buildWeatherDays } from "@/features/mountains/modules/weather";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 
 const COURSE_BADGE: Record<CourseDifficulty, { bg: string; text: string }> = {
   초급: { bg: "bg-green-50", text: "text-green-500" },
@@ -46,7 +45,6 @@ const DIFFICULTY_TEXT: Record<Difficulty, string> = {
 
 type TabKey = "코스" | "교통" | "편의" | "맛집" | "리뷰";
 const TABS: TabKey[] = ["코스", "교통", "편의", "맛집", "리뷰"];
-
 
 function SunriseSunset({
   sunrise,
@@ -371,7 +369,7 @@ export default function MountainDetailScreen() {
   const weatherDays = buildWeatherDays();
 
   const mountain =
-    MOCK_MOUNTAINS.find((m) => m.id === Number(id)) ?? MOCK_MOUNTAINS[0];
+    MOCK_MOUNTAINS.find((m) => m.id === Number(id)) ?? MOCK_MOUNTAINS[0]; // TODO : 예외처리
 
   return (
     <>
