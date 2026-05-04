@@ -14,8 +14,8 @@ import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { ToiletIcon } from "@/components/icons/toilet-icon";
 import {
+  DIFFICULTY_STYLE,
   MOCK_MOUNTAINS,
-  type Difficulty,
 } from "@/features/mountains/components/mountain-card";
 import {
   MOCK_COURSES,
@@ -37,11 +37,6 @@ const COURSE_BADGE: Record<CourseDifficulty, { bg: string; text: string }> = {
   상급: { bg: "bg-red-50", text: "text-red-500" },
 };
 
-const DIFFICULTY_TEXT: Record<Difficulty, string> = {
-  하: "text-green-500",
-  중: "text-blue-500",
-  상: "text-red-500",
-};
 
 type TabKey = "코스" | "교통" | "편의" | "맛집" | "리뷰";
 const TABS: TabKey[] = ["코스", "교통", "편의", "맛집", "리뷰"];
@@ -413,7 +408,7 @@ export default function MountainDetailScreen() {
                 </Text>
                 <View className="size-[2px] rounded-full bg-label-subtler" />
                 <Text
-                  className={`typo-body-2-normal-semi-bold ${DIFFICULTY_TEXT[mountain.difficulty]}`}
+                  className={`typo-body-2-normal-semi-bold ${DIFFICULTY_STYLE[mountain.difficulty]}`}
                 >
                   난이도 {mountain.difficulty}
                 </Text>
