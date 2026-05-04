@@ -22,7 +22,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
   { id: 8, name: "관악산", location: "경기 과천시 중앙동", altitude: 632, difficulty: "상" },
 ];
 
-const DIFFICULTY_STYLE: Record<Difficulty, string> = {
+export const DIFFICULTY_STYLE: Record<Difficulty, string> = {
   하: "text-green-500",
   중: "text-blue-500",
   상: "text-red-500",

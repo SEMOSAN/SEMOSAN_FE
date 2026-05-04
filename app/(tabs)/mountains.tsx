@@ -22,6 +22,7 @@ import {
   SortBottomSheet,
   SortOption,
 } from "@/features/mountains/components/sort-bottom-sheet";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -41,6 +42,7 @@ function getDurationLabel(range: [number, number]): string {
 
 export default function MountainsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>("popularity");
   const [difficultyOptions, setDifficultyOptions] = useState<
@@ -186,7 +188,13 @@ export default function MountainsScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="gap-5 px-5 py-3">
           {MOCK_MOUNTAINS.map((mountain) => (
-            <MountainCard key={mountain.id} mountain={mountain} />
+            <TouchableOpacity
+              key={mountain.id}
+              onPress={() => router.push(`/mountains/${mountain.id}`)}
+              activeOpacity={0.7}
+            >
+              <MountainCard mountain={mountain} />
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
