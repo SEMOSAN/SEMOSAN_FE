@@ -65,9 +65,9 @@ export const TRAIL_BAR_LOCATIONS = [0, 0.33, 0.66, 1] as const;
 /** 바 너비 */
 export const TRAIL_BAR_WIDTH = 10;
 /** 화면 왼쪽 가장자리로부터의 간격 */
-export const TRAIL_BAR_LEFT = 12;
+export const TRAIL_BAR_LEFT = 20;
 /** 아바타 마커 왼쪽 시작  **/
-export const TRAIL_MARKER_LEFT = 12 + 10; 
+export const TRAIL_MARKER_LEFT = 20 + 10;
 /** 바 높이 */
 export const TRAIL_BAR_HEIGHT = 450;
 /** 코스 카드 상단 기준 top  */

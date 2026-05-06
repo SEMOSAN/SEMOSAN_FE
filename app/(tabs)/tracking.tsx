@@ -1,5 +1,5 @@
-import { ChevronDownIcon } from '@/components/icons/chevron-down-icon';
 import { LocationIcon } from '@/components/icons/location-icon';
+import { TrackingCourseCard } from '@/features/tracking/components/tracking-course-card';
 import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-course-card';
 import { SummitSheet } from '@/features/tracking/components/summit-sheet';
 import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
@@ -139,21 +139,10 @@ export default function TrackingScreen() {
 
       {/* 트래킹 중 — 상단 코스 카드 */}
       {isTracking && (
-        <View
-          className="absolute left-4 right-4 flex-row items-center p-3 gap-2.5 bg-fill-normal overflow-hidden"
-          style={{ top: TRACKING_COURSE_CARD_TOP, borderRadius: 12, ...CARD_SHADOW }}
-        >
-          {/* 난이도 뱃지 */}
-          <View className={`rounded px-1 py-0.5 ${DIFFICULTY_BG[selectedCourse.difficulty]}`}>
-            <Text className={`typo-caption-1-medium ${DIFFICULTY_TEXT_COLOR[selectedCourse.difficulty]}`}>
-              {selectedCourse.difficulty}
-            </Text>
-          </View>
-          {/* 코스 이름 — flex-1로 남은 공간 채워 chevron을 오른쪽으로 밀기 */}
-          <Text className="flex-1 typo-body-1-normal-semi-bold text-label-normal">{selectedCourse.name}</Text>
-          {/* 드롭다운 chevron */}
-          <ChevronDownIcon />
-        </View>
+        <TrackingCourseCard
+          course={selectedCourse}
+          style={{ top: TRACKING_COURSE_CARD_TOP }}
+        />
       )}
 
       {/* 위치 버튼 */}
