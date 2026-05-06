@@ -3,14 +3,19 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { useFonts } from "expo-font";
 import { Lexend_700Bold, useFonts } from "@expo-google-fonts/lexend";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import "react-native-reanimated";
 import "../global.css";
 
 import Toast from "@/components/toast/toast";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+
+SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -18,6 +23,17 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [fontsLoaded] = useFonts({
+    "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
   useFonts({ Lexend_700Bold });
 
   return (
