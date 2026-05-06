@@ -32,7 +32,7 @@ export function SummitSheet({ onCertify, onNotYet }: Props) {
           도착하셨다면 정상에서의 순간을 사진으로 남겨보세요.
         </Text>
 
-        {/* 그래픽(사진) 영역 */}
+        {/* 그래픽 영역 */}
         <View
           className="mt-2 items-center justify-center self-center"
           style={{ width: GRAPHIC_WIDTH, height: GRAPHIC_HEIGHT, backgroundColor: GRAPHIC_BG, gap: 10 }}
@@ -41,7 +41,6 @@ export function SummitSheet({ onCertify, onNotYet }: Props) {
         </View>
       </View>
 
-      {/* 버튼 영역: gap-2(8px) */}
       <View className="px-4 pt-4 pb-4 gap-2">
         {/* 정상 인증하기 */}
         <TouchableOpacity

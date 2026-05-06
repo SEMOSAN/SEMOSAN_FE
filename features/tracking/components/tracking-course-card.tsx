@@ -37,7 +37,6 @@ export function TrackingCourseCard({ course, style }: Props) {
         <Text className="flex-1 typo-body-1-normal-semi-bold text-label-normal">
           {course.name}
         </Text>
-        {/* chevron: 펼침이면 180° 회전 */}
         <View style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}>
           <ChevronDownIcon size={20} />
         </View>
@@ -62,7 +61,7 @@ export function TrackingCourseCard({ course, style }: Props) {
             </View>
           </View>
 
-          {/* 행 2: 상승 | 하강 | 소요시간 */}
+          {/* 상승 | 하강 | 소요시간 */}
           <View className="flex-row gap-4">
             <View className="flex-row items-center gap-1">
               <AscentIcon />
