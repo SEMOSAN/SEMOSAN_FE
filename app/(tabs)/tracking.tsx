@@ -3,6 +3,7 @@ import { TrackingCourseCard } from '@/features/tracking/components/tracking-cour
 import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-course-card';
 import { SummitSheet } from '@/features/tracking/components/summit-sheet';
 import { StopConfirmModal } from '@/features/tracking/components/stop-confirm-modal';
+import { DifficultyRatingModal } from '@/features/tracking/components/difficulty-rating-modal';
 import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
 import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
 import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
@@ -44,6 +45,7 @@ export default function TrackingScreen() {
   const [showSummitSheet, setShowSummitSheet] = useState(false);
   const [trackingSheetHeight, setTrackingSheetHeight] = useState(TRACKING_SHEET_HEIGHT);
   const [showStopModal, setShowStopModal] = useState(false);
+  const [showDifficultyRating, setShowDifficultyRating] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{ top: number; height: number } | null>(null);
   // 마커 Y 비율: 0.0(바 상단/최고도) ~ 1.0(바 하단/최저도), 추후 실제 고도로 대체
@@ -76,9 +78,15 @@ export default function TrackingScreen() {
   const resumeTracking = () => setIsPaused(false);
   const requestStop = () => setShowStopModal(true);
 
-  /** 트래킹 완전 종료 */
+  /** StopConfirmModal → 난이도 체감 화면으로 전환 */
   const finishTracking = () => {
     setShowStopModal(false);
+    setShowDifficultyRating(true);
+  };
+
+  /** 난이도 체감 완료 후 상태 초기화 */
+  const completeTracking = () => {
+    setShowDifficultyRating(false);
     setIsTracking(false);
     setIsPaused(false);
     setElapsedSeconds(0);
@@ -188,7 +196,7 @@ export default function TrackingScreen() {
         <View onLayout={(e: LayoutChangeEvent) => setTrackingSheetHeight(e.nativeEvent.layout.height)}>
           {showSummitSheet ? (
             <SummitSheet
-              onCertify={finishTracking}
+              onCertify={() => setShowDifficultyRating(true)}
               onNotYet={() => setShowSummitSheet(false)}
             />
           ) : (
@@ -221,6 +229,15 @@ export default function TrackingScreen() {
         visible={showStopModal}
         onCancel={() => setShowStopModal(false)}
         onConfirm={finishTracking}
+      />
+
+      {/* 난이도 체감 모달 */}
+      <DifficultyRatingModal
+        visible={showDifficultyRating}
+        course={selectedCourse}
+        mountainName="관악산"
+        onClose={completeTracking}
+        onComplete={completeTracking}
       />
     </View>
   );

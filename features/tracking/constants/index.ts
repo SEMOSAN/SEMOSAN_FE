@@ -13,9 +13,9 @@ export type Course = {
 };
 
 export const MOCK_COURSES: Course[] = [
-  { id: '1', name: '코스 이름', difficulty: '초급', altitudeNm: 2.43, distanceKm: 13.95, ascentM: 1436, descentM: 1354, durationHours: 7, durationMinutes: 55 },
-  { id: '2', name: '코스 이름', difficulty: '초급', altitudeNm: 2.43, distanceKm: 13.95, ascentM: 1436, descentM: 1354, durationHours: 7, durationMinutes: 55 },
-  { id: '3', name: '코스 이름', difficulty: '초급', altitudeNm: 2.43, distanceKm: 13.95, ascentM: 1436, descentM: 1354, durationHours: 7, durationMinutes: 55 },
+  { id: '1', name: '과천향교 출발 코스', difficulty: '초급', altitudeNm: 2.43, distanceKm: 13.95, ascentM: 1436, descentM: 1354, durationHours: 7, durationMinutes: 55 },
+  { id: '2', name: '과천향교 출발 코스', difficulty: '초급', altitudeNm: 2.43, distanceKm: 13.95, ascentM: 1436, descentM: 1354, durationHours: 7, durationMinutes: 55 },
+  { id: '3', name: '과천향교 출발 코스', difficulty: '초급', altitudeNm: 2.43, distanceKm: 13.95, ascentM: 1436, descentM: 1354, durationHours: 7, durationMinutes: 55 },
 ];
 
 export const DIFFICULTY_BG: Record<Difficulty, string> = {
