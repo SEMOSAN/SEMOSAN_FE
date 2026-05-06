@@ -13,16 +13,17 @@ import { SubwayIcon } from "@/components/icons/subway-icon";
 import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { ToiletIcon } from "@/components/icons/toilet-icon";
+import { UserIcon } from "@/components/icons/user-icon";
 import {
   DIFFICULTY_STYLE,
   MOCK_MOUNTAINS,
 } from "@/features/mountains/components/mountain-card";
+import { CourseBadge } from "@/features/mountains/components/course-badge";
 import {
   MOCK_COURSES,
   MOCK_REVIEWS,
   RESTAURANT_SECTIONS,
   type Course,
-  type CourseDifficulty,
 } from "@/features/mountains/constants/mountain-detail";
 import { buildWeatherDays } from "@/features/mountains/modules/weather";
 import { LinearGradient } from "expo-linear-gradient";
@@ -30,12 +31,6 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const COURSE_BADGE: Record<CourseDifficulty, { bg: string; text: string }> = {
-  초급: { bg: "bg-green-50", text: "text-green-500" },
-  중급: { bg: "bg-blue-50", text: "text-blue-500" },
-  상급: { bg: "bg-red-50", text: "text-red-500" },
-};
 
 type TabKey = "코스" | "교통" | "편의" | "맛집" | "리뷰";
 const TABS: TabKey[] = ["코스", "교통", "편의", "맛집", "리뷰"];
@@ -67,18 +62,14 @@ function SunriseSunset({
   );
 }
 
-function CourseBadge({ difficulty }: { difficulty: CourseDifficulty }) {
-  const { bg, text } = COURSE_BADGE[difficulty];
-  return (
-    <View className={`items-center justify-center rounded-[4px] px-1 ${bg}`}>
-      <Text className={`typo-body-2-normal-medium ${text}`}>{difficulty}</Text>
-    </View>
-  );
-}
-
 function CourseCard({ course }: { course: Course }) {
+  const router = useRouter();
   return (
-    <View className="flex-row items-center gap-4">
+    <TouchableOpacity
+      className="flex-row items-center gap-4"
+      activeOpacity={0.7}
+      onPress={() => router.push(`/mountains/courses/${course.id}`)}
+    >
       <View className="h-[72px] w-16 rounded-[10px] bg-fill-stronger" />
       <View className="gap-1.5">
         <View className="flex-row items-center gap-1.5">
@@ -97,7 +88,7 @@ function CourseCard({ course }: { course: Course }) {
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -283,7 +274,7 @@ function ReviewTab() {
     <View className="w-full gap-8 px-5">
       {/* 요약 카드 */}
       <View className="gap-3">
-        <View className="gap-2 rounded-[12px] bg-[#f5f8ff] px-5 py-[18px]">
+        <View className="gap-2 rounded-[12px] bg-blue-25 px-5 py-[18px]">
           <View className="flex-row items-center gap-2">
             <MagicWandIcon />
             <Text className="text-label-normal typo-body-1-normal-semi-bold">
@@ -294,7 +285,7 @@ function ReviewTab() {
             생각보다 더 힘들고, 그만큼 정상에서의 보람이 큰 산
           </Text>
         </View>
-        <View className="gap-2 rounded-[12px] bg-[#fff5f5] px-5 py-[18px]">
+        <View className="gap-2 rounded-[12px] bg-red-25 px-5 py-[18px]">
           <View className="flex-row items-center gap-2">
             <MegaphoneIcon />
             <Text className="text-label-normal typo-body-1-normal-semi-bold">
@@ -313,7 +304,7 @@ function ReviewTab() {
           <Text className="text-label-normal typo-headline-1-semi-bold">
             커뮤니티 리뷰
           </Text>
-          <Text className="text-[#A4ABC0] typo-headline-1-semi-bold">54</Text>
+          <Text className="text-neutral-300 typo-headline-1-semi-bold">54</Text>
         </View>
 
         <View className="gap-4">
@@ -323,7 +314,9 @@ function ReviewTab() {
                 <View className="size-[92px] rounded-[10px] bg-fill-stronger" />
                 <View className="flex-1 gap-1.5">
                   <View className="flex-row items-center gap-1.5">
-                    <View className="size-5 rounded-full bg-fill-stronger" />
+                    <View className="items-center justify-center rounded-full bg-fill-strongest p-[3px]">
+                      <UserIcon />
+                    </View>
                     <Text className="text-label-normal typo-body-2-normal-semi-bold">
                       {review.userName}
                     </Text>
