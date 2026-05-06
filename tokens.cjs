@@ -77,13 +77,14 @@ module.exports = {
   },
   "secondary": {
     "strong": "#16a34a",
-    "normal": "#00d864"
+    "normal": "#00d864",
+    "subtle": "#dcfce7"
   },
   "label": {
     "normal": "#1a1b1f",
     "subtle": "#464a57",
     "disabled": "#8b92a6",
-    "normal inverse": "#ffffff",
+    "normal-inverse": "#ffffff",
     "subtler": "#73798c"
   },
   "line": {
@@ -97,17 +98,28 @@ module.exports = {
     "stronger": "#f0f2f4",
     "disabled": "#e5e7eb",
     "strongest": "#e5e7eb",
-    "neutral": "#d1d5db"
+    "neutral": "#d1d5db",
+    "heavy": "#2f323a"
   },
   "interaction": {
     "subtle": "rgba(26, 27, 31, 0.05)",
     "normal": "rgba(26, 27, 31, 0.1)",
-    "normal inverse": "rgba(255, 255, 255, 0.1)"
+    "normal-inverse": "rgba(255, 255, 255, 0.1)"
   },
   "status": {
     "negative": {
-      "normal": "#ff5249"
+      "normal": "#ff5249",
+      "subtle": "#fef2f2"
+    },
+    "positive": {
+      "subtle": "#eff6ff",
+      "normal": "#507ef4"
+    },
+    "warning": {
+      "subtle": "#fffbeb",
+      "normal": "#eab308"
     }
-  }
+  },
+  "color": "rgba(0, 0, 0, 0.1)"
 },
 };

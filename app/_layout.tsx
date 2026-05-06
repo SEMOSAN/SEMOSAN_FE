@@ -4,6 +4,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
+import { Lexend_700Bold, useFonts } from "@expo-google-fonts/lexend";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -11,6 +12,7 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import "../global.css";
 
+import Toast from "@/components/toast/toast";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 SplashScreen.preventAutoHideAsync();
@@ -32,16 +34,19 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   if (!fontsLoaded) return null;
+  useFonts({ Lexend_700Bold });
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="record/[id]" options={{ headerShown: false }} />
         <Stack.Screen
           name="modal"
           options={{ presentation: "modal", title: "Modal" }}
         />
       </Stack>
+      <Toast />
       <StatusBar style="auto" />
     </ThemeProvider>
   );

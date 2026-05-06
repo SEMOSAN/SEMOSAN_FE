@@ -164,6 +164,7 @@
   --color-primary-subtle: #2f323a;
   --color-secondary-strong: #16a34a;
   --color-secondary-normal: #00d864;
+  --color-secondary-subtle: #dcfce7;
   --color-label-normal: #1a1b1f;
   --color-label-subtle: #464a57;
   --color-label-disabled: #8b92a6;
@@ -178,10 +179,16 @@
   --color-fill-disabled: #e5e7eb;
   --color-fill-strongest: #e5e7eb;
   --color-fill-neutral: #d1d5db;
+  --color-fill-heavy: #2f323a;
   --color-interaction-subtle: rgba(26, 27, 31, 0.05);
   --color-interaction-normal: rgba(26, 27, 31, 0.1);
   --color-interaction-normal-inverse: rgba(255, 255, 255, 0.1);
   --color-status-negative-normal: #ff5249;
+  --color-status-negative-subtle: #fef2f2;
+  --color-status-positive-subtle: #eff6ff;
+  --color-status-positive-normal: #507ef4;
+  --color-status-warning-subtle: #fffbeb;
+  --color-status-warning-normal: #eab308;
   --padding-card-small: 16;
   --padding-card-x-large: 32;
   --padding-card-medium: 20;
@@ -484,4 +491,10 @@
   --label-small-paragraph-indent: 0; /** 버튼 라벨에서 사용합니다. */
   --label-small-text-case: none; /** 버튼 라벨에서 사용합니다. */
   --label-small-text-decoration: none; /** 버튼 라벨에서 사용합니다. */
+  --drop-shadow-01-color: rgba(0, 0, 0, 0.1);
+  --drop-shadow-01-type: dropShadow;
+  --drop-shadow-01-blur: 4px;
+  --drop-shadow-01-spread: 0;
+  --drop-shadow-01-offset-x: 0;
+  --drop-shadow-01-offset-y: 2px;
 }
