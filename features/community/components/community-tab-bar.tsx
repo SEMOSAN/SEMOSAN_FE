@@ -18,14 +18,14 @@ export function CommunityTabBar(): React.JSX.Element {
         return (
           <Pressable
             key={path}
-            onPress={() => router.push(path as Href)}
+            onPress={() => router.replace(path as Href)}
             className={`px-3 py-2 ${isActive ? "border-b-2 border-line-primary" : ""}`}
           >
             <Text
               className={
                 isActive
-                  ? "typo-body-1-normal-semi-bold text-label-normal"
-                  : "typo-body-1-normal-regular text-label-subtler"
+                  ? "text-label-normal typo-body-1-normal-semi-bold"
+                  : "text-label-subtler typo-body-1-normal-regular"
               }
             >
               {label}
