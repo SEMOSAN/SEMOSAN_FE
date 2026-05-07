@@ -4,6 +4,7 @@ import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-co
 import { SummitSheet } from '@/features/tracking/components/summit-sheet';
 import { StopConfirmModal } from '@/features/tracking/components/stop-confirm-modal';
 import { DifficultyRatingModal } from '@/features/tracking/components/difficulty-rating-modal';
+import { FreeRecordConfirmModal } from '@/features/tracking/components/free-record-confirm-modal';
 import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
 import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
 import { TrackingSheet } from '@/features/tracking/components/tracking-sheet';
@@ -46,6 +47,7 @@ export default function TrackingScreen() {
   const [trackingSheetHeight, setTrackingSheetHeight] = useState(TRACKING_SHEET_HEIGHT);
   const [showStopModal, setShowStopModal] = useState(false);
   const [showDifficultyRating, setShowDifficultyRating] = useState(false);
+  const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{ top: number; height: number } | null>(null);
   // 마커 Y 비율: 0.0(바 상단/최고도) ~ 1.0(바 하단/최저도), 추후 실제 고도로 대체
@@ -176,7 +178,7 @@ export default function TrackingScreen() {
         <CourseSelectSheet
           selectedCourseId={selectedCourseId}
           onSelectCourse={setSelectedCourseId}
-          onFreeRecord={() => {}}
+          onFreeRecord={() => setShowFreeRecordModal(true)}
           onStartCountdown={startCountdown}
         />
       )}
@@ -222,6 +224,16 @@ export default function TrackingScreen() {
           onClose={() => setCountdown(null)}
         />
       )}
+
+      {/* 자유 기록 시작 확인 모달 */}
+      <FreeRecordConfirmModal
+        visible={showFreeRecordModal}
+        onCancel={() => setShowFreeRecordModal(false)}
+        onConfirm={() => {
+          setShowFreeRecordModal(false);
+          startCountdown();
+        }}
+      />
 
       {/* 기록 종료 확인 모달 */}
       <StopConfirmModal
