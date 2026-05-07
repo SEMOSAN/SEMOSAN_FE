@@ -33,7 +33,11 @@ export function FreeBoardDetailScreen({
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <PostBody {...post} />
           <View className="h-[6px] bg-fill-strong" />
           <CommentList comments={commentList} />
