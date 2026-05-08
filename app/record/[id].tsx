@@ -166,22 +166,23 @@ export default function RecordScreen() {
                 <Clive2Svg width="100%" height="100%" />
               )}
               {toastMessage && (
-                <View style={styles.savedToast}>
-                  <View style={styles.savedToastCheckCircle}>
-                    <Text style={styles.savedToastCheck}>✓</Text>
+                <View className="absolute bottom-4 self-center h-12 rounded-xl bg-fill-heavy flex-row items-center px-4 gap-2">
+                  <View className="w-5 h-5 rounded-full border-[1.5px] border-fill-normal items-center justify-center">
+                    <Text className="text-fill-normal text-[12px] font-bold leading-3">✓</Text>
                   </View>
-                  <Text style={styles.savedToastText}>
+                  <Text className="typo-body-2-normal-medium text-label-normal-inverse">
                     {toastMessage === 'public' ? '세모피드에 공개' : '사진에 저장 완료'}
                   </Text>
                 </View>
               )}
             </View>
-            <View style={styles.bottomIconRow}>
+            <View className="mt-3 flex-row gap-3 items-center justify-center">
               <TouchableOpacity
-                style={[
-                  styles.roundIconButton,
-                  isClivePublic && styles.roundIconButtonActive,
-                ]}
+                className={`w-12 h-12 rounded-full border items-center justify-center ${
+                  isClivePublic
+                    ? 'bg-primary-normal border-primary-normal'
+                    : 'bg-fill-normal border-line-normal'
+                }`}
                 hitSlop={8}
                 onPress={() => {
                   if (!isClivePublic) {
@@ -191,11 +192,15 @@ export default function RecordScreen() {
               >
                 {isClivePublic ? <GlobeSimpleIcon size={24} color="#FFFFFF" /> : <LockIcon size={24} />}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.roundIconButton} hitSlop={8} onPress={handleSavePress}>
+              <TouchableOpacity
+                className="w-12 h-12 rounded-full border border-line-normal bg-fill-normal items-center justify-center"
+                hitSlop={8}
+                onPress={handleSavePress}
+              >
                 <DownloadSimpleIcon size={24} />
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.roundIconButton}
+                className="w-12 h-12 rounded-full border border-line-normal bg-fill-normal items-center justify-center"
                 hitSlop={8}
                 onPress={() => setShowMoreSheet(true)}
               >
@@ -213,32 +218,38 @@ export default function RecordScreen() {
       </ScrollView>
 
       {showMoreSheet && (
-        <View style={styles.moreSheetBackdrop}>
+        <View className="absolute inset-0 bg-[rgba(0,0,0,0.3)] justify-end">
           <TouchableOpacity
-            style={StyleSheet.absoluteFillObject}
+            style={{ ...StyleSheet.absoluteFillObject }}
             activeOpacity={1}
             onPress={() => setShowMoreSheet(false)}
           />
-          <View style={styles.moreSheetContainer}>
-            <View style={styles.moreSheetBody}>
-              <TouchableOpacity style={styles.moreSheetItemRow} onPress={() => setShowMoreSheet(false)}>
+          <View className="bg-fill-normal rounded-t-[20px] overflow-hidden">
+            <View className="pt-5 px-5 bg-fill-normal">
+              <TouchableOpacity
+                className="flex-row items-center gap-3 pb-4 mb-4 border-b border-line-subtle"
+                onPress={() => setShowMoreSheet(false)}
+              >
                 <LinkSimpleIcon size={20} />
-                <Text style={styles.moreSheetItemText}>세모피드에서 보기</Text>
+                <Text className="typo-body-1-normal-medium text-label-normal">세모피드에서 보기</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.moreSheetItemRowLast}
+                className="flex-row items-center gap-3 pb-4"
                 onPress={() => {
                   setShowMoreSheet(false);
                   handleSavePress();
                 }}
               >
                 <DownloadSimpleIcon size={20} />
-                <Text style={styles.moreSheetItemText}>원본 사진 저장하기</Text>
+                <Text className="typo-body-1-normal-medium text-label-normal">원본 사진 저장하기</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.moreSheetCancelWrap}>
-              <TouchableOpacity style={styles.moreSheetCancelButton} onPress={() => setShowMoreSheet(false)}>
-                <Text style={styles.moreSheetCancelText}>취소</Text>
+            <View className="h-[84px] pt-5 pb-4 px-4 bg-fill-normal">
+              <TouchableOpacity
+                className="flex-1 min-h-12 max-h-12 rounded-[10px] bg-[rgba(26,27,31,0.05)] items-center justify-center"
+                onPress={() => setShowMoreSheet(false)}
+              >
+                <Text className="text-[17px] font-semibold text-label-normal leading-[26px]">취소</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -246,20 +257,28 @@ export default function RecordScreen() {
       )}
 
       {showPublicDialog && (
-        <View style={styles.dialogBackdrop}>
+        <View className="absolute inset-0 bg-[rgba(0,0,0,0.3)] items-center justify-center px-[10px]">
           <TouchableOpacity
-            style={StyleSheet.absoluteFillObject}
+            style={{ ...StyleSheet.absoluteFillObject }}
             activeOpacity={1}
             onPress={() => setShowPublicDialog(false)}
           />
-          <View style={styles.dialogCard}>
-            <Text style={styles.dialogTitle}>세모피드에 클라이브를 공개할까요?</Text>
-            <View style={styles.dialogButtonRow}>
-              <TouchableOpacity style={styles.dialogCancelButton} onPress={() => setShowPublicDialog(false)}>
-                <Text style={styles.dialogCancelText}>취소</Text>
+          <View className="w-[320px] rounded-2xl bg-fill-normal pt-5">
+            <Text className="px-5 text-[20px] font-semibold leading-[26px] tracking-[-0.4px] text-[rgba(0,12,30,0.8)]">
+              세모피드에 클라이브를 공개할까요?
+            </Text>
+            <View className="h-[84px] flex-row items-center gap-2 px-4 pt-5 pb-4">
+              <TouchableOpacity
+                className="flex-1 min-h-12 max-h-12 rounded-[10px] bg-fill-stronger items-center justify-center"
+                onPress={() => setShowPublicDialog(false)}
+              >
+                <Text className="text-[17px] font-semibold text-label-subtle leading-[26px]">취소</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.dialogConfirmButton} onPress={handleConfirmPublic}>
-                <Text style={styles.dialogConfirmText}>확인</Text>
+              <TouchableOpacity
+                className="flex-1 min-h-12 max-h-12 rounded-[10px] bg-primary-normal items-center justify-center"
+                onPress={handleConfirmPublic}
+              >
+                <Text className="text-[17px] font-semibold text-label-normal-inverse leading-[26px]">확인</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -324,41 +343,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  savedToast: {
-    position: 'absolute',
-    left: '50%',
-    bottom: 16,
-    transform: [{ translateX: -72 }],
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#2F323A',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  savedToastCheckCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 999,
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  savedToastCheck: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 12,
-  },
-  savedToastText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 21,
-    letterSpacing: -0.14,
-  },
   statItem: {
     flex: 1,
     alignItems: 'center',
@@ -393,20 +377,6 @@ const styles = StyleSheet.create({
   tabInactive: {
     color: '#BFC4D1',
   },
-  roundIconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  roundIconButtonActive: {
-    backgroundColor: '#1A1B1F',
-    borderColor: '#1A1B1F',
-  },
   shareIconButton: {
     width: 48,
     height: 48,
@@ -418,135 +388,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 13,
-  },
-  bottomIconRow: {
-    marginTop: 12,
-    flexDirection: 'row',
-    gap: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dialogBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 10,
-  },
-  dialogCard: {
-    width: 320,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    paddingTop: 20,
-  },
-  dialogTitle: {
-    paddingHorizontal: 20,
-    color: 'rgba(0,12,30,0.8)',
-    fontSize: 20,
-    fontWeight: '600',
-    lineHeight: 26,
-    letterSpacing: -0.4,
-  },
-  dialogButtonRow: {
-    height: 84,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
-  dialogCancelButton: {
-    flex: 1,
-    minHeight: 48,
-    maxHeight: 48,
-    borderRadius: 10,
-    backgroundColor: '#F0F2F4',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dialogCancelText: {
-    color: '#464A57',
-    fontSize: 17,
-    fontWeight: '600',
-    lineHeight: 26,
-    letterSpacing: -0.255,
-  },
-  dialogConfirmButton: {
-    flex: 1,
-    minHeight: 48,
-    maxHeight: 48,
-    borderRadius: 10,
-    backgroundColor: '#1A1B1F',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dialogConfirmText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '600',
-    lineHeight: 26,
-    letterSpacing: -0.255,
-  },
-  moreSheetBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'flex-end',
-  },
-  moreSheetContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: 'hidden',
-  },
-  moreSheetBody: {
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
-  },
-  moreSheetItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingBottom: 16,
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  moreSheetItemRowLast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingBottom: 16,
-  },
-  moreSheetItemText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1A1B1F',
-    lineHeight: 24,
-    letterSpacing: -0.16,
-  },
-  moreSheetCancelWrap: {
-    height: 84,
-    paddingTop: 20,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  moreSheetCancelButton: {
-    flex: 1,
-    borderRadius: 10,
-    minHeight: 48,
-    maxHeight: 48,
-    backgroundColor: 'rgba(26,27,31,0.05)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  moreSheetCancelText: {
-    color: '#1A1B1F',
-    fontSize: 17,
-    fontWeight: '600',
-    lineHeight: 26,
-    letterSpacing: -0.255,
   },
 });
