@@ -5,7 +5,6 @@ import { SummitSheet } from '@/features/tracking/components/summit-sheet';
 import { StopConfirmModal } from '@/features/tracking/components/stop-confirm-modal';
 import { DifficultyRatingModal } from '@/features/tracking/components/difficulty-rating-modal';
 import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
-import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
 import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
 import { TrackingSheet } from '@/features/tracking/components/tracking-sheet';
 import {
@@ -27,15 +26,16 @@ import {
   TRAIL_BAR_LOCATIONS,
   TRAIL_BAR_WIDTH,
 } from '@/features/tracking/constants';
+import { useCountdownStore } from '@/store/countdown.store';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Tabs } from 'expo-router';
+import { Tabs, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, Text, TouchableOpacity, View } from 'react-native';
 
 export default function TrackingScreen() {
+  const { autoStart } = useLocalSearchParams<{ autoStart?: string }>();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -53,19 +53,11 @@ export default function TrackingScreen() {
 
   const selectedCourse = MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
 
-  const startCountdown = () => setCountdown(3);
+  const startCountdown = () => useCountdownStore.getState().start(() => setIsTracking(true));
 
-  // 카운트다운 → 0이 되면 트래킹 시작
   useEffect(() => {
-    if (countdown === null) return;
-    if (countdown === 0) {
-      setIsTracking(true);
-      setCountdown(null);
-      return;
-    }
-    const timer = setTimeout(() => setCountdown((c) => (c !== null ? c - 1 : null)), 1000);
-    return () => clearTimeout(timer);
-  }, [countdown]);
+    if (autoStart === '1') setIsTracking(true);
+  }, [autoStart]);
 
   // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
   useEffect(() => {
@@ -214,14 +206,6 @@ export default function TrackingScreen() {
             />
           )}
         </View>
-      )}
-
-      {/* 카운트다운 오버레이 */}
-      {countdown !== null && countdown > 0 && (
-        <CountdownOverlay
-          countdown={countdown}
-          onClose={() => setCountdown(null)}
-        />
       )}
 
       {/* 기록 종료 확인 모달 */}

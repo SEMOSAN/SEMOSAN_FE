@@ -7,6 +7,7 @@ import {
   MOCK_REVIEWS,
   type CourseDifficulty,
 } from "@/features/mountains/constants/mountain-detail";
+import { useCountdownStore } from "@/store/countdown.store";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -209,7 +210,12 @@ export default function CourseDetailScreen(): React.JSX.Element {
         >
           <TouchableOpacity
             onPress={() => {
-              /** TODO : 트래킹 페이지 연동 */
+              useCountdownStore.getState().start(() => {
+                router.push({
+                  pathname: '/(tabs)/tracking',
+                  params: { autoStart: '1' },
+                });
+              });
             }}
             className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3"
           >
