@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
 import { XIcon } from '@/components/icons/x-icon';
@@ -21,93 +21,31 @@ export default function CommunityPostCompleteScreen() {
         </View>
       </View>
 
-      <View style={styles.titleWrap}>
-        <Text style={styles.title}>게시 완료</Text>
-        <Text style={styles.subtitle}>커뮤니티에 내 기록이 게시되었어요</Text>
+      <View className="items-center gap-2 py-5">
+        <Text className="typo-title-2-bold text-label-normal">게시 완료</Text>
+        <Text className="typo-headline-1-medium text-label-subtle">커뮤니티에 내 기록이 게시되었어요</Text>
       </View>
 
-      <View style={styles.graphicWrap}>
-        <View style={styles.graphicBox}>
-          <Text style={styles.graphicLabel}>그래픽 영역</Text>
+      <View className="items-center justify-center h-[296px]">
+        <View
+          className="w-[287px] h-[296px] items-center justify-center"
+          style={{ backgroundColor: '#D9D9D9' }}
+        >
+          <Text className="typo-title-2-bold" style={{ color: '#898989' }}>그래픽 영역</Text>
         </View>
       </View>
 
-      <View style={[styles.bottomBar, { paddingBottom: Math.max(bottom, 20) }]}>
+      <View
+        className="absolute left-0 right-0 bottom-0 bg-fill-normal pt-4 px-5"
+        style={{ paddingBottom: Math.max(bottom, 20) }}
+      >
         <TouchableOpacity
-          style={styles.ctaButton}
+          className="h-14 rounded-xl bg-primary-normal items-center justify-center"
           onPress={() => router.replace('/(tabs)/community')}
         >
-          <Text style={styles.ctaText}>커뮤니티 보러가기</Text>
+          <Text className="typo-label-large text-common-100">커뮤니티 보러가기</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  titleWrap: {
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 20,
-  },
-  title: {
-    fontFamily: 'Pretendard',
-    fontSize: 24,
-    fontWeight: '700',
-    lineHeight: 28.8,
-    letterSpacing: -0.6,
-    color: '#1A1B1F',
-  },
-  subtitle: {
-    fontFamily: 'Pretendard',
-    fontSize: 18,
-    fontWeight: '500',
-    lineHeight: 27,
-    letterSpacing: -0.27,
-    color: '#464A57',
-  },
-  graphicWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 296,
-  },
-  graphicBox: {
-    width: 287,
-    height: 296,
-    backgroundColor: '#D9D9D9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  graphicLabel: {
-    fontFamily: 'Pretendard',
-    fontSize: 24,
-    fontWeight: '700',
-    lineHeight: 28.8,
-    letterSpacing: -0.6,
-    color: '#898989',
-  },
-  bottomBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#FFFFFF',
-    paddingTop: 16,
-    paddingHorizontal: 20,
-  },
-  ctaButton: {
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: '#1A1B1F',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaText: {
-    fontFamily: 'Pretendard',
-    fontSize: 17,
-    fontWeight: '600',
-    lineHeight: 25.5,
-    letterSpacing: -0.255,
-    color: '#FFFFFF',
-  },
-});

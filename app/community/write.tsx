@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Image as ExpoImage } from 'expo-image';
 import {
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -42,25 +41,25 @@ export default function CommunityWriteScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="px-5 pt-2">
-          <View style={styles.summaryCard}>
+          <View className="rounded-xl border border-line-subtle bg-fill-normal p-3">
             <Text className="typo-body-2-normal-semi-bold text-label-normal">
               2026년 4월 27일
             </Text>
 
             <View className="mt-1 flex-row items-center gap-1">
-              <View style={styles.badgeNeutral}>
-                <Text style={styles.badgeNeutralText}>{name ?? '관악산'}</Text>
+              <View className="rounded bg-fill-stronger px-1">
+                <Text className="typo-body-2-normal-medium text-label-subtle">{name ?? '관악산'}</Text>
               </View>
-              <View style={styles.badgeGreen}>
-                <Text style={styles.badgeGreenText}>초급</Text>
+              <View className="rounded bg-green-50 px-1">
+                <Text className="typo-body-2-normal-medium text-secondary-strong">초급</Text>
               </View>
               <Text className="typo-body-2-reading-regular text-label-normal">둘레길 코스</Text>
             </View>
 
             <View className="mt-3 flex-row items-end gap-1">
-              <View style={styles.thumbnail}>
+              <View className="w-[104px] h-[73px] rounded-lg border border-line-normal overflow-hidden">
                 {typeof Clive3Svg === 'number' ? (
-                  <ExpoImage source={Clive3Svg} style={styles.thumbnailImage} contentFit="cover" />
+                  <ExpoImage source={Clive3Svg} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                 ) : (
                   <Clive3Svg width="100%" height="100%" />
                 )}
@@ -68,8 +67,8 @@ export default function CommunityWriteScreen() {
 
               <View className="flex-1">
                 <View className="flex-row items-end gap-1 px-2">
-                  <Text style={styles.kmNumber}>6.34</Text>
-                  <Text style={styles.kmUnit}>km</Text>
+                  <Text style={{ fontFamily: 'Lexend_700Bold', fontSize: 40, color: '#1A1B1F', lineHeight: 42 }}>6.34</Text>
+                  <Text style={{ fontFamily: 'Pretendard', fontSize: 22, fontWeight: '500', color: '#464A57', lineHeight: 30 }}>km</Text>
                 </View>
 
                 <View className="mt-1 flex-row px-2">
@@ -82,7 +81,7 @@ export default function CommunityWriteScreen() {
           </View>
         </View>
 
-        <View style={styles.divider} />
+        <View className="h-[6px] bg-fill-strong mt-4" />
 
         <View className="px-5 pt-4">
           <TextInput
@@ -91,18 +90,21 @@ export default function CommunityWriteScreen() {
             multiline
             placeholder="내용 추가..."
             placeholderTextColor="#73798C"
-            style={styles.input}
+            className="min-h-[220px] typo-body-2-normal-regular text-label-normal p-0"
             textAlignVertical="top"
           />
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: Math.max(bottom, 20) }]}>
+      <View
+        className="absolute left-0 right-0 bottom-0 bg-fill-normal pt-4 px-5"
+        style={{ paddingBottom: Math.max(bottom, 20) }}
+      >
         <TouchableOpacity
-          style={styles.doneButton}
+          className="h-14 rounded-xl items-center justify-center bg-primary-normal"
           onPress={() => router.push('/community/post-complete')}
         >
-          <Text style={styles.doneButtonText}>완료</Text>
+          <Text className="typo-label-large text-common-100">완료</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -112,117 +114,8 @@ export default function CommunityWriteScreen() {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-1">
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={styles.metricValue}>{value}</Text>
+      <Text style={{ fontFamily: 'Pretendard', fontSize: 10, fontWeight: '400', lineHeight: 15, color: '#73798C' }}>{label}</Text>
+      <Text style={{ fontFamily: 'Pretendard', fontSize: 12, fontWeight: '500', lineHeight: 16, color: '#1A1B1F' }}>{value}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  summaryCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
-    padding: 12,
-  },
-  badgeNeutral: {
-    borderRadius: 4,
-    backgroundColor: '#F0F2F4',
-    paddingHorizontal: 4,
-  },
-  badgeNeutralText: {
-    fontFamily: 'Pretendard',
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 21,
-    color: '#464A57',
-  },
-  badgeGreen: {
-    borderRadius: 4,
-    backgroundColor: '#DCFCE7',
-    paddingHorizontal: 4,
-  },
-  badgeGreenText: {
-    fontFamily: 'Pretendard',
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 21,
-    color: '#16A34A',
-  },
-  thumbnail: {
-    width: 104,
-    height: 73,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    overflow: 'hidden',
-  },
-  thumbnailImage: {
-    width: '100%',
-    height: '100%',
-  },
-  kmNumber: {
-    fontFamily: 'Lexend_700Bold',
-    fontSize: 40,
-    color: '#1A1B1F',
-    lineHeight: 42,
-  },
-  kmUnit: {
-    fontFamily: 'Pretendard',
-    fontSize: 22,
-    fontWeight: '500',
-    color: '#464A57',
-    lineHeight: 30,
-  },
-  metricLabel: {
-    fontFamily: 'Pretendard',
-    fontSize: 10,
-    fontWeight: '400',
-    lineHeight: 15,
-    color: '#73798C',
-  },
-  metricValue: {
-    fontFamily: 'Pretendard',
-    fontSize: 12,
-    fontWeight: '500',
-    lineHeight: 16,
-    color: '#1A1B1F',
-  },
-  divider: {
-    height: 6,
-    backgroundColor: '#F9FAFB',
-    marginTop: 16,
-  },
-  input: {
-    minHeight: 220,
-    fontFamily: 'Pretendard',
-    fontSize: 14,
-    lineHeight: 21,
-    color: '#1A1B1F',
-    padding: 0,
-  },
-  bottomBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#FFFFFF',
-    paddingTop: 16,
-    paddingHorizontal: 20,
-  },
-  doneButton: {
-    height: 56,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1A1B1F',
-  },
-  doneButtonText: {
-    fontFamily: 'Pretendard',
-    fontSize: 17,
-    fontWeight: '600',
-    lineHeight: 25.5,
-    color: '#FFFFFF',
-  },
-});
