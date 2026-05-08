@@ -11,6 +11,7 @@ import {
 import { FilterBottomSheet } from "@/features/mountains/components/filter-bottom-sheet";
 import { FilterChip } from "@/features/mountains/components/filter-chip";
 import {
+  Difficulty,
   MOCK_MOUNTAINS,
   MountainCard,
 } from "@/features/mountains/components/mountain-card";
@@ -57,6 +58,19 @@ export default function MountainsScreen() {
     setDurationRange([0, 7]);
     setRegionSelections([]);
   };
+
+  const DIFFICULTY_MAP: Record<DifficultyOption, Difficulty> = {
+    high: "상",
+    medium: "중",
+    low: "하",
+  };
+
+  const filteredMountains =
+    difficultyOptions.length === 0
+      ? MOCK_MOUNTAINS
+      : MOCK_MOUNTAINS.filter((m) =>
+          difficultyOptions.some((opt) => DIFFICULTY_MAP[opt] === m.difficulty)
+        );
 
   const hasActiveFilter =
     sortOption !== "popularity" ||
@@ -187,7 +201,7 @@ export default function MountainsScreen() {
       {/* Mountain list */}
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="gap-5 px-5 py-3">
-          {MOCK_MOUNTAINS.map((mountain) => (
+          {filteredMountains.map((mountain) => (
             <TouchableOpacity
               key={mountain.id}
               onPress={() => router.push(`/mountains/${mountain.id}`)}
