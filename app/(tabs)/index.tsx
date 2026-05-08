@@ -1,5 +1,6 @@
 import { NaverMapMarkerOverlay, NaverMapView } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
@@ -269,6 +270,14 @@ export default function HomeScreen() {
             ))}
       </NaverMapView>
 
+      <LinearGradient
+        colors={['rgba(255,255,255,1)', 'rgba(255,255,255,0)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.mapTopGradient}
+        pointerEvents="none"
+      />
+
       {/* 현위치 버튼 - 바텀시트 높이에 따라 이동 */}
       <Animated.View style={[styles.locationButton, locationButtonStyle]}>
         <TouchableOpacity
@@ -374,6 +383,13 @@ function MapTabToggle({ value, onChange }: { value: MapTab; onChange: (v: MapTab
 
 const styles = StyleSheet.create({
   map: { flex: 1 },
+  mapTopGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 154,
+  },
   overlay: {
     position: 'absolute',
     left: 0,
