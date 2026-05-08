@@ -1,12 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import BottomSheetShell from './bottom-sheet-shell';
-import CourseBottomSheet from './course-bottom-sheet';
+import CourseBottomSheet, { type Course } from './course-bottom-sheet';
 import { InfoIcon } from './icons/info-icon';
-import { TrendingCardList } from './trending-card';
 
-export type Tab = '내 기록' | '지금 뜨는' | '큐레이션';
+export type Tab = '내 기록' | '큐레이션';
 
 type MountainCard = {
   id: string;
@@ -24,9 +23,13 @@ type Props = {
   activeTab?: Tab;
   onTabChange?: (tab: Tab) => void;
   onCardSelect?: (id: string) => void;
+  showTabs?: boolean;
+  scrollEnabled?: boolean;
+  onDetailOpenChange?: (isOpen: boolean) => void;
+  closeSelectedToken?: number;
 };
 
-const TABS: Tab[] = ['내 기록', '지금 뜨는', '큐레이션'];
+const TABS: Tab[] = ['내 기록', '큐레이션'];
 
 const MOCK_CARDS: MountainCard[] = [
   { id: '1', name: '산 이름', trailNumber: 1, daysAgo: 1, badgeCount: 1 },
@@ -42,6 +45,10 @@ export default function BottomSheet({
   activeTab: activeTabProp,
   onTabChange,
   onCardSelect,
+  showTabs = true,
+  scrollEnabled = false,
+  onDetailOpenChange,
+  closeSelectedToken,
 }: Props) {
   const router = useRouter();
   const [internalTab, setInternalTab] = useState<Tab>('내 기록');
@@ -52,33 +59,63 @@ export default function BottomSheet({
   };
   const [selectedCard, setSelectedCard] = useState<MountainCard | null>(null);
 
+  useEffect(() => {
+    onDetailOpenChange?.(selectedCard !== null);
+  }, [onDetailOpenChange, selectedCard]);
+
+  useEffect(() => {
+    if (closeSelectedToken !== undefined) {
+      setSelectedCard(null);
+    }
+  }, [closeSelectedToken]);
+
+  const selectedCardCourses: Course[] = selectedCard
+    ? Array.from({ length: Math.max(selectedCard.badgeCount, 1) }).map((_, index) => ({
+        id: `${selectedCard.id}-${index + 1}`,
+        name: `${selectedCard.name} ${index + 1}회차`,
+        distanceKm: 10,
+        durationHours: 3,
+        date: '24년 9월 5일',
+        imageUris: selectedCard.imageUri ? [selectedCard.imageUri] : [],
+      }))
+    : [];
+
   if (selectedCard) {
     return (
       <BottomSheetShell
         title={selectedCard.name}
         titleCount={selectedCard.badgeCount}
       >
-        <CourseBottomSheet />
+        <View className="pt-2.5">
+          <CourseBottomSheet
+            courses={selectedCardCourses}
+            onCoursePress={(courseId) => {
+              router.push({
+                pathname: '/record/[id]',
+                params: {
+                  id: courseId,
+                  name: selectedCard.name,
+                  imageUri: selectedCard.imageUri ?? '',
+                },
+              });
+            }}
+          />
+        </View>
       </BottomSheetShell>
     );
   }
 
-  // 탭별 타이틀 설정
-  const tabTitle =
-    activeTab === '내 기록' ? title :
-    activeTab === '지금 뜨는' ? '지금 뜨는 산' :
-    '큐레이션';
-  const tabTitleCount = activeTab === '내 기록' ? titleCount : undefined;
-  const tabTitleSuffix = activeTab === '지금 뜨는' || activeTab === '큐레이션'
-    ? <InfoIcon size={16.25} />
-    : undefined;
+  const tabTitle = showTabs && activeTab === '큐레이션' ? '큐레이션' : title;
+  const tabTitleCount = showTabs && activeTab === '큐레이션' ? undefined : titleCount;
+  const tabTitleSuffix = showTabs && activeTab === '큐레이션' ? <InfoIcon size={16.25} /> : undefined;
 
   return (
     <BottomSheetShell
       title={tabTitle}
       titleCount={tabTitleCount}
       titleSuffix={tabTitleSuffix}
-      header={
+      scrollEnabled={scrollEnabled}
+      header={showTabs ? (
         <View className="flex-row items-center bg-fill-stronger rounded-[10px] p-1 gap-1 mx-4 mb-4">
           {TABS.map((tab) => (
             <TouchableOpacity
@@ -98,7 +135,7 @@ export default function BottomSheet({
             </TouchableOpacity>
           ))}
         </View>
-      }
+      ) : undefined}
     >
       {activeTab === '내 기록' && (
         /* 카드 그리드 */
@@ -108,16 +145,12 @@ export default function BottomSheet({
               {cards.slice(rowIdx * 2, rowIdx * 2 + 2).map((card) => (
                 <MountainCard key={card.id} card={card} onPress={() => {
                   onCardSelect?.(card.id);
-                  router.push({ pathname: '/record/[id]', params: { id: card.id, name: card.name, imageUri: card.imageUri ?? '' } });
+                  setSelectedCard(card);
                 }} />
               ))}
             </View>
           ))}
         </View>
-      )}
-
-      {activeTab === '지금 뜨는' && (
-        <TrendingCardList />
       )}
 
       {activeTab === '큐레이션' && (
@@ -135,7 +168,7 @@ function MountainCard({ card, onPress }: { card: MountainCard; onPress: () => vo
         {card.imageUri ? (
           <Image
             source={{ uri: card.imageUri }}
-            className="absolute inset-0 w-full h-full"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
             resizeMode="cover"
           />
         ) : (
@@ -143,18 +176,20 @@ function MountainCard({ card, onPress }: { card: MountainCard; onPress: () => vo
           </View>
         )}
         {/* 뱃지 */}
-        <View className="w-6 h-6 rounded-full bg-label-normal items-center justify-center z-10">
+        <View className="w-7 h-7 rounded-full bg-label-normal items-center justify-center z-10">
           <Text className="typo-body-3-semi-bold text-common-100 text-center">{card.badgeCount}</Text>
         </View>
       </View>
 
       {/* 텍스트 */}
-      <Text className="typo-body-1-normal-semi-bold text-label-normal" numberOfLines={1}>
-        {card.name}
-      </Text>
-      <Text className="typo-caption-1-medium text-label-subtler">
-        {card.trailNumber}번 등산 · {card.daysAgo}일 전
-      </Text>
+      <View className="gap-0.5 px-1">
+        <Text className="typo-body-1-normal-semi-bold text-label-normal" numberOfLines={1}>
+          {card.name}
+        </Text>
+        <Text className="typo-caption-1-medium text-label-subtler">
+          {card.trailNumber}번 등산 · {card.daysAgo}일 전
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }

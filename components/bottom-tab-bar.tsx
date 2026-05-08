@@ -8,6 +8,7 @@ import { HomeIcon } from '@/components/icons/home-icon';
 import { MountainIcon } from '@/components/icons/mountain-icon';
 import { MyIcon } from '@/components/icons/my-icon';
 import { NavigationIcon } from '@/components/icons/navigation-icon';
+import { useHomeStateContext } from '@/contexts/home-state-context';
 
 type TabItem = {
   name: string;
@@ -29,6 +30,7 @@ const TAB_ITEMS: TabItem[] = [
 
 export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { hasRecords, toggleHasRecords } = useHomeStateContext();
 
   return (
     <View
@@ -57,6 +59,8 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
             <Pressable
               key={route.key}
               onPress={onPress}
+              onLongPress={toggleHasRecords}
+              delayLongPress={500}
               className="bg-primary-normal items-center justify-center rounded-full"
               style={{ width: 68, height: 42 }}
             >

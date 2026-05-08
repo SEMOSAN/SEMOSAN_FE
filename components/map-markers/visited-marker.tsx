@@ -29,7 +29,7 @@ export function VisitedMarker({ name, visitCount, imageUri, flagColor = '#00D864
           <View style={[styles.flag, { borderLeftColor: selected ? SELECTED_BG : flagColor }]} />
 
           <View style={styles.imageShapeWrap}>
-            <Svg width={32} height={29} viewBox="0 0 32 29">
+            <Svg width={36} height={32} viewBox="0 0 32 29">
               <Defs>
                 <ClipPath id={clipIdOuter}>
                   <Path d="M13.7571 1.26472C14.7408 -0.421574 17.1773 -0.421574 18.161 1.26472L31.567 24.2465C32.5584 25.9459 31.3326 28.0802 29.3651 28.0802H2.55302C0.585586 28.0802 -0.640242 25.946 0.351092 24.2465L13.7571 1.26472Z" />
@@ -55,7 +55,7 @@ export function VisitedMarker({ name, visitCount, imageUri, flagColor = '#00D864
                     preserveAspectRatio="xMidYMid slice"
                   />
                 ) : (
-                  <Path d="M0 0H32V29H0Z" fill="#D9D9D9" />
+                  <Path d="M0 0H32V29H0Z" fill="#FFFFFF" />
                 )}
               </G>
 
@@ -102,13 +102,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: -4,
-    width: 32,
+    width: 36,
     height: 46,
     zIndex: 2,
   },
   flagPole: {
     position: 'absolute',
-    left: 14.8,
+    left: 16.7,
     top: 0,
     width: 2.08,
     height: 20,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   flag: {
     position: 'absolute',
     top: 0.7,
-    left: 16.8,
+    left: 18.9,
     width: 0,
     height: 0,
     borderTopWidth: 6,
@@ -130,14 +130,14 @@ const styles = StyleSheet.create({
   imageShapeWrap: {
     position: 'absolute',
     left: 0,
-    top: 17,
-    width: 32,
-    height: 29,
+    top: 14,
+    width: 36,
+    height: 32,
   },
   imageIcon: {
     position: 'absolute',
     top: 0,
-    left: 17.4,
+    left: 19.6,
     width: 8,
     height: 11,
     alignItems: 'center',
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   textBox: {
-    height: 29,
+    height: 28,
     borderRadius: 999,
     paddingLeft: 30,
     paddingRight: 12,

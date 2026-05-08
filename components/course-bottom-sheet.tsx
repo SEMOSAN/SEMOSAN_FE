@@ -1,4 +1,4 @@
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ChevronRightIcon } from './icons/chevron-right-icon';
 
 export type Course = {
@@ -18,13 +18,14 @@ export const MOCK_COURSES: Course[] = [
 
 type Props = {
   courses?: Course[];
+  onCoursePress?: (courseId: string) => void;
 };
 
-export default function CourseBottomSheet({ courses = MOCK_COURSES }: Props) {
+export default function CourseBottomSheet({ courses = MOCK_COURSES, onCoursePress }: Props) {
   return (
     <View className="gap-2.5">
       {courses.map((course) => (
-        <CourseItem key={course.id} course={course} />
+        <CourseItem key={course.id} course={course} onPress={() => onCoursePress?.(course.id)} />
       ))}
     </View>
   );
@@ -35,13 +36,12 @@ function StackedThumbnail({ imageUris = [] }: { imageUris?: string[] }) {
   const H = 72;
 
   const cards = [
-    { isFront: false, imageIdx: 2, rotate: '6deg', translateX: 4, translateY: -5, zIndex: 1 },
-    { isFront: false, imageIdx: 1, rotate: '6deg', translateX: 2,  translateY: -5, zIndex: 2 },
-    { isFront: true,  imageIdx: 0, rotate: '0deg', translateX: 0,  translateY: 0, zIndex: 3 },
+    { isFront: false, imageIdx: 2, rotate: '6deg', translateX: 6.2, translateY: 0, zIndex: 1 },
+    { isFront: true, imageIdx: 0, rotate: '0deg', translateX: 0, translateY: 8, zIndex: 2 },
   ];
 
   return (
-    <View style={{ width: W + 16, height: H }}>
+    <View style={styles.thumbnailWrap}>
       {cards.map((card, i) => (
         <View
           key={i}
@@ -75,26 +75,53 @@ function StackedThumbnail({ imageUris = [] }: { imageUris?: string[] }) {
   );
 }
 
-function CourseItem({ course }: { course: Course }) {
+function CourseItem({ course, onPress }: { course: Course; onPress?: () => void }) {
   return (
-    <TouchableOpacity className="flex-row items-center gap-3">
-      {/* 스택 썸네일 */}
-      <StackedThumbnail imageUris={course.imageUris} />
+    <TouchableOpacity
+      className="flex-row items-center justify-between w-full"
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
+      <View className="flex-row items-center" style={styles.leftGroup}>
+        {/* 스택 썸네일 */}
+        <StackedThumbnail imageUris={course.imageUris} />
 
-      {/* 텍스트 */}
-      <View className="flex-1 gap-1">
-        <Text className="typo-body-1-normal-semi-bold text-common-0" numberOfLines={1}>
-          {course.name}
-        </Text>
-        <Text className="typo-caption-1-medium text-label-subtler">
-          {course.distanceKm}km · {course.durationHours}시간 · {course.date}
-        </Text>
+        {/* 텍스트 */}
+        <View style={styles.textGroup}>
+          <Text className="typo-body-1-normal-semi-bold text-common-0" numberOfLines={1}>
+            {course.name}
+          </Text>
+          <Text className="typo-caption-1-medium text-label-subtler">
+            {course.distanceKm}km · {course.durationHours}시간 · {course.date}
+          </Text>
+        </View>
       </View>
 
       {/* 화살표 버튼 */}
-      <View className="w-10 h-10 rounded-full bg-fill-normal items-center justify-center">
+      <View style={styles.arrowButton}>
         <ChevronRightIcon size={16} />
       </View>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  thumbnailWrap: {
+    width: 71.2,
+    height: 78.3,
+  },
+  leftGroup: {
+    gap: 16,
+  },
+  textGroup: {
+    gap: 6,
+  },
+  arrowButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

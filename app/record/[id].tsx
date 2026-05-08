@@ -1,5 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Image as ExpoImage } from 'expo-image';
 import {
   ScrollView,
   StyleSheet,
@@ -8,15 +10,14 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Clive, type ClivePhoto } from '@/components/clive';
+import Clive1Svg from '@/assets/clive1.svg';
+import Clive2Svg from '@/assets/clive2.svg';
 import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
+import { DotsThreeIcon } from '@/components/icons/dots-three-icon';
+import { DownloadSimpleIcon } from '@/components/icons/download-simple-icon';
+import { LockIcon } from '@/components/icons/lock-icon';
+import { ShareIcon } from '@/components/icons/share-icon';
 import { XIcon } from '@/components/icons/x-icon';
-
-const MOCK_CLIVE_PHOTOS: ClivePhoto[] = [
-  { id: '1', distance: '1500m', isTop: true },
-  { id: '2', distance: '1000m' },
-  { id: '3', distance: '500m' },
-];
 
 type RecordTab = '클라이브' | '포토 리포트';
 
@@ -55,21 +56,32 @@ export default function RecordScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* 거리 */}
-        <View className="flex-row items-end px-5 pt-4 pb-4" style={{ gap: 4 }}>
-          <Text style={styles.distanceNumber}>6.34</Text>
-          <Text style={styles.distanceUnit}>km</Text>
+        <View className="flex-row items-center justify-between px-5 pt-4 pb-3">
+          <View className="flex-row items-end" style={{ gap: 4 }}>
+            <Text style={styles.distanceNumber}>6.34</Text>
+            <Text style={styles.distanceUnit}>km</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.shareIconButton}
+            hitSlop={8}
+            onPress={() =>
+              router.push({
+                pathname: '/community/write',
+                params: { name: name ?? '관악산' },
+              })
+            }
+          >
+            <ShareIcon size={24} />
+          </TouchableOpacity>
         </View>
 
         {/* 루트 지도 */}
         <View className="mx-5 rounded-xl overflow-hidden" style={styles.mapContainer}>
-          <View style={[styles.mapImage, { backgroundColor: '#E5E7EB' }]} />
-          {/* 날짜/시간 pill */}
-          <View style={styles.datePillWrapper}>
-            <View style={styles.datePill}>
-              <Text style={styles.datePillText}>2026.04.25 금</Text>
-              <Text style={styles.datePillSub}>10:03 - 12:19</Text>
-            </View>
-          </View>
+          {typeof Clive1Svg === 'number' ? (
+            <ExpoImage source={Clive1Svg} style={styles.mapImage} contentFit="cover" />
+          ) : (
+            <Clive1Svg width="100%" height="100%" />
+          )}
         </View>
 
         {/* 통계 */}
@@ -84,13 +96,6 @@ export default function RecordScreen() {
               <Text style={styles.statValue}>{stat.value}</Text>
             </View>
           ))}
-        </View>
-
-        {/* 기록 공유하기 버튼 */}
-        <View className="items-center mb-5">
-          <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>기록 공유하기</Text>
-          </TouchableOpacity>
         </View>
 
         {/* 구분선 */}
@@ -109,24 +114,41 @@ export default function RecordScreen() {
 
         {/* 클라이브 */}
         {activeTab === '클라이브' && (
-          <View className="pb-32 pt-2">
-            <Clive photos={MOCK_CLIVE_PHOTOS} />
+          <View className="pb-10 pt-2">
+            <View style={styles.cliveImageWrap}>
+              <LinearGradient
+                colors={['#507EF4', '#4ADE80', '#FFD40D', '#FF5249']}
+                locations={[0, 0.33, 0.66, 1]}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 0, y: 0 }}
+                style={styles.cliveGradientBar}
+              />
+              {typeof Clive2Svg === 'number' ? (
+                <ExpoImage source={Clive2Svg} style={styles.cliveImage} contentFit="cover" />
+              ) : (
+                <Clive2Svg width="100%" height="100%" />
+              )}
+            </View>
+            <View style={styles.bottomIconRow}>
+              <TouchableOpacity style={styles.roundIconButton} hitSlop={8}>
+                <LockIcon size={24} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.roundIconButton} hitSlop={8}>
+                <DownloadSimpleIcon size={24} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.roundIconButton} hitSlop={8}>
+                <DotsThreeIcon size={24} />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
         {activeTab === '포토 리포트' && (
-          <View className="px-5 pb-32 items-center justify-center" style={{ height: 200 }}>
+          <View className="px-5 pb-20 items-center justify-center" style={{ height: 200 }}>
             <Text className="typo-body-1-normal-medium text-label-subtler">포토 리포트 준비 중</Text>
           </View>
         )}
       </ScrollView>
-
-      {/* 저장하기 버튼 (fixed bottom) */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>저장하기</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -156,7 +178,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#464A57',
     lineHeight: 29,
-    paddingBottom: 8,
+    paddingBottom: 6,
   },
   mapContainer: {
     height: 235,
@@ -166,30 +188,25 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 235,
   },
-  datePillWrapper: {
+  cliveImageWrap: {
+    width: 335,
+    height: 596,
+    borderRadius: 20,
+    overflow: 'hidden',
+    alignSelf: 'center',
+    position: 'relative',
+  },
+  cliveGradientBar: {
     position: 'absolute',
-    bottom: 12,
     left: 0,
-    right: 0,
-    alignItems: 'center',
+    top: 0,
+    bottom: 0,
+    width: 6,
+    zIndex: 2,
   },
-  datePill: {
-    flexDirection: 'row',
-    gap: 8,
-    backgroundColor: '#464A57',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-  },
-  datePillText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#ffffff',
-  },
-  datePillSub: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#E5E7EB',
+  cliveImage: {
+    width: '100%',
+    height: '100%',
   },
   statItem: {
     flex: 1,
@@ -211,19 +228,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1A1B1F',
   },
-  shareButton: {
-    width: 164,
-    height: 48,
-    backgroundColor: '#F0F1F4',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shareButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#464A57',
-  },
   divider: {
     height: 6,
     backgroundColor: '#F9FAFB',
@@ -238,27 +242,33 @@ const styles = StyleSheet.create({
   tabInactive: {
     color: '#BFC4D1',
   },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    paddingBottom: 34,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-  },
-  saveButton: {
-    width: 164,
+  roundIconButton: {
+    width: 48,
     height: 48,
-    backgroundColor: '#1A1B1F',
-    borderRadius: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  saveButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#ffffff',
+  shareIconButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  bottomIconRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
