@@ -28,9 +28,16 @@ const TAB_ITEMS: TabItem[] = [
   { name: 'mypage', label: 'MY', renderIcon: (color) => <MyIcon size={24} color={color} /> },
 ];
 
-export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
+export function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { hasRecords, toggleHasRecords } = useHomeStateContext();
+
+  // 현재 활성 라우트의 tabBarStyle이 hidden이면 탭바 숨기기
+  const currentRoute = state.routes[state.index];
+  const { tabBarStyle } = descriptors[currentRoute.key].options;
+  if (tabBarStyle && (tabBarStyle as { display?: string }).display === 'none') {
+    return null;
+  }
 
   return (
     <View

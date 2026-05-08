@@ -1,25 +1,48 @@
+import { useFonts } from "@expo-google-fonts/lexend";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Lexend_700Bold, useFonts } from "@expo-google-fonts/lexend";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import React, { useEffect } from "react";
 import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../global.css";
 
 import Toast from "@/components/toast/toast";
+import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useCountdownStore } from "@/store/countdown.store";
+
+SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-export default function RootLayout() {
+export default function RootLayout(): React.JSX.Element | null {
   const colorScheme = useColorScheme();
-  useFonts({ Lexend_700Bold });
+  const [fontsLoaded] = useFonts({
+    "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
+  });
+  const { countdown, dismiss } = useCountdownStore();
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  useEffect(() => {
+    if (countdown === null) return;
+    const timer = setTimeout(() => useCountdownStore.getState().tick(), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  if (!fontsLoaded) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
