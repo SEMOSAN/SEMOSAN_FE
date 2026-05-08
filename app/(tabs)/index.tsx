@@ -123,12 +123,11 @@ const MOCK_MOUNTAINS: Mountain[] = [
 ];
 
 type MapTab = 'map' | 'feed';
-const UT_MAP_SCREENSHOT_URI =
-  'file:///Users/baesong-i/.cursor/projects/Users-baesong-i-SEMOSAN-FE/assets/image-cd26d1b9-082e-44b5-9759-6f3cd20a4428.png';
-const UT_NO_RECORD_MAP_SCREENSHOT_URI =
-  'file:///Users/baesong-i/.cursor/projects/Users-baesong-i-SEMOSAN-FE/assets/image-e2c9137b-5728-40b0-b64a-1c3c49a0c766.png';
-const UT_SELECTED_RECORD_MAP_SCREENSHOT_URI =
-  'file:///Users/baesong-i/.cursor/projects/Users-baesong-i-SEMOSAN-FE/assets/image-403ea866-f0f6-414e-b9d5-74226c30dc4b.png';
+const UT_ASSETS_BASE_URI =
+  'file:///Users/baesong-i/.cursor/projects/Users-baesong-i-SEMOSAN-FE/assets';
+const UT_MAP_SCREENSHOT_URI = `${UT_ASSETS_BASE_URI}/image-cd26d1b9-082e-44b5-9759-6f3cd20a4428.png`;
+const UT_NO_RECORD_MAP_SCREENSHOT_URI = `${UT_ASSETS_BASE_URI}/image-e2c9137b-5728-40b0-b64a-1c3c49a0c766.png`;
+const UT_SELECTED_RECORD_MAP_SCREENSHOT_URI = `${UT_ASSETS_BASE_URI}/image-403ea866-f0f6-414e-b9d5-74226c30dc4b.png`;
 const USE_UT_MAP_SCREENSHOT = process.env.EXPO_PUBLIC_USE_UT_MAP_SCREENSHOT !== 'false';
 
 export default function HomeScreen() {
