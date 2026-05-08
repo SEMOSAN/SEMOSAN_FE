@@ -28,7 +28,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "도봉산",
     location: "서울 도봉구 도봉동",
     altitude: 740,
-    difficulty: "상",
+    difficulty: "중",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/ko/thumb/b/be/Dobongsan.jpg/330px-Dobongsan.jpg",
   },
@@ -37,7 +37,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "수락산",
     location: "서울 노원구 상계동",
     altitude: 638,
-    difficulty: "중",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Suraksan.JPG/330px-Suraksan.JPG",
   },
@@ -64,7 +64,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "불암산",
     location: "서울 노원구 중계동",
     altitude: 508,
-    difficulty: "중",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Buram_Mountain_Peak.JPG/330px-Buram_Mountain_Peak.JPG",
   },
@@ -73,7 +73,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "삼성산",
     location: "서울 관악구 남현동",
     altitude: 481,
-    difficulty: "중",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Samsungsan.jpg/330px-Samsungsan.jpg",
   },
@@ -82,7 +82,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "남한산",
     location: "서울 송파구 마천동",
     altitude: 522,
-    difficulty: "중",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Korea-Namhansanseong-10.jpg/330px-Korea-Namhansanseong-10.jpg",
   },
@@ -91,7 +91,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "용마산",
     location: "서울 광진구 중곡동",
     altitude: 348,
-    difficulty: "중",
+    difficulty: "상",
     imageUrl: "http://www.mhtimes.kr/data/newsThumb/1695002162ADD_thumb580.jpg",
   },
   {
@@ -99,7 +99,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "북악산",
     location: "서울 종로구 청운동",
     altitude: 342,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Seoul_Gyeongbokgung_Blue_House_Bukhansan.jpg/330px-Seoul_Gyeongbokgung_Blue_House_Bukhansan.jpg",
   },
@@ -108,7 +108,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "인왕산",
     location: "서울 서대문구 홍제동",
     altitude: 338,
-    difficulty: "하",
+    difficulty: "중",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Mount_Inwang.jpg/330px-Mount_Inwang.jpg",
   },
@@ -117,7 +117,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "인릉산",
     location: "서울 서초구 내곡동",
     altitude: 326,
-    difficulty: "중",
+    difficulty: "상",
     imageUrl:
       "http://pnuac.com/files/attach/images/103/029/093/be8dcdf5dc58aa679606712d76dd4b77.jpg",
   },
@@ -126,7 +126,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "구룡산",
     location: "서울 서초구 염곡동",
     altitude: 306,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/%EA%B5%AC%EB%A3%A1%EC%82%B0.jpg/330px-%EA%B5%AC%EB%A3%A1%EC%82%B0.jpg",
   },
@@ -135,7 +135,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "아차산",
     location: "서울 광진구 광장동",
     altitude: 287,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/AchasanPost.jpg/330px-AchasanPost.jpg",
   },
@@ -144,7 +144,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "대모산",
     location: "서울 강남구 개포동",
     altitude: 293,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://www.gangnam.go.kr/assets/images/contents/01/011102_img01.jpg",
   },
@@ -153,7 +153,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "우면산",
     location: "서울 서초구 우면동",
     altitude: 293,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://i.namu.wiki/i/2HANF35TPXMhUJEL1cgmbVCVDnWKJN5XjjRIrxv7-bvtMNlkTiSVRJxbxftR7w81HfKa9jKVC0thDTIShjKmUdUKYQCEtWX_2diBaL9TSiBFPvEQequMfLZxfVFwYZldWIC-lQKYjRPeDNcA_5pang.webp",
   },
@@ -162,7 +162,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "안산",
     location: "서울 서대문구 홍제동",
     altitude: 296,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://cdn.tongilnews.com/news/photo/201609/118264_53108_311.jpg",
   },
@@ -171,7 +171,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "남산",
     location: "서울 중구 예장동",
     altitude: 262,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Seoul_Aerial_Shot_13.jpg/330px-Seoul_Aerial_Shot_13.jpg",
   },
@@ -180,7 +180,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "백련산",
     location: "서울 은평구 응암동",
     altitude: 216,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://mediahub.seoul.go.kr/uploads/mediahub/2023/03/aTlfPNPKiehfQLdIqHZbmsMMAHdnYPwP.jpg",
   },
@@ -189,7 +189,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "매봉산",
     location: "서울 용산구 도원동",
     altitude: 236,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://devin.aks.ac.kr/image/73580ef3-202e-4751-b698-b8243dd88c30?preset=orig",
   },
@@ -198,7 +198,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "봉제산",
     location: "서울 강서구 화곡동",
     altitude: 193,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://mediahub.seoul.go.kr/uploads/mediahub/2021/06/TrnaQAqGHDbpptaXkVAwDxeVqENxzgMR.JPG",
   },
@@ -207,7 +207,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "일자산",
     location: "서울 강동구 고덕동",
     altitude: 150,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://i.namu.wiki/i/ISw7R1DE7MhtMQebkEbjxM5vT0MZyzkO9hHuKXjP4W9DBsTmUJV_ZqlFEvvoXwJEJuCZFk4NUVikxMPOnYALKmehIDEIGifsjZECxr6S-1h9uhuSHTszscAkgcsee-7y12A51VI613SiP6WJmuOEYw.webp",
   },
@@ -216,7 +216,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "굴봉산",
     location: "서울 구로구 오류동",
     altitude: 145,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl: "https://cdn.chunsa.kr/news/photo/202309/56164_23471_637.jpg",
   },
   {
@@ -224,7 +224,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "개화산",
     location: "서울 강서구 개화동",
     altitude: 132,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://mediahub.seoul.go.kr/uploads/mediahub/2023/11/HmtMDrIbPHjbXZUqZSQqvQmXFdlfEWvv.jpg",
   },
@@ -233,7 +233,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "개운산",
     location: "서울 성북구 안암동",
     altitude: 134,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FcxhhG3%2FbtsJ3IVw37N%2FAAAAAAAAAAAAAAAAAAAAAGvxOSB-T3VwQR7N6iAV6F9oDm6-XrRMZnyKu7FPo6mg%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1780239599%26allow_ip%3D%26allow_referer%3D%26signature%3D4XDTHKydHxng%252F%252BrcCExHnCWdZjs%253D",
   },
@@ -242,7 +242,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "금호산",
     location: "서울 성동구 금호동",
     altitude: 140,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Eungbongsan_Mountain_Spring_01_%2825558972543%29.jpg/330px-Eungbongsan_Mountain_Spring_01_%2825558972543%29.jpg",
   },
@@ -251,7 +251,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "벽오산",
     location: "서울 강북구 번동",
     altitude: 135,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Bukhansan_Spring_in_Korea.jpg/330px-Bukhansan_Spring_in_Korea.jpg",
   },
@@ -260,7 +260,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "봉화산",
     location: "서울 중랑구 신내동",
     altitude: 138,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Bukhansan_landscape_and_azalia.jpg/330px-Bukhansan_landscape_and_azalia.jpg",
   },
@@ -269,7 +269,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "오패산",
     location: "서울 성북구 월곡동",
     altitude: 123,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Mount_Inwang.jpg/330px-Mount_Inwang.jpg",
   },
@@ -278,7 +278,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "대현산",
     location: "서울 성동구 옥수동",
     altitude: 123,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Gwanaksan_Seoul_KR.jpg/330px-Gwanaksan_Seoul_KR.jpg",
   },
@@ -287,7 +287,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "낙산",
     location: "서울 종로구 동숭동",
     altitude: 125,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Seoul_Aerial_Shot_13.jpg/330px-Seoul_Aerial_Shot_13.jpg",
   },
@@ -296,7 +296,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "개웅산",
     location: "서울 구로구 개봉동",
     altitude: 125,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Suraksan.JPG/330px-Suraksan.JPG",
   },
@@ -305,7 +305,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "응봉산",
     location: "서울 성동구 응봉동",
     altitude: 81,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Eungbongsan_Mountain_Spring_01_%2825558972543%29.jpg/330px-Eungbongsan_Mountain_Spring_01_%2825558972543%29.jpg",
   },
@@ -314,7 +314,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "와우산",
     location: "서울 마포구 창전동",
     altitude: 79,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Maebawi_of_Cheong_gye_Mt_Seoul.JPG/330px-Maebawi_of_Cheong_gye_Mt_Seoul.JPG",
   },
@@ -323,7 +323,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "우장산",
     location: "서울 강서구 화곡동",
     altitude: 99,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Samsungsan.jpg/330px-Samsungsan.jpg",
   },
@@ -332,7 +332,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "용왕산",
     location: "서울 양천구 신월동",
     altitude: 78,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/AchasanPost.jpg/330px-AchasanPost.jpg",
   },
@@ -341,7 +341,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "배봉산",
     location: "서울 동대문구 전농동",
     altitude: 106,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Seoul_Gyeongbokgung_Blue_House_Bukhansan.jpg/330px-Seoul_Gyeongbokgung_Blue_House_Bukhansan.jpg",
   },
@@ -350,7 +350,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "노고산",
     location: "서울 마포구 노고산동",
     altitude: 106,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Insoo_peak.jpg/330px-Insoo_peak.jpg",
   },
@@ -359,7 +359,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "성산",
     location: "서울 마포구 성산동",
     altitude: 66,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Buram_Mountain_Peak.JPG/330px-Buram_Mountain_Peak.JPG",
   },
@@ -368,7 +368,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "매봉산",
     location: "서울 강남구 도곡동",
     altitude: 95,
-    difficulty: "하",
+    difficulty: "상",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/%EA%B5%AC%EB%A3%A1%EC%82%B0.jpg/330px-%EA%B5%AC%EB%A3%A1%EC%82%B0.jpg",
   },
