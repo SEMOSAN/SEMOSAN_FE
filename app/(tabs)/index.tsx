@@ -1,12 +1,23 @@
 import { NaverMapMarkerOverlay, NaverMapView } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
-import { useEffect, useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet, { type Tab } from '@/components/bottom-sheet';
+import {
+  HomeBottomSheetContainer,
+  SNAP_DEFAULT,
+  SNAP_EXPANDED,
+  type HomeBottomSheetRef,
+} from '@/components/home-bottom-sheet-container';
+import NoRecordBottomSheet from '@/components/no-record-bottom-sheet';
 import { BellIcon } from '@/components/icons/bell-icon';
+import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
 import { CrosshairIcon } from '@/components/icons/crosshair-icon';
 import { SemosanLogo } from '@/components/icons/semosan-logo';
+import { XIcon } from '@/components/icons/x-icon';
 import {
   UnvisitedMountainPillMarker,
   UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
@@ -17,6 +28,7 @@ import {
   VISITED_MARKER_OVERLAY_HEIGHT,
   VISITED_MARKER_OVERLAY_WIDTH,
 } from '@/components/map-markers/visited-marker';
+import { useHomeState } from '@/hooks/useHomeState';
 
 type Region = {
   latitude: number;
@@ -42,7 +54,6 @@ const DEFAULT_REGION: Region = {
 };
 
 const MOCK_USER_NAME = '맹쏘';
-const MOCK_RECORD_COUNT = 11;
 
 const MOCK_MOUNTAINS: Mountain[] = [
   {
@@ -51,8 +62,7 @@ const MOCK_MOUNTAINS: Mountain[] = [
     latitude: 37.6577,
     longitude: 126.9791,
     visitCount: 3,
-    imageUri:
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
+    imageUri: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
     category: 'popular',
     visited: true,
   },
@@ -62,8 +72,7 @@ const MOCK_MOUNTAINS: Mountain[] = [
     latitude: 37.4441,
     longitude: 126.9644,
     visitCount: 1,
-    imageUri:
-      'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
+    imageUri: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
     category: 'default',
     visited: true,
   },
@@ -73,8 +82,7 @@ const MOCK_MOUNTAINS: Mountain[] = [
     latitude: 37.6892,
     longitude: 127.0158,
     visitCount: 5,
-    imageUri:
-      'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=600&q=80',
+    imageUri: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=600&q=80',
     category: 'curated',
     visited: true,
   },
@@ -113,17 +121,29 @@ const MOCK_MOUNTAINS: Mountain[] = [
   { id: '9', name: '불암산', latitude: 37.6524, longitude: 127.1012, visitCount: 0, category: 'curated', visited: false },
 ];
 
+type MapTab = 'map' | 'feed';
+
 export default function HomeScreen() {
+  const { hasRecords } = useHomeState();
   const [region, setRegion] = useState<Region>(DEFAULT_REGION);
   const [activeTab, setActiveTab] = useState<Tab>('내 기록');
+  const [mapTab, setMapTab] = useState<MapTab>('map');
   const [selectedMountainId, setSelectedMountainId] = useState<string | null>(null);
+  const [isMountainRecordListOpen, setIsMountainRecordListOpen] = useState(false);
+  const [closeSelectedToken, setCloseSelectedToken] = useState(0);
   const { top } = useSafeAreaInsets();
+  const sheetRef = useRef<HomeBottomSheetRef>(null);
+  const sheetHeight = useSharedValue(SNAP_DEFAULT);
+
+  const locationButtonStyle = useAnimatedStyle(() => ({
+    bottom: sheetHeight.value + 12,
+    opacity: interpolate(sheetHeight.value, [SNAP_DEFAULT, SNAP_EXPANDED], [1, 0], 'clamp'),
+  }));
 
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') return;
-
       const location = await Location.getCurrentPositionAsync({});
       setRegion((prev) => ({
         ...prev,
@@ -153,145 +173,223 @@ export default function HomeScreen() {
     badgeCount: m.visitCount,
     imageUri: m.imageUri,
   }));
-  const unvisitedMountains = MOCK_MOUNTAINS.filter((m) => {
-    if (!m.visited && activeTab === '지금 뜨는') return m.category === 'popular';
-    if (!m.visited && activeTab === '큐레이션') return m.category === 'curated';
-    return false;
-  });
-  const allMountains = activeTab === '내 기록'
-    ? visitedMountains
-    : [...visitedMountains, ...unvisitedMountains];
+  const unvisitedMountains = MOCK_MOUNTAINS.filter(
+    (m) => !m.visited && activeTab === '큐레이션' && m.category === 'curated'
+  );
+  const allMountains =
+    activeTab === '내 기록' ? visitedMountains : [...visitedMountains, ...unvisitedMountains];
   const visibleMountains = selectedMountainId
     ? allMountains.filter((m) => m.id === selectedMountainId)
     : allMountains;
+  const noRecordMountains = MOCK_MOUNTAINS.map((m) => ({ ...m, visited: false }));
+  const handleDetailOpenChange = (isOpen: boolean) => {
+    setIsMountainRecordListOpen(isOpen);
+    if (!isOpen) {
+      // 상세 리스트를 닫으면 선택 상태를 해제해 기본(흰색+초록 깃발) 마커로 복귀
+      setSelectedMountainId(null);
+    }
+  };
 
   return (
     <View className="flex-1 w-full">
-      {/* 지도 */}
+      {/* 지도 - flex:1로 전체 높이 차지 */}
       <NaverMapView
         style={styles.map}
-        camera={{
-          latitude: region.latitude,
-          longitude: region.longitude,
-          zoom: region.zoom,
-        }}
-        isShowLocationButton
+        camera={{ latitude: region.latitude, longitude: region.longitude, zoom: region.zoom }}
+        isShowLocationButton={false}
+        onTapMap={() => sheetRef.current?.collapseToMin()}
       >
-        {visibleMountains.map((mountain) =>
-          mountain.visited ? (
-            <NaverMapMarkerOverlay
-              key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
-              latitude={mountain.latitude}
-              longitude={mountain.longitude}
-              width={VISITED_MARKER_OVERLAY_WIDTH}
-              height={VISITED_MARKER_OVERLAY_HEIGHT}
-              anchor={{ x: 0.2, y: 1 }}
-            >
-              <View
-                collapsable={false}
-                style={{
-                  width: VISITED_MARKER_OVERLAY_WIDTH,
-                  height: VISITED_MARKER_OVERLAY_HEIGHT,
-                }}
+        {hasRecords
+          ? visibleMountains.map((mountain) => (
+              <NaverMapMarkerOverlay
+                key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
+                latitude={mountain.latitude}
+                longitude={mountain.longitude}
+                width={
+                  mountain.visited
+                    ? VISITED_MARKER_OVERLAY_WIDTH
+                    : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
+                }
+                height={
+                  mountain.visited
+                    ? VISITED_MARKER_OVERLAY_HEIGHT
+                    : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
+                }
+                anchor={
+                  mountain.visited
+                    ? { x: 0.2, y: 1 }
+                    : { x: 0.5, y: 0.5 }
+                }
               >
-                <VisitedMarker
-                  name={mountain.name}
-                  visitCount={mountain.visitCount}
-                  imageUri={mountain.imageUri}
-                  flagColor={
-                    activeTab === '지금 뜨는' ? '#507EF4'
-                    : activeTab === '큐레이션' ? '#FFD40D'
-                    : '#00D864'
-                  }
-                  selected={mountain.id === selectedMountainId}
-                />
-              </View>
-            </NaverMapMarkerOverlay>
-          ) : (
-            <NaverMapMarkerOverlay
-              key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
-              latitude={mountain.latitude}
-              longitude={mountain.longitude}
-              width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
-              height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              <View
-                collapsable={false}
-                style={{
-                  width: UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                  height: UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                }}
+                <View
+                  collapsable={false}
+                  style={{
+                    width:
+                      mountain.visited
+                        ? VISITED_MARKER_OVERLAY_WIDTH
+                        : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
+                    height:
+                      mountain.visited
+                        ? VISITED_MARKER_OVERLAY_HEIGHT
+                        : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
+                  }}
+                >
+                  {mountain.visited ? (
+                    <VisitedMarker
+                      name={mountain.name}
+                      visitCount={mountain.visitCount}
+                      imageUri={mountain.imageUri}
+                      selected={mountain.id === selectedMountainId}
+                    />
+                  ) : (
+                    <UnvisitedMountainPillMarker
+                      name={mountain.name}
+                      variant={mountain.visited ? 'visited' : activeTab === '큐레이션' ? 'curation' : 'trending'}
+                      selected={mountain.id === selectedMountainId}
+                    />
+                  )}
+                </View>
+              </NaverMapMarkerOverlay>
+            ))
+          : noRecordMountains.map((mountain) => (
+              <NaverMapMarkerOverlay
+                key={`no-record-${mountain.id}`}
+                latitude={mountain.latitude}
+                longitude={mountain.longitude}
+                width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
+                height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
+                anchor={{ x: 0.5, y: 0.5 }}
               >
-                <UnvisitedMountainPillMarker
-                  key={`pill-${mountain.id}-${activeTab}`}
-                  name={mountain.name}
-                  variant={activeTab === '큐레이션' ? 'curation' : 'trending'}
-                />
-              </View>
-            </NaverMapMarkerOverlay>
-          )
-        )}
+                <View
+                  collapsable={false}
+                  style={{ width: UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH, height: UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT }}
+                >
+                  <UnvisitedMountainPillMarker name={mountain.name} variant="trending" />
+                </View>
+              </NaverMapMarkerOverlay>
+            ))}
       </NaverMapView>
 
-      {/* 바텀시트 */}
-      <View className="w-full h-[302px] rounded-tl-3xl rounded-tr-3xl bg-fill-normal">
-        <BottomSheet
-          title="다녀온 산"
-          titleCount={visitedCards.length}
-          cards={visitedCards}
-          activeTab={activeTab}
-          onTabChange={(tab) => { setActiveTab(tab); setSelectedMountainId(null); }}
-          onCardSelect={(id) => setSelectedMountainId(id)}
-        />
-      </View>
+      <LinearGradient
+        colors={['rgba(255,255,255,1)', 'rgba(255,255,255,0)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.mapTopGradient}
+        pointerEvents="none"
+      />
 
-      {/* 현위치 버튼 */}
-      <TouchableOpacity
-        style={styles.locationButton}
-        onPress={moveToCurrentLocation}
-        hitSlop={8}
-      >
-        <CrosshairIcon size={24} />
-      </TouchableOpacity>
+      {/* 현위치 버튼 - 바텀시트 높이에 따라 이동 */}
+      <Animated.View style={[styles.locationButton, locationButtonStyle]}>
+        <TouchableOpacity
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+          onPress={moveToCurrentLocation}
+          hitSlop={8}
+        >
+          <CrosshairIcon size={24} />
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* 바텀시트 - 절대 위치, 애니메이션 높이 */}
+      <HomeBottomSheetContainer
+        ref={sheetRef}
+        heightSharedValue={sheetHeight}
+        renderContent={({ scrollEnabled }) =>
+          hasRecords ? (
+            <BottomSheet
+              title="다녀온 산"
+              titleCount={visitedCards.length}
+              cards={visitedCards}
+              showTabs={false}
+              scrollEnabled={scrollEnabled}
+              onCardSelect={(id) => setSelectedMountainId(id)}
+              onDetailOpenChange={handleDetailOpenChange}
+              closeSelectedToken={closeSelectedToken}
+            />
+          ) : (
+            <NoRecordBottomSheet
+              userName={MOCK_USER_NAME}
+              scrollEnabled={scrollEnabled}
+            />
+          )
+        }
+      />
 
       {/* 상단 floating 영역 */}
       <View style={[styles.overlay, { top: 0 }]} pointerEvents="box-none">
         <View style={{ height: top }} />
 
-        {/* 헤더: 로고 + 알림 */}
-        <View className="flex-row items-center justify-between px-5 h-14">
-          <SemosanLogo />
-          <TouchableOpacity
-            className="w-12 h-12 rounded-full bg-fill-normal items-center justify-center"
-            style={styles.bellButton}
-            hitSlop={8}
-          >
-            <BellIcon size={24} color="#1A1B1F" />
-          </TouchableOpacity>
-        </View>
-
-        {/* 등산 기록 pill */}
-        <View className="items-center mt-2">
-          <View
-            className="flex-row items-center gap-1.5 bg-primary-subtle rounded-full px-4 py-2"
-            style={[styles.pill, { alignSelf: 'center' }]}
-          >
-            <Text className="typo-body-1-normal-semi-bold text-fill-normal">
-              {MOCK_USER_NAME} 님의 등산 기록
-            </Text>
-            <Text className="typo-body-1-normal-semi-bold text-secondary-normal">
-              {MOCK_RECORD_COUNT}
-            </Text>
+        {isMountainRecordListOpen ? (
+          <View className="flex-row items-center justify-between px-5 h-14">
+            <TouchableOpacity
+              onPress={() => setCloseSelectedToken((prev) => prev + 1)}
+              className="w-12 h-12 rounded-full bg-fill-normal items-center justify-center"
+              style={styles.bellButton}
+              hitSlop={8}
+            >
+              <ChevronLeftIcon size={24} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setCloseSelectedToken((prev) => prev + 1)}
+              className="w-12 h-12 rounded-full bg-fill-normal items-center justify-center"
+              style={styles.bellButton}
+              hitSlop={8}
+            >
+              <XIcon size={24} />
+            </TouchableOpacity>
           </View>
-        </View>
+        ) : (
+          <>
+            {/* 헤더: 로고 + 알림 */}
+            <View className="flex-row items-center justify-between px-5 h-14">
+              <SemosanLogo />
+              <TouchableOpacity
+                className="w-12 h-12 rounded-full bg-fill-normal items-center justify-center"
+                style={styles.bellButton}
+                hitSlop={8}
+              >
+                <BellIcon size={24} color="#1A1B1F" />
+              </TouchableOpacity>
+            </View>
+
+            {/* 정복 지도 / 세모피드 토글 */}
+            <View className="items-center mt-1">
+              <MapTabToggle value={mapTab} onChange={setMapTab} />
+            </View>
+          </>
+        )}
       </View>
+    </View>
+  );
+}
+
+function MapTabToggle({ value, onChange }: { value: MapTab; onChange: (v: MapTab) => void }) {
+  return (
+    <View style={toggleStyles.container}>
+      {(['map', 'feed'] as const).map((tab) => (
+        <TouchableOpacity
+          key={tab}
+          style={[toggleStyles.tab, value === tab && toggleStyles.activeTab]}
+          onPress={() => onChange(tab)}
+          activeOpacity={0.8}
+        >
+          <Text style={[toggleStyles.tabText, value === tab && toggleStyles.activeTabText]}>
+            {tab === 'map' ? '정복 지도' : '세모피드'}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   map: { flex: 1 },
+  mapTopGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 154,
+  },
   overlay: {
     position: 'absolute',
     left: 0,
@@ -304,16 +402,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  pill: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 4,
-  },
   locationButton: {
     position: 'absolute',
-    bottom: 302 + 12,
     right: 20,
     width: 48,
     height: 48,
@@ -328,5 +418,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 4,
+  },
+});
+
+const toggleStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    backgroundColor: '#2F323A',
+    borderRadius: 999,
+    padding: 2,
+    height: 39,
+    width: 171,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 999,
+  },
+  activeTab: {
+    backgroundColor: '#ffffff',
+  },
+  tabText: {
+    fontFamily: 'Pretendard',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#E5E7EB',
+  },
+  activeTabText: {
+    color: '#1A1B1F',
   },
 });
