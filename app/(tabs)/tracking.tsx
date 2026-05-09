@@ -26,16 +26,16 @@ import {
   TRAIL_BAR_LOCATIONS,
   TRAIL_BAR_WIDTH,
 } from '@/features/tracking/constants';
-import { useCountdownStore } from '@/store/countdown.store';
+import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Tabs, useLocalSearchParams } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, Text, TouchableOpacity, View } from 'react-native';
 
 export default function TrackingScreen() {
-  const { autoStart } = useLocalSearchParams<{ autoStart?: string }>();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -53,11 +53,18 @@ export default function TrackingScreen() {
 
   const selectedCourse = MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
 
-  const startCountdown = () => useCountdownStore.getState().start(() => setIsTracking(true));
+  const startCountdown = () => setCountdown(3);
 
   useEffect(() => {
-    if (autoStart === '1') setIsTracking(true);
-  }, [autoStart]);
+    if (countdown === null) return;
+    if (countdown === 0) {
+      setIsTracking(true);
+      setCountdown(null);
+      return;
+    }
+    const timer = setTimeout(() => setCountdown((c) => (c !== null ? c - 1 : null)), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
   useEffect(() => {
@@ -206,6 +213,14 @@ export default function TrackingScreen() {
             />
           )}
         </View>
+      )}
+
+      {/* 카운트다운 오버레이 */}
+      {countdown !== null && countdown > 0 && (
+        <CountdownOverlay
+          countdown={countdown}
+          onClose={() => setCountdown(null)}
+        />
       )}
 
       {/* 기록 종료 확인 모달 */}
