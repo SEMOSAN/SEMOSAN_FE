@@ -7,7 +7,6 @@ import {
   MOCK_COURSES,
   MOCK_REVIEWS,
 } from "@/features/mountains/constants/mountain-detail";
-import { useCountdownStore } from "@/store/countdown.store";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -183,14 +182,7 @@ export default function CourseDetailScreen(): React.JSX.Element {
           pointerEvents="box-none"
         >
           <TouchableOpacity
-            onPress={() => {
-              useCountdownStore.getState().start(() => {
-                router.push({
-                  pathname: '/(tabs)/tracking',
-                  params: { autoStart: '1' },
-                });
-              });
-            }}
+            onPress={() => router.push('/(tabs)/tracking')}
             className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3"
           >
             <RouteIcon />
