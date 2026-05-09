@@ -7,7 +7,6 @@ import {
   MOCK_COURSES,
   MOCK_REVIEWS,
 } from "@/features/mountains/constants/mountain-detail";
-import { useCountdownStore } from "@/store/countdown.store";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -61,11 +60,13 @@ export default function CourseDetailScreen(): React.JSX.Element {
           <View style={{ height: insets.top + 56 + 8 }} />
 
           {/* Map */}
-          <Image
-            source={{ uri: course.imageUrl }}
-            className="mx-5 h-[200px] overflow-hidden rounded-[20px] bg-fill-stronger"
-            resizeMode="cover"
-          />
+          <View className="mx-5 h-[200px] overflow-hidden rounded-[20px] bg-fill-stronger">
+            <Image
+              source={course.imageSource ?? { uri: course.imageUrl }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="stretch"
+            />
+          </View>
 
           {/* Course info */}
           <View className="gap-[10px] px-5 pt-5">
@@ -181,14 +182,7 @@ export default function CourseDetailScreen(): React.JSX.Element {
           pointerEvents="box-none"
         >
           <TouchableOpacity
-            onPress={() => {
-              useCountdownStore.getState().start(() => {
-                router.push({
-                  pathname: '/(tabs)/tracking',
-                  params: { autoStart: '1' },
-                });
-              });
-            }}
+            onPress={() => router.push('/(tabs)/tracking')}
             className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3"
           >
             <RouteIcon />
