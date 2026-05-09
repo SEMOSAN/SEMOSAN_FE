@@ -42,7 +42,7 @@ export function BottomTabBar({ state, descriptors, navigation }: BottomTabBarPro
   return (
     <View
       className="bg-fill-normal border-t border-line-subtle flex-row items-center justify-between px-5"
-      style={{ paddingBottom: Math.max(insets.bottom, 4), paddingTop: 4 }}
+      style={{ paddingBottom: Math.max(insets.bottom, 4), paddingTop: 4, zIndex: -100 }}
     >
       {state.routes.map((route, index) => {
         const item = TAB_ITEMS[index];
