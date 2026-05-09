@@ -13,9 +13,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../global.css";
 
 import Toast from "@/components/toast/toast";
-import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useCountdownStore } from "@/store/countdown.store";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,19 +26,11 @@ export default function RootLayout(): React.JSX.Element | null {
   const [fontsLoaded] = useFonts({
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
   });
-  const { countdown, dismiss } = useCountdownStore();
-
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
-
-  useEffect(() => {
-    if (countdown === null) return;
-    const timer = setTimeout(() => useCountdownStore.getState().tick(), 1000);
-    return () => clearTimeout(timer);
-  }, [countdown]);
 
   if (!fontsLoaded) return null;
 
