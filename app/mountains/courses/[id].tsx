@@ -61,11 +61,13 @@ export default function CourseDetailScreen(): React.JSX.Element {
           <View style={{ height: insets.top + 56 + 8 }} />
 
           {/* Map */}
-          <Image
-            source={{ uri: course.imageUrl }}
-            className="mx-5 h-[200px] overflow-hidden rounded-[20px] bg-fill-stronger"
-            resizeMode="cover"
-          />
+          <View className="mx-5 h-[200px] overflow-hidden rounded-[20px] bg-fill-stronger">
+            <Image
+              source={course.imageSource ?? { uri: course.imageUrl }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="stretch"
+            />
+          </View>
 
           {/* Course info */}
           <View className="gap-[10px] px-5 pt-5">
