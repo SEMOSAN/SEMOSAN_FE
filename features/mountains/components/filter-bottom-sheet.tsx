@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import {
   Keyboard,
   Modal,
+  Platform,
   Pressable,
   Text,
   TouchableWithoutFeedback,
@@ -108,6 +109,63 @@ export function FilterBottomSheet({
     opacity: backdropOpacity.value,
   }));
 
+  const backdrop = (
+    <Animated.View
+      className="absolute inset-0"
+      style={[{ backgroundColor: "rgba(0,0,0,0.2)" }, backdropStyle]}
+    >
+      <Pressable className="absolute inset-0" onPress={handleDismiss} />
+    </Animated.View>
+  );
+
+  const sheet = (
+    <Animated.View
+      className="absolute bottom-0 left-0 right-0 overflow-hidden rounded-tl-[20px] rounded-tr-[20px] bg-fill-normal"
+      style={[{ paddingBottom: insets.bottom }, sheetStyle]}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View>
+          {/* Drag handle */}
+          <View className="items-center pb-2" />
+
+          {/* Title */}
+          <View className="px-5 pb-1 pt-3">
+            <Text className="text-label-subtle typo-body-2-normal-medium">
+              {title}
+            </Text>
+          </View>
+
+          {children}
+        </View>
+      </TouchableWithoutFeedback>
+    </Animated.View>
+  );
+
+  if (Platform.OS === 'web') {
+    if (!modalVisible) return null;
+    return (
+      <View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999 }}>
+        <Pressable
+          className="absolute inset-0"
+          style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}
+          onPress={handleDismiss}
+        />
+        <View
+          className="absolute bottom-0 left-0 right-0 rounded-tl-[20px] rounded-tr-[20px] bg-fill-normal"
+          style={{ paddingBottom: insets.bottom }}
+        >
+          <View className="items-center pb-2" />
+          <View className="px-5 pb-1 pt-3">
+            <Text className="text-label-subtle typo-body-2-normal-medium">
+              {title}
+            </Text>
+          </View>
+          {children}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <Modal
       visible={modalVisible}
@@ -117,41 +175,11 @@ export function FilterBottomSheet({
       presentationStyle="overFullScreen"
       statusBarTranslucent
     >
-      {/* Modal은 별도 네이티브 뷰 계층에 렌더링되므로 GestureHandlerRootView를 직접 감싸야 함 */}
+      {/* 네이티브: Modal은 별도 뷰 계층이므로 GestureHandlerRootView 필요 */}
       <GestureHandlerRootView className="flex-1">
-        {/* Backdrop */}
-        <Animated.View
-          className="absolute inset-0"
-          style={[{ backgroundColor: "rgba(0,0,0,0.2)" }, backdropStyle]}
-        >
-          <Pressable className="absolute inset-0" onPress={handleDismiss} />
-        </Animated.View>
-
-        {/* Sheet */}
+        {backdrop}
         <GestureDetector gesture={panGesture}>
-          <Animated.View
-            className="absolute bottom-0 left-0 right-0 overflow-hidden rounded-tl-[20px] rounded-tr-[20px] bg-fill-normal"
-            style={[{ paddingBottom: insets.bottom }, sheetStyle]}
-          >
-            <TouchableWithoutFeedback
-              onPress={Keyboard.dismiss}
-              accessible={false}
-            >
-              <View>
-                {/* Drag handle */}
-                <View className="items-center pb-2" />
-
-                {/* Title */}
-                <View className="px-5 pb-1 pt-3">
-                  <Text className="text-label-subtle typo-body-2-normal-medium">
-                    {title}
-                  </Text>
-                </View>
-
-                {children}
-              </View>
-            </TouchableWithoutFeedback>
-          </Animated.View>
+          {sheet}
         </GestureDetector>
       </GestureHandlerRootView>
     </Modal>
