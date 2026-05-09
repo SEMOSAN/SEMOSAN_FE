@@ -28,7 +28,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "도봉산",
     location: "서울 도봉구 도봉동",
     altitude: 740,
-    difficulty: "중",
+    difficulty: "하",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/ko/thumb/b/be/Dobongsan.jpg/330px-Dobongsan.jpg",
   },
@@ -135,7 +135,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "아차산",
     location: "서울 광진구 광장동",
     altitude: 287,
-    difficulty: "상",
+    difficulty: "하",
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/AchasanPost.jpg/330px-AchasanPost.jpg",
   },
@@ -162,7 +162,7 @@ export const MOCK_MOUNTAINS: Mountain[] = [
     name: "안산",
     location: "서울 서대문구 홍제동",
     altitude: 296,
-    difficulty: "상",
+    difficulty: "하",
     imageUrl:
       "https://cdn.tongilnews.com/news/photo/201609/118264_53108_311.jpg",
   },
