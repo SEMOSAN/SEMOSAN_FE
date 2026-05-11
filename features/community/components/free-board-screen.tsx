@@ -1,12 +1,20 @@
+import { PlusIcon } from "@/components/icons/plus-icon";
+import { MOCK_POSTS } from "@/features/community/constants/mock-posts";
 import React from "react";
-import { Text, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
+import { PostItem } from "./post-item";
 
-export function FreeBoardScreen(): React.JSX.Element {
+export function FreeBoardScreen() {
   return (
-    <View className="flex-1 items-center justify-center">
-      <Text className="typo-body-1-normal-regular text-label-subtler">
-        자유 게시판 준비 중
-      </Text>
+    <View className="flex-1">
+      <FlatList
+        data={MOCK_POSTS}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <PostItem post={item} />}
+      />
+      <Pressable className="absolute bottom-6 right-5 size-14 items-center justify-center rounded-full bg-primary-normal">
+        <PlusIcon />
+      </Pressable>
     </View>
   );
 }
