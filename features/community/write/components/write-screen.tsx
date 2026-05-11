@@ -1,3 +1,4 @@
+import { KeyboardAccessoryToolbar } from "@/components/keyboard-accessory-toolbar";
 import { useRouter } from "expo-router";
 import {
   KeyboardAvoidingView,
@@ -12,6 +13,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useWriteForm } from "../hooks/use-write-form";
 import { ImageUploadButton } from "./image-upload-button";
 import { WriteHeader } from "./write-header";
+
+const TITLE_TOOLBAR_ID = "write-title-toolbar";
+const BODY_TOOLBAR_ID = "write-body-toolbar";
 
 export function WriteScreen() {
   const router = useRouter();
@@ -41,6 +45,7 @@ export function WriteScreen() {
             placeholderTextColor="#73798c"
             autoCorrect={false}
             spellCheck={false}
+            inputAccessoryViewID={TITLE_TOOLBAR_ID}
             className="border-b border-line-subtle py-4 text-label-normal typo-body-1-normal-semi-bold"
             style={{ lineHeight: undefined }}
           />
@@ -51,6 +56,7 @@ export function WriteScreen() {
             placeholderTextColor="#73798c"
             autoCorrect={false}
             spellCheck={false}
+            inputAccessoryViewID={BODY_TOOLBAR_ID}
             multiline
             textAlignVertical="top"
             className="min-h-[200px] py-4 text-label-normal typo-body-2-reading-regular"
@@ -84,6 +90,9 @@ export function WriteScreen() {
           </Text>
         </Pressable>
       </View>
+
+      <KeyboardAccessoryToolbar nativeID={TITLE_TOOLBAR_ID} />
+      <KeyboardAccessoryToolbar nativeID={BODY_TOOLBAR_ID} />
     </KeyboardAvoidingView>
   );
 }
