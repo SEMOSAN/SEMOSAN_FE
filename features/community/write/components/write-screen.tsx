@@ -39,6 +39,8 @@ export function WriteScreen() {
             onChangeText={setTitle}
             placeholder="제목"
             placeholderTextColor="#73798c"
+            autoCorrect={false}
+            spellCheck={false}
             className="border-b border-line-subtle py-4 text-label-normal typo-body-1-normal-semi-bold"
             style={{ lineHeight: undefined }}
           />
@@ -47,6 +49,8 @@ export function WriteScreen() {
             onChangeText={setBody}
             placeholder="글을 작성해주세요."
             placeholderTextColor="#73798c"
+            autoCorrect={false}
+            spellCheck={false}
             multiline
             textAlignVertical="top"
             className="min-h-[200px] py-4 text-label-normal typo-body-2-reading-regular"
