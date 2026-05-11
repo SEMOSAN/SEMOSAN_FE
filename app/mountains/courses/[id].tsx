@@ -182,7 +182,9 @@ export default function CourseDetailScreen(): React.JSX.Element {
           pointerEvents="box-none"
         >
           <TouchableOpacity
-            onPress={() => router.push("/(tabs)/tracking?collapse=true")}
+            onPress={() =>
+              router.push(`/(tabs)/tracking?collapse=true&courseId=${id}`)
+            }
             className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3"
           >
             <RouteIcon />
