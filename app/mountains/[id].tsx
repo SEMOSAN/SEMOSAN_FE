@@ -29,7 +29,7 @@ import { buildWeatherDays } from "@/features/mountains/modules/weather";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabKey = "코스" | "교통" | "편의" | "맛집" | "리뷰";
@@ -70,7 +70,13 @@ function CourseCard({ course }: { course: Course }) {
       activeOpacity={0.7}
       onPress={() => router.push(`/mountains/courses/${course.id}`)}
     >
-      <View className="h-[72px] w-16 rounded-[10px] bg-fill-stronger" />
+      <View className="h-[72px] w-16 overflow-hidden rounded-[10px] bg-fill-stronger">
+        <Image
+          source={course.imageSource ?? { uri: course.imageUrl }}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="stretch"
+        />
+      </View>
       <View className="gap-1.5">
         <View className="flex-row items-center gap-1.5">
           <CourseBadge difficulty={course.difficulty} />
@@ -369,6 +375,11 @@ export default function MountainDetailScreen() {
         >
           {/* Image carousel */}
           <View className="h-[284px] bg-fill-stronger">
+            <Image
+              source={{ uri: mountain.imageUrl }}
+              className="absolute inset-0"
+              resizeMode="cover"
+            />
             <View className="absolute bottom-[9px] left-0 right-0 flex-row justify-center gap-2">
               <View className="size-[6px] rounded-full bg-white" />
               <View className="size-[6px] rounded-full bg-white opacity-40" />

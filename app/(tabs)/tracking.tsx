@@ -5,7 +5,6 @@ import { SummitSheet } from '@/features/tracking/components/summit-sheet';
 import { StopConfirmModal } from '@/features/tracking/components/stop-confirm-modal';
 import { DifficultyRatingModal } from '@/features/tracking/components/difficulty-rating-modal';
 import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
-import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
 import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
 import { TrackingSheet } from '@/features/tracking/components/tracking-sheet';
 import {
@@ -27,6 +26,7 @@ import {
   TRAIL_BAR_LOCATIONS,
   TRAIL_BAR_WIDTH,
 } from '@/features/tracking/constants';
+import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -55,7 +55,6 @@ export default function TrackingScreen() {
 
   const startCountdown = () => setCountdown(3);
 
-  // 카운트다운 → 0이 되면 트래킹 시작
   useEffect(() => {
     if (countdown === null) return;
     if (countdown === 0) {

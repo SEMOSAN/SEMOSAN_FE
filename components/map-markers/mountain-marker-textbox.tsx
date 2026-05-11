@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
   },
   name: {
     color: '#464A57',
+    fontFamily: 'Pretendard',
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 16,
@@ -51,6 +52,7 @@ const styles = StyleSheet.create({
   },
   suffix: {
     color: '#BFC4D1',
+    fontFamily: 'Pretendard',
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 16,

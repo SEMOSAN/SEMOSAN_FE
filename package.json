@@ -57,6 +57,7 @@
     "eslint-config-expo": "~10.0.0",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.0.0-insiders.f7d2598",
+    "react-native-svg-transformer": "^1.5.3",
     "style-dictionary": "^5.4.0",
     "typescript": "~5.9.2"
   },

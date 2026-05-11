@@ -4,42 +4,48 @@ import { RouteIcon } from "@/components/icons/route-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { CourseBadge } from "@/features/mountains/components/course-badge";
 import {
+  MOCK_COURSES,
   MOCK_REVIEWS,
-  type CourseDifficulty,
 } from "@/features/mountains/constants/mountain-detail";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const MOCK_COURSE = {
-  name: "과천향교출발3코스",
-  difficulty: "초급" as CourseDifficulty,
-  start: "서울시 관악구 00동",
-  end: "서울시 관악구 00동",
-  distanceKm: 13.95,
-  altitude: "2.43m",
-  uphillM: 1436,
-  downhillM: 1354,
-  durationHours: 4,
-};
-
-const STAT_ROWS = [
-  [
-    { label: "거리", value: `${MOCK_COURSE.distanceKm}km` },
-    { label: "난이도", value: MOCK_COURSE.difficulty },
-    { label: "소요시간", value: `${MOCK_COURSE.durationHours}시간` },
-  ],
-  [
-    { label: "고도", value: MOCK_COURSE.altitude },
-    { label: "오르막길", value: `${MOCK_COURSE.uphillM}m` },
-    { label: "내리막길", value: `${MOCK_COURSE.downhillM}m` },
-  ],
-];
-
 export default function CourseDetailScreen(): React.JSX.Element {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  const course = MOCK_COURSES.find((c) => String(c.id) === id);
+
+  const statRows = course
+    ? [
+        [
+          { label: "거리", value: `${course.distanceKm}km` },
+          { label: "난이도", value: course.difficulty },
+          { label: "소요시간", value: `${course.durationHours}시간` },
+        ],
+        [
+          { label: "고도", value: "-" },
+          { label: "오르막길", value: "-" },
+          { label: "내리막길", value: "-" },
+        ],
+      ]
+    : [];
+
+  if (!course) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View className="flex-1 items-center justify-center bg-fill-normal">
+          <Text className="text-label-subtle typo-body-2-normal-regular">
+            코스를 찾을 수 없습니다.
+          </Text>
+        </View>
+      </>
+    );
+  }
 
   return (
     <>
@@ -54,47 +60,32 @@ export default function CourseDetailScreen(): React.JSX.Element {
           <View style={{ height: insets.top + 56 + 8 }} />
 
           {/* Map */}
-          <View className="mx-5 h-[200px] overflow-hidden rounded-[20px] bg-fill-stronger" />
+          <View className="mx-5 h-[200px] overflow-hidden rounded-[20px] bg-fill-stronger">
+            <Image
+              source={course.imageSource ?? { uri: course.imageUrl }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="stretch"
+            />
+          </View>
 
           {/* Course info */}
           <View className="gap-[10px] px-5 pt-5">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-[10px]">
-                <CourseBadge difficulty={MOCK_COURSE.difficulty} />
+                <CourseBadge difficulty={course.difficulty} />
                 <Text className="text-label-normal typo-heading-1-semi-bold">
-                  {MOCK_COURSE.name}
+                  {course.title}
                 </Text>
               </View>
               <TouchableOpacity hitSlop={8}>
                 <HeartIcon />
               </TouchableOpacity>
             </View>
-
-            <View className="gap-1">
-              <View className="flex-row items-center gap-2">
-                <View className="size-[10px] rounded-full bg-blue-500" />
-                <Text className="text-label-subtle typo-body-2-normal-semi-bold">
-                  출발
-                </Text>
-                <Text className="text-label-subtler typo-body-2-normal-regular">
-                  {MOCK_COURSE.start}
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <View className="size-[10px] rounded-full bg-red-500" />
-                <Text className="text-label-subtle typo-body-2-normal-semi-bold">
-                  도착
-                </Text>
-                <Text className="text-label-subtler typo-body-2-normal-regular">
-                  {MOCK_COURSE.end}
-                </Text>
-              </View>
-            </View>
           </View>
 
           {/* Stats grid */}
           <View className="mt-6 gap-[6px]">
-            {STAT_ROWS.map((row, rowIdx) => (
+            {statRows.map((row, rowIdx) => (
               <View key={rowIdx} className="flex-row justify-center gap-1">
                 {row.map(({ label, value }) => (
                   <View
@@ -191,9 +182,7 @@ export default function CourseDetailScreen(): React.JSX.Element {
           pointerEvents="box-none"
         >
           <TouchableOpacity
-            onPress={() => {
-              /** TODO : 트래킹 페이지 연동 */
-            }}
+            onPress={() => router.push('/(tabs)/tracking')}
             className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3"
           >
             <RouteIcon />

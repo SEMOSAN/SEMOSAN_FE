@@ -20,13 +20,13 @@ export function PostItem({ post }: { post: Post }) {
         <View className={`flex-row ${hasImage ? "gap-3" : ""}`}>
           <View className="flex-1 gap-1">
             <Text
-              className="typo-body-1-normal-semi-bold text-label-normal"
+              className="text-label-normal typo-body-1-normal-semi-bold"
               numberOfLines={1}
             >
               {post.title}
             </Text>
             <Text
-              className="typo-body-2-reading-regular text-label-subtle"
+              className="text-label-subtle typo-body-2-reading-regular"
               numberOfLines={2}
             >
               {post.body}
@@ -35,7 +35,7 @@ export function PostItem({ post }: { post: Post }) {
           {hasImage && <Thumbnail imageCount={post.imageCount!} />}
         </View>
         <View className="flex-row items-center justify-between">
-          <Text className="typo-caption-1-regular text-label-subtler">
+          <Text className="text-label-subtler typo-caption-1-regular">
             {post.date}
           </Text>
           <View className="flex-row gap-3">
