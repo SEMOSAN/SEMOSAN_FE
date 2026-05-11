@@ -2,6 +2,7 @@ import { ChatIcon } from "@/components/icons/chat-icon";
 import { EyeIcon } from "@/components/icons/eye-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
 import { Post } from "@/features/community/constants/mock-posts";
+import { useRouter } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { StatItem } from "./stat-item";
@@ -9,12 +10,11 @@ import { Thumbnail } from "./thumbnail";
 
 export function PostItem({ post }: { post: Post }) {
   const hasImage = !!post.imageCount && post.imageCount > 0;
+  const router = useRouter();
   return (
     <Pressable
-      onPress={() => {
-        // TODO : 게시글 상세페이지 이동 구현
-      }}
       className="border-b border-line-subtle px-5 py-4"
+      onPress={() => router.push(`/community/free-board/${post.id}`)}
     >
       <View className="gap-3">
         <View className={`flex-row ${hasImage ? "gap-3" : ""}`}>
