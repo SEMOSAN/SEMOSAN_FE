@@ -1,5 +1,4 @@
 import { CommunityHeader } from "@/features/community/components/community-header";
-import { CommunityTabBar } from "@/features/community/components/community-tab-bar";
 import { Slot } from "expo-router";
 import React from "react";
 import { View } from "react-native";
@@ -11,7 +10,6 @@ export default function CommunityLayout(): React.JSX.Element {
   return (
     <View className="flex-1 bg-fill-normal" style={{ paddingTop: insets.top }}>
       <CommunityHeader />
-      <CommunityTabBar />
       <Slot />
     </View>
   );
