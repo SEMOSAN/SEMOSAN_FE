@@ -69,7 +69,7 @@ export default function MountainsScreen() {
     difficultyOptions.length === 0
       ? MOCK_MOUNTAINS
       : MOCK_MOUNTAINS.filter((m) =>
-          difficultyOptions.some((opt) => DIFFICULTY_MAP[opt] === m.difficulty)
+          difficultyOptions.some((opt) => DIFFICULTY_MAP[opt] === m.difficulty),
         );
 
   const hasActiveFilter =
