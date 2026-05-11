@@ -14,15 +14,16 @@ export function CommentInputBar() {
     >
       <View className="flex-row items-end gap-2 rounded-[24px] bg-fill-strong py-2 pl-4 pr-[10px]">
         <TextInput
-          className="flex-1 py-[3px] typo-body-1-reading-regular text-label-normal"
+          className="flex-1 py-[3px] text-label-normal typo-body-1-reading-regular"
           placeholder="댓글을 입력하세요"
           placeholderTextColor="#8b92a6"
+          style={{ maxHeight: 80 }}
           multiline
           value={text}
           onChangeText={setText}
         />
         {text.length > 0 && (
-          <Pressable className="size-8 rounded-full bg-primary-normal items-center justify-center">
+          <Pressable className="size-8 items-center justify-center rounded-full bg-primary-normal">
             <PaperPlaneIcon />
           </Pressable>
         )}
