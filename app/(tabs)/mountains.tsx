@@ -20,9 +20,15 @@ import {
   SortOption,
 } from "@/features/mountains/components/sort-bottom-sheet";
 import { useMountains } from "@/features/mountains/hooks/use-mountains";
-import { MountainListResponse } from "@/types/api.generated";
+import {
+  Coordinates,
+  filterByDifficulty,
+  filterByRegions,
+  sortMountains,
+} from "@/features/mountains/modules/sort-mountains";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -34,11 +40,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type FilterKey = "인기순" | "지역" | "소요시간" | "난이도";
 
-const DIFFICULTY_FILTER_MAP: Record<DifficultyOption, MountainListResponse["difficulty"]> = {
-  high: "HARD",
-  medium: "NORMAL",
-  low: "EASY",
-};
 
 const SORT_LABELS: Record<SortOption, string> = {
   popularity: "인기순",
@@ -62,7 +63,17 @@ export default function MountainsScreen() {
   const [durationRange, setDurationRange] = useState<[number, number]>([0, 7]);
   const [regionSelections, setRegionSelections] = useState<Selection[]>([]);
 
-  const { data, isLoading } = useMountains();
+  const [userLocation, setUserLocation] = useState<Coordinates | undefined>();
+  const { data, isLoading } = useMountains({ size: 100 });
+
+  useEffect(() => {
+    Location.requestForegroundPermissionsAsync().then(({ status }) => {
+      if (status !== "granted") return;
+      Location.getCurrentPositionAsync().then(({ coords }) => {
+        setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
+      });
+    });
+  }, []);
 
   const resetFilters = (): void => {
     setSortOption("popularity");
@@ -71,14 +82,12 @@ export default function MountainsScreen() {
     setRegionSelections([]);
   };
 
-  const mountains = data?.content ?? [];
+  const mountains = sortMountains(data?.content ?? [], sortOption, userLocation);
 
-  const filteredMountains =
-    difficultyOptions.length === 0
-      ? mountains
-      : mountains.filter((m) =>
-          difficultyOptions.some((opt) => DIFFICULTY_FILTER_MAP[opt] === m.difficulty),
-        );
+  const filteredMountains = filterByDifficulty(
+    filterByRegions(mountains, regionSelections),
+    difficultyOptions
+  );
 
   const hasActiveFilter =
     sortOption !== "popularity" ||

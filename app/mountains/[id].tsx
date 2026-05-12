@@ -14,22 +14,30 @@ import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { ToiletIcon } from "@/components/icons/toilet-icon";
 import { UserIcon } from "@/components/icons/user-icon";
-import {
-  DIFFICULTY_STYLE,
-  MOCK_MOUNTAINS,
-} from "@/features/mountains/components/mountain-card";
 import { CourseBadge } from "@/features/mountains/components/course-badge";
+import {
+  DIFFICULTY_LABEL,
+  DIFFICULTY_STYLE,
+} from "@/features/mountains/components/mountain-card";
 import {
   MOCK_COURSES,
   MOCK_REVIEWS,
   RESTAURANT_SECTIONS,
   type Course,
 } from "@/features/mountains/constants/mountain-detail";
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { buildWeatherDays } from "@/features/mountains/modules/weather";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabKey = "코스" | "교통" | "편의" | "맛집" | "리뷰";
@@ -73,7 +81,7 @@ function CourseCard({ course }: { course: Course }) {
       <View className="h-[72px] w-16 overflow-hidden rounded-[10px] bg-fill-stronger">
         <Image
           source={course.imageSource ?? { uri: course.imageUrl }}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: "100%", height: "100%" }}
           resizeMode="stretch"
         />
       </View>
@@ -360,9 +368,15 @@ export default function MountainDetailScreen() {
   const [activeTab, setActiveTab] = useState<TabKey>("코스");
   const [accordionOpen, setAccordionOpen] = useState(false);
   const weatherDays = buildWeatherDays();
+  const { data, isPending, isError } = useMountainDetail(Number(id));
 
-  const mountain =
-    MOCK_MOUNTAINS.find((m) => m.id === Number(id)) ?? MOCK_MOUNTAINS[0]; // TODO : 예외처리
+  if (isPending)
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator />
+      </View>
+    );
+  if (isError) return null;
 
   return (
     <>
@@ -376,7 +390,7 @@ export default function MountainDetailScreen() {
           {/* Image carousel */}
           <View className="h-[284px] bg-fill-stronger">
             <Image
-              source={{ uri: mountain.imageUrl }}
+              source={{ uri: data.mountain?.imageUrl }}
               className="absolute inset-0"
               resizeMode="cover"
             />
@@ -394,10 +408,10 @@ export default function MountainDetailScreen() {
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-end gap-3">
                   <Text className="text-label-normal typo-title-2-bold">
-                    {mountain.name}
+                    {data.mountain?.name}
                   </Text>
                   <Text className="pb-px text-label-subtler typo-body-2-normal-regular">
-                    {mountain.location}
+                    {data.mountain?.address}
                   </Text>
                 </View>
                 <TouchableOpacity hitSlop={8}>
@@ -407,14 +421,16 @@ export default function MountainDetailScreen() {
 
               <View className="flex-row items-center gap-2">
                 <Text className="text-label-subtle typo-body-2-normal-medium">
-                  고도 {mountain.altitude}m
+                  고도 {data.mountain?.altitude}m
                 </Text>
                 <View className="size-[2px] rounded-full bg-label-subtler" />
-                <Text
-                  className={`typo-body-2-normal-semi-bold ${DIFFICULTY_STYLE[mountain.difficulty]}`}
-                >
-                  난이도 {mountain.difficulty}
-                </Text>
+                {data.mountain?.difficulty && (
+                  <Text
+                    className={`typo-body-2-normal-semi-bold ${data.mountain?.difficulty && DIFFICULTY_STYLE[data.mountain.difficulty]}`}
+                  >
+                    난이도 {DIFFICULTY_LABEL[data.mountain?.difficulty]}
+                  </Text>
+                )}
               </View>
             </View>
 
