@@ -1,36 +1,33 @@
 import { LocationIcon } from '@/components/icons/location-icon';
-import { TrackingCourseCard } from '@/features/tracking/components/tracking-course-card';
 import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-course-card';
-import { SummitSheet } from '@/features/tracking/components/summit-sheet';
-import { StopConfirmModal } from '@/features/tracking/components/stop-confirm-modal';
+import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
+import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
 import { DifficultyRatingModal } from '@/features/tracking/components/difficulty-rating-modal';
 import { FreeRecordConfirmModal } from '@/features/tracking/components/free-record-confirm-modal';
-import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
-import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
+import { StopConfirmModal } from '@/features/tracking/components/stop-confirm-modal';
+import { SummitSheet } from '@/features/tracking/components/summit-sheet';
+import { TrackingCourseCard } from '@/features/tracking/components/tracking-course-card';
 import { TrackingSheet } from '@/features/tracking/components/tracking-sheet';
+import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
 import {
-  CARD_SHADOW,
   COLLAPSED_PEEK_HEIGHT,
-  DIFFICULTY_BG,
-  DIFFICULTY_TEXT_COLOR,
   FLOATING_CARD_GAP,
+  LOCATION_BUTTON_GAP,
   MOCK_COURSES,
   SHADOW,
-  TRAIL_BAR_COLORS,
-  LOCATION_BUTTON_GAP,
   TRACKING_COURSE_CARD_HEIGHT,
   TRACKING_COURSE_CARD_TOP,
   TRACKING_SHEET_HEIGHT,
+  TRAIL_BAR_COLORS,
   TRAIL_BAR_GAP,
   TRAIL_BAR_LEFT,
-  TRAIL_MARKER_LEFT,
   TRAIL_BAR_LOCATIONS,
   TRAIL_BAR_WIDTH,
+  TRAIL_MARKER_LEFT
 } from '@/features/tracking/constants';
-import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
 import { NaverMapMarkerOverlay, NaverMapPathOverlay, NaverMapView } from '@mj-studio/react-native-naver-map';
-import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Location from 'expo-location';
 import { Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -60,10 +57,17 @@ export default function TrackingScreen() {
   // 위치 권한 요청 및 현재 위치 조회
   useEffect(() => {
     (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
-      const loc = await Location.getCurrentPositionAsync({});
-      setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 5000,
+        });
+        setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      } catch (error) {
+        console.warn('[Location] 현재 위치 조회 실패:', error);
+      }
     })();
   }, []);
 
@@ -165,15 +169,6 @@ export default function TrackingScreen() {
             />
           )}
         </NaverMapView>
-
-        {/* 지도 탭 시 바텀시트 접기 */}
-        {!isTracking && (
-          <TouchableOpacity
-            activeOpacity={1}
-            style={StyleSheet.absoluteFillObject}
-            onPress={() => setCollapsed(true)}
-          />
-        )}
 
         {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 */}
         {isTracking && (
