@@ -3,6 +3,8 @@ import React from "react";
 import { ScrollView, Text, View } from "react-native";
 
 export function RestaurantTab(): React.JSX.Element {
+  // TODO : data.restaurant 데이터 연동
+
   return (
     <View className="w-full gap-8">
       {RESTAURANT_SECTIONS.map((section) => (

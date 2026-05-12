@@ -54,6 +54,8 @@ const TRANSPORT_SECTIONS: TransportSection[] = [
 ];
 
 export function TransportTab(): React.JSX.Element {
+  // TODO : data.transport 데이터 연동
+
   return (
     <View className="w-full gap-10 px-6">
       {TRANSPORT_SECTIONS.map((section) => (

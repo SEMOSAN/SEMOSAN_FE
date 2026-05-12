@@ -51,6 +51,7 @@ export function AmenityTab() {
       <Text className="mb-4 text-label-normal typo-headline-1-semi-bold">
         주요 편의시설
       </Text>
+      {/* TODO : data.amentities 데이터 연동 */}
       <View className="gap-8">
         {AMENITY_AREAS.map((area) => (
           <View key={area.name} className="gap-3">

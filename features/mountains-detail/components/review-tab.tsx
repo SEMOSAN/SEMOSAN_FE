@@ -7,6 +7,8 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export function ReviewTab(): React.JSX.Element {
+  // TODO : data.review 데이터 연동
+
   return (
     <View className="w-full gap-8 px-5">
       {/* 요약 카드 */}
