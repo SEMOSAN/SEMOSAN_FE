@@ -1,40 +1,44 @@
-import { LocationIcon } from '@/components/icons/location-icon';
-import { TrackingCourseCard } from '@/features/tracking/components/tracking-course-card';
-import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-course-card';
-import { SummitSheet } from '@/features/tracking/components/summit-sheet';
-import { StopConfirmModal } from '@/features/tracking/components/stop-confirm-modal';
-import { DifficultyRatingModal } from '@/features/tracking/components/difficulty-rating-modal';
-import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
-import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
-import { TrackingSheet } from '@/features/tracking/components/tracking-sheet';
+import { LocationIcon } from "@/components/icons/location-icon";
+import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
+import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
+import { CourseSelectSheet } from "@/features/tracking/components/course-select-sheet";
+import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
+import { StopConfirmModal } from "@/features/tracking/components/stop-confirm-modal";
+import { SummitSheet } from "@/features/tracking/components/summit-sheet";
+import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
+import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
+import { TrailAvatarMarker } from "@/features/tracking/components/trail-avatar-marker";
 import {
-  CARD_SHADOW,
   COLLAPSED_PEEK_HEIGHT,
-  DIFFICULTY_BG,
-  DIFFICULTY_TEXT_COLOR,
   FLOATING_CARD_GAP,
+  LOCATION_BUTTON_GAP,
   MOCK_COURSES,
   SHADOW,
-  TRAIL_BAR_COLORS,
-  LOCATION_BUTTON_GAP,
   TRACKING_COURSE_CARD_HEIGHT,
   TRACKING_COURSE_CARD_TOP,
   TRACKING_SHEET_HEIGHT,
+  TRAIL_BAR_COLORS,
   TRAIL_BAR_GAP,
   TRAIL_BAR_LEFT,
-  TRAIL_MARKER_LEFT,
   TRAIL_BAR_LOCATIONS,
   TRAIL_BAR_WIDTH,
-} from '@/features/tracking/constants';
-import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Tabs } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { LayoutChangeEvent, Text, TouchableOpacity, View } from 'react-native';
+  TRAIL_MARKER_LEFT,
+} from "@/features/tracking/constants";
+import { LinearGradient } from "expo-linear-gradient";
+import { Tabs, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { LayoutChangeEvent, Text, TouchableOpacity, View } from "react-native";
 
 export default function TrackingScreen() {
-  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapse: collapseParameter, courseId: courseIdParameter } =
+    useLocalSearchParams<{
+      collapse?: string;
+      courseId?: string;
+    }>();
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
+    courseIdParameter ?? null,
+  );
+  const [collapsed, setCollapsed] = useState(collapseParameter === "true");
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -43,15 +47,21 @@ export default function TrackingScreen() {
   // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
   const [isAtSummit, setIsAtSummit] = useState(true); // 목 값
   const [showSummitSheet, setShowSummitSheet] = useState(false);
-  const [trackingSheetHeight, setTrackingSheetHeight] = useState(TRACKING_SHEET_HEIGHT);
+  const [trackingSheetHeight, setTrackingSheetHeight] = useState(
+    TRACKING_SHEET_HEIGHT,
+  );
   const [showStopModal, setShowStopModal] = useState(false);
   const [showDifficultyRating, setShowDifficultyRating] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
-  const [barLayout, setBarLayout] = useState<{ top: number; height: number } | null>(null);
+  const [barLayout, setBarLayout] = useState<{
+    top: number;
+    height: number;
+  } | null>(null);
   // 마커 Y 비율: 0.0(바 상단/최고도) ~ 1.0(바 하단/최저도), 추후 실제 고도로 대체
   const markerRatio = 0.8;
 
-  const selectedCourse = MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
+  const selectedCourse =
+    MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
 
   const startCountdown = () => setCountdown(3);
 
@@ -62,7 +72,10 @@ export default function TrackingScreen() {
       setCountdown(null);
       return;
     }
-    const timer = setTimeout(() => setCountdown((c) => (c !== null ? c - 1 : null)), 1000);
+    const timer = setTimeout(
+      () => setCountdown((c) => (c !== null ? c - 1 : null)),
+      1000,
+    );
     return () => clearTimeout(timer);
   }, [countdown]);
 
@@ -107,15 +120,19 @@ export default function TrackingScreen() {
   return (
     <View className="flex-1 bg-fill-stronger">
       {/* 트래킹 중 탭바 숨기기 */}
-      <Tabs.Screen options={{ tabBarStyle: isTracking ? { display: 'none' } : undefined }} />
+      <Tabs.Screen
+        options={{ tabBarStyle: isTracking ? { display: "none" } : undefined }}
+      />
 
       {/* 지도 영역 */}
       <TouchableOpacity
         activeOpacity={1}
-        className="flex-1 bg-fill-stronger items-center justify-center"
+        className="flex-1 items-center justify-center bg-fill-stronger"
         onPress={() => !isTracking && setCollapsed(true)}
       >
-        <Text className="typo-body-2-normal-medium text-label-disabled">지도 영역</Text>
+        <Text className="text-label-disabled typo-body-2-normal-medium">
+          지도 영역
+        </Text>
 
         {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 */}
         {isTracking && (
@@ -130,9 +147,12 @@ export default function TrackingScreen() {
                 setBarLayout({ top: y, height });
               }}
               style={{
-                position: 'absolute',
+                position: "absolute",
                 left: TRAIL_BAR_LEFT,
-                top: TRACKING_COURSE_CARD_TOP + TRACKING_COURSE_CARD_HEIGHT + TRAIL_BAR_GAP,
+                top:
+                  TRACKING_COURSE_CARD_TOP +
+                  TRACKING_COURSE_CARD_HEIGHT +
+                  TRAIL_BAR_GAP,
                 bottom: TRAIL_BAR_GAP,
                 width: TRAIL_BAR_WIDTH,
                 borderRadius: 999,
@@ -158,7 +178,7 @@ export default function TrackingScreen() {
 
       {/* 위치 버튼 */}
       <TouchableOpacity
-        className="absolute right-4 bg-fill-normal rounded-full w-12 h-12 items-center justify-center"
+        className="absolute right-4 h-12 w-12 items-center justify-center rounded-full bg-fill-normal"
         style={{
           bottom: isTracking
             ? trackingSheetHeight + LOCATION_BUTTON_GAP
@@ -192,7 +212,11 @@ export default function TrackingScreen() {
 
       {/* 트래킹 중 바텀시트 */}
       {isTracking && (
-        <View onLayout={(e: LayoutChangeEvent) => setTrackingSheetHeight(e.nativeEvent.layout.height)}>
+        <View
+          onLayout={(e: LayoutChangeEvent) =>
+            setTrackingSheetHeight(e.nativeEvent.layout.height)
+          }
+        >
           {showSummitSheet ? (
             <SummitSheet
               onCertify={() => setShowDifficultyRating(true)}
