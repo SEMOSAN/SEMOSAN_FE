@@ -66,13 +66,12 @@ export function CourseTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
 
-  if (isPending) {
+  if (isPending)
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator />
       </View>
     );
-  }
   if (isError) return null;
   if (!data?.courses) return null;
 

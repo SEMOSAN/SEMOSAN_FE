@@ -59,12 +59,12 @@ function SunriseSunset({
 
 export default function MountainDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { data, isPending, isError } = useMountainDetail(Number(id));
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabKey>("코스");
   const [accordionOpen, setAccordionOpen] = useState(false);
   const weatherDays = buildWeatherDays();
-  const { data, isPending, isError } = useMountainDetail(Number(id));
 
   if (isPending)
     return (

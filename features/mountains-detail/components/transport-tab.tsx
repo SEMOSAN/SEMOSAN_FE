@@ -1,8 +1,10 @@
 import { BusIcon } from "@/components/icons/bus-icon";
 import { CarIcon } from "@/components/icons/car-icon";
 import { SubwayIcon } from "@/components/icons/subway-icon";
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
+import { useLocalSearchParams } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
 type TransportItem = {
   id: number;
@@ -53,8 +55,19 @@ const TRANSPORT_SECTIONS: TransportSection[] = [
   },
 ];
 
-export function TransportTab(): React.JSX.Element {
-  // TODO : data.transport 데이터 연동
+export function TransportTab() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data, isPending, isError } = useMountainDetail(Number(id));
+
+  if (isPending)
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator />
+      </View>
+    );
+  if (isError) return null;
+  if (!data.transportations) return null;
+  console.log(data.transportations);
 
   return (
     <View className="w-full gap-10 px-6">
