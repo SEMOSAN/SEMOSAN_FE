@@ -147,18 +147,22 @@ export default function TrackingScreen() {
           />
 
           {/* 출발지 마커 */}
-          <NaverMapMarkerOverlay
-            latitude={selectedCourse.coordinates[0].latitude}
-            longitude={selectedCourse.coordinates[0].longitude}
-            caption={{ text: '출발' }}
-          />
+          {selectedCourse.coordinates[0] && (
+            <NaverMapMarkerOverlay
+              latitude={selectedCourse.coordinates[0].latitude}
+              longitude={selectedCourse.coordinates[0].longitude}
+              caption={{ text: '출발' }}
+            />
+          )}
 
           {/* 도착지 마커 */}
-          <NaverMapMarkerOverlay
-            latitude={selectedCourse.coordinates[selectedCourse.coordinates.length - 1].latitude}
-            longitude={selectedCourse.coordinates[selectedCourse.coordinates.length - 1].longitude}
-            caption={{ text: '도착' }}
-          />
+          {selectedCourse.coordinates.length > 0 && (
+            <NaverMapMarkerOverlay
+              latitude={selectedCourse.coordinates[selectedCourse.coordinates.length - 1].latitude}
+              longitude={selectedCourse.coordinates[selectedCourse.coordinates.length - 1].longitude}
+              caption={{ text: '도착' }}
+            />
+          )}
 
           {/* 현재 사용자 위치 마커 */}
           {userLocation && (
