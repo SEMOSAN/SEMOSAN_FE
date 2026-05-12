@@ -38,6 +38,14 @@ Figma 재내보내기 후 반드시 실행하세요. `tokens.cjs`, `typography-p
 
 ---
 
+## 코드 스타일
+
+### Prettier
+
+`.prettierrc`에 `singleQuote` 설정이 없으므로 Prettier 기본값인 **double quotes (`"`)** 를 사용한다. single quote (`'`) 사용 금지.
+
+---
+
 ## 스타일링 규칙
 
 ### 1. NativeWind의 `className`을 항상 사용할 것
