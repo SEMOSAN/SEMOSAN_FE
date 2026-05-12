@@ -1,13 +1,14 @@
-import { LocationIcon } from "@/components/icons/location-icon";
-import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
-import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
-import { CourseSelectSheet } from "@/features/tracking/components/course-select-sheet";
-import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
-import { StopConfirmModal } from "@/features/tracking/components/stop-confirm-modal";
-import { SummitSheet } from "@/features/tracking/components/summit-sheet";
-import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
-import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
-import { TrailAvatarMarker } from "@/features/tracking/components/trail-avatar-marker";
+import { LocationIcon } from '@/components/icons/location-icon';
+import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-course-card';
+import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
+import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
+import { DifficultyRatingModal } from '@/features/tracking/components/difficulty-rating-modal';
+import { FreeRecordConfirmModal } from '@/features/tracking/components/free-record-confirm-modal';
+import { StopConfirmModal } from '@/features/tracking/components/stop-confirm-modal';
+import { SummitSheet } from '@/features/tracking/components/summit-sheet';
+import { TrackingCourseCard } from '@/features/tracking/components/tracking-course-card';
+import { TrackingSheet } from '@/features/tracking/components/tracking-sheet';
+import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
 import {
   COLLAPSED_PEEK_HEIGHT,
   FLOATING_CARD_GAP,
@@ -22,12 +23,14 @@ import {
   TRAIL_BAR_LEFT,
   TRAIL_BAR_LOCATIONS,
   TRAIL_BAR_WIDTH,
-  TRAIL_MARKER_LEFT,
-} from "@/features/tracking/constants";
-import { LinearGradient } from "expo-linear-gradient";
-import { Tabs, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { LayoutChangeEvent, Text, TouchableOpacity, View } from "react-native";
+  TRAIL_MARKER_LEFT
+} from '@/features/tracking/constants';
+import { NaverMapMarkerOverlay, NaverMapPathOverlay, NaverMapView } from '@mj-studio/react-native-naver-map';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Location from 'expo-location';
+import { Tabs } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { LayoutChangeEvent, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function TrackingScreen() {
   const { collapse: collapseParameter, courseId: courseIdParameter } =
@@ -52,6 +55,7 @@ export default function TrackingScreen() {
   );
   const [showStopModal, setShowStopModal] = useState(false);
   const [showDifficultyRating, setShowDifficultyRating] = useState(false);
+  const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{
     top: number;
@@ -59,6 +63,25 @@ export default function TrackingScreen() {
   } | null>(null);
   // 마커 Y 비율: 0.0(바 상단/최고도) ~ 1.0(바 하단/최저도), 추후 실제 고도로 대체
   const markerRatio = 0.8;
+  // 사용자 현재 위치
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  // 위치 권한 요청 및 현재 위치 조회
+  useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 5000,
+        });
+        setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      } catch (error) {
+        console.warn('[Location] 현재 위치 조회 실패:', error);
+      }
+    })();
+  }, []);
 
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
@@ -125,14 +148,49 @@ export default function TrackingScreen() {
       />
 
       {/* 지도 영역 */}
-      <TouchableOpacity
-        activeOpacity={1}
-        className="flex-1 items-center justify-center bg-fill-stronger"
-        onPress={() => !isTracking && setCollapsed(true)}
-      >
-        <Text className="text-label-disabled typo-body-2-normal-medium">
-          지도 영역
-        </Text>
+      <View style={styles.mapContainer}>
+        <NaverMapView
+          style={styles.map}
+          camera={{
+            latitude: selectedCourse.centerLatitude,
+            longitude: selectedCourse.centerLongitude,
+            zoom: selectedCourse.zoom,
+          }}
+        >
+          {/* 코스 경로 */}
+          <NaverMapPathOverlay
+            coords={selectedCourse.coordinates}
+            width={6}
+            color="#4ADE80"
+          />
+
+          {/* 출발지 마커 */}
+          {selectedCourse.coordinates[0] && (
+            <NaverMapMarkerOverlay
+              latitude={selectedCourse.coordinates[0].latitude}
+              longitude={selectedCourse.coordinates[0].longitude}
+              caption={{ text: '출발' }}
+            />
+          )}
+
+          {/* 도착지 마커 */}
+          {selectedCourse.coordinates.length > 0 && (
+            <NaverMapMarkerOverlay
+              latitude={selectedCourse.coordinates[selectedCourse.coordinates.length - 1].latitude}
+              longitude={selectedCourse.coordinates[selectedCourse.coordinates.length - 1].longitude}
+              caption={{ text: '도착' }}
+            />
+          )}
+
+          {/* 현재 사용자 위치 마커 */}
+          {userLocation && (
+            <NaverMapMarkerOverlay
+              latitude={userLocation.latitude}
+              longitude={userLocation.longitude}
+              caption={{ text: '내 위치' }}
+            />
+          )}
+        </NaverMapView>
 
         {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 */}
         {isTracking && (
@@ -166,7 +224,7 @@ export default function TrackingScreen() {
             )}
           </>
         )}
-      </TouchableOpacity>
+      </View>
 
       {/* 트래킹 중 — 상단 코스 카드 */}
       {isTracking && (
@@ -196,7 +254,7 @@ export default function TrackingScreen() {
         <CourseSelectSheet
           selectedCourseId={selectedCourseId}
           onSelectCourse={setSelectedCourseId}
-          onFreeRecord={() => {}}
+          onFreeRecord={() => setShowFreeRecordModal(true)}
           onStartCountdown={startCountdown}
         />
       )}
@@ -247,6 +305,16 @@ export default function TrackingScreen() {
         />
       )}
 
+      {/* 자유 기록 시작 확인 모달 */}
+      <FreeRecordConfirmModal
+        visible={showFreeRecordModal}
+        onCancel={() => setShowFreeRecordModal(false)}
+        onConfirm={() => {
+          setShowFreeRecordModal(false);
+          startCountdown();
+        }}
+      />
+
       {/* 기록 종료 확인 모달 */}
       <StopConfirmModal
         visible={showStopModal}
@@ -265,3 +333,12 @@ export default function TrackingScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  mapContainer: {
+    flex: 1,
+  },
+  map: {
+    flex: 1,
+  },
+});

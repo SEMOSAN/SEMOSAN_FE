@@ -4,6 +4,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -14,6 +15,7 @@ import "../global.css";
 
 import Toast from "@/components/toast/toast";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { usePushNotification } from "@/hooks/use-push-notification";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,6 +25,7 @@ export const unstable_settings = {
 
 export default function RootLayout(): React.JSX.Element | null {
   const colorScheme = useColorScheme();
+  usePushNotification();
   const [fontsLoaded] = useFonts({
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
   });
