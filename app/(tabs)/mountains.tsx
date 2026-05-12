@@ -10,7 +10,7 @@ import {
 } from "@/features/mountains/components/duration-bottom-sheet";
 import { FilterBottomSheet } from "@/features/mountains/components/filter-bottom-sheet";
 import { FilterChip } from "@/features/mountains/components/filter-chip";
-import { MountainCard } from "@/features/mountains/components/mountain-card";
+import { MountainList } from "@/features/mountains/components/mountain-list";
 import {
   RegionFilterContent,
   Selection,
@@ -19,27 +19,13 @@ import {
   SortBottomSheet,
   SortOption,
 } from "@/features/mountains/components/sort-bottom-sheet";
-import { useMountains } from "@/features/mountains/hooks/use-mountains";
-import {
-  Coordinates,
-  filterByDifficulty,
-  filterByRegions,
-  sortMountains,
-} from "@/features/mountains/modules/sort-mountains";
+import { Coordinates } from "@/features/mountains/modules/sort-mountains";
 import * as Location from "expo-location";
-import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type FilterKey = "인기순" | "지역" | "소요시간" | "난이도";
-
 
 const SORT_LABELS: Record<SortOption, string> = {
   popularity: "인기순",
@@ -54,7 +40,6 @@ function getDurationLabel(range: [number, number]): string {
 
 export default function MountainsScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>("popularity");
   const [difficultyOptions, setDifficultyOptions] = useState<
@@ -64,13 +49,15 @@ export default function MountainsScreen() {
   const [regionSelections, setRegionSelections] = useState<Selection[]>([]);
 
   const [userLocation, setUserLocation] = useState<Coordinates | undefined>();
-  const { data, isLoading } = useMountains({ size: 100 });
 
   useEffect(() => {
     Location.requestForegroundPermissionsAsync().then(({ status }) => {
       if (status !== "granted") return;
       Location.getCurrentPositionAsync().then(({ coords }) => {
-        setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
+        setUserLocation({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        });
       });
     });
   }, []);
@@ -81,13 +68,6 @@ export default function MountainsScreen() {
     setDurationRange([0, 7]);
     setRegionSelections([]);
   };
-
-  const mountains = sortMountains(data?.content ?? [], sortOption, userLocation);
-
-  const filteredMountains = filterByDifficulty(
-    filterByRegions(mountains, regionSelections),
-    difficultyOptions
-  );
 
   const hasActiveFilter =
     sortOption !== "popularity" ||
@@ -215,26 +195,12 @@ export default function MountainsScreen() {
         />
       </FilterBottomSheet>
 
-      {/* Mountain list */}
-      {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator />
-        </View>
-      ) : (
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          <View className="gap-5 px-5 py-3">
-            {filteredMountains.map((mountain) => (
-              <TouchableOpacity
-                key={mountain.mountainId}
-                onPress={() => router.push(`/mountains/${mountain.mountainId}`)}
-                activeOpacity={0.7}
-              >
-                <MountainCard mountain={mountain} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-      )}
+      <MountainList
+        difficultyOptions={difficultyOptions}
+        regionSelections={regionSelections}
+        sortOption={sortOption}
+        userLocation={userLocation}
+      />
     </View>
   );
 }
