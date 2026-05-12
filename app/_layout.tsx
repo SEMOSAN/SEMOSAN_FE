@@ -1,4 +1,5 @@
 import Toast from "@/components/toast/toast";
+import { useTestLogin } from "@/features/auth/hooks/use-test-login";
 import { useAppState } from "@/hooks/use-app-state";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useOnlineManager } from "@/hooks/use-online-manager";
@@ -36,6 +37,16 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2 } },
 });
 
+function TestAppInitializer(): null {
+  const { mutate: login } = useTestLogin();
+
+  useEffect(() => {
+    login();
+  }, []);
+
+  return null;
+}
+
 export const unstable_settings = {
   anchor: "(tabs)",
 };
@@ -62,6 +73,7 @@ export default function RootLayout(): React.JSX.Element | null {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <TestAppInitializer />
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}

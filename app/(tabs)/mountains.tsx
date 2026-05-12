@@ -12,7 +12,6 @@ import { FilterBottomSheet } from "@/features/mountains/components/filter-bottom
 import { FilterChip } from "@/features/mountains/components/filter-chip";
 import {
   Difficulty,
-  MOCK_MOUNTAINS,
   MountainCard,
 } from "@/features/mountains/components/mountain-card";
 import {
@@ -23,12 +22,22 @@ import {
   SortBottomSheet,
   SortOption,
 } from "@/features/mountains/components/sort-bottom-sheet";
+import {
+  MountainDifficulty,
+  useMountains,
+} from "@/features/mountains/hooks/use-mountains";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type FilterKey = "인기순" | "지역" | "소요시간" | "난이도";
+
+const API_DIFFICULTY_MAP: Record<MountainDifficulty, Difficulty> = {
+  EASY: "하",
+  NORMAL: "중",
+  HARD: "상",
+};
 
 const SORT_LABELS: Record<SortOption, string> = {
   popularity: "인기순",
@@ -52,6 +61,8 @@ export default function MountainsScreen() {
   const [durationRange, setDurationRange] = useState<[number, number]>([0, 7]);
   const [regionSelections, setRegionSelections] = useState<Selection[]>([]);
 
+  const { data, isLoading } = useMountains();
+
   const resetFilters = (): void => {
     setSortOption("popularity");
     setDifficultyOptions([]);
@@ -65,10 +76,19 @@ export default function MountainsScreen() {
     low: "하",
   };
 
+  const mountains = (data?.content ?? []).map((item) => ({
+    id: item.mountainId,
+    name: item.name,
+    location: item.address,
+    altitude: item.altitude,
+    difficulty: API_DIFFICULTY_MAP[item.difficulty],
+    imageUrl: item.imageUrl,
+  }));
+
   const filteredMountains =
     difficultyOptions.length === 0
-      ? MOCK_MOUNTAINS
-      : MOCK_MOUNTAINS.filter((m) =>
+      ? mountains
+      : mountains.filter((m) =>
           difficultyOptions.some((opt) => DIFFICULTY_MAP[opt] === m.difficulty),
         );
 
@@ -199,19 +219,25 @@ export default function MountainsScreen() {
       </FilterBottomSheet>
 
       {/* Mountain list */}
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="gap-5 px-5 py-3">
-          {filteredMountains.map((mountain) => (
-            <TouchableOpacity
-              key={mountain.id}
-              onPress={() => router.push(`/mountains/${mountain.id}`)}
-              activeOpacity={0.7}
-            >
-              <MountainCard mountain={mountain} />
-            </TouchableOpacity>
-          ))}
+      {isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator />
         </View>
-      </ScrollView>
+      ) : (
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="gap-5 px-5 py-3">
+            {filteredMountains.map((mountain) => (
+              <TouchableOpacity
+                key={mountain.id}
+                onPress={() => router.push(`/mountains/${mountain.id}`)}
+                activeOpacity={0.7}
+              >
+                <MountainCard mountain={mountain} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      )}
     </View>
   );
 }
