@@ -1,8 +1,12 @@
-import { Path, Svg } from 'react-native-svg';
+import { Path, Svg } from "react-native-svg";
 
 type Props = { width?: number; height?: number; color?: string };
 
-export function CameraIcon({ width = 20, height = 18, color = '#1A1B1F' }: Props) {
+export function CameraIcon({
+  width = 16,
+  height = 14,
+  color = "#1A1B1F",
+}: Props) {
   return (
     <Svg width={width} height={height} viewBox="0 0 20 18" fill="none">
       <Path
