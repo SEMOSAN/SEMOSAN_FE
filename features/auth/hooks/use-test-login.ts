@@ -12,7 +12,7 @@ export async function testLogin(): Promise<TestLoginResponse> {
     path: "/api/auth/test/login",
     body: {
       testUserId: 1,
-      deviceType: "ios",
+      deviceType: "IOS",
       secretKey: "semosan-test-secret-2026",
     },
   });

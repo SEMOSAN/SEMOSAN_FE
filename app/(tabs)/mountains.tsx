@@ -28,7 +28,13 @@ import {
 } from "@/features/mountains/hooks/use-mountains";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type FilterKey = "인기순" | "지역" | "소요시간" | "난이도";
@@ -37,6 +43,12 @@ const API_DIFFICULTY_MAP: Record<MountainDifficulty, Difficulty> = {
   EASY: "하",
   NORMAL: "중",
   HARD: "상",
+};
+
+const DIFFICULTY_MAP: Record<DifficultyOption, Difficulty> = {
+  high: "상",
+  medium: "중",
+  low: "하",
 };
 
 const SORT_LABELS: Record<SortOption, string> = {
@@ -68,12 +80,6 @@ export default function MountainsScreen() {
     setDifficultyOptions([]);
     setDurationRange([0, 7]);
     setRegionSelections([]);
-  };
-
-  const DIFFICULTY_MAP: Record<DifficultyOption, Difficulty> = {
-    high: "상",
-    medium: "중",
-    low: "하",
   };
 
   const mountains = (data?.content ?? []).map((item) => ({
