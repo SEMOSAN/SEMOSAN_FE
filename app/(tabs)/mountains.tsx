@@ -10,10 +10,7 @@ import {
 } from "@/features/mountains/components/duration-bottom-sheet";
 import { FilterBottomSheet } from "@/features/mountains/components/filter-bottom-sheet";
 import { FilterChip } from "@/features/mountains/components/filter-chip";
-import {
-  Difficulty,
-  MountainCard,
-} from "@/features/mountains/components/mountain-card";
+import { MountainCard } from "@/features/mountains/components/mountain-card";
 import {
   RegionFilterContent,
   Selection,
@@ -22,10 +19,8 @@ import {
   SortBottomSheet,
   SortOption,
 } from "@/features/mountains/components/sort-bottom-sheet";
-import {
-  MountainDifficulty,
-  useMountains,
-} from "@/features/mountains/hooks/use-mountains";
+import { useMountains } from "@/features/mountains/hooks/use-mountains";
+import { MountainListResponse } from "@/types/api.generated";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -39,16 +34,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type FilterKey = "인기순" | "지역" | "소요시간" | "난이도";
 
-const API_DIFFICULTY_MAP: Record<MountainDifficulty, Difficulty> = {
-  EASY: "하",
-  NORMAL: "중",
-  HARD: "상",
-};
-
-const DIFFICULTY_MAP: Record<DifficultyOption, Difficulty> = {
-  high: "상",
-  medium: "중",
-  low: "하",
+const DIFFICULTY_FILTER_MAP: Record<DifficultyOption, MountainListResponse["difficulty"]> = {
+  high: "HARD",
+  medium: "NORMAL",
+  low: "EASY",
 };
 
 const SORT_LABELS: Record<SortOption, string> = {
@@ -82,20 +71,13 @@ export default function MountainsScreen() {
     setRegionSelections([]);
   };
 
-  const mountains = (data?.content ?? []).map((item) => ({
-    id: item.mountainId,
-    name: item.name,
-    location: item.address,
-    altitude: item.altitude,
-    difficulty: API_DIFFICULTY_MAP[item.difficulty],
-    imageUrl: item.imageUrl,
-  }));
+  const mountains = data?.content ?? [];
 
   const filteredMountains =
     difficultyOptions.length === 0
       ? mountains
       : mountains.filter((m) =>
-          difficultyOptions.some((opt) => DIFFICULTY_MAP[opt] === m.difficulty),
+          difficultyOptions.some((opt) => DIFFICULTY_FILTER_MAP[opt] === m.difficulty),
         );
 
   const hasActiveFilter =
@@ -234,8 +216,8 @@ export default function MountainsScreen() {
           <View className="gap-5 px-5 py-3">
             {filteredMountains.map((mountain) => (
               <TouchableOpacity
-                key={mountain.id}
-                onPress={() => router.push(`/mountains/${mountain.id}`)}
+                key={mountain.mountainId}
+                onPress={() => router.push(`/mountains/${mountain.mountainId}`)}
                 activeOpacity={0.7}
               >
                 <MountainCard mountain={mountain} />
