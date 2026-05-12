@@ -1,4 +1,4 @@
-import { KeyboardAccessoryToolbar } from "@/components/keyboard-accessory-toolbar";
+import { IOSKeyboardAccessoryToolbar } from "@/components/ios-keyboard-accessory-toolbar";
 import { useRouter } from "expo-router";
 import {
   KeyboardAvoidingView,
@@ -91,8 +91,12 @@ export function WriteScreen() {
         </Pressable>
       </View>
 
-      <KeyboardAccessoryToolbar nativeID={TITLE_TOOLBAR_ID} />
-      <KeyboardAccessoryToolbar nativeID={BODY_TOOLBAR_ID} />
+      {Platform.OS === "ios" && (
+        <IOSKeyboardAccessoryToolbar nativeID={TITLE_TOOLBAR_ID} />
+      )}
+      {Platform.OS === "ios" && (
+        <IOSKeyboardAccessoryToolbar nativeID={BODY_TOOLBAR_ID} />
+      )}
     </KeyboardAvoidingView>
   );
 }
