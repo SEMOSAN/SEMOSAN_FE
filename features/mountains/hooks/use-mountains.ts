@@ -24,10 +24,14 @@ type MountainsPage = {
   last: boolean;
 };
 
+type SortOrder = "ASC" | "DESC";
+type MountainSortField = "name" | "altitude" | "difficulty" | "duration";
+type MountainSortParam = `${MountainSortField},${SortOrder}`;
+
 export type GetMountainsParams = {
   page?: number;
   size?: number;
-  sort?: string;
+  sort?: MountainSortParam;
 };
 
 async function getMountains({
