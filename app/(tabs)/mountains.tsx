@@ -19,9 +19,8 @@ import {
   SortBottomSheet,
   SortOption,
 } from "@/features/mountains/components/sort-bottom-sheet";
-import { Coordinates } from "@/features/mountains/modules/sort-mountains";
-import * as Location from "expo-location";
-import React, { useEffect, useState } from "react";
+import { useUserLocation } from "@/hooks/use-user-location";
+import { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -48,19 +47,7 @@ export default function MountainsScreen() {
   const [durationRange, setDurationRange] = useState<[number, number]>([0, 7]);
   const [regionSelections, setRegionSelections] = useState<Selection[]>([]);
 
-  const [userLocation, setUserLocation] = useState<Coordinates | undefined>();
-
-  useEffect(() => {
-    Location.requestForegroundPermissionsAsync().then(({ status }) => {
-      if (status !== "granted") return;
-      Location.getCurrentPositionAsync().then(({ coords }) => {
-        setUserLocation({
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-        });
-      });
-    });
-  }, []);
+  const userLocation = useUserLocation();
 
   const resetFilters = (): void => {
     setSortOption("popularity");
