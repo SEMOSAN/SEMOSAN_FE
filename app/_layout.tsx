@@ -75,6 +75,7 @@ export default function RootLayout(): React.JSX.Element | null {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* TODO : 실제 제3자로그인 연동시에는 아래 initializer를 빼야함. */}
       <TestAppInitializer />
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ThemeProvider
