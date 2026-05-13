@@ -3,6 +3,7 @@ import { useTestLogin } from "@/features/auth/hooks/use-test-login";
 import { useAppState } from "@/hooks/use-app-state";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useOnlineManager } from "@/hooks/use-online-manager";
+import { usePushNotification } from "@/hooks/use-push-notification";
 import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { useFonts } from "@expo-google-fonts/lexend";
 import {
@@ -53,6 +54,7 @@ export const unstable_settings = {
 
 export default function RootLayout(): React.JSX.Element | null {
   const colorScheme = useColorScheme();
+  usePushNotification();
   const [fontsLoaded] = useFonts({
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
   });
