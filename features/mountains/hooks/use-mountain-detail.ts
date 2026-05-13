@@ -13,7 +13,7 @@ async function getMountainDetail(
 
 export function useMountainDetail(mountainId: number) {
   return useQuery({
-    queryKey: ["mountains", mountainId],
+    queryKey: [ENDPOINTS.MOUNTAINS_BY_MOUNTAINID(mountainId)],
     queryFn: () => getMountainDetail(mountainId),
   });
 }

@@ -1,6 +1,6 @@
 import { CaretDownIcon } from "@/components/icons/caret-down-icon";
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
-import { BookmarkIcon } from "@/components/icons/bookmark-icon";
+import { MountainBookmarkButton } from "@/features/mountains/components/mountain-bookmark-button";
 import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { AmenityTab } from "@/features/mountains-detail/components/amenity-tab";
@@ -109,9 +109,7 @@ export default function MountainDetailScreen() {
                     {data.mountain?.address}
                   </Text>
                 </View>
-                <TouchableOpacity hitSlop={8}>
-                  <BookmarkIcon />
-                </TouchableOpacity>
+                <MountainBookmarkButton mountainId={Number(id)} />
               </View>
 
               <View className="flex-row items-center gap-2">

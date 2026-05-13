@@ -32,7 +32,7 @@ async function getMountains({
 
 export function useMountains(params: GetMountainsParams = {}) {
   return useQuery({
-    queryKey: ["mountains", params],
+    queryKey: [ENDPOINTS.MOUNTAINS, params],
     queryFn: () => getMountains(params),
   });
 }
