@@ -8,10 +8,8 @@ import { CourseTab } from "@/features/mountains-detail/components/course-tab";
 import { RestaurantTab } from "@/features/mountains-detail/components/restaurant-tab";
 import { ReviewTab } from "@/features/mountains-detail/components/review-tab";
 import { TransportTab } from "@/features/mountains-detail/components/transport-tab";
-import {
-  DIFFICULTY_LABEL,
-  DIFFICULTY_STYLE,
-} from "@/features/mountains/components/mountain-card";
+import { DIFFICULTY_LABEL } from "@/features/mountains/components/mountain-card";
+import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { buildWeatherDays } from "@/features/mountains/modules/weather";
 import { LinearGradient } from "expo-linear-gradient";
@@ -122,7 +120,7 @@ export default function MountainDetailScreen() {
                 <View className="size-[2px] rounded-full bg-label-subtler" />
                 {data.mountain?.difficulty && (
                   <Text
-                    className={`typo-body-2-normal-semi-bold ${data.mountain?.difficulty && DIFFICULTY_STYLE[data.mountain.difficulty]}`}
+                    className={`typo-body-2-normal-semi-bold ${data.mountain?.difficulty && COURSE_BADGE[data.mountain.difficulty].style.text}`}
                   >
                     난이도 {DIFFICULTY_LABEL[data.mountain?.difficulty]}
                   </Text>

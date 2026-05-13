@@ -1,6 +1,5 @@
 import { MountainCard } from "@/features/mountains/components/mountain-card";
 import { useRouter } from "expo-router";
-import React from "react";
 import {
   ActivityIndicator,
   ScrollView,

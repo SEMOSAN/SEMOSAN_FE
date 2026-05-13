@@ -1,19 +1,9 @@
 import { CourseBadge } from "@/features/mountains/components/course-badge";
-import { type CourseDifficulty } from "@/features/mountains/constants/mountain-detail";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
+import { formatDuration } from "@/modules/format-duration";
 import { CourseInfo } from "@/types/api.generated";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
-
-const COURSE_DIFFICULTY_LABEL: Record<
-  NonNullable<CourseInfo["difficulty"]>,
-  CourseDifficulty
-> = {
-  EASY: "초급",
-  NORMAL: "중급",
-  HARD: "상급",
-};
 
 type CourseCardProps = {
   courseId?: number;
@@ -41,9 +31,7 @@ function CourseCard({
       <View className="h-[72px] w-16 rounded-[10px] bg-fill-stronger" />
       <View className="gap-1.5">
         <View className="flex-row items-center gap-1.5">
-          {difficulty && (
-            <CourseBadge difficulty={COURSE_DIFFICULTY_LABEL[difficulty]} />
-          )}
+          {difficulty && <CourseBadge difficulty={difficulty} />}
           <Text className="text-label-normal typo-body-1-normal-semi-bold">
             {name}
           </Text>
@@ -54,7 +42,7 @@ function CourseCard({
           </Text>
           <View className="size-[2px] rounded-full bg-label-subtler" />
           <Text className="text-label-subtler typo-caption-1-medium">
-            {duration}시간
+            {duration != null ? formatDuration(duration) : "-"}
           </Text>
         </View>
       </View>

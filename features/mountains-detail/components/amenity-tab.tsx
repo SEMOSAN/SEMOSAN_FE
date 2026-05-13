@@ -5,7 +5,6 @@ import { StoreIcon } from "@/components/icons/store-icon";
 import { ToiletIcon } from "@/components/icons/toilet-icon";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useLocalSearchParams } from "expo-router";
-import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { MountainDetailResponse } from "@/types/api.generated";

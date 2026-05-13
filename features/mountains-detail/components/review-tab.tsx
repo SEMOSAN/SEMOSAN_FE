@@ -2,12 +2,22 @@ import { MagicWandIcon } from "@/components/icons/magic-wand-icon";
 import { MegaphoneIcon } from "@/components/icons/megaphone-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { CourseBadge } from "@/features/mountains/components/course-badge";
-import { MOCK_REVIEWS } from "@/features/mountains/constants/mountain-detail";
-import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
+import { useLocalSearchParams } from "expo-router";
+import { ActivityIndicator, Image, Text, TouchableOpacity, View } from "react-native";
 
-export function ReviewTab(): React.JSX.Element {
-  // TODO : data.review 데이터 연동
+export function ReviewTab() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data, isPending, isError } = useMountainDetail(Number(id));
+
+  if (isPending)
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator />
+      </View>
+    );
+  if (isError) return null;
+  if (!data?.reviews) return null;
 
   return (
     <View className="w-full gap-8 px-5">
@@ -43,28 +53,37 @@ export function ReviewTab(): React.JSX.Element {
           <Text className="text-label-normal typo-headline-1-semi-bold">
             커뮤니티 리뷰
           </Text>
-          <Text className="text-neutral-300 typo-headline-1-semi-bold">54</Text>
+          <Text className="text-neutral-300 typo-headline-1-semi-bold">
+            {data.reviews.length}
+          </Text>
         </View>
 
         <View className="gap-4">
-          {MOCK_REVIEWS.map((review) => (
-            <View key={review.id} className="gap-3 px-1 pb-4 pt-1">
+          {data.reviews.map((review) => (
+            <View key={review.reviewId} className="gap-3 px-1 pb-4 pt-1">
               <View className="flex-row gap-4">
-                <View className="size-[92px] rounded-[10px] bg-fill-stronger" />
+                {review.imageUrl ? (
+                  <Image
+                    source={{ uri: review.imageUrl }}
+                    className="size-[92px] rounded-[10px] bg-fill-stronger"
+                  />
+                ) : (
+                  <View className="size-[92px] rounded-[10px] bg-fill-stronger" />
+                )}
                 <View className="flex-1 gap-1.5">
                   <View className="flex-row items-center gap-1.5">
                     <View className="items-center justify-center rounded-full bg-fill-strongest p-[3px]">
                       <UserIcon />
                     </View>
                     <Text className="text-label-normal typo-body-2-normal-semi-bold">
-                      {review.userName}
+                      {review.authorName}
                     </Text>
                   </View>
                   <Text
                     className="text-label-normal typo-body-2-normal-regular"
                     numberOfLines={3}
                   >
-                    {review.text}
+                    {review.content}
                   </Text>
                 </View>
               </View>

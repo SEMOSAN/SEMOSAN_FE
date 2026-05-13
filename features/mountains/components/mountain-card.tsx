@@ -1,6 +1,5 @@
 import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { MountainListResponse } from "@/types/api.generated";
-import React from "react";
 import { Image, Text, View } from "react-native";
 
 type MountainDifficulty = NonNullable<MountainListResponse["difficulty"]>;
@@ -9,12 +8,6 @@ export const DIFFICULTY_LABEL: Record<MountainDifficulty, string> = {
   EASY: "하",
   NORMAL: "중",
   HARD: "상",
-};
-
-export const DIFFICULTY_STYLE: Record<MountainDifficulty, string> = {
-  EASY: COURSE_BADGE.초급.text,
-  NORMAL: COURSE_BADGE.중급.text,
-  HARD: COURSE_BADGE.상급.text,
 };
 
 export function MountainCard({
@@ -45,7 +38,7 @@ export function MountainCard({
           <View className="h-0.5 w-0.5 rounded-full bg-label-subtler" />
           {mountain.difficulty && (
             <Text
-              className={`typo-body-3-semi-bold ${DIFFICULTY_STYLE[mountain.difficulty]}`}
+              className={`typo-body-3-semi-bold ${COURSE_BADGE[mountain.difficulty].style.text}`}
             >
               난이도 {DIFFICULTY_LABEL[mountain.difficulty]}
             </Text>
