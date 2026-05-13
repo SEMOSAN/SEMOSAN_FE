@@ -34,7 +34,7 @@ function onAppStateChange(status: AppStateStatus) {
 }
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 2 } },
+  defaultOptions: { queries: { retry: 2, staleTime: 60 * 5 } },
 });
 
 function TestAppInitializer(): null {

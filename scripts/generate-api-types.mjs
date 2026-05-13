@@ -169,7 +169,15 @@ async function main() {
   sections.push(`// ${"─".repeat(77)}`);
   sections.push(`export const ENDPOINTS = {`);
   for (const path of Object.keys(spec.paths)) {
-    sections.push(`  ${pathToEndpointKey(path)}: "${path}",`);
+    const key = pathToEndpointKey(path);
+    const params = [...path.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
+    if (params.length > 0) {
+      const args = params.map((p) => `${p}: number | string`).join(", ");
+      const template = path.replace(/\{([^}]+)\}/g, (_, p) => `\${${p}}`);
+      sections.push(`  ${key}: (${args}) => \`${template}\`,`);
+    } else {
+      sections.push(`  ${key}: "${path}",`);
+    }
   }
   sections.push(`} as const;`);
   sections.push(``);
