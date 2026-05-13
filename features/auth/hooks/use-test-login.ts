@@ -13,7 +13,7 @@ export async function testLogin(): Promise<TestLoginResponse> {
     body: {
       testUserId: 1,
       deviceType: "IOS",
-      secretKey: "semosan-test-secret-2026",
+      secretKey: process.env.EXPO_PUBLIC_LOGIN_SECRET_KEY,
     },
   });
   return res.data;
