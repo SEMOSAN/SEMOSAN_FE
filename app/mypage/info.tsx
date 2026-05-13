@@ -1,9 +1,11 @@
 import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
 import { MenuChevronIcon } from '@/features/mypage/components/menu-chevron-icon';
 import { MenuRow } from '@/features/mypage/components/menu-row';
+import { NicknameBottomSheet } from '@/features/mypage/components/nickname-bottom-sheet';
 import { ProfileAvatar } from '@/features/mypage/components/profile-avatar';
 import { MOCK_USER } from '@/features/mypage/constants';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Path, Svg } from 'react-native-svg';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function MyPageInfoScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [nicknameSheetVisible, setNicknameSheetVisible] = useState(false);
+  const [nickname, setNickname] = useState(MOCK_USER.name);
 
   const profileItems = [
     { label: '성별', value: MOCK_USER.gender },
@@ -60,19 +64,26 @@ export default function MyPageInfoScreen() {
             className="flex-row items-center justify-between bg-fill-strong"
             style={{ paddingVertical: 16, paddingHorizontal: 20, borderRadius: 16 }}
             activeOpacity={0.6}
-            onPress={() => {}}
+            onPress={() => setNicknameSheetVisible(true)}
           >
             <Text className="typo-body-1-normal-medium text-label-normal" style={{ letterSpacing: -0.16 }}>
               닉네임
             </Text>
             <View className="flex-row items-center gap-1">
               <Text className="typo-body-1-normal-regular text-label-alternative">
-                {MOCK_USER.name}
+                {nickname}
               </Text>
               <MenuChevronIcon />
             </View>
           </TouchableOpacity>
         </View>
+
+        <NicknameBottomSheet
+          visible={nicknameSheetVisible}
+          initialValue={nickname}
+          onClose={() => setNicknameSheetVisible(false)}
+          onSave={(value) => setNickname(value)}
+        />
 
         {/* 프로필 정보 */}
         <View className="px-5 pt-3">
