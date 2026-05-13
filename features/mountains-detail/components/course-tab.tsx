@@ -19,7 +19,7 @@ function CourseCard({
   difficulty,
   distance,
   duration,
-}: CourseCardProps): React.JSX.Element {
+}: CourseCardProps) {
   const router = useRouter();
 
   return (

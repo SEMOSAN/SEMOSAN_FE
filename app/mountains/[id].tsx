@@ -5,6 +5,7 @@ import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { AmenityTab } from "@/features/mountains-detail/components/amenity-tab";
 import { CourseTab } from "@/features/mountains-detail/components/course-tab";
+import { MountainTabs } from "@/features/mountains-detail/components/mountain-tabs";
 import { RestaurantTab } from "@/features/mountains-detail/components/restaurant-tab";
 import { ReviewTab } from "@/features/mountains-detail/components/review-tab";
 import { TransportTab } from "@/features/mountains-detail/components/transport-tab";
@@ -14,7 +15,7 @@ import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detai
 import { buildWeatherDays } from "@/features/mountains/modules/weather";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -27,6 +28,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabKey = "코스" | "교통 정보" | "편의시설" | "주변 맛집" | "등산 후기";
 const TABS: TabKey[] = ["코스", "교통 정보", "편의시설", "주변 맛집", "등산 후기"];
+const weatherDays = buildWeatherDays();
 
 function SunriseSunset({
   sunrise,
@@ -62,7 +64,6 @@ export default function MountainDetailScreen() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabKey>("코스");
   const [accordionOpen, setAccordionOpen] = useState(false);
-  const weatherDays = buildWeatherDays();
 
   if (isPending)
     return (
@@ -175,33 +176,11 @@ export default function MountainDetailScreen() {
 
             {/* Tab section */}
             <View className="gap-6 py-6">
-              {/* Tab bar */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                className="border-b border-line-subtle bg-fill-normal"
-                contentContainerStyle={{ paddingHorizontal: 20 }}
-              >
-                {TABS.map((tab) => (
-                  <TouchableOpacity
-                    key={tab}
-                    onPress={() => setActiveTab(tab)}
-                    className={`items-center justify-center px-3 py-2 ${
-                      activeTab === tab ? "border-b-2 border-line-primary" : ""
-                    }`}
-                  >
-                    <Text
-                      className={
-                        activeTab === tab
-                          ? "text-label-normal typo-body-1-normal-semi-bold"
-                          : "text-label-subtler typo-body-1-normal-medium"
-                      }
-                    >
-                      {tab}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <MountainTabs
+                tabs={TABS}
+                activeTab={activeTab}
+                onTabChange={(tab) => setActiveTab(tab as TabKey)}
+              />
 
               {/* Tab content */}
               {activeTab === "코스" && <CourseTab />}
