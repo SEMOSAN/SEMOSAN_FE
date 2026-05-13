@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "tokens": "node tokens-build-script.mjs --verbose",
-    "generate-types": "node scripts/generate-api-types.mjs"
+    "typegen": "node scripts/generate-api-types.mjs"
   },
   "dependencies": {
     "@dev-plugins/react-query": "^0.4.0",
