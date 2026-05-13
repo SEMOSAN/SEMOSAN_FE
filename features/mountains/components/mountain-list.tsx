@@ -17,6 +17,8 @@ import { DifficultyOption } from "./difficulty-bottom-sheet";
 import { Selection } from "./region-filter-content";
 import { SortOption } from "./sort-bottom-sheet";
 
+const MOUNTAIN_LIST_PAGE_SIZE = 1000;
+
 type Props = {
   sortOption: SortOption;
   userLocation: Coordinates | undefined;
@@ -32,7 +34,9 @@ export function MountainList({
 }: Props) {
   const router = useRouter();
 
-  const { data, isPending, isError } = useMountains({ size: 100 });
+  const { data, isPending, isError } = useMountains({
+    size: MOUNTAIN_LIST_PAGE_SIZE,
+  });
 
   if (isPending) {
     return (

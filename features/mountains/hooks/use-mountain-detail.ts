@@ -15,5 +15,6 @@ export function useMountainDetail(mountainId: number) {
   return useQuery({
     queryKey: [ENDPOINTS.MOUNTAINS_BY_MOUNTAINID(mountainId)],
     queryFn: () => getMountainDetail(mountainId),
+    enabled: !isNaN(mountainId) && mountainId > 0,
   });
 }
