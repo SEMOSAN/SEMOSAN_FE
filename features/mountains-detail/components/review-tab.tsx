@@ -97,9 +97,11 @@ export function ReviewTab() {
           ))}
         </View>
 
-        <TouchableOpacity className="h-[38px] items-center justify-center rounded-[8px] bg-fill-stronger">
-          <Text className="text-label-subtle typo-label-medium">더보기</Text>
-        </TouchableOpacity>
+        {data.reviews.length > 3 && (
+          <TouchableOpacity className="h-[38px] items-center justify-center rounded-[8px] bg-fill-stronger">
+            <Text className="text-label-subtle typo-label-medium">더보기</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
