@@ -1,5 +1,5 @@
 import { ResetIcon } from "@/components/icons/reset-icon";
-import { SearchIcon } from "@/components/icons/search-icon";
+import { MountainSearchButton } from "@/features/mountains/components/mountain-search-button";
 import {
   DifficultyBottomSheet,
   DifficultyOption,
@@ -83,7 +83,7 @@ export default function MountainsScreen() {
         <Text className="flex-1 text-label-normal typo-headline-1-semi-bold">
           산 목록
         </Text>
-        <SearchIcon />
+        <MountainSearchButton />
       </View>
 
       {/* Filter bar */}
