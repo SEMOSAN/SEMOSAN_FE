@@ -3,9 +3,7 @@ import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { tokenStorage } from "./auth/tokenStorage";
 import { buildQueryParams } from "./buildQueryParams";
 
-// TODO : 추후 api 주소 env화 해야함.
-// const API_URL = process.env.EXPO_PUBLIC_API_URL;
-const API_URL = "http://64.110.117.214:31080";
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 type RequestOptions = {
   path: string;
