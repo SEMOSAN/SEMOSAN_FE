@@ -46,6 +46,7 @@ export default function RootLayout(): React.JSX.Element | null {
           <Stack.Screen name="mountain-info" options={{ headerShown: false }} />
           <Stack.Screen name="community/write" options={{ headerShown: false }} />
           <Stack.Screen name="community/post-complete" options={{ headerShown: false }} />
+          <Stack.Screen name="mypage/info" options={{ headerShown: false }} />
           <Stack.Screen
             name="modal"
             options={{ presentation: "modal", title: "Modal" }}
