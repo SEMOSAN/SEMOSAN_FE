@@ -1,6 +1,6 @@
 import { CaretDownIcon } from "@/components/icons/caret-down-icon";
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
-import { HeartIcon } from "@/components/icons/heart-icon";
+import { BookmarkIcon } from "@/components/icons/bookmark-icon";
 import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { AmenityTab } from "@/features/mountains-detail/components/amenity-tab";
@@ -25,8 +25,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type TabKey = "코스" | "교통" | "편의" | "맛집" | "리뷰";
-const TABS: TabKey[] = ["코스", "교통", "편의", "맛집", "리뷰"];
+type TabKey = "코스" | "교통 정보" | "편의시설" | "주변 맛집" | "등산 후기";
+const TABS: TabKey[] = ["코스", "교통 정보", "편의시설", "주변 맛집", "등산 후기"];
 
 function SunriseSunset({
   sunrise,
@@ -109,7 +109,7 @@ export default function MountainDetailScreen() {
                   </Text>
                 </View>
                 <TouchableOpacity hitSlop={8}>
-                  <HeartIcon />
+                  <BookmarkIcon />
                 </TouchableOpacity>
               </View>
 
@@ -129,15 +129,15 @@ export default function MountainDetailScreen() {
             </View>
 
             {/* Weather accordion */}
-            <View className="mt-4 gap-[10px] bg-fill-strong px-6 py-[10px]">
+            <View className="mt-4 mx-5 gap-2 rounded-[8px] bg-[#F9FAFB] px-4 py-[10px]">
               {/* Header row — always visible, tappable */}
               <TouchableOpacity
-                className="h-5 flex-row items-center"
+                className="flex-row items-center justify-between"
                 onPress={() => setAccordionOpen(!accordionOpen)}
                 activeOpacity={0.7}
               >
                 <View className="mr-3 flex-1 flex-row items-center justify-between">
-                  <Text className="text-label-normal typo-body-3-semi-bold">
+                  <Text className={accordionOpen ? "text-label-normal typo-body-3-semi-bold" : "text-label-subtle typo-body-3-medium"}>
                     {weatherDays[0].label}
                   </Text>
                   <SunriseSunset
@@ -151,14 +151,14 @@ export default function MountainDetailScreen() {
                     transform: [{ rotate: accordionOpen ? "180deg" : "0deg" }],
                   }}
                 >
-                  <CaretDownIcon color="#73798C" />
+                  <CaretDownIcon color="#A4ABC0" />
                 </View>
               </TouchableOpacity>
 
-              {/* Expanded rows — 내일 ~ 6일 후 */}
+              {/* Expanded rows */}
               {accordionOpen &&
                 weatherDays.slice(1).map((day) => (
-                  <View key={day.label} className="h-5 flex-row items-center">
+                  <View key={day.label} className="h-5 flex-row items-center justify-between">
                     <View className="mr-3 flex-1 flex-row items-center justify-between">
                       <Text className="text-label-subtle typo-body-3-medium">
                         {day.label}
@@ -175,35 +175,40 @@ export default function MountainDetailScreen() {
 
             {/* Tab section */}
             <View className="gap-6 py-6">
-              {/* Tab toggle bar */}
-              <View className="mx-[20.5px] flex-row gap-1 rounded-[10px] bg-fill-stronger p-1">
+              {/* Tab bar */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="border-b border-line-subtle bg-fill-normal"
+                contentContainerStyle={{ paddingHorizontal: 20 }}
+              >
                 {TABS.map((tab) => (
                   <TouchableOpacity
                     key={tab}
                     onPress={() => setActiveTab(tab)}
-                    className={`flex-1 items-center justify-center rounded-[6px] px-[10px] py-[6px] ${
-                      activeTab === tab ? "bg-fill-normal" : ""
+                    className={`items-center justify-center px-3 py-2 ${
+                      activeTab === tab ? "border-b-2 border-line-primary" : ""
                     }`}
                   >
                     <Text
-                      className={`typo-label-medium ${
+                      className={
                         activeTab === tab
-                          ? "text-label-normal"
-                          : "text-label-subtler"
-                      }`}
+                          ? "text-label-normal typo-body-1-normal-semi-bold"
+                          : "text-label-subtler typo-body-1-normal-medium"
+                      }
                     >
                       {tab}
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </View>
+              </ScrollView>
 
               {/* Tab content */}
               {activeTab === "코스" && <CourseTab />}
-              {activeTab === "교통" && <TransportTab />}
-              {activeTab === "편의" && <AmenityTab />}
-              {activeTab === "맛집" && <RestaurantTab />}
-              {activeTab === "리뷰" && <ReviewTab />}
+              {activeTab === "교통 정보" && <TransportTab />}
+              {activeTab === "편의시설" && <AmenityTab />}
+              {activeTab === "주변 맛집" && <RestaurantTab />}
+              {activeTab === "등산 후기" && <ReviewTab />}
             </View>
           </View>
         </ScrollView>
