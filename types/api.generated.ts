@@ -174,7 +174,7 @@ export type MountainDetailResponse = {
   mountain?: MountainInfo;
   courses?: CourseInfo[];
   transportations?: TransportationGroup;
-  amenities?: Record<string, unknown>;
+  amenities?: Record<string, ("RESTROOM" | "INFORMATION" | "SHELTER" | "PARKING" | "STORE")[]>;
   restaurantSections?: RestaurantSectionInfo[];
   reviews?: ReviewInfo[];
 };
@@ -206,8 +206,8 @@ export type ReviewInfo = {
   courseName?: string;
 };
 export type TransportationGroup = {
-  publicTransport?: Record<string, unknown>;
-  parking?: Record<string, unknown>;
+  publicTransport?: Record<string, TransportationItem[]>;
+  parking?: Record<string, TransportationItem[]>;
 };
 export type TransportationItem = {
   transportationId?: number;

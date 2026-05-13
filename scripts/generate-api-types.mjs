@@ -43,10 +43,17 @@ function schemaToTS(schema, indent = 0) {
       return "number";
     case "boolean":
       return "boolean";
-    case "array":
-      return `${schemaToTS(schema.items, indent)}[]`;
+    case "array": {
+      const inner = schemaToTS(schema.items, indent);
+      return inner.includes("|") ? `(${inner})[]` : `${inner}[]`;
+    }
     case "object":
-      if (!schema.properties) return "Record<string, unknown>";
+      if (!schema.properties) {
+        if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+          return `Record<string, ${schemaToTS(schema.additionalProperties, indent)}>`;
+        }
+        return "Record<string, unknown>";
+      }
       const props = Object.entries(schema.properties)
         .map(([key, val]) => {
           const required = schema.required?.includes(key) ?? false;

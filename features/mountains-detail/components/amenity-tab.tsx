@@ -8,28 +8,20 @@ import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
-type Facility = "화장실" | "안내소" | "쉼터" | "주차장" | "매점";
+import { MountainDetailResponse } from "@/types/api.generated";
 
-type AmenityArea = {
-  name: string;
-  facilities: Facility[];
-};
+type AmenityMap = NonNullable<MountainDetailResponse["amenities"]>;
+type AmenityType = NonNullable<AmenityMap[string]>[number];
 
-const AMENITY_AREAS: AmenityArea[] = [
-  {
-    name: "서울대 입구",
-    facilities: ["화장실", "안내소", "쉼터", "주차장", "매점"],
-  },
-  { name: "신림 방향", facilities: ["화장실", "쉼터", "매점"] },
-  { name: "과천 방향", facilities: ["화장실", "안내소", "주차장"] },
-];
-
-const FACILITY_ICON: Record<Facility, React.JSX.Element> = {
-  화장실: <ToiletIcon />,
-  안내소: <InfoCenterIcon />,
-  쉼터: <ShelterIcon />,
-  주차장: <ParkingIcon />,
-  매점: <StoreIcon />,
+const AMENITY_ICON: Record<
+  AmenityType,
+  { korean: string; icon: React.JSX.Element }
+> = {
+  RESTROOM: { korean: "화장실", icon: <ToiletIcon /> },
+  INFORMATION: { korean: "안내소", icon: <InfoCenterIcon /> },
+  SHELTER: { korean: "쉼터", icon: <ShelterIcon /> },
+  PARKING: { korean: "주차장", icon: <ParkingIcon /> },
+  STORE: { korean: "매점", icon: <StoreIcon /> },
 };
 
 export function AmenityTab() {
@@ -51,19 +43,18 @@ export function AmenityTab() {
       <Text className="mb-4 text-label-normal typo-headline-1-semi-bold">
         주요 편의시설
       </Text>
-      {/* TODO : data.amentities 데이터 연동 */}
       <View className="gap-8">
-        {AMENITY_AREAS.map((area) => (
-          <View key={area.name} className="gap-3">
+        {Object.entries(data.amenities).map(([area, facilities]) => (
+          <View key={area} className="gap-3">
             <Text className="text-label-subtle typo-body-1-normal-semi-bold">
-              {area.name}
+              {area}
             </Text>
             <View className="flex-row flex-wrap">
-              {area.facilities.map((facility) => (
+              {facilities.map((facility) => (
                 <View key={facility} className="items-center gap-1.5 p-4">
-                  {FACILITY_ICON[facility]}
+                  {AMENITY_ICON[facility].icon}
                   <Text className="text-center text-label-subtle typo-body-3-regular">
-                    {facility}
+                    {AMENITY_ICON[facility].korean}
                   </Text>
                 </View>
               ))}
