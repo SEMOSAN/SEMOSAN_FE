@@ -1,6 +1,7 @@
 import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
 import { MenuChevronIcon } from '@/features/mypage/components/menu-chevron-icon';
 import { MenuRow } from '@/features/mypage/components/menu-row';
+import { GenderBottomSheet } from '@/features/mypage/components/gender-bottom-sheet';
 import { NicknameBottomSheet } from '@/features/mypage/components/nickname-bottom-sheet';
 import { ProfileAvatar } from '@/features/mypage/components/profile-avatar';
 import { MOCK_USER } from '@/features/mypage/constants';
@@ -15,9 +16,11 @@ export default function MyPageInfoScreen() {
   const insets = useSafeAreaInsets();
   const [nicknameSheetVisible, setNicknameSheetVisible] = useState(false);
   const [nickname, setNickname] = useState(MOCK_USER.name);
+  const [genderSheetVisible, setGenderSheetVisible] = useState(false);
+  const [gender, setGender] = useState(MOCK_USER.gender);
 
   const profileItems = [
-    { label: '성별', value: MOCK_USER.gender },
+    { label: '성별', value: gender, onPress: () => setGenderSheetVisible(true) },
     { label: '나이', value: MOCK_USER.age },
     { label: '키', value: MOCK_USER.height },
     { label: '체중', value: MOCK_USER.weight },
@@ -78,6 +81,12 @@ export default function MyPageInfoScreen() {
           </TouchableOpacity>
         </View>
 
+        <GenderBottomSheet
+          visible={genderSheetVisible}
+          initialValue={gender}
+          onClose={() => setGenderSheetVisible(false)}
+          onSave={(value) => setGender(value)}
+        />
         <NicknameBottomSheet
           visible={nicknameSheetVisible}
           initialValue={nickname}
@@ -93,7 +102,7 @@ export default function MyPageInfoScreen() {
                 key={item.label}
                 label={item.label}
                 value={item.value}
-                onPress={() => {}}
+                onPress={item.onPress ?? (() => {})}
               />
             ))}
           </View>
