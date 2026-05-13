@@ -12,7 +12,7 @@ import { MountainDetailResponse } from "@/types/api.generated";
 type AmenityMap = NonNullable<MountainDetailResponse["amenities"]>;
 type AmenityType = NonNullable<AmenityMap[string]>[number];
 
-const AMENITY_ICON: Record<
+const AMENITY_META: Record<
   AmenityType,
   { korean: string; icon: React.JSX.Element }
 > = {
@@ -51,9 +51,9 @@ export function AmenityTab() {
             <View className="flex-row flex-wrap">
               {facilities.map((facility) => (
                 <View key={facility} className="items-center gap-1.5 p-4">
-                  {AMENITY_ICON[facility].icon}
+                  {AMENITY_META[facility].icon}
                   <Text className="text-center text-label-subtle typo-body-3-regular">
-                    {AMENITY_ICON[facility].korean}
+                    {AMENITY_META[facility].korean}
                   </Text>
                 </View>
               ))}

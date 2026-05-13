@@ -3,7 +3,7 @@ import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detai
 import { formatDuration } from "@/modules/format-duration";
 import { CourseInfo } from "@/types/api.generated";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 type CourseCardProps = {
   courseId?: number;
@@ -23,9 +23,8 @@ function CourseCard({
   const router = useRouter();
 
   return (
-    <TouchableOpacity
+    <Pressable
       className="flex-row items-center gap-4"
-      activeOpacity={0.7}
       onPress={() => router.push(`/mountains/courses/${courseId}`)}
     >
       <View className="h-[72px] w-16 rounded-[10px] bg-fill-stronger" />
@@ -46,7 +45,7 @@ function CourseCard({
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
