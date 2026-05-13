@@ -7,23 +7,11 @@ type Props = {
 };
 
 export function MountainBookmarkButton({ mountainId }: Props) {
-  const { isBookmarked, like, unlike } = useMountainBookmark(mountainId);
-
-  function handlePress() {
-    if (isBookmarked) {
-      unlike.mutate();
-    } else {
-      like.mutate();
-    }
-  }
+  const { isBookmarked, isPending, toggle } = useMountainBookmark(mountainId);
 
   return (
-    <TouchableOpacity
-      hitSlop={8}
-      onPress={handlePress}
-      disabled={like.isPending || unlike.isPending}
-    >
-      <BookmarkIcon color={isBookmarked ? "#507EF4" : "#1A1B1F"} />
+    <TouchableOpacity hitSlop={8} onPress={toggle} disabled={isPending}>
+      <BookmarkIcon color={"#1A1B1F"} filled={isBookmarked} />
     </TouchableOpacity>
   );
 }

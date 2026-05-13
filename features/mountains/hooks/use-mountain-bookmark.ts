@@ -5,6 +5,8 @@ import {
 } from "@/types/api.generated";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+const LIKES_KEY = [ENDPOINTS.MOUNTAINS_LIKES] as const;
+
 async function getLikedMountains(): Promise<PageResponseLikedMountainResponse> {
   const res = await api.get<PageResponseLikedMountainResponse>({
     path: ENDPOINTS.MOUNTAINS_LIKES,
@@ -16,28 +18,65 @@ export function useMountainBookmark(mountainId: number) {
   const queryClient = useQueryClient();
 
   const { data: likedMountains } = useQuery({
-    queryKey: [ENDPOINTS.MOUNTAINS_LIKES],
+    queryKey: LIKES_KEY,
     queryFn: getLikedMountains,
   });
 
   const isBookmarked =
     likedMountains?.content?.some((m) => m.mountainId === mountainId) ?? false;
 
-  // TODO : api호출수 줄이기위해 invalidate하지말고 캐시값 조작으로 변경
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: [ENDPOINTS.MOUNTAINS_LIKES] });
-
   const like = useMutation({
     mutationFn: () =>
       api.post({ path: ENDPOINTS.MOUNTAINS_BY_MOUNTAINID_LIKE(mountainId) }),
-    onSuccess: invalidate,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: LIKES_KEY });
+      const previous =
+        queryClient.getQueryData<PageResponseLikedMountainResponse>(LIKES_KEY);
+      queryClient.setQueryData<PageResponseLikedMountainResponse>(
+        LIKES_KEY,
+        (old) => ({
+          ...old,
+          content: [...(old?.content ?? []), { mountainId }],
+        }),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(LIKES_KEY, context?.previous);
+    },
   });
 
   const unlike = useMutation({
     mutationFn: () =>
       api.delete({ path: ENDPOINTS.MOUNTAINS_BY_MOUNTAINID_LIKE(mountainId) }),
-    onSuccess: invalidate,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: LIKES_KEY });
+      const previous =
+        queryClient.getQueryData<PageResponseLikedMountainResponse>(LIKES_KEY);
+      queryClient.setQueryData<PageResponseLikedMountainResponse>(
+        LIKES_KEY,
+        (old) => ({
+          ...old,
+          content: old?.content?.filter((m) => m.mountainId !== mountainId) ?? [],
+        }),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(LIKES_KEY, context?.previous);
+    },
   });
 
-  return { isBookmarked, like, unlike };
+  const isPending = like.isPending || unlike.isPending;
+
+  function toggle() {
+    if (isPending) return;
+    if (isBookmarked) {
+      unlike.mutate();
+    } else {
+      like.mutate();
+    }
+  }
+
+  return { isBookmarked, isPending, toggle };
 }
