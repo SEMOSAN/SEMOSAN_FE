@@ -2,6 +2,7 @@ import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
 import { MenuChevronIcon } from '@/features/mypage/components/menu-chevron-icon';
 import { MenuRow } from '@/features/mypage/components/menu-row';
 import { BirthDateBottomSheet } from '@/features/mypage/components/birth-date-bottom-sheet';
+import { ExerciseBottomSheet, type ExerciseData } from '@/features/mypage/components/exercise-bottom-sheet';
 import { HeightBottomSheet } from '@/features/mypage/components/height-bottom-sheet';
 import { WeightBottomSheet } from '@/features/mypage/components/weight-bottom-sheet';
 import { GenderBottomSheet } from '@/features/mypage/components/gender-bottom-sheet';
@@ -27,13 +28,19 @@ export default function MyPageInfoScreen() {
   const [height, setHeight] = useState(MOCK_USER.height);
   const [weightSheetVisible, setWeightSheetVisible] = useState(false);
   const [weight, setWeight] = useState(MOCK_USER.weight);
+  const [exerciseSheetVisible, setExerciseSheetVisible] = useState(false);
+  const [exercise, setExercise] = useState<ExerciseData>({
+    type: MOCK_USER.exerciseType,
+    frequency: MOCK_USER.exerciseFrequency,
+    duration: MOCK_USER.exerciseDuration,
+  });
 
   const profileItems = [
     { label: '성별', value: gender, onPress: () => setGenderSheetVisible(true) },
     { label: '나이', value: birthDate, onPress: () => setBirthDateSheetVisible(true) },
     { label: '키', value: height, onPress: () => setHeightSheetVisible(true) },
     { label: '체중', value: weight, onPress: () => setWeightSheetVisible(true) },
-    { label: '운동 경험', value: MOCK_USER.exercise },
+    { label: '운동 경험', value: exercise.type, onPress: () => setExerciseSheetVisible(true) },
   ];
 
   return (
@@ -90,6 +97,12 @@ export default function MyPageInfoScreen() {
           </TouchableOpacity>
         </View>
 
+        <ExerciseBottomSheet
+          visible={exerciseSheetVisible}
+          initialValue={exercise}
+          onClose={() => setExerciseSheetVisible(false)}
+          onSave={(value) => setExercise(value)}
+        />
         <WeightBottomSheet
           visible={weightSheetVisible}
           initialValue={weight}
