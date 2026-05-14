@@ -13,6 +13,13 @@ const config = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.tastyhiking.semosan',
+    usesAppleSignIn: true,
+    infoPlist: {
+      CFBundleAllowMixedLocalizations: true,
+    },
+  },
+  locales: {
+    ko: './locales/ko.json',
   },
   android: {
     adaptiveIcon: {
@@ -57,6 +64,7 @@ const config = {
         dark: { backgroundColor: '#000000' },
       },
     ],
+    'expo-apple-authentication',
   ],
   experiments: {
     typedRoutes: true,
