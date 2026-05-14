@@ -1,14 +1,16 @@
 import { useAppleLogin } from "@/features/auth/hooks/use-apple-login";
+import { useKakaoLogin } from "@/features/auth/hooks/use-kakao-login";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LoginScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { mutateAsync: appleLoginAsync } = useAppleLogin();
+  const { mutateAsync: kakaoLoginAsync } = useKakaoLogin();
 
   async function handleAppleLogin(): Promise<void> {
     try {
@@ -40,6 +42,15 @@ export default function LoginScreen(): React.JSX.Element {
     }
   }
 
+  async function handleKakaoLogin(): Promise<void> {
+    try {
+      await kakaoLoginAsync();
+      router.replace("/(tabs)");
+    } catch (e: unknown) {
+      console.error("Kakao login error:", e);
+    }
+  }
+
   return (
     <View
       className="flex-1 bg-fill-normal"
@@ -58,7 +69,16 @@ export default function LoginScreen(): React.JSX.Element {
       </View>
 
       <View className="gap-3 px-5" style={{ paddingBottom: 16 }}>
-        {/* TODO : 카카오 로그인 구현 */}
+        <Pressable
+          className="flex-row items-center justify-center h-14 rounded-xl"
+          style={{ backgroundColor: "#FEE500" }}
+          android_ripple={{ color: "rgba(0,0,0,0.1)" }}
+          onPress={handleKakaoLogin}
+        >
+          <Text className="typo-body-1-normal-semi-bold" style={{ color: "#191919" }}>
+            카카오로 계속하기
+          </Text>
+        </Pressable>
 
         <AppleAuthentication.AppleAuthenticationButton
           buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
