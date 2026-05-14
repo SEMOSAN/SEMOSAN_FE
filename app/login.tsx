@@ -4,7 +4,7 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LoginScreen(): React.JSX.Element {
@@ -29,7 +29,11 @@ export default function LoginScreen(): React.JSX.Element {
         .filter(Boolean)
         .join("");
 
-      await appleLoginAsync({ identityToken, name, deviceType: "IOS" });
+      await appleLoginAsync({
+        identityToken,
+        name,
+        deviceType: Platform.OS.toUpperCase() as "IOS" | "ANDROID",
+      });
       router.replace("/(tabs)");
     } catch (e: unknown) {
       if (
