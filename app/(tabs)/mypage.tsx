@@ -3,11 +3,11 @@ import { ScrollView, Text, View } from 'react-native';
 export default function MyScreen() {
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#1A1B1F' }}
+      className="flex-1 bg-fill-stronger"
       contentContainerStyle={{ padding: 24, paddingTop: 80 }}>
-      <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>마이페이지</Text>
+      <Text className="typo-headline-1-semi-bold text-label-normal">마이페이지</Text>
       <View style={{ marginTop: 16 }}>
-        <Text style={{ color: '#ffffff80', fontSize: 14 }}>준비 중입니다.</Text>
+        <Text className="typo-body-2-normal-regular text-label-subtler">준비 중입니다.</Text>
       </View>
     </ScrollView>
   );

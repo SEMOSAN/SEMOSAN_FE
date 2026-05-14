@@ -88,12 +88,12 @@ export default function TrackingScreen() {
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
 
-  const startCountdown = () => setCountdown(3);
-
-  const handleFreeRecord = () => {
-    setIsFreeMode(true);
-    useCountdownStore.getState().start(() => setIsTracking(true));
+  const startCountdown = (freeMode = false) => {
+    if (freeMode) setIsFreeMode(true);
+    setCountdown(3);
   };
+
+  const handleFreeRecord = () => startCountdown(true);
 
   useEffect(() => {
     if (countdown === null) return;
@@ -129,7 +129,7 @@ export default function TrackingScreen() {
     return () => {
       LiveActivity.stop().catch(() => {});
     };
-  }, [isTracking]);
+  }, [isTracking, isFreeMode, selectedCourse]);
 
   // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
   useEffect(() => {
@@ -158,17 +158,10 @@ export default function TrackingScreen() {
         progress,
       }).catch(() => {});
     }
-  }, [elapsedSeconds]);
+  }, [elapsedSeconds, isPaused, isTracking, isFreeMode, selectedCourse]);
 
-  const pauseTracking = () => {
-    setIsPaused(true);
-    LiveActivity.update({ elapsedSeconds, isRunning: false, mode: isFreeMode ? 'free' : 'course' }).catch(() => {});
-  };
-
-  const resumeTracking = () => {
-    setIsPaused(false);
-    LiveActivity.update({ elapsedSeconds, isRunning: true, mode: isFreeMode ? 'free' : 'course' }).catch(() => {});
-  };
+  const pauseTracking = () => setIsPaused(true);
+  const resumeTracking = () => setIsPaused(false);
 
   const requestStop = () => setShowStopModal(true);
 
