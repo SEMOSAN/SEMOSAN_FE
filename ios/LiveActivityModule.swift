@@ -2,8 +2,6 @@ import ActivityKit
 import ExpoModulesCore
 
 public class LiveActivityModule: Module {
-    private var currentActivityId: String?
-
     public func definition() -> ModuleDefinition {
         Name("LiveActivityModule")
 
@@ -17,7 +15,7 @@ public class LiveActivityModule: Module {
             }
         }
 
-        AsyncFunction("startActivity") { [weak self] (params: [String: Any]) async throws -> String in
+        AsyncFunction("startActivity") { (params: [String: Any]) async throws -> String in
             guard #available(iOS 16.2, *) else {
                 throw Exception(name: "UNSUPPORTED", description: "Live Activities require iOS 16.2+")
             }
@@ -29,7 +27,6 @@ public class LiveActivityModule: Module {
                 await activity.end(.none, dismissalPolicy: .immediate)
             }
             try? await Task.sleep(nanoseconds: 300_000_000)
-            self?.currentActivityId = nil
 
             let modeStr = params["mode"] as? String ?? "free"
             let mode: SemosanLiveActivityAttributes.Mode = modeStr == "course" ? .course : .free
@@ -48,14 +45,12 @@ public class LiveActivityModule: Module {
                 content: .init(state: initialState, staleDate: nil),
                 pushType: nil
             )
-            self?.currentActivityId = activity.id
             return activity.id
         }
 
-        AsyncFunction("updateActivity") { [weak self] (params: [String: Any]) async throws in
+        AsyncFunction("updateActivity") { (params: [String: Any]) async throws in
             guard #available(iOS 16.2, *) else { return }
-            guard let id = self?.currentActivityId,
-                  let activity = Activity<SemosanLiveActivityAttributes>.activities.first(where: { $0.id == id }) else {
+            guard let activity = Activity<SemosanLiveActivityAttributes>.activities.first else {
                 throw Exception(name: "LIVE_ACTIVITY_NOT_FOUND", description: "No active Live Activity found")
             }
 
@@ -69,13 +64,11 @@ public class LiveActivityModule: Module {
             await activity.update(.init(state: newState, staleDate: nil))
         }
 
-        AsyncFunction("stopActivity") { [weak self] () async throws in
+        AsyncFunction("stopActivity") { () async throws in
             guard #available(iOS 16.2, *) else { return }
-            guard let id = self?.currentActivityId,
-                  let activity = Activity<SemosanLiveActivityAttributes>.activities.first(where: { $0.id == id }) else {
+            guard let activity = Activity<SemosanLiveActivityAttributes>.activities.first else {
                 return
             }
-            self?.currentActivityId = nil
             await activity.end(.none, dismissalPolicy: .immediate)
         }
     }

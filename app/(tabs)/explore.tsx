@@ -1,154 +1,112 @@
-import { useEffect, useRef, useState } from 'react';
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Platform, StyleSheet } from 'react-native';
 
-import { LiveActivity } from '@/modules/live-activity';
+import { ExternalLink } from '@/components/external-link';
+import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { Collapsible } from '@/components/ui/collapsible';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Fonts } from '@/constants/theme';
 
-export default function LiveActivityTestScreen() {
-  const [activityId, setActivityId] = useState<string | null>(null);
-  const [elapsed, setElapsed] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
-  const tick = () => {
-    setElapsed((prev) => {
-      const next = prev + 1;
-      LiveActivity.update({
-        elapsedSeconds: next,
-        isRunning: true,
-        mode: 'course',
-        remainingMinutes: Math.max(0, 30 - Math.floor(next / 60)),
-        remainingMeters: Math.max(0, 500 - next * 2),
-        progress: Math.min(next / 300, 1),
-      });
-      return next;
-    });
-  };
-
-  const startCourse = async () => {
-    try {
-      const id = await LiveActivity.start({
-        mode: 'course',
-        remainingMinutes: 30,
-        remainingMeters: 500,
-        progress: 0,
-      });
-      setActivityId(id);
-      setElapsed(0);
-      setIsRunning(true);
-      timerRef.current = setInterval(tick, 1000);
-    } catch (e: any) {
-      Alert.alert('오류', e.message ?? String(e));
-    }
-  };
-
-  const startFree = async () => {
-    try {
-      const id = await LiveActivity.start({ mode: 'free' });
-      setActivityId(id);
-      setElapsed(0);
-      setIsRunning(true);
-      timerRef.current = setInterval(tick, 1000);
-    } catch (e: any) {
-      Alert.alert('오류', e.message ?? String(e));
-    }
-  };
-
-  const pause = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = null;
-    setIsRunning(false);
-    LiveActivity.update({
-      elapsedSeconds: elapsed,
-      isRunning: false,
-      mode: 'course',
-    });
-  };
-
-  const resume = () => {
-    setIsRunning(true);
-    timerRef.current = setInterval(tick, 1000);
-    LiveActivity.update({
-      elapsedSeconds: elapsed,
-      isRunning: true,
-      mode: 'course',
-    });
-  };
-
-  const stop = async () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = null;
-    setIsRunning(false);
-    setActivityId(null);
-    setElapsed(0);
-    await LiveActivity.stop();
-  };
-
-  if (Platform.OS !== 'ios') {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: '#fff' }}>iOS 전용 테스트</Text>
-      </View>
-    );
-  }
-
-  const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
-  const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
-  const s = String(elapsed % 60).padStart(2, '0');
-
+export default function TabTwoScreen() {
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: '#1A1B1F' }}
-      contentContainerStyle={{ padding: 24, paddingTop: 80, gap: 12 }}>
-      <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 8 }}>
-        Live Activity 테스트
-      </Text>
-
-      <Text style={{ color: '#00D864', fontSize: 32, fontWeight: '700', textAlign: 'center', marginBottom: 16 }}>
-        {h}:{m}:{s}
-      </Text>
-
-      {!activityId ? (
-        <>
-          <Btn label="코스 따라가기 시작" onPress={startCourse} color="#00D864" />
-          <Btn label="자유 기록하기 시작" onPress={startFree} color="#4ADE80" />
-        </>
-      ) : (
-        <>
-          {isRunning ? (
-            <Btn label="일시정지" onPress={pause} color="#F59E0B" />
-          ) : (
-            <Btn label="재개" onPress={resume} color="#00D864" />
-          )}
-          <Btn label="종료" onPress={stop} color="#EF4444" />
-        </>
-      )}
-
-      {activityId && (
-        <Text style={{ color: '#ffffff50', fontSize: 11, marginTop: 8 }}>
-          Activity ID: {activityId}
-        </Text>
-      )}
-    </ScrollView>
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
+      headerImage={
+        <IconSymbol
+          size={310}
+          color="#808080"
+          name="chevron.left.forwardslash.chevron.right"
+          style={styles.headerImage}
+        />
+      }>
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText
+          type="title"
+          style={{
+            fontFamily: Fonts.rounded,
+          }}>
+          Explore
+        </ThemedText>
+      </ThemedView>
+      <ThemedText>This app includes example code to help you get started.</ThemedText>
+      <Collapsible title="File-based routing">
+        <ThemedText>
+          This app has two screens:{' '}
+          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
+          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
+        </ThemedText>
+        <ThemedText>
+          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
+          sets up the tab navigator.
+        </ThemedText>
+        <ExternalLink href="https://docs.expo.dev/router/introduction">
+          <ThemedText type="link">Learn more</ThemedText>
+        </ExternalLink>
+      </Collapsible>
+      <Collapsible title="Android, iOS, and web support">
+        <ThemedText>
+          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
+          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
+        </ThemedText>
+      </Collapsible>
+      <Collapsible title="Images">
+        <ThemedText>
+          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
+          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
+          different screen densities
+        </ThemedText>
+        <Image
+          source={require('@/assets/images/react-logo.png')}
+          style={{ width: 100, height: 100, alignSelf: 'center' }}
+        />
+        <ExternalLink href="https://reactnative.dev/docs/images">
+          <ThemedText type="link">Learn more</ThemedText>
+        </ExternalLink>
+      </Collapsible>
+      <Collapsible title="Light and dark mode components">
+        <ThemedText>
+          This template has light and dark mode support. The{' '}
+          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
+          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
+        </ThemedText>
+        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
+          <ThemedText type="link">Learn more</ThemedText>
+        </ExternalLink>
+      </Collapsible>
+      <Collapsible title="Animations">
+        <ThemedText>
+          This template includes an example of an animated component. The{' '}
+          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
+          the powerful{' '}
+          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
+            react-native-reanimated
+          </ThemedText>{' '}
+          library to create a waving hand animation.
+        </ThemedText>
+        {Platform.select({
+          ios: (
+            <ThemedText>
+              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
+              component provides a parallax effect for the header image.
+            </ThemedText>
+          ),
+        })}
+      </Collapsible>
+    </ParallaxScrollView>
   );
 }
 
-function Btn({ label, onPress, color }: { label: string; onPress: () => void; color: string }) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={{
-        backgroundColor: color,
-        borderRadius: 12,
-        paddingVertical: 14,
-        alignItems: 'center',
-      }}>
-      <Text style={{ color: '#1A1B1F', fontWeight: '700', fontSize: 16 }}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
+const styles = StyleSheet.create({
+  headerImage: {
+    color: '#808080',
+    bottom: -90,
+    left: -35,
+    position: 'absolute',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+});
