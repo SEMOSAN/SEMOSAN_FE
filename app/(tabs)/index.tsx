@@ -1,6 +1,5 @@
 import { NaverMapMarkerOverlay, NaverMapView } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -123,10 +122,6 @@ const MOCK_MOUNTAINS: Mountain[] = [
 ];
 
 type MapTab = 'map' | 'feed';
-const UT_MAP_SCREENSHOT = require('@/assets/ut-map/has-records.png');
-const UT_NO_RECORD_MAP_SCREENSHOT = require('@/assets/ut-map/no-records.png');
-const UT_SELECTED_RECORD_MAP_SCREENSHOT = require('@/assets/ut-map/selected-mountain.png');
-const USE_UT_MAP_SCREENSHOT = process.env.EXPO_PUBLIC_USE_UT_MAP_SCREENSHOT !== 'false';
 
 export default function HomeScreen() {
   const { hasRecords } = useHomeState();
@@ -196,98 +191,83 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 w-full">
-      {USE_UT_MAP_SCREENSHOT ? (
-        // UT 임시 대응: 네이버 지도 대신 고정 스크린샷 노출
-        <Image
-          source={
-            hasRecords
-              ? isMountainRecordListOpen
-                ? UT_SELECTED_RECORD_MAP_SCREENSHOT
-                : UT_MAP_SCREENSHOT
-              : UT_NO_RECORD_MAP_SCREENSHOT
-          }
-          style={styles.map}
-          contentFit="cover"
-        />
-      ) : (
-        <NaverMapView
-          style={styles.map}
-          camera={{ latitude: region.latitude, longitude: region.longitude, zoom: region.zoom }}
-          isShowLocationButton={false}
-          onTapMap={() => sheetRef.current?.collapseToMin()}
-        >
-          {hasRecords
-            ? visibleMountains.map((mountain) => (
-                <NaverMapMarkerOverlay
-                  key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
-                  latitude={mountain.latitude}
-                  longitude={mountain.longitude}
-                  width={
-                    mountain.visited
+      <NaverMapView
+        style={styles.map}
+        camera={{ latitude: region.latitude, longitude: region.longitude, zoom: region.zoom }}
+        isShowLocationButton={false}
+        onTapMap={() => sheetRef.current?.collapseToMin()}
+      >
+        {hasRecords
+          ? visibleMountains.map((mountain) => (
+              <NaverMapMarkerOverlay
+                key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
+                latitude={mountain.latitude}
+                longitude={mountain.longitude}
+                width={
+                  mountain.visited
+                    ? VISITED_MARKER_OVERLAY_WIDTH
+                    : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
+                }
+                height={
+                  mountain.visited
+                    ? VISITED_MARKER_OVERLAY_HEIGHT
+                    : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
+                }
+                anchor={
+                  mountain.visited
+                    ? { x: 0.2, y: 1 }
+                    : { x: 0.5, y: 0.5 }
+                }
+              >
+                <View
+                  collapsable={false}
+                  style={{
+                    width: mountain.visited
                       ? VISITED_MARKER_OVERLAY_WIDTH
-                      : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
-                  }
-                  height={
-                    mountain.visited
+                      : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
+                    height: mountain.visited
                       ? VISITED_MARKER_OVERLAY_HEIGHT
-                      : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
-                  }
-                  anchor={
-                    mountain.visited
-                      ? { x: 0.2, y: 1 }
-                      : { x: 0.5, y: 0.5 }
-                  }
+                      : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
+                  }}
                 >
-                  <View
-                    collapsable={false}
-                    style={{
-                      width: mountain.visited
-                        ? VISITED_MARKER_OVERLAY_WIDTH
-                        : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                      height: mountain.visited
-                        ? VISITED_MARKER_OVERLAY_HEIGHT
-                        : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                    }}
-                  >
-                    {mountain.visited ? (
-                      <VisitedMarker
-                        name={mountain.name}
-                        visitCount={mountain.visitCount}
-                        imageUri={mountain.imageUri}
-                        selected={mountain.id === selectedMountainId}
-                      />
-                    ) : (
-                      <UnvisitedMountainPillMarker
-                        name={mountain.name}
-                        variant={mountain.visited ? 'visited' : activeTab === '큐레이션' ? 'curation' : 'trending'}
-                        selected={mountain.id === selectedMountainId}
-                      />
-                    )}
-                  </View>
-                </NaverMapMarkerOverlay>
-              ))
-            : noRecordMountains.map((mountain) => (
-                <NaverMapMarkerOverlay
-                  key={`no-record-${mountain.id}`}
-                  latitude={mountain.latitude}
-                  longitude={mountain.longitude}
-                  width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
-                  height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
-                  anchor={{ x: 0.5, y: 0.5 }}
+                  {mountain.visited ? (
+                    <VisitedMarker
+                      name={mountain.name}
+                      visitCount={mountain.visitCount}
+                      imageUri={mountain.imageUri}
+                      selected={mountain.id === selectedMountainId}
+                    />
+                  ) : (
+                    <UnvisitedMountainPillMarker
+                      name={mountain.name}
+                      variant={mountain.visited ? 'visited' : activeTab === '큐레이션' ? 'curation' : 'trending'}
+                      selected={mountain.id === selectedMountainId}
+                    />
+                  )}
+                </View>
+              </NaverMapMarkerOverlay>
+            ))
+          : noRecordMountains.map((mountain) => (
+              <NaverMapMarkerOverlay
+                key={`no-record-${mountain.id}`}
+                latitude={mountain.latitude}
+                longitude={mountain.longitude}
+                width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
+                height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <View
+                  collapsable={false}
+                  style={{
+                    width: UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
+                    height: UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
+                  }}
                 >
-                  <View
-                    collapsable={false}
-                    style={{
-                      width: UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                      height: UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                    }}
-                  >
-                    <UnvisitedMountainPillMarker name={mountain.name} variant="trending" />
-                  </View>
-                </NaverMapMarkerOverlay>
-              ))}
-        </NaverMapView>
-      )}
+                  <UnvisitedMountainPillMarker name={mountain.name} variant="trending" />
+                </View>
+              </NaverMapMarkerOverlay>
+            ))}
+      </NaverMapView>
 
       <LinearGradient
         colors={['rgba(255,255,255,1)', 'rgba(255,255,255,0)']}
@@ -320,7 +300,7 @@ export default function HomeScreen() {
               cards={visitedCards}
               showTabs={false}
               scrollEnabled={scrollEnabled}
-              onCardSelect={USE_UT_MAP_SCREENSHOT ? () => undefined : (id) => setSelectedMountainId(id)}
+              onCardSelect={(id) => setSelectedMountainId(id)}
               onDetailOpenChange={handleDetailOpenChange}
               closeSelectedToken={closeSelectedToken}
             />
