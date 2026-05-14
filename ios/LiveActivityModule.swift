@@ -7,6 +7,16 @@ public class LiveActivityModule: Module {
     public func definition() -> ModuleDefinition {
         Name("LiveActivityModule")
 
+        OnCreate {
+            if #available(iOS 16.2, *) {
+                Task {
+                    for activity in Activity<SemosanLiveActivityAttributes>.activities {
+                        await activity.end(.none, dismissalPolicy: .immediate)
+                    }
+                }
+            }
+        }
+
         AsyncFunction("startActivity") { [weak self] (params: [String: Any]) async throws -> String in
             guard #available(iOS 16.2, *) else {
                 throw Exception(name: "UNSUPPORTED", description: "Live Activities require iOS 16.2+")
@@ -14,6 +24,12 @@ public class LiveActivityModule: Module {
             guard ActivityAuthorizationInfo().areActivitiesEnabled else {
                 throw Exception(name: "LIVE_ACTIVITY_DISABLED", description: "Live Activities are not enabled on this device")
             }
+
+            for activity in Activity<SemosanLiveActivityAttributes>.activities {
+                await activity.end(.none, dismissalPolicy: .immediate)
+            }
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            self?.currentActivityId = nil
 
             let modeStr = params["mode"] as? String ?? "free"
             let mode: SemosanLiveActivityAttributes.Mode = modeStr == "course" ? .course : .free

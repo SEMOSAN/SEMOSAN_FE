@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, NativeModules, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { LiveActivity } from '@/modules/live-activity';
 
@@ -31,10 +31,6 @@ export default function LiveActivityTestScreen() {
   };
 
   const startCourse = async () => {
-    if (!NativeModules.LiveActivityModule) {
-      Alert.alert('모듈 없음', 'LiveActivityModule이 네이티브에 등록되지 않았습니다.\nXcode에서 LiveActivityModule.swift, LiveActivityModule.m 파일이 semosan 타겟에 포함되어 있는지 확인하세요.');
-      return;
-    }
     try {
       const id = await LiveActivity.start({
         mode: 'course',
@@ -52,10 +48,6 @@ export default function LiveActivityTestScreen() {
   };
 
   const startFree = async () => {
-    if (!NativeModules.LiveActivityModule) {
-      Alert.alert('모듈 없음', 'LiveActivityModule이 네이티브에 등록되지 않았습니다.\nXcode에서 LiveActivityModule.swift, LiveActivityModule.m 파일이 semosan 타겟에 포함되어 있는지 확인하세요.');
-      return;
-    }
     try {
       const id = await LiveActivity.start({ mode: 'free' });
       setActivityId(id);
@@ -115,10 +107,6 @@ export default function LiveActivityTestScreen() {
       contentContainerStyle={{ padding: 24, paddingTop: 80, gap: 12 }}>
       <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 8 }}>
         Live Activity 테스트
-      </Text>
-
-      <Text style={{ color: NativeModules.LiveActivityModule ? '#00D864' : '#EF4444', fontSize: 12, marginBottom: 8 }}>
-        모듈: {NativeModules.LiveActivityModule ? '✓ 연결됨' : '✗ 없음 (네이티브 모듈 미등록)'}
       </Text>
 
       <Text style={{ color: '#00D864', fontSize: 32, fontWeight: '700', textAlign: 'center', marginBottom: 16 }}>
