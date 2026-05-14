@@ -34,6 +34,14 @@ const config = {
   plugins: [
     'expo-router',
     [
+      'expo-notifications',
+      {
+        icon: './assets/images/icon.png',
+        color: '#ffffff',
+        googleServicesFile: './google-services.json',
+      },
+    ],
+    [
       '@mj-studio/react-native-naver-map',
       {
         client_id: process.env.NAVER_MAP_CLIENT_ID,
