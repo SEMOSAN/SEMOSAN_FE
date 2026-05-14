@@ -45,7 +45,10 @@ export default function LoginScreen(): React.JSX.Element {
 
   async function handleKakaoLogin(): Promise<void> {
     if (Constants.executionEnvironment === "storeClient") {
-      Alert.alert("카카오 로그인 불가", "카카오 로그인은 Expo Go에서 사용할 수 없습니다.");
+      Alert.alert(
+        "카카오 로그인 불가",
+        "카카오 로그인은 Expo Go에서 사용할 수 없습니다.",
+      );
       return;
     }
     try {
@@ -75,12 +78,15 @@ export default function LoginScreen(): React.JSX.Element {
 
       <View className="gap-3 px-5" style={{ paddingBottom: 16 }}>
         <Pressable
-          className="flex-row items-center justify-center h-14 rounded-xl"
+          className="h-14 flex-row items-center justify-center rounded-xl"
           style={{ backgroundColor: "#FEE500" }}
           android_ripple={{ color: "rgba(0,0,0,0.1)" }}
           onPress={handleKakaoLogin}
         >
-          <Text className="typo-body-1-normal-semi-bold" style={{ color: "#191919" }}>
+          <Text
+            className="typo-body-1-normal-semi-bold"
+            style={{ color: "#191919" }}
+          >
             카카오로 계속하기
           </Text>
         </Pressable>

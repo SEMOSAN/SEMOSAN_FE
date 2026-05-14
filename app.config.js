@@ -66,21 +66,9 @@ const config = {
     ],
     "expo-apple-authentication",
     [
-      "@react-native-seoul/kakao-login",
+      "@react-native-kakao/core",
       {
-        kakaoAppKey: "{{kakao api key}}",
-        overrideKakaoSDKVersion: "2.11.2", // Optional,
-        kotlinVersion: "1.9.0", // #392
-      },
-    ],
-    [
-      "expo-build-properties",
-      {
-        android: {
-          extraMavenRepos: [
-            "https://devrepo.kakao.com/nexus/content/groups/public/",
-          ],
-        },
+        nativeAppKey: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
       },
     ],
   ],

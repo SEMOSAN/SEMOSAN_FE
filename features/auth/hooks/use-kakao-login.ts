@@ -1,26 +1,15 @@
-import { api } from "@/lib/api";
 import { tokenStorage } from "@/lib/auth/tokenStorage";
-import {
-  ENDPOINTS,
-  KakaoLoginBody,
-  OAuthLoginResponse,
-} from "@/types/api.generated";
-import { login } from "@react-native-seoul/kakao-login";
+import { OAuthLoginResponse } from "@/types/api.generated";
+import { login } from "@react-native-kakao/user";
 import { useMutation } from "@tanstack/react-query";
-
-async function kakaoLogin(body: KakaoLoginBody): Promise<OAuthLoginResponse> {
-  const res = await api.post<OAuthLoginResponse>({
-    path: ENDPOINTS.OAUTH_KAKAO_LOGIN,
-    body,
-  });
-  return res.data;
-}
 
 export function useKakaoLogin() {
   return useMutation({
     mutationFn: async (): Promise<OAuthLoginResponse> => {
+      // login() 내부적으로 POST /api/oauth/kakao/login 를 호출함.
       const token = await login();
-      return kakaoLogin({ code: token.accessToken, deviceType: "IOS" });
+
+      return token;
     },
     onSuccess: async ({ accessToken, refreshToken }) => {
       if (accessToken && refreshToken) {

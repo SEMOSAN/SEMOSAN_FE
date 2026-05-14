@@ -16,6 +16,7 @@ import {
   QueryClientProvider,
   focusManager,
 } from "@tanstack/react-query";
+import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { Redirect, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -26,6 +27,7 @@ import "react-native-reanimated";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
+initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
 
 function onAppStateChange(status: AppStateStatus) {
   // React Query already supports in web browser refetch on window focus by default

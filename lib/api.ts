@@ -1,4 +1,5 @@
 import { toast } from "@/store/toast.store";
+import { ENDPOINTS } from "@/types/api.generated";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { tokenStorage } from "./auth/tokenStorage";
 import { buildQueryParams } from "./buildQueryParams";
@@ -50,9 +51,13 @@ client.interceptors.response.use(
           throw new Error("No refresh token");
         }
 
-        const response = await axios.post(`${API_URL}/auth/reissue`, null, {
-          headers: { Authorization: `Bearer ${refreshToken}` },
-        });
+        const response = await axios.post(
+          `${API_URL}${ENDPOINTS.AUTH_TOKEN_REISSUE}`,
+          null,
+          {
+            headers: { Authorization: `Bearer ${refreshToken}` },
+          },
+        );
 
         const { accessToken, refreshToken: newRefreshToken } =
           response.data.data;
@@ -93,6 +98,7 @@ async function request<T>(
 
   try {
     const res = await client.request<{ data: T; status: number }>(config);
+
     return res.data;
   } catch (err) {
     const e = err as AxiosError;
