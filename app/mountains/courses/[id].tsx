@@ -63,7 +63,7 @@ export default function CourseDetailScreen(): React.JSX.Element {
           <View className="mx-5 h-[200px] overflow-hidden rounded-[20px] bg-fill-stronger">
             <Image
               source={course.imageSource ?? { uri: course.imageUrl }}
-              style={{ width: '100%', height: '100%' }}
+              style={{ width: "100%", height: "100%" }}
               resizeMode="stretch"
             />
           </View>
@@ -182,7 +182,9 @@ export default function CourseDetailScreen(): React.JSX.Element {
           pointerEvents="box-none"
         >
           <TouchableOpacity
-            onPress={() => router.push('/(tabs)/tracking')}
+            onPress={() =>
+              router.push(`/(tabs)/tracking?collapse=true&courseId=${id}`)
+            }
             className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3"
           >
             <RouteIcon />

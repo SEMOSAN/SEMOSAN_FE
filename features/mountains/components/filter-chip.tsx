@@ -1,5 +1,4 @@
 import { CaretDownIcon } from "@/components/icons/caret-down-icon";
-import React from "react";
 import { Text, TouchableOpacity } from "react-native";
 import Animated, {
   useAnimatedStyle,

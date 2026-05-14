@@ -1,7 +1,18 @@
-import { type CourseDifficulty } from "./mountain-detail";
+import { MountainListResponse } from "@/types/api.generated";
 
-export const COURSE_BADGE: Record<CourseDifficulty, { bg: string; text: string }> = {
-  초급: { bg: "bg-green-50", text: "text-green-500" },
-  중급: { bg: "bg-blue-50", text: "text-blue-500" },
-  상급: { bg: "bg-red-50", text: "text-red-500" },
+type MountainDifficulty = NonNullable<MountainListResponse["difficulty"]>;
+
+export const COURSE_BADGE: Record<
+  MountainDifficulty,
+  { style: { bg: string; text: string }; korean: string }
+> = {
+  EASY: {
+    style: { bg: "bg-green-50", text: "text-green-500" },
+    korean: "초급",
+  },
+  NORMAL: {
+    style: { bg: "bg-blue-50", text: "text-blue-500" },
+    korean: "중급",
+  },
+  HARD: { style: { bg: "bg-red-50", text: "text-red-500" }, korean: "상급" },
 };
