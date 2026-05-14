@@ -2,6 +2,7 @@ import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
 import { MenuChevronIcon } from '@/features/mypage/components/menu-chevron-icon';
 import { MenuRow } from '@/features/mypage/components/menu-row';
 import { BirthDateBottomSheet } from '@/features/mypage/components/birth-date-bottom-sheet';
+import { HeightBottomSheet } from '@/features/mypage/components/height-bottom-sheet';
 import { GenderBottomSheet } from '@/features/mypage/components/gender-bottom-sheet';
 import { NicknameBottomSheet } from '@/features/mypage/components/nickname-bottom-sheet';
 import { ProfileAvatar } from '@/features/mypage/components/profile-avatar';
@@ -21,11 +22,13 @@ export default function MyPageInfoScreen() {
   const [gender, setGender] = useState(MOCK_USER.gender);
   const [birthDateSheetVisible, setBirthDateSheetVisible] = useState(false);
   const [birthDate, setBirthDate] = useState(MOCK_USER.birthDate);
+  const [heightSheetVisible, setHeightSheetVisible] = useState(false);
+  const [height, setHeight] = useState(MOCK_USER.height);
 
   const profileItems = [
     { label: '성별', value: gender, onPress: () => setGenderSheetVisible(true) },
     { label: '나이', value: birthDate, onPress: () => setBirthDateSheetVisible(true) },
-    { label: '키', value: MOCK_USER.height },
+    { label: '키', value: height, onPress: () => setHeightSheetVisible(true) },
     { label: '체중', value: MOCK_USER.weight },
     { label: '운동 경험', value: MOCK_USER.exercise },
   ];
@@ -84,6 +87,12 @@ export default function MyPageInfoScreen() {
           </TouchableOpacity>
         </View>
 
+        <HeightBottomSheet
+          visible={heightSheetVisible}
+          initialValue={height}
+          onClose={() => setHeightSheetVisible(false)}
+          onSave={(value) => setHeight(value)}
+        />
         <BirthDateBottomSheet
           visible={birthDateSheetVisible}
           initialValue={birthDate}
