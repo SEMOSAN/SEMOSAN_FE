@@ -1,9 +1,10 @@
 import { useAppleLogin } from "@/features/auth/hooks/use-apple-login";
 import { useKakaoLogin } from "@/features/auth/hooks/use-kakao-login";
 import * as AppleAuthentication from "expo-apple-authentication";
+import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LoginScreen(): React.JSX.Element {
@@ -43,6 +44,10 @@ export default function LoginScreen(): React.JSX.Element {
   }
 
   async function handleKakaoLogin(): Promise<void> {
+    if (Constants.executionEnvironment === "storeClient") {
+      Alert.alert("카카오 로그인 불가", "카카오 로그인은 Expo Go에서 사용할 수 없습니다.");
+      return;
+    }
     try {
       await kakaoLoginAsync();
       router.replace("/(tabs)");

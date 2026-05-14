@@ -5,6 +5,7 @@ import {
   KakaoLoginBody,
   OAuthLoginResponse,
 } from "@/types/api.generated";
+import { login } from "@react-native-seoul/kakao-login";
 import { useMutation } from "@tanstack/react-query";
 
 async function kakaoLogin(body: KakaoLoginBody): Promise<OAuthLoginResponse> {
@@ -18,8 +19,7 @@ async function kakaoLogin(body: KakaoLoginBody): Promise<OAuthLoginResponse> {
 export function useKakaoLogin() {
   return useMutation({
     mutationFn: async (): Promise<OAuthLoginResponse> => {
-      // TODO : 카카오 로그인 구현
-      const token = { accessToken: "1" };
+      const token = await login();
       return kakaoLogin({ code: token.accessToken, deviceType: "IOS" });
     },
     onSuccess: async ({ accessToken, refreshToken }) => {

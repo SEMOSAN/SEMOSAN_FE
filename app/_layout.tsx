@@ -44,11 +44,11 @@ export const unstable_settings = {
 
 export default function RootLayout(): React.JSX.Element | null {
   const colorScheme = useColorScheme();
-  usePushNotification();
+  const { status: authStatus } = useAuthState();
+  usePushNotification(authStatus === "authenticated");
   const [fontsLoaded] = useFonts({
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
   });
-  const { status: authStatus } = useAuthState();
 
   useReactQueryDevTools(queryClient);
 
