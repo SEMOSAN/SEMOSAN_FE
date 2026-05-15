@@ -12,7 +12,7 @@ export default function MyPageScreen() {
   const router = useRouter();
 
   const activityItems = [
-    { label: '저장한 산 목록', onPress: () => {} },
+    { label: '저장한 산 목록', onPress: () => router.push('/mypage/saved-mountains') },
     { label: '내 게시글', onPress: () => {} },
     { label: '내 반응', onPress: () => {} },
     { label: '차단 목록', onPress: () => {} },
