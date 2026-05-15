@@ -1,23 +1,44 @@
+import Toast from "@/components/toast/toast";
+import { useAuthState } from "@/features/auth/hooks/use-auth-state";
+import { useAppState } from "@/hooks/use-app-state";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useOnlineManager } from "@/hooks/use-online-manager";
+import { usePushNotification } from "@/hooks/use-push-notification";
+import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { useFonts } from "@expo-google-fonts/lexend";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import {
+  QueryClient,
+  QueryClientProvider,
+  focusManager,
+} from "@tanstack/react-query";
+import { initializeKakaoSDK } from "@react-native-kakao/core";
+import { Redirect, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
-import "react-native-reanimated";
+import { AppStateStatus, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-reanimated";
 import "../global.css";
 
-import Toast from "@/components/toast/toast";
-import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useCountdownStore } from "@/store/countdown.store";
-
 SplashScreen.preventAutoHideAsync();
+initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
+
+function onAppStateChange(status: AppStateStatus) {
+  // React Query already supports in web browser refetch on window focus by default
+  if (Platform.OS !== "web") {
+    focusManager.setFocused(status === "active");
+  }
+}
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 2, staleTime: 1000 * 60 * 5 } },
+});
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -25,10 +46,17 @@ export const unstable_settings = {
 
 export default function RootLayout(): React.JSX.Element | null {
   const colorScheme = useColorScheme();
+  const { status: authStatus } = useAuthState();
+  usePushNotification(authStatus === "authenticated");
   const [fontsLoaded] = useFonts({
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
   });
-  const { countdown, dismiss } = useCountdownStore();
+
+  useReactQueryDevTools(queryClient);
+
+  useOnlineManager();
+
+  useAppState(onAppStateChange);
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -36,13 +64,7 @@ export default function RootLayout(): React.JSX.Element | null {
     }
   }, [fontsLoaded]);
 
-  useEffect(() => {
-    if (countdown === null) return;
-    const timer = setTimeout(() => useCountdownStore.getState().tick(), 1000);
-    return () => clearTimeout(timer);
-  }, [countdown]);
-
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded || authStatus === "loading") return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -53,6 +75,7 @@ export default function RootLayout(): React.JSX.Element | null {
           <Stack.Screen name="mountain-info" options={{ headerShown: false }} />
           <Stack.Screen name="community/write" options={{ headerShown: false }} />
           <Stack.Screen name="community/post-complete" options={{ headerShown: false }} />
+          <Stack.Screen name="mypage/info" options={{ headerShown: false }} />
           <Stack.Screen
             name="modal"
             options={{ presentation: "modal", title: "Modal" }}
@@ -62,5 +85,37 @@ export default function RootLayout(): React.JSX.Element | null {
         <StatusBar style="auto" />
       </ThemeProvider>
     </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="record/[id]" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="mountain-info"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/write"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/post-complete"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="modal"
+              options={{ presentation: "modal", title: "Modal" }}
+            />
+          </Stack>
+          {authStatus === "unauthenticated" && <Redirect href="/login" />}
+          <Toast />
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }

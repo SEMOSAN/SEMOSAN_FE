@@ -1,5 +1,10 @@
 export type Difficulty = '초급' | '중급' | '고급';
 
+export type Coord = {
+  latitude: number;
+  longitude: number;
+};
+
 export type Course = {
   id: string;
   name: string;
@@ -10,12 +15,77 @@ export type Course = {
   descentM: number;
   durationHours: number;
   durationMinutes: number;
+  /** 코스 경로 좌표 목록 */
+  coordinates: Coord[];
+  /** 지도 초기 중심 좌표 */
+  centerLatitude: number;
+  centerLongitude: number;
+  /** 지도 초기 줌 레벨 */
+  zoom: number;
 };
 
+// 관악산 과천향교 출발 코스 목업 좌표 (실제 API 연동 시 교체)
+const GWANAK_COURSE_COORDS: Coord[] = [
+  { latitude: 37.4272, longitude: 126.9876 }, // 과천향교 출발
+  { latitude: 37.4289, longitude: 126.9891 },
+  { latitude: 37.4310, longitude: 126.9912 },
+  { latitude: 37.4335, longitude: 126.9934 },
+  { latitude: 37.4358, longitude: 126.9951 },
+  { latitude: 37.4380, longitude: 126.9963 },
+  { latitude: 37.4401, longitude: 126.9978 },
+  { latitude: 37.4423, longitude: 126.9990 },
+  { latitude: 37.4445, longitude: 127.0001 },
+  { latitude: 37.4462, longitude: 127.0015 },
+  { latitude: 37.4479, longitude: 127.0028 },
+  { latitude: 37.4489, longitude: 127.0042 }, // 관악산 정상 부근
+];
+
 export const MOCK_COURSES: Course[] = [
-  { id: '1', name: '과천향교 출발 코스', difficulty: '초급', altitudeNm: 2.43, distanceKm: 13.95, ascentM: 1436, descentM: 1354, durationHours: 7, durationMinutes: 55 },
-  { id: '2', name: '과천향교 출발 코스', difficulty: '초급', altitudeNm: 2.43, distanceKm: 13.95, ascentM: 1436, descentM: 1354, durationHours: 7, durationMinutes: 55 },
-  { id: '3', name: '과천향교 출발 코스', difficulty: '초급', altitudeNm: 2.43, distanceKm: 13.95, ascentM: 1436, descentM: 1354, durationHours: 7, durationMinutes: 55 },
+  {
+    id: '1',
+    name: '과천향교 출발 코스',
+    difficulty: '초급',
+    altitudeNm: 2.43,
+    distanceKm: 13.95,
+    ascentM: 1436,
+    descentM: 1354,
+    durationHours: 7,
+    durationMinutes: 55,
+    coordinates: GWANAK_COURSE_COORDS,
+    centerLatitude: 37.4380,
+    centerLongitude: 126.9963,
+    zoom: 14,
+  },
+  {
+    id: '2',
+    name: '과천향교 출발 코스',
+    difficulty: '초급',
+    altitudeNm: 2.43,
+    distanceKm: 13.95,
+    ascentM: 1436,
+    descentM: 1354,
+    durationHours: 7,
+    durationMinutes: 55,
+    coordinates: GWANAK_COURSE_COORDS,
+    centerLatitude: 37.4380,
+    centerLongitude: 126.9963,
+    zoom: 14,
+  },
+  {
+    id: '3',
+    name: '과천향교 출발 코스',
+    difficulty: '초급',
+    altitudeNm: 2.43,
+    distanceKm: 13.95,
+    ascentM: 1436,
+    descentM: 1354,
+    durationHours: 7,
+    durationMinutes: 55,
+    coordinates: GWANAK_COURSE_COORDS,
+    centerLatitude: 37.4380,
+    centerLongitude: 126.9963,
+    zoom: 14,
+  },
 ];
 
 export const DIFFICULTY_BG: Record<Difficulty, string> = {

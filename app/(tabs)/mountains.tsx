@@ -1,5 +1,5 @@
 import { ResetIcon } from "@/components/icons/reset-icon";
-import { SearchIcon } from "@/components/icons/search-icon";
+import { MountainSearchButton } from "@/features/mountains/components/mountain-search-button";
 import {
   DifficultyBottomSheet,
   DifficultyOption,
@@ -10,11 +10,7 @@ import {
 } from "@/features/mountains/components/duration-bottom-sheet";
 import { FilterBottomSheet } from "@/features/mountains/components/filter-bottom-sheet";
 import { FilterChip } from "@/features/mountains/components/filter-chip";
-import {
-  Difficulty,
-  MOCK_MOUNTAINS,
-  MountainCard,
-} from "@/features/mountains/components/mountain-card";
+import { MountainList } from "@/features/mountains/components/mountain-list";
 import {
   RegionFilterContent,
   Selection,
@@ -23,8 +19,8 @@ import {
   SortBottomSheet,
   SortOption,
 } from "@/features/mountains/components/sort-bottom-sheet";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useUserLocation } from "@/hooks/use-user-location";
+import { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -43,7 +39,6 @@ function getDurationLabel(range: [number, number]): string {
 
 export default function MountainsScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>("popularity");
   const [difficultyOptions, setDifficultyOptions] = useState<
@@ -52,25 +47,14 @@ export default function MountainsScreen() {
   const [durationRange, setDurationRange] = useState<[number, number]>([0, 7]);
   const [regionSelections, setRegionSelections] = useState<Selection[]>([]);
 
+  const userLocation = useUserLocation();
+
   const resetFilters = (): void => {
     setSortOption("popularity");
     setDifficultyOptions([]);
     setDurationRange([0, 7]);
     setRegionSelections([]);
   };
-
-  const DIFFICULTY_MAP: Record<DifficultyOption, Difficulty> = {
-    high: "상",
-    medium: "중",
-    low: "하",
-  };
-
-  const filteredMountains =
-    difficultyOptions.length === 0
-      ? MOCK_MOUNTAINS
-      : MOCK_MOUNTAINS.filter((m) =>
-          difficultyOptions.some((opt) => DIFFICULTY_MAP[opt] === m.difficulty)
-        );
 
   const hasActiveFilter =
     sortOption !== "popularity" ||
@@ -86,7 +70,7 @@ export default function MountainsScreen() {
         <Text className="flex-1 text-label-normal typo-headline-1-semi-bold">
           산 목록
         </Text>
-        <SearchIcon />
+        <MountainSearchButton />
       </View>
 
       {/* Filter bar */}
@@ -198,20 +182,12 @@ export default function MountainsScreen() {
         />
       </FilterBottomSheet>
 
-      {/* Mountain list */}
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="gap-5 px-5 py-3">
-          {filteredMountains.map((mountain) => (
-            <TouchableOpacity
-              key={mountain.id}
-              onPress={() => router.push(`/mountains/${mountain.id}`)}
-              activeOpacity={0.7}
-            >
-              <MountainCard mountain={mountain} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+      <MountainList
+        difficultyOptions={difficultyOptions}
+        regionSelections={regionSelections}
+        sortOption={sortOption}
+        userLocation={userLocation}
+      />
     </View>
   );
 }
