@@ -21,8 +21,8 @@ export default function MyPageScreen() {
   const serviceItems = [
     { label: '공지사항', onPress: () => {} },
     { label: '1:1 문의하기', onPress: () => {} },
-    { label: '권한 관리', onPress: () => {} },
-    { label: '이용약관', onPress: () => {} },
+    { label: '권한 관리', onPress: () => router.push('/mypage/permissions') },
+    { label: '이용약관', onPress: () => router.push('/mypage/terms') },
     { label: '버전 정보', value: `v ${APP_VERSION}`, onPress: () => {} },
   ];
 
