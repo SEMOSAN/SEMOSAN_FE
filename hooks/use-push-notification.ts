@@ -19,10 +19,11 @@ Notifications.setNotificationHandler({
  * 앱 시작 시 FCM 토큰을 서버에 등록하고
  * 포어그라운드 알림 수신 및 알림 탭 이벤트를 처리하는 훅
  */
-export function usePushNotification() {
+export function usePushNotification(enabled = true): void {
   const router = useRouter();
 
   useEffect(() => {
+    if (!enabled) return;
     registerFcmToken();
 
     // 포어그라운드 알림 수신 (필요 시 인앱 UI 처리)
@@ -51,7 +52,7 @@ export function usePushNotification() {
       foregroundSub.remove();
       tapSub.remove();
     };
-  }, [router]);
+  }, [router, enabled]);
 }
 
 // ─── 타입 ───────────────────────────────────────────────────
