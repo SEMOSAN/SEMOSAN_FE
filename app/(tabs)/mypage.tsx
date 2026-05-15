@@ -12,7 +12,7 @@ export default function MyPageScreen() {
   const router = useRouter();
 
   const activityItems = [
-    { label: '저장한 산 목록', onPress: () => {} },
+    { label: '저장한 산 목록', onPress: () => router.push('/mypage/saved-mountains') },
     { label: '내 게시글', onPress: () => {} },
     { label: '내 반응', onPress: () => {} },
     { label: '차단 목록', onPress: () => {} },
@@ -21,8 +21,8 @@ export default function MyPageScreen() {
   const serviceItems = [
     { label: '공지사항', onPress: () => {} },
     { label: '1:1 문의하기', onPress: () => {} },
-    { label: '권한 관리', onPress: () => {} },
-    { label: '이용약관', onPress: () => {} },
+    { label: '권한 관리', onPress: () => router.push('/mypage/permissions') },
+    { label: '이용약관', onPress: () => router.push('/mypage/terms') },
     { label: '버전 정보', value: `v ${APP_VERSION}`, onPress: () => {} },
   ];
 
