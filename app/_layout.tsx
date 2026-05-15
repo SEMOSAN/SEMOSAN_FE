@@ -74,6 +74,24 @@ export default function RootLayout(): React.JSX.Element | null {
   if (!fontsLoaded) return null;
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="record/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="mountain-info" options={{ headerShown: false }} />
+          <Stack.Screen name="community/write" options={{ headerShown: false }} />
+          <Stack.Screen name="community/post-complete" options={{ headerShown: false }} />
+          <Stack.Screen name="mypage/info" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="modal"
+            options={{ presentation: "modal", title: "Modal" }}
+          />
+        </Stack>
+        <Toast />
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </GestureHandlerRootView>
     <QueryClientProvider client={queryClient}>
       {/* TODO : 실제 제3자로그인 연동시에는 아래 initializer를 빼야함. */}
       <TestAppInitializer />
