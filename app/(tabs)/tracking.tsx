@@ -126,9 +126,7 @@ export default function TrackingScreen() {
       }).catch(() => {});
     }
 
-    return () => {
-      LiveActivity.stop().catch(() => {});
-    };
+    return () => {};
   }, [isTracking, isFreeMode, selectedCourse]);
 
   // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
@@ -158,7 +156,7 @@ export default function TrackingScreen() {
         progress,
       }).catch(() => {});
     }
-  }, [elapsedSeconds, isPaused, isTracking, isFreeMode, selectedCourse]);
+  }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse]);
 
   const pauseTracking = () => setIsPaused(true);
   const resumeTracking = () => setIsPaused(false);
