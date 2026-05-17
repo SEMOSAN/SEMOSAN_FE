@@ -8,7 +8,10 @@ import { HomeIcon } from "@/components/icons/home-icon";
 import { MountainIcon } from "@/components/icons/mountain-icon";
 import { MyIcon } from "@/components/icons/my-icon";
 import { NavigationIcon } from "@/components/icons/navigation-icon";
-import { useHomeStateContext, type TabBarVariant } from "@/contexts/home-state-context";
+import {
+  useHomeStateContext,
+  type TabBarVariant,
+} from "@/contexts/home-state-context";
 
 type TabItem = {
   name: string;
@@ -21,7 +24,6 @@ type VariantConfig = {
   containerClass: string;
   iconColor: (isFocused: boolean) => string;
   labelClass: (isFocused: boolean) => string;
-  labelColor: string | null;
 };
 
 const VARIANT_CONFIG: Record<TabBarVariant, VariantConfig> = {
@@ -29,13 +31,11 @@ const VARIANT_CONFIG: Record<TabBarVariant, VariantConfig> = {
     containerClass: "border-t border-line-subtle bg-fill-normal",
     iconColor: (f) => (f ? "#1a1b1f" : "#d1d5db"),
     labelClass: (f) => (f ? "text-label-normal" : "text-neutral-100"),
-    labelColor: null,
   },
   dark: {
-    containerClass: "bg-black",
-    iconColor: () => "#464A57",
-    labelClass: () => "",
-    labelColor: "#464A57",
+    containerClass: "border-t border-neutral-700 bg-black",
+    iconColor: (f) => (f ? "#ffffff" : "#464A57"),
+    labelClass: (f) => (f ? "text-label-normal-inverse" : "text-neutral-700"),
   },
 };
 
@@ -74,7 +74,7 @@ export function BottomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { hasRecords, toggleHasRecords, tabBarVariant } = useHomeStateContext();
+  const { toggleHasRecords, tabBarVariant } = useHomeStateContext();
   const variant = VARIANT_CONFIG[tabBarVariant];
 
   // 현재 활성 라우트의 tabBarStyle이 hidden이면 탭바 숨기기
@@ -131,7 +131,6 @@ export function BottomTabBar({
             {item.renderIcon(variant.iconColor(isFocused))}
             <Text
               className={`text-center typo-caption-1-medium ${variant.labelClass(isFocused)}`}
-              style={variant.labelColor ? { color: variant.labelColor } : undefined}
             >
               {item.label}
             </Text>
