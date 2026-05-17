@@ -7,6 +7,7 @@ import { KakaoIcon } from "@/components/icons/kakao-icon";
 import { SemosanIcon } from "@/components/icons/semosan-icon";
 import { SemosanTextLogo } from "@/components/icons/semosan-text-logo";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -67,7 +68,9 @@ export default function LoginScreen(): React.JSX.Element {
   }
 
   return (
-    <View
+    <>
+      <StatusBar style="light" />
+      <View
       className="flex-1 bg-neutral-900"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
@@ -101,5 +104,6 @@ export default function LoginScreen(): React.JSX.Element {
         </Pressable>
       </View>
     </View>
+    </>
   );
 }
