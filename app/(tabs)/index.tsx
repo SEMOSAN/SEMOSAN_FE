@@ -95,7 +95,14 @@ export default function HomeScreen(): React.JSX.Element {
         ) : (
           <>
             <View style={styles.headerRow} pointerEvents="box-none">
-              <SemosanLogo color={mapTab === "feed" ? "#ffffff" : "#1A1B1F"} />
+              <View>
+                <Animated.View style={mapAnimatedStyle}>
+                  <SemosanLogo color="#1A1B1F" />
+                </Animated.View>
+                <Animated.View style={[StyleSheet.absoluteFill, feedAnimatedStyle]}>
+                  <SemosanLogo color="#ffffff" />
+                </Animated.View>
+              </View>
               <TouchableOpacity
                 className="w-12 h-12 rounded-full bg-fill-normal items-center justify-center"
                 style={styles.shadowButton}
