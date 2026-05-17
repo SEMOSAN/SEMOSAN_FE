@@ -1,17 +1,24 @@
 import { useAppleLogin } from "@/features/auth/hooks/use-apple-login";
 import { useKakaoLogin } from "@/features/auth/hooks/use-kakao-login";
+import { useTestLogin } from "@/features/auth/hooks/use-test-login";
+import { AppleIcon } from "@/components/icons/apple-icon";
+import { KakaoIcon } from "@/components/icons/kakao-icon";
+import { SemosanIcon } from "@/components/icons/semosan-icon";
+import { SemosanTextLogo } from "@/components/icons/semosan-text-logo";
 import * as AppleAuthentication from "expo-apple-authentication";
-import Constants from "expo-constants";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const isDevMode = __DEV__;
 
 export default function LoginScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { mutateAsync: appleLoginAsync } = useAppleLogin();
   const { mutateAsync: kakaoLoginAsync } = useKakaoLogin();
+  const { mutateAsync: testLoginAsync } = useTestLogin();
 
   async function handleAppleLogin(): Promise<void> {
     try {
@@ -48,7 +55,7 @@ export default function LoginScreen(): React.JSX.Element {
   }
 
   async function handleKakaoLogin(): Promise<void> {
-    if (Constants.executionEnvironment === "storeClient") {
+    if (isDevMode) {
       Alert.alert(
         "카카오 로그인 불가",
         "카카오 로그인은 Expo Go에서 사용할 수 없습니다.",
@@ -63,46 +70,79 @@ export default function LoginScreen(): React.JSX.Element {
     }
   }
 
+  function handleTestLogin(): void {
+    Alert.prompt(
+      "테스트 로그인",
+      "testUserId를 입력하세요",
+      [
+        { text: "취소", style: "cancel" },
+        {
+          text: "로그인",
+          onPress: async (value: string | undefined) => {
+            const testUserId = parseInt(value ?? "1", 10) || 1;
+            try {
+              await testLoginAsync({ testUserId });
+              router.replace("/(tabs)");
+            } catch (e: unknown) {
+              console.error("Test login error:", e);
+            }
+          },
+        },
+      ],
+      "plain-text",
+      "1",
+      "number-pad",
+    );
+  }
+
   return (
-    <View
-      className="flex-1 bg-fill-normal"
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
-    >
-      <View className="flex-1 items-center justify-center px-5">
-        <Image
-          source={require("@/assets/images/icon.png")}
-          style={{ width: 80, height: 80, borderRadius: 20 }}
-          contentFit="contain"
-        />
-        <Text className="mt-4 text-label-normal typo-title-2-bold">세모산</Text>
-        <Text className="mt-2 text-label-subtle typo-body-1-normal-regular">
-          세상의 모든 산
-        </Text>
-      </View>
+    <>
+      <StatusBar style="light" />
+      <View
+        className="flex-1 bg-neutral-900"
+        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+      >
+        <View className="flex-1 flex-row items-center justify-center gap-3">
+          <SemosanIcon size={39} />
+          <SemosanTextLogo width={162} />
+        </View>
 
-      <View className="gap-3 px-5" style={{ paddingBottom: 16 }}>
-        <Pressable
-          className="h-14 flex-row items-center justify-center rounded-xl"
-          style={{ backgroundColor: "#FEE500" }}
-          android_ripple={{ color: "rgba(0,0,0,0.1)" }}
-          onPress={handleKakaoLogin}
-        >
-          <Text
-            className="typo-body-1-normal-semi-bold"
-            style={{ color: "#191919" }}
+        <View className="gap-4 px-[43px]" style={{ paddingBottom: 16 }}>
+          <Pressable
+            className="h-[45px] flex-row items-center justify-center gap-3 rounded-lg overflow-hidden"
+            style={{ backgroundColor: "#FEE500" }}
+            android_ripple={{ color: "rgba(0,0,0,0.1)" }}
+            onPress={handleKakaoLogin}
           >
-            카카오로 계속하기
-          </Text>
-        </Pressable>
+            <KakaoIcon size={18} />
+            <Text className="typo-body-1-normal-semi-bold" style={{ color: "rgba(0,0,0,0.85)" }}>
+              카카오로 시작하기
+            </Text>
+          </Pressable>
 
-        <AppleAuthentication.AppleAuthenticationButton
-          buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-          buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-          cornerRadius={12}
-          style={{ height: 56 }}
-          onPress={handleAppleLogin}
-        />
+          <Pressable
+            className="h-[45px] flex-row items-center justify-center gap-3 rounded-lg bg-white overflow-hidden"
+            android_ripple={{ color: "rgba(0,0,0,0.1)" }}
+            onPress={handleAppleLogin}
+          >
+            <AppleIcon size={20} />
+            <Text className="typo-body-1-normal-semi-bold" style={{ color: "#000000" }}>
+              Apple로 시작하기
+            </Text>
+          </Pressable>
+        </View>
+
+        {isDevMode && (
+          <Pressable
+            className="absolute bottom-10 right-5 bg-neutral-700 rounded-full px-4 py-2"
+            onPress={handleTestLogin}
+          >
+            <Text className="typo-caption-1-semi-bold text-label-normal-inverse">
+              테스트 로그인
+            </Text>
+          </Pressable>
+        )}
       </View>
-    </View>
+    </>
   );
 }
