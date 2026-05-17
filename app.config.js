@@ -57,11 +57,11 @@ const config = {
     [
       "expo-splash-screen",
       {
-        image: "./assets/images/splash-icon.png",
-        imageWidth: 200,
+        image: "./assets/logo.png",
+        imageWidth: 120,
         resizeMode: "contain",
-        backgroundColor: "#ffffff",
-        dark: { backgroundColor: "#000000" },
+        backgroundColor: "#1a1b1f",
+        dark: { backgroundColor: "#1a1b1f" },
       },
     ],
     "expo-apple-authentication",

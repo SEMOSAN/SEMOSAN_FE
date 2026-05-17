@@ -59,10 +59,10 @@ export default function RootLayout(): React.JSX.Element | null {
   useAppState(onAppStateChange);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded && authStatus !== "loading") {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, authStatus]);
 
   if (!fontsLoaded || authStatus === "loading") return null;
 
