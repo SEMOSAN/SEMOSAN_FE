@@ -5,6 +5,7 @@ import { XIcon } from "@/components/icons/x-icon";
 import { FeedHomeView } from "@/features/home/components/feed-home-view";
 import { MapHomeView, type MapHomeViewRef } from "@/features/home/components/map-home-view";
 import { MapTabToggle, type MapTab } from "@/features/home/components/map-tab-toggle";
+import { useHomeStateContext } from "@/contexts/home-state-context";
 import { StatusBar } from "expo-status-bar";
 import { useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -23,6 +24,7 @@ export default function HomeScreen(): React.JSX.Element {
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
   const { top } = useSafeAreaInsets();
   const mapViewRef = useRef<MapHomeViewRef>(null);
+  const { setTabBarVariant } = useHomeStateContext();
 
   const mapOpacity = useSharedValue(1);
   const feedOpacity = useSharedValue(0);
@@ -35,10 +37,12 @@ export default function HomeScreen(): React.JSX.Element {
     setMapTab(tab);
 
     if (tab === "feed") {
+      setTabBarVariant("dark");
       mapViewRef.current?.collapseSheet();
       mapOpacity.value = withTiming(0, { duration: TRANSITION_DURATION });
       feedOpacity.value = withTiming(1, { duration: TRANSITION_DURATION });
     } else {
+      setTabBarVariant("light");
       mapViewRef.current?.expandSheet();
       feedOpacity.value = withTiming(0, { duration: TRANSITION_DURATION });
       mapOpacity.value = withTiming(1, { duration: TRANSITION_DURATION });

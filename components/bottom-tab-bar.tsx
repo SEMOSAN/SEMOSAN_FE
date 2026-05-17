@@ -8,7 +8,7 @@ import { HomeIcon } from "@/components/icons/home-icon";
 import { MountainIcon } from "@/components/icons/mountain-icon";
 import { MyIcon } from "@/components/icons/my-icon";
 import { NavigationIcon } from "@/components/icons/navigation-icon";
-import { useHomeStateContext } from "@/contexts/home-state-context";
+import { useHomeStateContext, type TabBarVariant } from "@/contexts/home-state-context";
 
 type TabItem = {
   name: string;
@@ -17,8 +17,27 @@ type TabItem = {
   isCenter?: boolean;
 };
 
-const ACTIVE_COLOR = "#1a1b1f";
-const INACTIVE_COLOR = "#d1d5db";
+type VariantConfig = {
+  containerClass: string;
+  iconColor: (isFocused: boolean) => string;
+  labelClass: (isFocused: boolean) => string;
+  labelColor: string | null;
+};
+
+const VARIANT_CONFIG: Record<TabBarVariant, VariantConfig> = {
+  light: {
+    containerClass: "border-t border-line-subtle bg-fill-normal",
+    iconColor: (f) => (f ? "#1a1b1f" : "#d1d5db"),
+    labelClass: (f) => (f ? "text-label-normal" : "text-neutral-100"),
+    labelColor: null,
+  },
+  dark: {
+    containerClass: "bg-black",
+    iconColor: () => "#464A57",
+    labelClass: () => "",
+    labelColor: "#464A57",
+  },
+};
 
 const TAB_ITEMS: TabItem[] = [
   {
@@ -55,7 +74,8 @@ export function BottomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { hasRecords, toggleHasRecords } = useHomeStateContext();
+  const { hasRecords, toggleHasRecords, tabBarVariant } = useHomeStateContext();
+  const variant = VARIANT_CONFIG[tabBarVariant];
 
   // 현재 활성 라우트의 tabBarStyle이 hidden이면 탭바 숨기기
   const currentRoute = state.routes[state.index];
@@ -66,7 +86,7 @@ export function BottomTabBar({
 
   return (
     <View
-      className="flex-row items-center justify-between border-t border-line-subtle bg-fill-normal px-5"
+      className={`flex-row items-center justify-between px-5 ${variant.containerClass}`}
       style={{ paddingBottom: Math.max(insets.bottom, 4), paddingTop: 4 }}
     >
       {state.routes.map((route, index) => {
@@ -108,9 +128,10 @@ export function BottomTabBar({
             className="items-center justify-center gap-0.5 rounded"
             style={{ width: 48, height: 48 }}
           >
-            {item.renderIcon(isFocused ? ACTIVE_COLOR : INACTIVE_COLOR)}
+            {item.renderIcon(variant.iconColor(isFocused))}
             <Text
-              className={`text-center typo-caption-1-medium ${isFocused ? "text-label-normal" : "text-neutral-100"}`}
+              className={`text-center typo-caption-1-medium ${variant.labelClass(isFocused)}`}
+              style={variant.labelColor ? { color: variant.labelColor } : undefined}
             >
               {item.label}
             </Text>
