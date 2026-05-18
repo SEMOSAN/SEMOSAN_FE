@@ -12,7 +12,7 @@ const config = {
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.tastyhiking.semosan",
+    bundleIdentifier: "com.tastyhiking.semosanapp",
     usesAppleSignIn: true,
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
@@ -31,7 +31,7 @@ const config = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     permissions: [],
-    package: "com.tastyhiking.semosan",
+    package: "com.tastyhiking.semosanapp",
   },
   web: {
     output: "static",
