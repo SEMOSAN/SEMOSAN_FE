@@ -1,4 +1,5 @@
 import Toast from "@/components/toast/toast";
+import { isExpoGo } from "@/constants/platform";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { useAppState } from "@/hooks/use-app-state";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -27,7 +28,8 @@ import "react-native-reanimated";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
-initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
+if (!isExpoGo)
+  initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
 
 function onAppStateChange(status: AppStateStatus) {
   // React Query already supports in web browser refetch on window focus by default
@@ -108,7 +110,7 @@ export default function RootLayout(): React.JSX.Element | null {
           </Stack>
           {authStatus === "unauthenticated" && <Redirect href="/login" />}
           <Toast />
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
         </ThemeProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>

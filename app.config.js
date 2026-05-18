@@ -66,6 +66,7 @@ const config = {
       },
     ],
     "expo-apple-authentication",
+    "expo-web-browser",
     [
       "@react-native-kakao/core",
       {

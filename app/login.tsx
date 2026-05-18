@@ -2,18 +2,15 @@ import { AppleIcon } from "@/components/icons/apple-icon";
 import { KakaoIcon } from "@/components/icons/kakao-icon";
 import { SemosanIcon } from "@/components/icons/semosan-icon";
 import { SemosanTextLogo } from "@/components/icons/semosan-text-logo";
+import { isDevMode, isExpoGo } from "@/constants/platform";
 import { useAppleLogin } from "@/features/auth/hooks/use-apple-login";
 import { useKakaoLogin } from "@/features/auth/hooks/use-kakao-login";
 import { useTestLogin } from "@/features/auth/hooks/use-test-login";
 import * as AppleAuthentication from "expo-apple-authentication";
-import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const isDevMode = __DEV__;
-const isExpoGo = Constants.executionEnvironment === "storeClient";
 
 export default function LoginScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
