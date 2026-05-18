@@ -1,14 +1,14 @@
-import { LocationIcon } from '@/components/icons/location-icon';
-import { CollapsedCourseCard } from '@/features/tracking/components/collapsed-course-card';
-import { CountdownOverlay } from '@/features/tracking/components/countdown-overlay';
-import { CourseSelectSheet } from '@/features/tracking/components/course-select-sheet';
-import { DifficultyRatingModal } from '@/features/tracking/components/difficulty-rating-modal';
-import { FreeRecordConfirmModal } from '@/features/tracking/components/free-record-confirm-modal';
-import { StopConfirmModal } from '@/features/tracking/components/stop-confirm-modal';
-import { SummitSheet } from '@/features/tracking/components/summit-sheet';
-import { TrackingCourseCard } from '@/features/tracking/components/tracking-course-card';
-import { TrackingSheet } from '@/features/tracking/components/tracking-sheet';
-import { TrailAvatarMarker } from '@/features/tracking/components/trail-avatar-marker';
+import { LocationIcon } from "@/components/icons/location-icon";
+import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
+import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
+import { CourseSelectSheet } from "@/features/tracking/components/course-select-sheet";
+import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
+import { FreeRecordConfirmModal } from "@/features/tracking/components/free-record-confirm-modal";
+import { StopConfirmModal } from "@/features/tracking/components/stop-confirm-modal";
+import { SummitSheet } from "@/features/tracking/components/summit-sheet";
+import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
+import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
+import { TrailAvatarMarker } from "@/features/tracking/components/trail-avatar-marker";
 import {
   COLLAPSED_PEEK_HEIGHT,
   FLOATING_CARD_GAP,
@@ -23,14 +23,23 @@ import {
   TRAIL_BAR_LEFT,
   TRAIL_BAR_LOCATIONS,
   TRAIL_BAR_WIDTH,
-  TRAIL_MARKER_LEFT
-} from '@/features/tracking/constants';
-import { NaverMapMarkerOverlay, NaverMapPathOverlay, NaverMapView } from '@mj-studio/react-native-naver-map';
-import { LinearGradient } from 'expo-linear-gradient';
-import * as Location from 'expo-location';
-import { Tabs } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { LayoutChangeEvent, StyleSheet, TouchableOpacity, View } from 'react-native';
+  TRAIL_MARKER_LEFT,
+} from "@/features/tracking/constants";
+import {
+  NaverMapMarkerOverlay,
+  NaverMapPathOverlay,
+  NaverMapView,
+} from "@mj-studio/react-native-naver-map";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Location from "expo-location";
+import { Tabs, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  LayoutChangeEvent,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function TrackingScreen() {
   const { collapse: collapseParameter, courseId: courseIdParameter } =
@@ -64,21 +73,27 @@ export default function TrackingScreen() {
   // 마커 Y 비율: 0.0(바 상단/최고도) ~ 1.0(바 하단/최저도), 추후 실제 고도로 대체
   const markerRatio = 0.8;
   // 사용자 현재 위치
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   // 위치 권한 요청 및 현재 위치 조회
   useEffect(() => {
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') return;
+        if (status !== "granted") return;
         const loc = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
           timeInterval: 5000,
         });
-        setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+        setUserLocation({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        });
       } catch (error) {
-        console.warn('[Location] 현재 위치 조회 실패:', error);
+        console.warn("[Location] 현재 위치 조회 실패:", error);
       }
     })();
   }, []);
@@ -169,16 +184,24 @@ export default function TrackingScreen() {
             <NaverMapMarkerOverlay
               latitude={selectedCourse.coordinates[0].latitude}
               longitude={selectedCourse.coordinates[0].longitude}
-              caption={{ text: '출발' }}
+              caption={{ text: "출발" }}
             />
           )}
 
           {/* 도착지 마커 */}
           {selectedCourse.coordinates.length > 0 && (
             <NaverMapMarkerOverlay
-              latitude={selectedCourse.coordinates[selectedCourse.coordinates.length - 1].latitude}
-              longitude={selectedCourse.coordinates[selectedCourse.coordinates.length - 1].longitude}
-              caption={{ text: '도착' }}
+              latitude={
+                selectedCourse.coordinates[
+                  selectedCourse.coordinates.length - 1
+                ].latitude
+              }
+              longitude={
+                selectedCourse.coordinates[
+                  selectedCourse.coordinates.length - 1
+                ].longitude
+              }
+              caption={{ text: "도착" }}
             />
           )}
 
@@ -187,7 +210,7 @@ export default function TrackingScreen() {
             <NaverMapMarkerOverlay
               latitude={userLocation.latitude}
               longitude={userLocation.longitude}
-              caption={{ text: '내 위치' }}
+              caption={{ text: "내 위치" }}
             />
           )}
         </NaverMapView>
