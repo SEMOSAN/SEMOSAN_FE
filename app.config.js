@@ -12,7 +12,7 @@ const config = {
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.tastyhiking.semosan",
+    bundleIdentifier: "com.tastyhiking.semosanapp",
     usesAppleSignIn: true,
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
@@ -31,7 +31,7 @@ const config = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     permissions: [],
-    package: "com.tastyhiking.semosan",
+    package: "com.tastyhiking.semosanapp",
   },
   web: {
     output: "static",
@@ -75,6 +75,11 @@ const config = {
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    eas: {
+      projectId: "df38234e-8a6e-42ca-8c16-21eed97912bc",
+    },
   },
 };
 
