@@ -22,7 +22,7 @@ import { NaverMapMarkerOverlay, NaverMapView } from "@mj-studio/react-native-nav
 import * as Location from "expo-location";
 import { LinearGradient } from "expo-linear-gradient";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Pressable, View } from "react-native";
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 
 type Region = {
@@ -142,7 +142,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     return (
       <View className="flex-1 w-full">
         <NaverMapView
-          style={styles.map}
+          style={{ flex: 1 }}
           camera={{ latitude: region.latitude, longitude: region.longitude, zoom: region.zoom }}
           isShowLocationButton={false}
           onTapMap={() => sheetRef.current?.collapseToMin()}
@@ -207,18 +207,30 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
           colors={["rgba(255,255,255,1)", "rgba(255,255,255,0)"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
-          style={styles.mapTopGradient}
+          style={{ position: "absolute", top: 0, left: 0, right: 0, height: 154 }}
           pointerEvents="none"
         />
 
-        <Animated.View style={[styles.locationButton, locationButtonStyle]}>
-          <TouchableOpacity
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        <Animated.View
+          className="absolute right-5 size-12 rounded-full bg-fill-normal border border-line-normal items-center justify-center"
+          style={[
+            locationButtonStyle,
+            {
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 4,
+              elevation: 4,
+            },
+          ]}
+        >
+          <Pressable
+            className="flex-1 items-center justify-center"
             onPress={moveToCurrentLocation}
             hitSlop={8}
           >
             <CrosshairIcon size={24} />
-          </TouchableOpacity>
+          </Pressable>
         </Animated.View>
 
         <HomeBottomSheetContainer
@@ -247,42 +259,3 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
   }
 );
 
-const styles = StyleSheet.create({
-  map: { flex: 1 },
-  mapTopGradient: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 154,
-  },
-  overlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-  },
-  shadowButton: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  locationButton: {
-    position: "absolute",
-    right: 20,
-    width: 48,
-    height: 48,
-    borderRadius: 999,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-});

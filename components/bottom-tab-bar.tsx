@@ -12,6 +12,7 @@ import {
   useHomeStateContext,
   type TabBarVariant,
 } from "@/contexts/home-state-context";
+import { Colors } from "@/types/colors.generated";
 
 type TabItem = {
   name: string;
@@ -29,12 +30,14 @@ type VariantConfig = {
 const VARIANT_CONFIG: Record<TabBarVariant, VariantConfig> = {
   light: {
     containerClass: "border-t border-line-subtle bg-fill-normal",
-    iconColor: (f) => (f ? "#1a1b1f" : "#d1d5db"),
+    iconColor: (f) =>
+      f ? Colors["global-neutral-900"] : Colors["global-neutral-100"],
     labelClass: (f) => (f ? "text-label-normal" : "text-neutral-100"),
   },
   dark: {
     containerClass: "border-t border-neutral-700 bg-black",
-    iconColor: (f) => (f ? "#ffffff" : "#464A57"),
+    iconColor: (f) =>
+      f ? Colors["color-label-normal-inverse"] : Colors["global-neutral-700"],
     labelClass: (f) => (f ? "text-label-normal-inverse" : "text-neutral-700"),
   },
 };
@@ -116,7 +119,7 @@ export function BottomTabBar({
               className="items-center justify-center rounded-full bg-primary-normal"
               style={{ width: 68, height: 42 }}
             >
-              {item.renderIcon("#ffffff")}
+              {item.renderIcon(Colors["color-label-normal-inverse"])}
             </Pressable>
           );
         }
