@@ -2,7 +2,9 @@ import { MenuChevronIcon } from '@/features/mypage/components/menu-chevron-icon'
 import { MenuRow } from '@/features/mypage/components/menu-row';
 import { ProfileAvatar } from '@/features/mypage/components/profile-avatar';
 import { SectionDivider } from '@/features/mypage/components/section-divider';
-import { APP_VERSION, MOCK_USER } from '@/features/mypage/constants';
+import { APP_VERSION } from '@/features/mypage/constants';
+import { HIKING_LEVEL_LABEL, useProfile } from '@/features/mypage/hooks/use-profile';
+import { useLogout } from '@/features/auth/hooks/use-logout';
 import { useRouter } from 'expo-router';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function MyPageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { data: profile } = useProfile();
+  const { mutate: logout } = useLogout();
 
   const activityItems = [
     { label: '저장한 산 목록', onPress: () => router.push('/mypage/saved-mountains') },
@@ -32,7 +36,11 @@ export default function MyPageScreen() {
       onPress: () =>
         Alert.alert('로그아웃', '로그아웃 하시겠어요?', [
           { text: '취소', style: 'cancel' },
-          { text: '로그아웃', style: 'destructive', onPress: () => {} },
+          {
+            text: '로그아웃',
+            style: 'destructive',
+            onPress: () => logout(undefined, { onSuccess: () => router.replace('/login') }),
+          },
         ]),
     },
     {
@@ -45,6 +53,9 @@ export default function MyPageScreen() {
         ]),
     },
   ];
+
+  const nickname = profile?.nickname ?? '-';
+  const grade = profile?.hikingLevel ? HIKING_LEVEL_LABEL[profile.hikingLevel] : '-';
 
   return (
     <View className="flex-1 bg-fill-stronger">
@@ -69,17 +80,14 @@ export default function MyPageScreen() {
             <View className="flex-1 gap-1">
               <View className="flex-row items-center gap-2">
                 <Text className="typo-body-1-normal-semi-bold text-label-normal">
-                  {MOCK_USER.name}
+                  {nickname}
                 </Text>
                 <View className="bg-secondary-subtle rounded px-2 py-0.5">
                   <Text className="typo-caption-1-semi-bold text-secondary-strong">
-                    {MOCK_USER.grade}
+                    {grade}
                   </Text>
                 </View>
               </View>
-              <Text className="typo-body-2-normal-regular text-label-subtler">
-                {MOCK_USER.email}
-              </Text>
             </View>
 
             <MenuChevronIcon />
