@@ -25,6 +25,7 @@ import {
   TRAIL_BAR_WIDTH,
   TRAIL_MARKER_LEFT,
 } from "@/features/tracking/constants";
+import { LiveActivity } from "@/modules/live-activity";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -54,6 +55,7 @@ export default function TrackingScreen() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isFreeMode, setIsFreeMode] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showTooltip, setShowTooltip] = useState(true);
   // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
@@ -101,7 +103,12 @@ export default function TrackingScreen() {
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
 
-  const startCountdown = () => setCountdown(3);
+  const startCountdown = (freeMode = false) => {
+    if (freeMode) setIsFreeMode(true);
+    setCountdown(3);
+  };
+
+  const handleFreeRecord = () => startCountdown(true);
 
   useEffect(() => {
     if (countdown === null) return;
@@ -117,6 +124,27 @@ export default function TrackingScreen() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
+  // 트래킹 시작 시 Live Activity 시작
+  useEffect(() => {
+    if (!isTracking) return;
+
+    if (isFreeMode) {
+      LiveActivity.start({ mode: "free" }).catch(() => {});
+    } else {
+      const totalMinutes =
+        selectedCourse.durationHours * 60 + selectedCourse.durationMinutes;
+      const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+      LiveActivity.start({
+        mode: "course",
+        remainingMinutes: totalMinutes,
+        remainingMeters: totalMeters,
+        progress: 0,
+      }).catch(() => {});
+    }
+
+    return () => {};
+  }, [isTracking, isFreeMode, selectedCourse]);
+
   // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
   useEffect(() => {
     if (!isTracking || isPaused) return;
@@ -124,8 +152,38 @@ export default function TrackingScreen() {
     return () => clearInterval(interval);
   }, [isTracking, isPaused]);
 
+  // 매 초 Live Activity 업데이트
+  useEffect(() => {
+    if (!isTracking) return;
+
+    if (isFreeMode) {
+      LiveActivity.update({
+        elapsedSeconds,
+        isRunning: !isPaused,
+        mode: "free",
+      }).catch(() => {});
+    } else {
+      const totalSeconds =
+        (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) *
+        60;
+      const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+      const progress =
+        totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
+      const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+      LiveActivity.update({
+        elapsedSeconds,
+        isRunning: !isPaused,
+        mode: "course",
+        remainingMinutes: Math.ceil(remainingSeconds / 60),
+        remainingMeters: Math.round(totalMeters * (1 - progress)),
+        progress,
+      }).catch(() => {});
+    }
+  }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse]);
+
   const pauseTracking = () => setIsPaused(true);
   const resumeTracking = () => setIsPaused(false);
+
   const requestStop = () => setShowStopModal(true);
 
   /** StopConfirmModal → 난이도 체감 화면으로 전환 */
@@ -136,9 +194,11 @@ export default function TrackingScreen() {
 
   /** 난이도 체감 완료 후 상태 초기화 */
   const completeTracking = () => {
+    LiveActivity.stop().catch(() => {});
     setShowDifficultyRating(false);
     setIsTracking(false);
     setIsPaused(false);
+    setIsFreeMode(false);
     setElapsedSeconds(0);
     setShowTooltip(true);
     setShowSummitSheet(false);
@@ -277,7 +337,7 @@ export default function TrackingScreen() {
         <CourseSelectSheet
           selectedCourseId={selectedCourseId}
           onSelectCourse={setSelectedCourseId}
-          onFreeRecord={() => setShowFreeRecordModal(true)}
+          onFreeRecord={handleFreeRecord}
           onStartCountdown={startCountdown}
         />
       )}

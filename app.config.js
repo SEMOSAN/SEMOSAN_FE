@@ -40,6 +40,7 @@ const config = {
   },
   plugins: [
     "expo-router",
+    "./plugins/withLiveActivity",
     [
       "expo-notifications",
       {
