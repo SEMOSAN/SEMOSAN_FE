@@ -6,12 +6,14 @@ import { KakaoIcon } from "@/components/icons/kakao-icon";
 import { SemosanIcon } from "@/components/icons/semosan-icon";
 import { SemosanTextLogo } from "@/components/icons/semosan-text-logo";
 import * as AppleAuthentication from "expo-apple-authentication";
+import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const isDevMode = __DEV__;
+const isExpoGo = Constants.executionEnvironment === "storeClient";
 
 export default function LoginScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -55,7 +57,7 @@ export default function LoginScreen(): React.JSX.Element {
   }
 
   async function handleKakaoLogin(): Promise<void> {
-    if (isDevMode) {
+    if (isExpoGo) {
       Alert.alert(
         "카카오 로그인 불가",
         "카카오 로그인은 Expo Go에서 사용할 수 없습니다.",
