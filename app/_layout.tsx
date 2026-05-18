@@ -110,7 +110,7 @@ export default function RootLayout(): React.JSX.Element | null {
           </Stack>
           {authStatus === "unauthenticated" && <Redirect href="/login" />}
           <Toast />
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
         </ThemeProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>
