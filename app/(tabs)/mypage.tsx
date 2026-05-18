@@ -3,6 +3,7 @@ import { MenuRow } from '@/features/mypage/components/menu-row';
 import { ProfileAvatar } from '@/features/mypage/components/profile-avatar';
 import { SectionDivider } from '@/features/mypage/components/section-divider';
 import { APP_VERSION, MOCK_USER } from '@/features/mypage/constants';
+import { useLogout } from '@/features/auth/hooks/use-logout';
 import { useRouter } from 'expo-router';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function MyPageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { mutateAsync: logoutAsync } = useLogout();
 
   const activityItems = [
     { label: '저장한 산 목록', onPress: () => router.push('/mypage/saved-mountains') },
@@ -32,7 +34,7 @@ export default function MyPageScreen() {
       onPress: () =>
         Alert.alert('로그아웃', '로그아웃 하시겠어요?', [
           { text: '취소', style: 'cancel' },
-          { text: '로그아웃', style: 'destructive', onPress: () => {} },
+          { text: '로그아웃', style: 'destructive', onPress: async () => { await logoutAsync(); router.replace('/login'); } },
         ]),
     },
     {
