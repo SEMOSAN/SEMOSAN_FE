@@ -9,6 +9,25 @@
       "client_info": {
         "mobilesdk_app_id": "1:923659199755:android:aa09b7ad81f1813d39ae0e",
         "android_client_info": {
+          "package_name": "com.tastyhiking.semosan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGP9NkBgTJuoUfQ92wN39-gEpfhdaGzkA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:923659199755:android:c4cac44ae5246efd39ae0e",
+        "android_client_info": {
           "package_name": "com.tastyhiking.semosanapp"
         }
       },
