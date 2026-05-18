@@ -184,6 +184,7 @@ export default function MountainsScreen() {
 
       <MountainList
         difficultyOptions={difficultyOptions}
+        durationRange={durationRange}
         regionSelections={regionSelections}
         sortOption={sortOption}
         userLocation={userLocation}
