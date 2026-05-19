@@ -5,7 +5,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useOnlineManager } from "@/hooks/use-online-manager";
 import { usePushNotification } from "@/hooks/use-push-notification";
 import { useReactQueryDevTools } from "@dev-plugins/react-query";
-import { useFonts } from "@expo-google-fonts/lexend";
+import { useFonts, Lexend_700Bold } from "@expo-google-fonts/lexend";
 import {
   DarkTheme,
   DefaultTheme,
@@ -50,6 +50,7 @@ export default function RootLayout(): React.JSX.Element | null {
   usePushNotification(authStatus === "authenticated");
   const [fontsLoaded] = useFonts({
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
+    Lexend_700Bold,
   });
 
   useReactQueryDevTools(queryClient);
@@ -67,49 +68,19 @@ export default function RootLayout(): React.JSX.Element | null {
   if (!fontsLoaded || authStatus === "loading") return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="record/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="mountain-info" options={{ headerShown: false }} />
-          <Stack.Screen name="community/write" options={{ headerShown: false }} />
-          <Stack.Screen name="community/post-complete" options={{ headerShown: false }} />
-          <Stack.Screen name="mypage/info" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
-          />
-        </Stack>
-        <Toast />
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </GestureHandlerRootView>
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
+        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="record/[id]" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="mountain-info"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="community/write"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="community/post-complete"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="modal"
-              options={{ presentation: "modal", title: "Modal" }}
-            />
+            <Stack.Screen name="record/photo-report-edit" options={{ headerShown: false }} />
+            <Stack.Screen name="mountain-info" options={{ headerShown: false }} />
+            <Stack.Screen name="community/write" options={{ headerShown: false }} />
+            <Stack.Screen name="community/post-complete" options={{ headerShown: false }} />
+            <Stack.Screen name="mypage/info" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: "modal", title: "Modal" }} />
           </Stack>
           {authStatus === "unauthenticated" && <Redirect href="/login" />}
           <Toast />

@@ -66,6 +66,12 @@ const config = {
     ],
     "expo-apple-authentication",
     [
+      "expo-image-picker",
+      {
+        photosPermission: "사진첩에 접근하여 포토 리포트에 사용할 사진을 가져옵니다.",
+      },
+    ],
+    [
       "@react-native-kakao/core",
       {
         nativeAppKey: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,

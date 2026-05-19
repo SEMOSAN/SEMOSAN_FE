@@ -1,67 +1,92 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Image as ExpoImage } from 'expo-image';
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { Image as ExpoImage } from "expo-image";
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Clive1Svg from '@/assets/clive1.svg';
-import Clive2Svg from '@/assets/clive2.svg';
-import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
-import { DotsThreeIcon } from '@/components/icons/dots-three-icon';
-import { DownloadSimpleIcon } from '@/components/icons/download-simple-icon';
-import { GlobeSimpleIcon } from '@/components/icons/globe-simple-icon';
-import { LinkSimpleIcon } from '@/components/icons/link-simple-icon';
-import { LockIcon } from '@/components/icons/lock-icon';
-import { ShareIcon } from '@/components/icons/share-icon';
-import { XIcon } from '@/components/icons/x-icon';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Clive1Svg from "@/assets/clive1.svg";
+import Clive2Svg from "@/assets/clive2.svg";
+import SemosanLogoSvg from "@/assets/semosan-logo.svg";
+import { PencilSimpleIcon } from "@/components/icons/pencil-simple-icon";
+const PhotoReportBg = require("@/assets/photo-report-bg.png");
+const OVERLAY_STATS = [
+  require("@/assets/overlay-stats-1.png"),
+  require("@/assets/overlay-stats-2.png"),
+  require("@/assets/overlay-stats-3.png"),
+];
+import { CheckCircleIcon } from "@/components/icons/check-circle-icon";
+import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
+import { XIcon } from "@/components/icons/x-icon";
+import { CliveBottomBar } from "@/components/clive-bottom-bar";
+import { getPhotoReportState } from "@/features/photo-report/photo-report-state";
 
-type RecordTab = '클라이브' | '포토 리포트';
+type RecordTab = "클라이브" | "포토 리포트";
 
 export default function RecordScreen() {
-  const { id, name, imageUri } = useLocalSearchParams<{ id: string; name: string; imageUri?: string }>();
+  const { id, name, imageUri } = useLocalSearchParams<{
+    id: string;
+    name: string;
+    imageUri?: string;
+  }>();
   const router = useRouter();
   const { top } = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<RecordTab>('클라이브');
-  const [toastMessage, setToastMessage] = useState<'save' | 'public' | null>(null);
-  const [showPublicDialog, setShowPublicDialog] = useState(false);
-  const [showMoreSheet, setShowMoreSheet] = useState(false);
-  const [isClivePublic, setIsClivePublic] = useState(false);
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [activeTab, setActiveTab] = useState<RecordTab>("클라이브");
+  const [showSaveToast, setShowSaveToast] = useState(false);
+  const [showPublicToast, setShowPublicToast] = useState(false);
+  const [showPrivateToast, setShowPrivateToast] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
+  const [photoReportSource, setPhotoReportSource] = useState<number | { uri: string } | null>(null);
+  const [photoReportTemplate, setPhotoReportTemplate] = useState(0);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const publicTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const privateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const { photoSource, templateIndex } = getPhotoReportState();
+      if (photoSource !== null) setPhotoReportSource(photoSource);
+      setPhotoReportTemplate(templateIndex);
+    }, [])
+  );
 
   useEffect(() => {
     return () => {
-      if (toastTimerRef.current) {
-        clearTimeout(toastTimerRef.current);
-      }
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (publicTimerRef.current) clearTimeout(publicTimerRef.current);
+      if (privateTimerRef.current) clearTimeout(privateTimerRef.current);
     };
   }, []);
 
   const handleSavePress = () => {
-    setToastMessage('save');
-    if (toastTimerRef.current) {
-      clearTimeout(toastTimerRef.current);
-    }
-    toastTimerRef.current = setTimeout(() => {
-      setToastMessage(null);
-    }, 1800);
+    setShowSaveToast(true);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => setShowSaveToast(false), 3000);
   };
 
-  const handleConfirmPublic = () => {
-    setShowPublicDialog(false);
-    setIsClivePublic(true);
-    setToastMessage('public');
-    if (toastTimerRef.current) {
-      clearTimeout(toastTimerRef.current);
+  const handleTogglePublic = () => {
+    if (!isPublic) {
+      setIsPublic(true);
+      setShowPublicToast(true);
+      if (publicTimerRef.current) clearTimeout(publicTimerRef.current);
+      publicTimerRef.current = setTimeout(
+        () => setShowPublicToast(false),
+        3000
+      );
+    } else {
+      setIsPublic(false);
+      setShowPrivateToast(true);
+      if (privateTimerRef.current) clearTimeout(privateTimerRef.current);
+      privateTimerRef.current = setTimeout(
+        () => setShowPrivateToast(false),
+        3000
+      );
     }
-    toastTimerRef.current = setTimeout(() => {
-      setToastMessage(null);
-    }, 1800);
   };
 
   return (
@@ -83,9 +108,12 @@ export default function RecordScreen() {
             <View style={styles.mountainIconInner} />
           </View>
           <Text className="typo-body-1-normal-semi-bold text-label-normal">
-            {name ?? '관악산'}
+            {name ?? "관악산"}
           </Text>
-          <Text className="typo-body-1-normal-medium text-label-subtle" numberOfLines={1}>
+          <Text
+            className="typo-body-1-normal-medium text-label-subtle"
+            numberOfLines={1}
+          >
             과천향교 출발 코스
           </Text>
         </View>
@@ -93,29 +121,25 @@ export default function RecordScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* 거리 */}
-        <View className="flex-row items-center justify-between px-5 pt-4 pb-3">
-          <View className="flex-row items-end" style={{ gap: 4 }}>
-            <Text style={styles.distanceNumber}>6.34</Text>
-            <Text style={styles.distanceUnit}>km</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.shareIconButton}
-            hitSlop={8}
-            onPress={() =>
-              router.push({
-                pathname: '/community/write',
-                params: { name: name ?? '관악산' },
-              })
-            }
-          >
-            <ShareIcon size={24} />
-          </TouchableOpacity>
+        <View
+          className="flex-row items-end px-5 pt-4 pb-3"
+          style={{ gap: 4 }}
+        >
+          <Text style={styles.distanceNumber}>6.34</Text>
+          <Text style={styles.distanceUnit}>km</Text>
         </View>
 
         {/* 루트 지도 */}
-        <View className="mx-5 rounded-xl overflow-hidden" style={styles.mapContainer}>
-          {typeof Clive1Svg === 'number' ? (
-            <ExpoImage source={Clive1Svg} style={styles.mapImage} contentFit="cover" />
+        <View
+          className="mx-5 rounded-xl overflow-hidden"
+          style={styles.mapContainer}
+        >
+          {typeof Clive1Svg === "number" ? (
+            <ExpoImage
+              source={Clive1Svg}
+              style={styles.mapImage}
+              contentFit="cover"
+            />
           ) : (
             <Clive1Svg width="100%" height="100%" />
           )}
@@ -124,11 +148,14 @@ export default function RecordScreen() {
         {/* 통계 */}
         <View className="flex-row mx-5 mt-4 mb-4">
           {[
-            { label: '소요시간', value: '2시간 16분' },
-            { label: '고도', value: '15Nm' },
-            { label: '칼로리', value: '360kcal' },
+            { label: "소요시간", value: "2시간 16분" },
+            { label: "고도", value: "15Nm" },
+            { label: "칼로리", value: "360kcal" },
           ].map((stat, i) => (
-            <View key={stat.label} style={[styles.statItem, i < 2 && styles.statDivider]}>
+            <View
+              key={stat.label}
+              style={[styles.statItem, i < 2 && styles.statDivider]}
+            >
               <Text style={styles.statLabel}>{stat.label}</Text>
               <Text style={styles.statValue}>{stat.value}</Text>
             </View>
@@ -140,9 +167,14 @@ export default function RecordScreen() {
 
         {/* 탭 */}
         <View className="flex-row px-5 pt-5 pb-4 gap-4">
-          {(['클라이브', '포토 리포트'] as RecordTab[]).map((tab) => (
+          {(["클라이브", "포토 리포트"] as RecordTab[]).map((tab) => (
             <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
-              <Text style={[styles.tabText, activeTab === tab ? styles.tabActive : styles.tabInactive]}>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab ? styles.tabActive : styles.tabInactive,
+                ]}
+              >
                 {tab}
               </Text>
             </TouchableOpacity>
@@ -150,137 +182,158 @@ export default function RecordScreen() {
         </View>
 
         {/* 클라이브 */}
-        {activeTab === '클라이브' && (
+        {activeTab === "클라이브" && (
           <View className="pb-10 pt-2">
-            <View style={styles.cliveImageWrap}>
+            <View style={styles.cardWrap}>
               <LinearGradient
-                colors={['#507EF4', '#4ADE80', '#FFD40D', '#FF5249']}
+                colors={["#507EF4", "#4ADE80", "#FFD40D", "#FF5249"]}
                 locations={[0, 0.33, 0.66, 1]}
                 start={{ x: 0, y: 1 }}
                 end={{ x: 0, y: 0 }}
-                style={styles.cliveGradientBar}
+                style={styles.gradientBar}
               />
-              {typeof Clive2Svg === 'number' ? (
-                <ExpoImage source={Clive2Svg} style={styles.cliveImage} contentFit="cover" />
+              {typeof Clive2Svg === "number" ? (
+                <ExpoImage
+                  source={Clive2Svg}
+                  style={styles.cardImage}
+                  contentFit="cover"
+                />
               ) : (
                 <Clive2Svg width="100%" height="100%" />
               )}
-              {toastMessage && (
-                <View className="absolute bottom-4 self-center h-12 rounded-xl bg-fill-heavy flex-row items-center px-4 gap-2">
-                  <View className="w-5 h-5 rounded-full border-[1.5px] border-fill-normal items-center justify-center">
-                    <Text className="text-fill-normal text-[12px] font-bold leading-3">✓</Text>
-                  </View>
-                  <Text className="typo-body-2-normal-medium text-label-normal-inverse">
-                    {toastMessage === 'public' ? '세모피드에 공개' : '사진에 저장 완료'}
-                  </Text>
-                </View>
-              )}
             </View>
-            <View className="mt-3 flex-row gap-3 items-center justify-center">
-              <TouchableOpacity
-                className={`w-12 h-12 rounded-full border items-center justify-center ${
-                  isClivePublic
-                    ? 'bg-primary-normal border-primary-normal'
-                    : 'bg-fill-normal border-line-normal'
-                }`}
-                hitSlop={8}
-                onPress={() => {
-                  if (!isClivePublic) {
-                    setShowPublicDialog(true);
-                  }
-                }}
-              >
-                {isClivePublic ? <GlobeSimpleIcon size={24} color="#FFFFFF" /> : <LockIcon size={24} />}
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="w-12 h-12 rounded-full border border-line-normal bg-fill-normal items-center justify-center"
-                hitSlop={8}
-                onPress={handleSavePress}
-              >
-                <DownloadSimpleIcon size={24} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="w-12 h-12 rounded-full border border-line-normal bg-fill-normal items-center justify-center"
-                hitSlop={8}
-                onPress={() => setShowMoreSheet(true)}
-              >
-                <DotsThreeIcon size={24} />
-              </TouchableOpacity>
-            </View>
+
+            <CliveBottomBar
+              isPublic={isPublic}
+              onTogglePublic={handleTogglePublic}
+              onSave={handleSavePress}
+            />
           </View>
         )}
 
-        {activeTab === '포토 리포트' && (
-          <View className="px-5 pb-20 items-center justify-center" style={{ height: 200 }}>
-            <Text className="typo-body-1-normal-medium text-label-subtler">포토 리포트 준비 중</Text>
+        {/* 포토 리포트 */}
+        {activeTab === "포토 리포트" && (
+          <View className="pb-10 pt-2">
+            <View style={styles.cardWrap}>
+              {/* 배경 사진 */}
+              <ExpoImage
+                source={photoReportSource ?? PhotoReportBg}
+                style={StyleSheet.absoluteFill}
+                contentFit="cover"
+              />
+
+              {/* 스탯 오버레이 */}
+              <ExpoImage
+                source={OVERLAY_STATS[photoReportTemplate]}
+                style={StyleSheet.absoluteFill}
+                contentFit="cover"
+                pointerEvents="none"
+              />
+
+              {/* 편집하기 버튼 */}
+              <TouchableOpacity
+                style={styles.editChip}
+                activeOpacity={0.7}
+                onPress={() => router.push("/record/photo-report-edit")}
+              >
+                <PencilSimpleIcon size={16} color="#FFFFFF" />
+                <Text style={styles.editChipText}>편집하기</Text>
+              </TouchableOpacity>
+
+            </View>
+
+            <CliveBottomBar
+              isPublic={isPublic}
+              onTogglePublic={handleTogglePublic}
+              onSave={handleSavePress}
+            />
           </View>
         )}
       </ScrollView>
 
-      {showMoreSheet && (
-        <View className="absolute inset-0 bg-[rgba(0,0,0,0.3)] justify-end">
-          <TouchableOpacity
-            style={{ ...StyleSheet.absoluteFillObject }}
-            activeOpacity={1}
-            onPress={() => setShowMoreSheet(false)}
-          />
-          <View className="bg-fill-normal rounded-t-[20px] overflow-hidden">
-            <View className="pt-5 px-5 bg-fill-normal">
-              <TouchableOpacity
-                className="flex-row items-center gap-3 pb-4 mb-4 border-b border-line-subtle"
-                onPress={() => setShowMoreSheet(false)}
-              >
-                <LinkSimpleIcon size={20} />
-                <Text className="typo-body-1-normal-medium text-label-normal">세모피드에서 보기</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-row items-center gap-3 pb-4"
-                onPress={() => {
-                  setShowMoreSheet(false);
-                  handleSavePress();
-                }}
-              >
-                <DownloadSimpleIcon size={20} />
-                <Text className="typo-body-1-normal-medium text-label-normal">원본 사진 저장하기</Text>
-              </TouchableOpacity>
-            </View>
-            <View className="h-[84px] pt-5 pb-4 px-4 bg-fill-normal">
-              <TouchableOpacity
-                className="flex-1 min-h-12 max-h-12 rounded-[10px] bg-[rgba(26,27,31,0.05)] items-center justify-center"
-                onPress={() => setShowMoreSheet(false)}
-              >
-                <Text className="text-[17px] font-semibold text-label-normal leading-[26px]">취소</Text>
-              </TouchableOpacity>
-            </View>
+      {/* 저장 토스트 - 화면 중앙 */}
+      {showSaveToast && (
+        <View
+          className="absolute inset-0 items-center justify-center"
+          pointerEvents="none"
+        >
+          <View
+            style={{
+              height: 48,
+              backgroundColor: "#2F323A",
+              borderRadius: 12,
+              gap: 8,
+              alignSelf: "center",
+              paddingHorizontal: 16,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <CheckCircleIcon size={20} color="#FFFFFF" />
+            <Text
+              className="typo-body-2-normal-medium"
+              style={{ color: "#FFFFFF" }}
+            >
+              사진에 저장 완료
+            </Text>
           </View>
         </View>
       )}
 
-      {showPublicDialog && (
-        <View className="absolute inset-0 bg-[rgba(0,0,0,0.3)] items-center justify-center px-[10px]">
-          <TouchableOpacity
-            style={{ ...StyleSheet.absoluteFillObject }}
-            activeOpacity={1}
-            onPress={() => setShowPublicDialog(false)}
-          />
-          <View className="w-[320px] rounded-2xl bg-fill-normal pt-5">
-            <Text className="px-5 text-[20px] font-semibold leading-[26px] tracking-[-0.4px] text-[rgba(0,12,30,0.8)]">
-              세모피드에 클라이브를 공개할까요?
+      {/* 전체공개 토스트 - 화면 중앙 */}
+      {showPublicToast && (
+        <View
+          className="absolute inset-0 items-center justify-center"
+          pointerEvents="none"
+        >
+          <View
+            style={{
+              height: 48,
+              backgroundColor: "#2F323A",
+              borderRadius: 12,
+              gap: 8,
+              alignSelf: "center",
+              paddingHorizontal: 16,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <CheckCircleIcon size={20} color="#FFFFFF" />
+            <Text
+              className="typo-body-2-normal-medium"
+              style={{ color: "#FFFFFF" }}
+            >
+              세모피드에 공개 완료
             </Text>
-            <View className="h-[84px] flex-row items-center gap-2 px-4 pt-5 pb-4">
-              <TouchableOpacity
-                className="flex-1 min-h-12 max-h-12 rounded-[10px] bg-fill-stronger items-center justify-center"
-                onPress={() => setShowPublicDialog(false)}
-              >
-                <Text className="text-[17px] font-semibold text-label-subtle leading-[26px]">취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1 min-h-12 max-h-12 rounded-[10px] bg-primary-normal items-center justify-center"
-                onPress={handleConfirmPublic}
-              >
-                <Text className="text-[17px] font-semibold text-label-normal-inverse leading-[26px]">확인</Text>
-              </TouchableOpacity>
-            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 나만보기 토스트 - 화면 중앙 */}
+      {showPrivateToast && (
+        <View
+          className="absolute inset-0 items-center justify-center"
+          pointerEvents="none"
+        >
+          <View
+            style={{
+              height: 48,
+              backgroundColor: "#2F323A",
+              borderRadius: 12,
+              gap: 8,
+              alignSelf: "center",
+              paddingHorizontal: 16,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <CheckCircleIcon size={20} color="#FFFFFF" />
+            <Text
+              className="typo-body-2-normal-medium"
+              style={{ color: "#FFFFFF" }}
+            >
+              나만 보기
+            </Text>
           </View>
         </View>
       )}
@@ -293,100 +346,107 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 999,
-    backgroundColor: '#00D864',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#00D864",
+    alignItems: "center",
+    justifyContent: "center",
   },
   mountainIconInner: {
     width: 12,
     height: 8,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: "#DCFCE7",
   },
   distanceNumber: {
-    fontFamily: 'Lexend_700Bold',
+    fontFamily: "Lexend_700Bold",
     fontSize: 60,
-    color: '#1A1B1F',
+    color: "#1A1B1F",
     lineHeight: 72,
   },
   distanceUnit: {
     fontSize: 24,
-    fontWeight: '500',
-    color: '#464A57',
+    fontWeight: "500",
+    color: "#464A57",
     lineHeight: 29,
     paddingBottom: 6,
   },
   mapContainer: {
     height: 235,
-    position: 'relative',
+    position: "relative",
   },
   mapImage: {
-    width: '100%',
+    width: "100%",
     height: 235,
   },
-  cliveImageWrap: {
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 8,
+    gap: 4,
+  },
+  statDivider: {
+    borderRightWidth: 1,
+    borderRightColor: "#F0F1F4",
+  },
+  statLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#73798C",
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1A1B1F",
+  },
+  divider: {
+    height: 6,
+    backgroundColor: "#F9FAFB",
+  },
+  tabText: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  tabActive: {
+    color: "#1A1B1F",
+  },
+  tabInactive: {
+    color: "#BFC4D1",
+  },
+  // 포토 리포트 오버레이
+  editChip: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1A1B1F",
+    borderRadius: 999,
+    paddingLeft: 8,
+    paddingRight: 10,
+    paddingVertical: 6,
+    gap: 4,
+  },
+  editChipText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  cardWrap: {
     width: 335,
     height: 596,
     borderRadius: 20,
-    overflow: 'hidden',
-    alignSelf: 'center',
-    position: 'relative',
+    overflow: "hidden",
+    alignSelf: "center",
+    position: "relative",
   },
-  cliveGradientBar: {
-    position: 'absolute',
+  gradientBar: {
+    position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
     width: 6,
     zIndex: 2,
   },
-  cliveImage: {
-    width: '100%',
-    height: '100%',
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    gap: 4,
-  },
-  statDivider: {
-    borderRightWidth: 1,
-    borderRightColor: '#F0F1F4',
-  },
-  statLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#73798C',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1A1B1F',
-  },
-  divider: {
-    height: 6,
-    backgroundColor: '#F9FAFB',
-  },
-  tabText: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  tabActive: {
-    color: '#1A1B1F',
-  },
-  tabInactive: {
-    color: '#BFC4D1',
-  },
-  shareIconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 13,
+  cardImage: {
+    width: "100%",
+    height: "100%",
   },
 });
