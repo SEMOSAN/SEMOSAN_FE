@@ -28,6 +28,7 @@ export const ENDPOINTS = {
   HIKING_RECORDS_ME_SUMMARY: "/api/hiking-records/me/summary",
   HIKING_RECORDS_ME_MOUNTAINS: "/api/hiking-records/me/mountains",
   AUTH_WITHDRAW: "/api/auth/withdraw",
+  IMAGES_PRESIGNED_URL: "/api/images/presigned-url",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
