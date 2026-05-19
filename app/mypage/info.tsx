@@ -68,6 +68,7 @@ export default function MyPageInfoScreen() {
     if (!profile) return;
     setNickname(profile.nickname ?? '');
     setGender(GENDER_LABEL[profile.gender ?? ''] ?? '');
+    setBirthDate(profile.birthDate ?? '');
     setHeight(profile.height ? `${profile.height}cm` : '');
     setWeight(profile.weight ? `${profile.weight}kg` : '');
     setExercise((prev) => ({

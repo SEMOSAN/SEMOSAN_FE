@@ -117,6 +117,7 @@ export type GetUserProfileResponse = {
   hikingLevel?: "BEGINNER" | "EXPERIENCED" | "HOBBY" | "EXPERT";
   gender?: "MALE" | "FEMALE" | "NONE";
   age?: number;
+  birthDate?: string;
   height?: number;
   weight?: number;
   exerciseType?: "GYM" | "HOME_TRAINING" | "PILATES_YOGA" | "WALKING" | "RUNNING" | "HIKING" | "SPORTS" | "CROSSFIT" | "SWIMMING" | "NONE";
