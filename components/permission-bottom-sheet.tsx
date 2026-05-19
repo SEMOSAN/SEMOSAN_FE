@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { ModalSheet } from "@/components/modal-sheet";
 import {
   PermissionBellIcon,
@@ -47,33 +47,33 @@ const OPTIONAL: PermissionItem[] = [
 export function PermissionBottomSheet({ visible, onConfirm }: Props) {
   return (
     <ModalSheet visible={visible} onDismiss={onConfirm}>
-      <View style={styles.content}>
-        <Text style={styles.title}>
+      <View className="px-5 pt-3 gap-6">
+        <Text className="typo-heading-1-semi-bold text-label-normal">
           {"원활한 SEMOSAN 사용을 위해\n아래 권한을 허용해주세요."}
         </Text>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>필수 접근 권한</Text>
+        <View className="gap-4">
+          <Text className="typo-body-1-normal-semi-bold text-label-subtle">필수 접근 권한</Text>
           {REQUIRED.map((item) => (
             <PermissionRow key={item.title} item={item} />
           ))}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>선택적 접근 권한</Text>
+        <View className="gap-4">
+          <Text className="typo-body-1-normal-semi-bold text-label-subtle">선택적 접근 권한</Text>
           {OPTIONAL.map((item) => (
             <PermissionRow key={item.title} item={item} />
           ))}
         </View>
       </View>
 
-      <View style={styles.btnWrap}>
+      <View className="px-5 pt-8">
         <TouchableOpacity
-          style={styles.confirmBtn}
+          className="h-12 bg-label-normal rounded-[10px] items-center justify-center"
           onPress={onConfirm}
           activeOpacity={0.8}
         >
-          <Text style={styles.confirmBtnText}>확인</Text>
+          <Text className="typo-label-large text-label-normal-inverse">확인</Text>
         </TouchableOpacity>
       </View>
     </ModalSheet>
@@ -82,69 +82,12 @@ export function PermissionBottomSheet({ visible, onConfirm }: Props) {
 
 function PermissionRow({ item }: { item: PermissionItem }) {
   return (
-    <View style={styles.row}>
+    <View className="flex-row items-center gap-3">
       {item.icon}
-      <View style={styles.rowText}>
-        <Text style={styles.rowTitle}>{item.title}</Text>
-        <Text style={styles.rowDesc}>{item.description}</Text>
+      <View className="flex-1 gap-0.5">
+        <Text className="typo-body-2-normal-semi-bold text-label-normal">{item.title}</Text>
+        <Text className="typo-caption-1-regular text-label-subtler">{item.description}</Text>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    gap: 24,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1A1B1F",
-    lineHeight: 28,
-  },
-  section: {
-    gap: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#464A57",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  rowText: {
-    flex: 1,
-    gap: 2,
-  },
-  rowTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1A1B1F",
-  },
-  rowDesc: {
-    fontSize: 12,
-    fontWeight: "400",
-    color: "#73798C",
-  },
-  btnWrap: {
-    paddingHorizontal: 20,
-    paddingTop: 32,
-  },
-  confirmBtn: {
-    height: 48,
-    backgroundColor: "#1A1B1F",
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  confirmBtnText: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-});
