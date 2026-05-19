@@ -27,6 +27,20 @@ function getDistanceKm(from: Coordinates, to: Coordinates): number {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+export function filterByDuration(
+  mountains: MountainListResponse[],
+  range: [number, number]
+): MountainListResponse[] {
+  const [low, high] = range;
+  if (low === 0 && high === 7) return mountains;
+  return mountains.filter((m) => {
+    if (m.duration == null) return false;
+    const meetsLower = low === 0 || m.duration >= low * 60;
+    const meetsUpper = high === 7 || m.duration <= high * 60;
+    return meetsLower && meetsUpper;
+  });
+}
+
 export function filterByDifficulty(
   mountains: MountainListResponse[],
   options: DifficultyOption[]

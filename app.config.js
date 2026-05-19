@@ -12,7 +12,7 @@ const config = {
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.tastyhiking.semosan",
+    bundleIdentifier: "com.tastyhiking.semosanapp",
     usesAppleSignIn: true,
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
@@ -31,7 +31,7 @@ const config = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     permissions: [],
-    package: "com.tastyhiking.semosan",
+    package: "com.tastyhiking.semosanapp",
   },
   web: {
     output: "static",
@@ -40,6 +40,7 @@ const config = {
   },
   plugins: [
     "expo-router",
+    "./plugins/withLiveActivity",
     [
       "expo-notifications",
       {
@@ -57,14 +58,15 @@ const config = {
     [
       "expo-splash-screen",
       {
-        image: "./assets/images/splash-icon.png",
-        imageWidth: 200,
+        image: "./assets/logo.png",
+        imageWidth: 120,
         resizeMode: "contain",
-        backgroundColor: "#ffffff",
-        dark: { backgroundColor: "#000000" },
+        backgroundColor: "#1a1b1f",
+        dark: { backgroundColor: "#1a1b1f" },
       },
     ],
     "expo-apple-authentication",
+    "expo-web-browser",
     [
       "expo-image-picker",
       {
@@ -81,6 +83,11 @@ const config = {
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    eas: {
+      projectId: "df38234e-8a6e-42ca-8c16-21eed97912bc",
+    },
   },
 };
 

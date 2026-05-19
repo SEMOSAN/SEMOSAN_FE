@@ -10,6 +10,7 @@ import { useMountains } from "../hooks/use-mountains";
 import {
   Coordinates,
   filterByDifficulty,
+  filterByDuration,
   filterByRegions,
   sortMountains,
 } from "../modules/sort-mountains";
@@ -24,6 +25,7 @@ type Props = {
   userLocation: Coordinates | undefined;
   regionSelections: Selection[];
   difficultyOptions: DifficultyOption[];
+  durationRange: [number, number];
 };
 
 export function MountainList({
@@ -31,6 +33,7 @@ export function MountainList({
   userLocation,
   regionSelections,
   difficultyOptions,
+  durationRange,
 }: Props) {
   const router = useRouter();
 
@@ -55,7 +58,10 @@ export function MountainList({
   );
 
   const filteredMountains = filterByDifficulty(
-    filterByRegions(mountains, regionSelections),
+    filterByDuration(
+      filterByRegions(mountains, regionSelections),
+      durationRange,
+    ),
     difficultyOptions,
   );
 

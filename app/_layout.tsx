@@ -1,4 +1,5 @@
 import Toast from "@/components/toast/toast";
+import { isExpoGo } from "@/constants/platform";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { useAppState } from "@/hooks/use-app-state";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -6,6 +7,8 @@ import { useOnlineManager } from "@/hooks/use-online-manager";
 import { usePushNotification } from "@/hooks/use-push-notification";
 import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { useFonts, Lexend_700Bold } from "@expo-google-fonts/lexend";
+import { useFonts } from "@expo-google-fonts/lexend";
+import { initializeKakaoSDK } from "@react-native-kakao/core";
 import {
   DarkTheme,
   DefaultTheme,
@@ -16,7 +19,6 @@ import {
   QueryClientProvider,
   focusManager,
 } from "@tanstack/react-query";
-import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { Redirect, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -27,7 +29,8 @@ import "react-native-reanimated";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
-initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
+if (!isExpoGo)
+  initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
 
 function onAppStateChange(status: AppStateStatus) {
   // React Query already supports in web browser refetch on window focus by default
@@ -60,10 +63,10 @@ export default function RootLayout(): React.JSX.Element | null {
   useAppState(onAppStateChange);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded && authStatus !== "loading") {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, authStatus]);
 
   if (!fontsLoaded || authStatus === "loading") return null;
 
@@ -81,10 +84,39 @@ export default function RootLayout(): React.JSX.Element | null {
             <Stack.Screen name="community/post-complete" options={{ headerShown: false }} />
             <Stack.Screen name="mypage/info" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: "modal", title: "Modal" }} />
+            <Stack.Screen
+              name="mountain-info"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/write"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/post-complete"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="mypage/info" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="mypage/saved-mountains"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="mypage/permissions"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="mypage/terms"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="modal"
+              options={{ presentation: "modal", title: "Modal" }}
+            />
           </Stack>
           {authStatus === "unauthenticated" && <Redirect href="/login" />}
           <Toast />
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
         </ThemeProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>

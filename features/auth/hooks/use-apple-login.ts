@@ -19,8 +19,10 @@ export function useAppleLogin() {
   return useMutation({
     mutationFn: appleLogin,
     onSuccess: async ({ accessToken, refreshToken }) => {
-      if (accessToken && refreshToken)
-        await tokenStorage.setTokens(accessToken, refreshToken);
+      if (accessToken && refreshToken) {
+    console.log("✅ accessToken:", accessToken);  // 임시 추가
+    await tokenStorage.setTokens(accessToken, refreshToken);
+  }
     },
   });
 }
