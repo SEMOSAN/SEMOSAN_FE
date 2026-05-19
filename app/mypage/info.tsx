@@ -8,32 +8,73 @@ import { WeightBottomSheet } from '@/features/mypage/components/weight-bottom-sh
 import { GenderBottomSheet } from '@/features/mypage/components/gender-bottom-sheet';
 import { NicknameBottomSheet } from '@/features/mypage/components/nickname-bottom-sheet';
 import { ProfileAvatar } from '@/features/mypage/components/profile-avatar';
-import { MOCK_USER } from '@/features/mypage/constants';
+import { GENDER_LABEL, useProfile } from '@/features/mypage/hooks/use-profile';
+import { useUpdateProfile } from '@/features/mypage/hooks/use-update-profile';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Path, Svg } from 'react-native-svg';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// 표시값 → API 값 변환
+const GENDER_TO_API: Record<string, 'MALE' | 'FEMALE' | 'NONE'> = {
+  '남성': 'MALE',
+  '여성': 'FEMALE',
+};
+
+// 바텀시트 옵션 기준 매핑
+const EXERCISE_TYPE_TO_API: Record<string, string> = {
+  '걷기': 'WALKING',
+  '등산': 'HIKING',
+  '러닝': 'RUNNING',
+  '헬스': 'GYM',
+  '수영': 'SWIMMING',
+  '홈트레이닝': 'HOME_TRAINING',
+  '필라테스/요가': 'PILATES_YOGA',
+  '스포츠 (배드민턴, 테니스, 축구 등)': 'SPORTS',
+  '크로스핏': 'CROSSFIT',
+  '운동 안 함': 'NONE',
+};
+
+const EXERCISE_TYPE_FROM_API: Record<string, string> = Object.fromEntries(
+  Object.entries(EXERCISE_TYPE_TO_API).map(([display, api]) => [api, display])
+);
+
 export default function MyPageInfoScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { data: profile } = useProfile();
+  const { mutate: updateProfile } = useUpdateProfile();
+
   const [nicknameSheetVisible, setNicknameSheetVisible] = useState(false);
-  const [nickname, setNickname] = useState(MOCK_USER.name);
+  const [nickname, setNickname] = useState('');
   const [genderSheetVisible, setGenderSheetVisible] = useState(false);
-  const [gender, setGender] = useState(MOCK_USER.gender);
+  const [gender, setGender] = useState('');
   const [birthDateSheetVisible, setBirthDateSheetVisible] = useState(false);
-  const [birthDate, setBirthDate] = useState(MOCK_USER.birthDate);
+  const [birthDate, setBirthDate] = useState('');
   const [heightSheetVisible, setHeightSheetVisible] = useState(false);
-  const [height, setHeight] = useState(MOCK_USER.height);
+  const [height, setHeight] = useState('');
   const [weightSheetVisible, setWeightSheetVisible] = useState(false);
-  const [weight, setWeight] = useState(MOCK_USER.weight);
+  const [weight, setWeight] = useState('');
   const [exerciseSheetVisible, setExerciseSheetVisible] = useState(false);
   const [exercise, setExercise] = useState<ExerciseData>({
-    type: MOCK_USER.exerciseType,
-    frequency: MOCK_USER.exerciseFrequency,
-    duration: MOCK_USER.exerciseDuration,
+    type: '',
+    frequency: '',
+    duration: '',
   });
+
+  // 프로필 데이터로 초기화
+  useEffect(() => {
+    if (!profile) return;
+    setNickname(profile.nickname ?? '');
+    setGender(GENDER_LABEL[profile.gender ?? ''] ?? '');
+    setHeight(profile.height ? `${profile.height}cm` : '');
+    setWeight(profile.weight ? `${profile.weight}kg` : '');
+    setExercise((prev) => ({
+      ...prev,
+      type: EXERCISE_TYPE_FROM_API[profile.exerciseType ?? ''] ?? '',
+    }));
+  }, [profile]);
 
   const profileItems = [
     { label: '성별', value: gender, onPress: () => setGenderSheetVisible(true) },
@@ -101,37 +142,59 @@ export default function MyPageInfoScreen() {
           visible={exerciseSheetVisible}
           initialValue={exercise}
           onClose={() => setExerciseSheetVisible(false)}
-          onSave={(value) => setExercise(value)}
+          onSave={(value) => {
+            setExercise(value);
+            const exerciseTypeApi = EXERCISE_TYPE_TO_API[value.type];
+            if (exerciseTypeApi) updateProfile({ exerciseType: exerciseTypeApi as any });
+          }}
         />
         <WeightBottomSheet
           visible={weightSheetVisible}
           initialValue={weight}
           onClose={() => setWeightSheetVisible(false)}
-          onSave={(value) => setWeight(value)}
+          onSave={(value) => {
+            setWeight(value);
+            const num = parseFloat(value);
+            if (!isNaN(num)) updateProfile({ weight: num });
+          }}
         />
         <HeightBottomSheet
           visible={heightSheetVisible}
           initialValue={height}
           onClose={() => setHeightSheetVisible(false)}
-          onSave={(value) => setHeight(value)}
+          onSave={(value) => {
+            setHeight(value);
+            const num = parseFloat(value);
+            if (!isNaN(num)) updateProfile({ height: num });
+          }}
         />
         <BirthDateBottomSheet
           visible={birthDateSheetVisible}
           initialValue={birthDate}
           onClose={() => setBirthDateSheetVisible(false)}
-          onSave={(value) => setBirthDate(value)}
+          onSave={(value) => {
+            setBirthDate(value);
+            updateProfile({ birthDate: value });
+          }}
         />
         <GenderBottomSheet
           visible={genderSheetVisible}
           initialValue={gender}
           onClose={() => setGenderSheetVisible(false)}
-          onSave={(value) => setGender(value)}
+          onSave={(value) => {
+            setGender(value);
+            const genderApi = GENDER_TO_API[value];
+            if (genderApi) updateProfile({ gender: genderApi });
+          }}
         />
         <NicknameBottomSheet
           visible={nicknameSheetVisible}
           initialValue={nickname}
           onClose={() => setNicknameSheetVisible(false)}
-          onSave={(value) => setNickname(value)}
+          onSave={(value) => {
+            setNickname(value);
+            updateProfile({ nickname: value });
+          }}
         />
 
         {/* 프로필 정보 */}
