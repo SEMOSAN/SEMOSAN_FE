@@ -1,7 +1,10 @@
 import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
+import { useNotificationSettings } from '@/features/mypage/hooks/use-notification-settings';
+import { useUpdateNotification } from '@/features/mypage/hooks/use-update-notification';
 import { toast } from '@/store/toast.store';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
+
 import { Animated, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -85,14 +88,27 @@ export default function PermissionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { data: settings } = useNotificationSettings();
   const [notifications, setNotifications] = useState<Record<NotificationKey, boolean>>({
-    push: true,
+    push: false,
     liveActivity: false,
     voice: false,
   });
 
+  useEffect(() => {
+    if (!settings) return;
+    setNotifications({
+      push: settings.pushNotificationEnabled,
+      liveActivity: settings.liveActivityEnabled,
+      voice: settings.voiceEnabled,
+    });
+  }, [settings]);
+
+  const { mutate: updateNotification } = useUpdateNotification();
+
   const handleToggle = (key: NotificationKey, value: boolean) => {
     setNotifications((prev) => ({ ...prev, [key]: value }));
+    updateNotification({ key, enabled: value });
     if (value) {
       const item = NOTIFICATION_ITEMS.find((i) => i.key === key);
       if (item) toast.show(item.toastMessage);
