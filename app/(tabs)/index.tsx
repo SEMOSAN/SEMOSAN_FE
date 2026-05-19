@@ -29,6 +29,7 @@ import {
   VISITED_MARKER_OVERLAY_WIDTH,
 } from '@/components/map-markers/visited-marker';
 import { useHomeState } from '@/hooks/useHomeState';
+import { PermissionBottomSheet } from '@/components/permission-bottom-sheet';
 
 type Region = {
   latitude: number;
@@ -131,6 +132,7 @@ export default function HomeScreen() {
   const [selectedMountainId, setSelectedMountainId] = useState<string | null>(null);
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] = useState(false);
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
+  const [showPermissionSheet, setShowPermissionSheet] = useState(true);
   const { top } = useSafeAreaInsets();
   const sheetRef = useRef<HomeBottomSheetRef>(null);
   const sheetHeight = useSharedValue(SNAP_DEFAULT);
@@ -311,6 +313,11 @@ export default function HomeScreen() {
             />
           )
         }
+      />
+
+      <PermissionBottomSheet
+        visible={showPermissionSheet}
+        onConfirm={() => setShowPermissionSheet(false)}
       />
 
       {/* 상단 floating 영역 */}
