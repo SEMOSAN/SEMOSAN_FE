@@ -224,7 +224,7 @@ export default function RecordScreen() {
 
               {/* 스탯 오버레이 */}
               <ExpoImage
-                source={OVERLAY_STATS[photoReportTemplate]}
+                source={OVERLAY_STATS[photoReportTemplate] ?? OVERLAY_STATS[0]}
                 style={StyleSheet.absoluteFill}
                 contentFit="cover"
                 pointerEvents="none"

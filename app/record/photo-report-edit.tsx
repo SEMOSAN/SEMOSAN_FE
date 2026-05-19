@@ -93,6 +93,9 @@ export default function PhotoReportEditScreen() {
   };
 
   const handleImport = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") return;
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsMultipleSelection: true,
@@ -307,16 +310,6 @@ const styles = StyleSheet.create({
   templateContainer: {
     position: "relative",
   },
-  bgClip: {
-    position: "absolute",
-    left: CARD_PEEK,
-    top: 12,
-    width: CARD_W,
-    height: CARD_H,
-    borderRadius: 16,
-    overflow: "hidden",
-    zIndex: 0,
-  },
   templateScroll: {
     flexGrow: 0,
   },
@@ -325,10 +318,6 @@ const styles = StyleSheet.create({
     height: CARD_H,
     borderRadius: 16,
     overflow: "hidden",
-  },
-  templateImage: {
-    width: CARD_W,
-    height: CARD_H,
   },
   navBtn: {
     position: "absolute",
