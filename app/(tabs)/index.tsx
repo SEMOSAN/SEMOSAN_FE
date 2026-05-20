@@ -54,7 +54,7 @@ type Mountain = {
 const DEFAULT_REGION: Region = {
   latitude: 37.5665,
   longitude: 126.978,
-  zoom: 12,
+  zoom: 10,
 };
 
 const MOCK_USER_NAME = "맹쏘";
