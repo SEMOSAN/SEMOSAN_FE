@@ -4,7 +4,6 @@ import {
   SNAP_EXPANDED,
   type HomeBottomSheetRef,
 } from "@/components/home-bottom-sheet-container";
-import { BellIcon } from "@/components/icons/bell-icon";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { CrosshairIcon } from "@/components/icons/crosshair-icon";
 import { SemosanLogo } from "@/components/icons/semosan-logo";
@@ -438,19 +437,19 @@ export default function HomeScreen() {
             {/* 헤더: 로고 + 알림 */}
             <View className="h-14 flex-row items-center justify-between px-5">
               <SemosanLogo />
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 className="h-12 w-12 items-center justify-center rounded-full bg-fill-normal"
                 style={styles.bellButton}
                 hitSlop={8}
               >
                 <BellIcon size={24} color="#1A1B1F" />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
-
+            {/* TODO : 세모피드 구현되면 다시추가 */}
             {/* 정복 지도 / 세모피드 토글 */}
-            <View className="mt-1 items-center">
+            {/* <View className="mt-1 items-center">
               <MapTabToggle value={mapTab} onChange={setMapTab} />
-            </View>
+            </View> */}
           </>
         )}
       </View>
