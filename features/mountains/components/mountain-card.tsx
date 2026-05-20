@@ -18,7 +18,7 @@ export function MountainCard({
   return (
     <View className="flex-row items-center gap-4">
       <Image
-        source={{ uri: mountain.imageUrl }}
+        source={{ uri: mountain.imageUrls?.[0] }}
         className="h-[72px] w-[86px] rounded-[10px] bg-fill-stronger"
         resizeMode="cover"
       />

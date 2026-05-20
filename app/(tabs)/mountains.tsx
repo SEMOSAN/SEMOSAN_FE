@@ -10,7 +10,6 @@ import {
 import { FilterBottomSheet } from "@/features/mountains/components/filter-bottom-sheet";
 import { FilterChip } from "@/features/mountains/components/filter-chip";
 import { MountainList } from "@/features/mountains/components/mountain-list";
-import { MountainSearchButton } from "@/features/mountains/components/mountain-search-button";
 import {
   RegionFilterContent,
   Selection,
@@ -70,7 +69,8 @@ export default function MountainsScreen() {
         <Text className="flex-1 text-label-normal typo-headline-1-semi-bold">
           산 목록
         </Text>
-        <MountainSearchButton />
+        {/* TODO : 산목록 검색 api 연동 */}
+        {/* <MountainSearchButton /> */}
       </View>
 
       {/* Filter bar */}
