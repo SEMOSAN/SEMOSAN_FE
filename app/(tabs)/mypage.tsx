@@ -1,4 +1,5 @@
 import { useLogout } from "@/features/auth/hooks/use-logout";
+import { useWithdraw } from "@/features/auth/hooks/use-withdraw";
 import { MenuChevronIcon } from "@/features/mypage/components/menu-chevron-icon";
 import { MenuRow } from "@/features/mypage/components/menu-row";
 import { ProfileAvatar } from "@/features/mypage/components/profile-avatar";
@@ -17,6 +18,7 @@ export default function MyPageScreen() {
   const router = useRouter();
   const { data: profile } = useProfile();
   const { mutate: logout } = useLogout();
+  const { mutate: withdraw } = useWithdraw();
 
   const activityItems = [
     {
@@ -54,7 +56,7 @@ export default function MyPageScreen() {
       onPress: () =>
         Alert.alert("탈퇴하기", "정말 탈퇴하시겠어요?", [
           { text: "취소", style: "cancel" },
-          { text: "탈퇴", style: "destructive", onPress: () => {} },
+          { text: "탈퇴", style: "destructive", onPress: () => withdraw(undefined, { onSuccess: () => router.replace("/login") }) },
         ]),
     },
   ];
