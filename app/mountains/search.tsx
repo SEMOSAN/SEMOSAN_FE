@@ -50,7 +50,7 @@ export default function MountainSearchScreen(): React.JSX.Element {
           <TextInput
             ref={inputRef}
             className="flex-1 text-label-normal typo-body-1-normal-regular"
-            placeholder="지역명 검색"
+            placeholder="산이름, 지역명 검색"
             placeholderTextColor="#8B92A6"
             value={keyword}
             onChangeText={setKeyword}
