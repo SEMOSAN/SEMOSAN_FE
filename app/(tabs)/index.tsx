@@ -15,14 +15,11 @@ import {
 } from "@/components/map-markers/unvisited-mountain-pill-marker";
 import { PermissionBottomSheet } from "@/components/permission-bottom-sheet";
 import { useMountains } from "@/features/mountains/hooks/use-mountains";
-import { useHomeState } from "@/hooks/useHomeState";
 import {
-  VisitedMarker,
-  VISITED_MARKER_OVERLAY_HEIGHT,
-  VISITED_MARKER_OVERLAY_WIDTH,
-} from '@/components/map-markers/visited-marker';
-import { PermissionBottomSheet } from '@/components/permission-bottom-sheet';
-import { type BBox, useMountainsMap } from '@/features/mountains/hooks/use-mountains-map';
+  useMountainsMap,
+  type BBox,
+} from "@/features/mountains/hooks/use-mountains-map";
+import {
   NaverMapMarkerOverlay,
   NaverMapView,
 } from "@mj-studio/react-native-naver-map";
@@ -64,22 +61,19 @@ const DEFAULT_REGION: Region = {
 
 const MOCK_USER_NAME = "맹쏘";
 
-type MapTab = 'map' | 'feed';
+type MapTab = "map" | "feed";
 
 export default function HomeScreen() {
   const [region, setRegion] = useState<Region>(DEFAULT_REGION);
   const [bbox, setBbox] = useState<BBox>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('내 기록');
-  const [mapTab, setMapTab] = useState<MapTab>('map');
-  const [selectedMountainId, setSelectedMountainId] = useState<number | null>(null);
-  const [isMountainRecordListOpen, setIsMountainRecordListOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("내 기록");
   const [mapTab, setMapTab] = useState<MapTab>("map");
-  const [selectedMountainId, setSelectedMountainId] = useState<string | null>(
+  const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
     null,
   );
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] =
     useState(false);
+
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
   const [showPermissionSheet, setShowPermissionSheet] = useState(false);
   const { data: mapData } = useMountainsMap(bbox);
@@ -132,29 +126,6 @@ export default function HomeScreen() {
     }));
   };
 
-  const visitedMountains = mountains.filter((m) => m.visited);
-  const visitedCards = visitedMountains.map((m) => ({
-    id: String(m.id),
-    name: m.name,
-    trailNumber: m.visitCount,
-    daysAgo: 1,
-    badgeCount: m.visitCount,
-    imageUri: m.imageUrl,
-  }));
-  const unvisitedMountains = mountains.filter(
-    (m) => !m.visited && activeTab === "큐레이션" && m.category === "curated",
-  );
-  const allMountains =
-    activeTab === "내 기록"
-      ? visitedMountains
-      : [...visitedMountains, ...unvisitedMountains];
-  const visibleMountains = selectedMountainId
-    ? allMountains.filter((m) => m.id === selectedMountainId)
-    : allMountains;
-  const noRecordMountains = mountains.map((m) => ({
-    ...m,
-    visited: false,
-  }));
   const handleDetailOpenChange = (isOpen: boolean) => {
     setIsMountainRecordListOpen(isOpen);
     if (!isOpen) {
@@ -174,7 +145,8 @@ export default function HomeScreen() {
         isShowLocationButton={false}
         onTapMap={() => sheetRef.current?.collapseToMin()}
         onCameraIdle={(e) => {
-          const { latitude, longitude, latitudeDelta, longitudeDelta } = e.region;
+          const { latitude, longitude, latitudeDelta, longitudeDelta } =
+            e.region;
           setBbox({
             swLat: latitude,
             swLng: longitude,
@@ -227,9 +199,7 @@ export default function HomeScreen() {
                   <UnvisitedMountainPillMarker
                     name={mountain.name ?? ""}
                     variant={"visited"}
-                    selected={
-                      String(mountain?.mountainId) === selectedMountainId
-                    }
+                    selected={mountain?.mountainId === selectedMountainId}
                   />
                   {/* {mountain.visited ? (
                     <VisitedMarker
