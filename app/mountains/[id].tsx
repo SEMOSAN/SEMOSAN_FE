@@ -131,11 +131,14 @@ export default function MountainDetailScreen() {
             {/* Mountain info */}
             <View className="gap-[7px] px-5 pt-5">
               <View className="flex-row items-center justify-between">
-                <View className="flex-row items-end gap-3">
-                  <Text className="text-label-normal typo-title-2-bold">
+                <View className="mr-3 flex-1 flex-row items-end gap-3">
+                  <Text className="shrink-0 text-label-normal typo-title-2-bold">
                     {data.mountain?.name}
                   </Text>
-                  <Text className="pb-px text-label-subtler typo-body-2-normal-regular">
+                  <Text
+                    className="flex-1 pb-px text-label-subtler typo-body-2-normal-regular"
+                    numberOfLines={1}
+                  >
                     {data.mountain?.address}
                   </Text>
                 </View>
