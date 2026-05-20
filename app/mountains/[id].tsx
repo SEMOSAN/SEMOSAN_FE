@@ -1,6 +1,5 @@
 import { CaretDownIcon } from "@/components/icons/caret-down-icon";
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
-import { MountainBookmarkButton } from "@/features/mountains/components/mountain-bookmark-button";
 import { SunriseIcon } from "@/components/icons/sunrise-icon";
 import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { AmenityTab } from "@/features/mountains-detail/components/amenity-tab";
@@ -9,16 +8,21 @@ import { MountainTabs } from "@/features/mountains-detail/components/mountain-ta
 import { RestaurantTab } from "@/features/mountains-detail/components/restaurant-tab";
 import { ReviewTab } from "@/features/mountains-detail/components/review-tab";
 import { TransportTab } from "@/features/mountains-detail/components/transport-tab";
+import { MountainBookmarkButton } from "@/features/mountains/components/mountain-bookmark-button";
 import { DIFFICULTY_LABEL } from "@/features/mountains/components/mountain-card";
 import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { buildWeatherDays } from "@/features/mountains/modules/weather";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
+  FlatList,
   Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -27,8 +31,66 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabKey = "코스" | "교통 정보" | "편의시설" | "주변 맛집" | "등산 후기";
-const TABS: TabKey[] = ["코스", "교통 정보", "편의시설", "주변 맛집", "등산 후기"];
+const TABS: TabKey[] = [
+  "코스",
+  "교통 정보",
+  "편의시설",
+  "주변 맛집",
+  "등산 후기",
+];
 const weatherDays = buildWeatherDays();
+
+const SCREEN_WIDTH = Dimensions.get("window").width;
+
+function ImageCarousel({ imageUrls }: { imageUrls: string[] }): React.JSX.Element {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const flatListRef = useRef<FlatList<string>>(null);
+
+  function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>): void {
+    const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    setActiveIndex(index);
+  }
+
+  return (
+    <View className="h-[284px] bg-fill-stronger">
+      <FlatList
+        ref={flatListRef}
+        data={imageUrls}
+        keyExtractor={(_, i) => String(i)}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        style={{ flex: 1 }}
+        renderItem={({ item }) => (
+          <Image
+            source={{ uri: item }}
+            style={{ width: SCREEN_WIDTH, height: 284 }}
+            resizeMode="cover"
+          />
+        )}
+      />
+      {imageUrls.length > 1 && (
+        <View className="absolute bottom-[9px] left-0 right-0 flex-row justify-center gap-2">
+          {Array.from({ length: Math.min(imageUrls.length, 3) }).map((_, i) => {
+            const dotCount = Math.min(imageUrls.length, 3);
+            const activeDot =
+              imageUrls.length <= 2
+                ? activeIndex
+                : Math.round((activeIndex / (imageUrls.length - 1)) * (dotCount - 1));
+            return (
+              <View
+                key={i}
+                className={`size-[6px] rounded-full bg-white ${i === activeDot ? "" : "opacity-40"}`}
+              />
+            );
+          })}
+        </View>
+      )}
+    </View>
+  );
+}
 
 function SunriseSunset({
   sunrise,
@@ -83,18 +145,7 @@ export default function MountainDetailScreen() {
           contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
         >
           {/* Image carousel */}
-          <View className="h-[284px] bg-fill-stronger">
-            <Image
-              source={{ uri: data.mountain?.imageUrl }}
-              className="absolute inset-0"
-              resizeMode="cover"
-            />
-            <View className="absolute bottom-[9px] left-0 right-0 flex-row justify-center gap-2">
-              <View className="size-[6px] rounded-full bg-white" />
-              <View className="size-[6px] rounded-full bg-white opacity-40" />
-              <View className="size-[6px] rounded-full bg-white opacity-40" />
-            </View>
-          </View>
+          <ImageCarousel imageUrls={data.mountain?.imageUrls ?? []} />
 
           {/* Content card - overlaps image with rounded top */}
           <View className="-mt-5 rounded-tl-[20px] rounded-tr-[20px] bg-fill-normal">
@@ -128,7 +179,7 @@ export default function MountainDetailScreen() {
             </View>
 
             {/* Weather accordion */}
-            <View className="mt-4 mx-5 gap-2 rounded-[8px] bg-[#F9FAFB] px-4 py-[10px]">
+            <View className="mx-5 mt-4 gap-2 rounded-[8px] bg-[#F9FAFB] px-4 py-[10px]">
               {/* Header row — always visible, tappable */}
               <TouchableOpacity
                 className="flex-row items-center justify-between"
@@ -136,7 +187,13 @@ export default function MountainDetailScreen() {
                 activeOpacity={0.7}
               >
                 <View className="mr-3 flex-1 flex-row items-center justify-between">
-                  <Text className={accordionOpen ? "text-label-normal typo-body-3-semi-bold" : "text-label-subtle typo-body-3-medium"}>
+                  <Text
+                    className={
+                      accordionOpen
+                        ? "text-label-normal typo-body-3-semi-bold"
+                        : "text-label-subtle typo-body-3-medium"
+                    }
+                  >
                     {weatherDays[0].label}
                   </Text>
                   <SunriseSunset
@@ -157,7 +214,10 @@ export default function MountainDetailScreen() {
               {/* Expanded rows */}
               {accordionOpen &&
                 weatherDays.slice(1).map((day) => (
-                  <View key={day.label} className="h-5 flex-row items-center justify-between">
+                  <View
+                    key={day.label}
+                    className="h-5 flex-row items-center justify-between"
+                  >
                     <View className="mr-3 flex-1 flex-row items-center justify-between">
                       <Text className="text-label-subtle typo-body-3-medium">
                         {day.label}
