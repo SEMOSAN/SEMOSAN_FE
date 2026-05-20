@@ -12,4 +12,5 @@ export const MOCK_USER = {
   exerciseDuration: '2~4시간',
 };
 
-export const APP_VERSION = '1.23.1';
+import Constants from 'expo-constants';
+export const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
