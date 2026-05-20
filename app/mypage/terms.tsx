@@ -1,21 +1,22 @@
 import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
 import { MenuRow } from '@/features/mypage/components/menu-row';
+import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
-import { Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TERMS_ITEMS = [
   {
     label: '위치 기반 서비스 이용약관',
-    onPress: () => Linking.openURL('https://ringed-hosta-dcb.notion.site/semosan-person-legacy'),
+    onPress: () => WebBrowser.openBrowserAsync('https://ringed-hosta-dcb.notion.site/semosan-person-legacy'),
   },
   {
     label: '개인정보 처리방침',
-    onPress: () => Linking.openURL('https://ringed-hosta-dcb.notion.site/semosan-legacy'),
+    onPress: () => WebBrowser.openBrowserAsync('https://ringed-hosta-dcb.notion.site/semosan-legacy'),
   },
   {
     label: '커뮤니티 이용약관',
-    onPress: () => Linking.openURL('https://ringed-hosta-dcb.notion.site/semosan-legacy-community'),
+    onPress: () => WebBrowser.openBrowserAsync('https://ringed-hosta-dcb.notion.site/semosan-legacy-community'),
   },
 ];
 
