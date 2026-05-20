@@ -10,24 +10,23 @@ export const DIFFICULTY_LABEL: Record<MountainDifficulty, string> = {
   HARD: "상",
 };
 
-export function MountainCard({
-  mountain,
-}: {
-  mountain: MountainListResponse;
-}): React.JSX.Element {
+export function MountainCard({ mountain }: { mountain: MountainListResponse }) {
   return (
     <View className="flex-row items-center gap-4">
       <Image
-        source={{ uri: mountain.imageUrl }}
+        source={{ uri: mountain.imageUrls?.[0] }}
         className="h-[72px] w-[86px] rounded-[10px] bg-fill-stronger"
         resizeMode="cover"
       />
-      <View className="flex-col gap-1.5">
+      <View className="flex-1 flex-col gap-1.5">
         <View className="flex-row items-end gap-[9px]">
-          <Text className="text-label-normal typo-headline-1-semi-bold">
+          <Text className="shrink-0 text-label-normal typo-headline-1-semi-bold">
             {mountain.name}
           </Text>
-          <Text className="pb-[3px] text-label-subtler typo-body-3-medium">
+          <Text
+            className="shrink pb-[3px] text-label-subtler typo-body-3-medium"
+            numberOfLines={1}
+          >
             {mountain.address}
           </Text>
         </View>

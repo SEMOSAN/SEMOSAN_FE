@@ -80,6 +80,7 @@ export default function RootLayout(): React.JSX.Element | null {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="record/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="mountains/[id]" options={{ headerShown: false }} />
             <Stack.Screen
               name="record/photo-report-edit"
               options={{ headerShown: false }}
