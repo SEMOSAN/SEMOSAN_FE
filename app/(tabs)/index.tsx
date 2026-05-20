@@ -14,12 +14,8 @@ import {
   UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
   UnvisitedMountainPillMarker,
 } from "@/components/map-markers/unvisited-mountain-pill-marker";
-import {
-  VISITED_MARKER_OVERLAY_HEIGHT,
-  VISITED_MARKER_OVERLAY_WIDTH,
-  VisitedMarker,
-} from "@/components/map-markers/visited-marker";
 import { PermissionBottomSheet } from "@/components/permission-bottom-sheet";
+import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import { useHomeState } from "@/hooks/useHomeState";
 import {
   NaverMapMarkerOverlay,
@@ -28,6 +24,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
@@ -175,6 +172,7 @@ export default function HomeScreen() {
   const { top } = useSafeAreaInsets();
   const sheetRef = useRef<HomeBottomSheetRef>(null);
   const sheetHeight = useSharedValue(SNAP_DEFAULT);
+  const { data, isPending, isError } = useMountains();
 
   const locationButtonStyle = useAnimatedStyle(() => ({
     bottom: sheetHeight.value + 12,
@@ -192,24 +190,20 @@ export default function HomeScreen() {
     });
   }, []);
 
-  const handlePermissionConfirm = () => {
+  const handlePermissionConfirm = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") return;
+    const location = await Location.getCurrentPositionAsync({});
+
+    setRegion((prev) => ({
+      ...prev,
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    }));
+
     AsyncStorage.setItem("permission_sheet_shown", "true");
     setShowPermissionSheet(false);
   };
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
-      const location = await Location.getCurrentPositionAsync({});
-
-      setRegion((prev) => ({
-        ...prev,
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      }));
-    })();
-  }, []);
 
   const moveToCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -265,37 +259,54 @@ export default function HomeScreen() {
         onTapMap={() => sheetRef.current?.collapseToMin()}
       >
         {hasRecords
-          ? visibleMountains.map((mountain) => (
+          ? data?.content?.map((mountain) => (
               <NaverMapMarkerOverlay
-                key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
-                latitude={mountain.latitude}
-                longitude={mountain.longitude}
-                width={
-                  mountain.visited
-                    ? VISITED_MARKER_OVERLAY_WIDTH
-                    : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
-                }
-                height={
-                  mountain.visited
-                    ? VISITED_MARKER_OVERLAY_HEIGHT
-                    : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
-                }
-                anchor={
-                  mountain.visited ? { x: 0.2, y: 1 } : { x: 0.5, y: 0.5 }
-                }
+                key={`${mountain.mountainId}-${activeTab}-${selectedMountainId}`}
+                onTap={() => {
+                  router.push(`/mountains/${mountain.mountainId}`);
+                }}
+                latitude={mountain?.latitude ?? 0}
+                longitude={mountain.longitude ?? 0}
+                // width={
+                //   mountain.visited
+                //     ? VISITED_MARKER_OVERLAY_WIDTH
+                //     : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
+                // }
+                width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
+                // height={
+                //   mountain.visited
+                //     ? VISITED_MARKER_OVERLAY_HEIGHT
+                //     : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
+                // }
+                height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
+                // anchor={
+                //   mountain.visited ? { x: 0.2, y: 1 } : { x: 0.5, y: 0.5 }
+                // }
+                anchor={{ x: 0.5, y: 0.5 }}
               >
                 <View
                   collapsable={false}
+                  // style={{
+                  //   width: mountain.visited
+                  //     ? VISITED_MARKER_OVERLAY_WIDTH
+                  //     : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
+                  //   height: mountain.visited
+                  //     ? VISITED_MARKER_OVERLAY_HEIGHT
+                  //     : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
+                  // }}
                   style={{
-                    width: mountain.visited
-                      ? VISITED_MARKER_OVERLAY_WIDTH
-                      : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                    height: mountain.visited
-                      ? VISITED_MARKER_OVERLAY_HEIGHT
-                      : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
+                    width: UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
+                    height: UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
                   }}
                 >
-                  {mountain.visited ? (
+                  <UnvisitedMountainPillMarker
+                    name={mountain.name ?? ""}
+                    variant={"visited"}
+                    selected={
+                      String(mountain?.mountainId) === selectedMountainId
+                    }
+                  />
+                  {/* {mountain.visited ? (
                     <VisitedMarker
                       name={mountain.name}
                       visitCount={mountain.visitCount}
@@ -314,7 +325,7 @@ export default function HomeScreen() {
                       }
                       selected={mountain.id === selectedMountainId}
                     />
-                  )}
+                  )} */}
                 </View>
               </NaverMapMarkerOverlay>
             ))
