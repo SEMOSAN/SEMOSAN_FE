@@ -91,7 +91,9 @@ export default function MountainSearchScreen(): React.JSX.Element {
           ) : (
             <FlatList
               data={mountains}
-              keyExtractor={(item) => String(item.mountainId)}
+              keyExtractor={(item, index) =>
+                item.mountainId?.toString() ?? index.toString()
+              }
               renderItem={({ item }) => (
                 <Pressable
                   className="px-5 py-3"
