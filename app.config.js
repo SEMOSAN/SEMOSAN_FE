@@ -16,6 +16,8 @@ const config = {
     usesAppleSignIn: true,
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
+      NSCameraUsageDescription: '프로필 사진 촬영을 위해 카메라 접근이 필요합니다.',
+      NSPhotoLibraryUsageDescription: '프로필 사진 선택을 위해 사진 라이브러리 접근이 필요합니다.',
     },
   },
   locales: {
@@ -66,6 +68,7 @@ const config = {
       },
     ],
     "expo-apple-authentication",
+    "expo-image-picker",
     "expo-web-browser",
     [
       "expo-image-picker",

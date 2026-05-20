@@ -28,6 +28,7 @@ export const ENDPOINTS = {
   HIKING_RECORDS_ME_SUMMARY: "/api/hiking-records/me/summary",
   HIKING_RECORDS_ME_MOUNTAINS: "/api/hiking-records/me/mountains",
   AUTH_WITHDRAW: "/api/auth/withdraw",
+  IMAGES_PRESIGNED_URL: "/api/images/presigned-url",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -117,6 +118,7 @@ export type GetUserProfileResponse = {
   hikingLevel?: "BEGINNER" | "EXPERIENCED" | "HOBBY" | "EXPERT";
   gender?: "MALE" | "FEMALE" | "NONE";
   age?: number;
+  birthDate?: string;
   height?: number;
   weight?: number;
   exerciseType?: "GYM" | "HOME_TRAINING" | "PILATES_YOGA" | "WALKING" | "RUNNING" | "HIKING" | "SPORTS" | "CROSSFIT" | "SWIMMING" | "NONE";

@@ -86,7 +86,7 @@ export default function MyPageScreen() {
             activeOpacity={0.6}
             onPress={() => router.push("/mypage/info")}
           >
-            <ProfileAvatar />
+            <ProfileAvatar url={profile?.profileUrl} />
 
             <View className="flex-1 gap-1">
               <View className="flex-row items-center gap-2">
