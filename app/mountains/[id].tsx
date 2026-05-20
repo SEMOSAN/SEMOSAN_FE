@@ -10,6 +10,7 @@ import { MountainBookmarkButton } from "@/features/mountains/components/mountain
 import { DIFFICULTY_LABEL } from "@/features/mountains/components/mountain-card";
 import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
+import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
@@ -97,6 +98,11 @@ function ImageCarousel({
 export default function MountainDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
+  // TODO: 상세 API에 위도/경도 추가되면 제거
+  const { data: mountainsData } = useMountains({ size: 1000 });
+  const mountainCoords = mountainsData?.content?.find(
+    (m) => m.mountainId === Number(id),
+  );
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabKey>("교통 정보");
@@ -151,9 +157,13 @@ export default function MountainDetailScreen() {
               </View>
             </View>
 
-            {/* TODO : 임시로 값 추가한것 API값으로 변경 */}
             {/* Weather accordion */}
-            <WeatherAccordion latitude={37.445044} longitude={126.964223} />
+            {mountainCoords?.latitude && mountainCoords?.longitude && (
+              <WeatherAccordion
+                latitude={mountainCoords.latitude}
+                longitude={mountainCoords.longitude}
+              />
+            )}
 
             {/* Tab section */}
             <View className="gap-6 py-6">
