@@ -1,5 +1,4 @@
 import { ResetIcon } from "@/components/icons/reset-icon";
-import { MountainSearchButton } from "@/features/mountains/components/mountain-search-button";
 import {
   DifficultyBottomSheet,
   DifficultyOption,
@@ -11,6 +10,7 @@ import {
 import { FilterBottomSheet } from "@/features/mountains/components/filter-bottom-sheet";
 import { FilterChip } from "@/features/mountains/components/filter-chip";
 import { MountainList } from "@/features/mountains/components/mountain-list";
+import { MountainSearchButton } from "@/features/mountains/components/mountain-search-button";
 import {
   RegionFilterContent,
   Selection,
