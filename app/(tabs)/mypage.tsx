@@ -105,6 +105,15 @@ export default function MyPageScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* 내 활동 */}
+        <SectionDivider />
+        <View className="bg-fill-normal">
+          <MenuRow
+            label="저장한 산 목록"
+            onPress={() => router.push("/mypage/saved-mountains")}
+          />
+        </View>
+
         {/* 서비스 */}
         <SectionDivider />
         <View className="bg-fill-normal">
