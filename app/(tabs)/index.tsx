@@ -256,6 +256,8 @@ export default function HomeScreen() {
             <NoRecordBottomSheet
               userName={MOCK_USER_NAME}
               scrollEnabled={scrollEnabled}
+              lat={region.latitude}
+              lng={region.longitude}
             />
           )
         }
