@@ -29,11 +29,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabKey = "코스" | "교통 정보" | "편의시설" | "주변 맛집" | "등산 후기";
 const TABS: TabKey[] = [
-  "코스",
+  // TODO : 코스 API 추가시 연동
+  // "코스",
   "교통 정보",
   "편의시설",
-  "주변 맛집",
-  "등산 후기",
+  // "주변 맛집",
+  // "등산 후기",
 ];
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -98,7 +99,7 @@ export default function MountainDetailScreen() {
   const { data, isPending, isError } = useMountainDetail(Number(id));
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<TabKey>("코스");
+  const [activeTab, setActiveTab] = useState<TabKey>("교통 정보");
 
   if (isPending)
     return (
@@ -164,6 +165,7 @@ export default function MountainDetailScreen() {
               />
 
               {/* Tab content */}
+
               {activeTab === "코스" && <CourseTab />}
               {activeTab === "교통 정보" && <TransportTab />}
               {activeTab === "편의시설" && <AmenityTab />}
