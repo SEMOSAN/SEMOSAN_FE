@@ -6,9 +6,10 @@ type Props = {
   value?: string;
   onPress: () => void;
   danger?: boolean;
+  hideChevron?: boolean;
 };
 
-export function MenuRow({ label, value, onPress, danger }: Props) {
+export function MenuRow({ label, value, onPress, danger, hideChevron }: Props) {
   return (
     <TouchableOpacity
       className="flex-row items-center justify-between px-4"
@@ -30,7 +31,7 @@ export function MenuRow({ label, value, onPress, danger }: Props) {
             {value}
           </Text>
         )}
-        <MenuChevronIcon color={danger ? '#ff5249' : '#73798C'} />
+        {!hideChevron && <MenuChevronIcon color={danger ? '#ff5249' : '#73798C'} />}
       </View>
     </TouchableOpacity>
   );

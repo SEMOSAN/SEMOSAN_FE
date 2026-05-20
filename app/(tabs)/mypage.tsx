@@ -1,4 +1,5 @@
 import { useLogout } from "@/features/auth/hooks/use-logout";
+import { useWithdraw } from "@/features/auth/hooks/use-withdraw";
 import { MenuChevronIcon } from "@/features/mypage/components/menu-chevron-icon";
 import { MenuRow } from "@/features/mypage/components/menu-row";
 import { ProfileAvatar } from "@/features/mypage/components/profile-avatar";
@@ -17,6 +18,7 @@ export default function MyPageScreen() {
   const router = useRouter();
   const { data: profile } = useProfile();
   const { mutate: logout } = useLogout();
+  const { mutate: withdraw } = useWithdraw();
 
   const activityItems = [
     {
@@ -29,11 +31,9 @@ export default function MyPageScreen() {
   ];
 
   const serviceItems = [
-    { label: "공지사항", onPress: () => {} },
-    { label: "1:1 문의하기", onPress: () => {} },
     { label: "권한 관리", onPress: () => router.push("/mypage/permissions") },
     { label: "이용약관", onPress: () => router.push("/mypage/terms") },
-    { label: "버전 정보", value: `v ${APP_VERSION}`, onPress: () => {} },
+    { label: "버전 정보", value: `v ${APP_VERSION}`, onPress: () => {}, hideChevron: true },
   ];
 
   const accountItems = [
@@ -56,7 +56,7 @@ export default function MyPageScreen() {
       onPress: () =>
         Alert.alert("탈퇴하기", "정말 탈퇴하시겠어요?", [
           { text: "취소", style: "cancel" },
-          { text: "탈퇴", style: "destructive", onPress: () => {} },
+          { text: "탈퇴", style: "destructive", onPress: () => withdraw(undefined, { onSuccess: () => router.replace("/login") }) },
         ]),
     },
   ];
@@ -108,15 +108,10 @@ export default function MyPageScreen() {
         {/* 내 활동 */}
         <SectionDivider />
         <View className="bg-fill-normal">
-          <Text
-            className="text-label-alternative px-4 pb-2 pt-5 typo-body-2-normal-semi-bold"
-            style={{ letterSpacing: -0.14 }}
-          >
-            내 활동
-          </Text>
-          {activityItems.map((item) => (
-            <MenuRow key={item.label} {...item} />
-          ))}
+          <MenuRow
+            label="저장한 산 목록"
+            onPress={() => router.push("/mypage/saved-mountains")}
+          />
         </View>
 
         {/* 서비스 */}
