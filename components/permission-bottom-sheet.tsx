@@ -1,11 +1,11 @@
-import { Text, TouchableOpacity, View } from "react-native";
-import { ModalSheet } from "@/components/modal-sheet";
 import {
   PermissionBellIcon,
   PermissionCameraIcon,
   PermissionImageIcon,
   PermissionLocationIcon,
 } from "@/components/icons/permission-icons";
+import { ModalSheet } from "@/components/modal-sheet";
+import { Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
   visible: boolean;
@@ -47,33 +47,40 @@ const OPTIONAL: PermissionItem[] = [
 export function PermissionBottomSheet({ visible, onConfirm }: Props) {
   return (
     <ModalSheet visible={visible} onDismiss={onConfirm}>
-      <View className="px-5 pt-3 gap-6">
-        <Text className="typo-heading-1-semi-bold text-label-normal">
+      <View className="gap-6 px-5 pt-3">
+        <Text className="text-label-normal typo-heading-1-semi-bold">
           {"원활한 SEMOSAN 사용을 위해\n아래 권한을 허용해주세요."}
         </Text>
 
         <View className="gap-4">
-          <Text className="typo-body-1-normal-semi-bold text-label-subtle">필수 접근 권한</Text>
+          <Text className="text-label-subtle typo-body-1-normal-semi-bold">
+            필수 접근 권한
+          </Text>
           {REQUIRED.map((item) => (
             <PermissionRow key={item.title} item={item} />
           ))}
         </View>
 
-        <View className="gap-4">
-          <Text className="typo-body-1-normal-semi-bold text-label-subtle">선택적 접근 권한</Text>
+        {/* TODO : 아직은 필요하지 않은 권한이므로 주석처리 */}
+        {/* <View className="gap-4">
+          <Text className="text-label-subtle typo-body-1-normal-semi-bold">
+            선택적 접근 권한
+          </Text>
           {OPTIONAL.map((item) => (
             <PermissionRow key={item.title} item={item} />
           ))}
-        </View>
+        </View> */}
       </View>
 
       <View className="px-5 pt-8">
         <TouchableOpacity
-          className="h-12 bg-label-normal rounded-[10px] items-center justify-center"
+          className="h-12 items-center justify-center rounded-[10px] bg-label-normal"
           onPress={onConfirm}
           activeOpacity={0.8}
         >
-          <Text className="typo-label-large text-label-normal-inverse">확인</Text>
+          <Text className="text-label-normal-inverse typo-label-large">
+            확인
+          </Text>
         </TouchableOpacity>
       </View>
     </ModalSheet>
@@ -85,8 +92,12 @@ function PermissionRow({ item }: { item: PermissionItem }) {
     <View className="flex-row items-center gap-3">
       {item.icon}
       <View className="flex-1 gap-0.5">
-        <Text className="typo-body-2-normal-semi-bold text-label-normal">{item.title}</Text>
-        <Text className="typo-caption-1-regular text-label-subtler">{item.description}</Text>
+        <Text className="text-label-normal typo-body-2-normal-semi-bold">
+          {item.title}
+        </Text>
+        <Text className="text-label-subtler typo-caption-1-regular">
+          {item.description}
+        </Text>
       </View>
     </View>
   );
