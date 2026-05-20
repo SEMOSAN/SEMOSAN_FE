@@ -5,7 +5,7 @@ import { MountainCard } from "@/features/mountains/components/mountain-card";
 import { useMountainSearch } from "@/features/mountains/hooks/use-mountain-search";
 import { useRecentSearches } from "@/features/mountains/hooks/use-recent-searches";
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -20,8 +20,15 @@ export default function MountainSearchScreen(): React.JSX.Element {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [keyword, setKeyword] = useState("");
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const inputRef = useRef<TextInput>(null);
-  const { data, isPending } = useMountainSearch(keyword);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedKeyword(keyword), 500);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
+  const { data, isPending } = useMountainSearch(debouncedKeyword);
   const { recentSearches, saveSearch, removeSearch } = useRecentSearches();
   const mountains = data?.content ?? [];
   const trimmed = keyword.trim();

@@ -4,7 +4,6 @@ import {
   PageResponseMountainListResponse,
 } from "@/types/api.generated";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 
 async function searchMountains(
   keyword: string,
@@ -17,16 +16,9 @@ async function searchMountains(
 }
 
 export function useMountainSearch(keyword: string) {
-  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedKeyword(keyword), 500);
-    return () => clearTimeout(timer);
-  }, [keyword]);
-
   return useQuery({
-    queryKey: [ENDPOINTS.MOUNTAINS_SEARCH, debouncedKeyword],
-    queryFn: () => searchMountains(debouncedKeyword),
-    enabled: debouncedKeyword.trim().length > 0,
+    queryKey: [ENDPOINTS.MOUNTAINS_SEARCH, keyword],
+    queryFn: () => searchMountains(keyword),
+    enabled: keyword.trim().length > 0,
   });
 }
