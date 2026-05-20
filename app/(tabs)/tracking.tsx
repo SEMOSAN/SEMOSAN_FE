@@ -25,6 +25,7 @@ import {
   TRAIL_BAR_WIDTH,
   TRAIL_MARKER_LEFT,
 } from "@/features/tracking/constants";
+import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
   NaverMapMarkerOverlay,
@@ -128,18 +129,20 @@ export default function TrackingScreen() {
   useEffect(() => {
     if (!isTracking) return;
 
-    if (isFreeMode) {
-      LiveActivity.start({ mode: "free" }).catch(() => {});
-    } else {
-      const totalMinutes =
-        selectedCourse.durationHours * 60 + selectedCourse.durationMinutes;
-      const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
-      LiveActivity.start({
-        mode: "course",
-        remainingMinutes: totalMinutes,
-        remainingMeters: totalMeters,
-        progress: 0,
-      }).catch(() => {});
+    if (isLiveActivityEnabled) {
+      if (isFreeMode) {
+        LiveActivity.start({ mode: "free" }).catch(() => {});
+      } else {
+        const totalMinutes =
+          selectedCourse.durationHours * 60 + selectedCourse.durationMinutes;
+        const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+        LiveActivity.start({
+          mode: "course",
+          remainingMinutes: totalMinutes,
+          remainingMeters: totalMeters,
+          progress: 0,
+        }).catch(() => {});
+      }
     }
 
     return () => {};
@@ -156,28 +159,30 @@ export default function TrackingScreen() {
   useEffect(() => {
     if (!isTracking) return;
 
-    if (isFreeMode) {
-      LiveActivity.update({
-        elapsedSeconds,
-        isRunning: !isPaused,
-        mode: "free",
-      }).catch(() => {});
-    } else {
-      const totalSeconds =
-        (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) *
-        60;
-      const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
-      const progress =
-        totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
-      const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
-      LiveActivity.update({
-        elapsedSeconds,
-        isRunning: !isPaused,
-        mode: "course",
-        remainingMinutes: Math.ceil(remainingSeconds / 60),
-        remainingMeters: Math.round(totalMeters * (1 - progress)),
-        progress,
-      }).catch(() => {});
+    if (isLiveActivityEnabled) {
+      if (isFreeMode) {
+        LiveActivity.update({
+          elapsedSeconds,
+          isRunning: !isPaused,
+          mode: "free",
+        }).catch(() => {});
+      } else {
+        const totalSeconds =
+          (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) *
+          60;
+        const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+        const progress =
+          totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
+        const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+        LiveActivity.update({
+          elapsedSeconds,
+          isRunning: !isPaused,
+          mode: "course",
+          remainingMinutes: Math.ceil(remainingSeconds / 60),
+          remainingMeters: Math.round(totalMeters * (1 - progress)),
+          progress,
+        }).catch(() => {});
+      }
     }
   }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse]);
 
@@ -194,7 +199,7 @@ export default function TrackingScreen() {
 
   /** 난이도 체감 완료 후 상태 초기화 */
   const completeTracking = () => {
-    LiveActivity.stop().catch(() => {});
+    if (isLiveActivityEnabled) LiveActivity.stop().catch(() => {});
     setShowDifficultyRating(false);
     setIsTracking(false);
     setIsPaused(false);

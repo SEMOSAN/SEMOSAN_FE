@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+const isLiveActivityEnabled = process.env.EXPO_PUBLIC_LIVE_ACTIVITY_ENABLED === "true";
+
 /** @type {import('expo/config').ExpoConfig} */
 const config = {
   name: "semosan",
@@ -40,7 +42,7 @@ const config = {
   },
   plugins: [
     "expo-router",
-    "./plugins/withLiveActivity",
+    ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
     [
       "expo-notifications",
       {
