@@ -7,7 +7,6 @@ import { useOnlineManager } from "@/hooks/use-online-manager";
 import { usePushNotification } from "@/hooks/use-push-notification";
 import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { useFonts, Lexend_700Bold } from "@expo-google-fonts/lexend";
-import { useFonts } from "@expo-google-fonts/lexend";
 import { initializeKakaoSDK } from "@react-native-kakao/core";
 import {
   DarkTheme,
@@ -83,36 +82,10 @@ export default function RootLayout(): React.JSX.Element | null {
             <Stack.Screen name="community/write" options={{ headerShown: false }} />
             <Stack.Screen name="community/post-complete" options={{ headerShown: false }} />
             <Stack.Screen name="mypage/info" options={{ headerShown: false }} />
+            <Stack.Screen name="mypage/saved-mountains" options={{ headerShown: false }} />
+            <Stack.Screen name="mypage/permissions" options={{ headerShown: false }} />
+            <Stack.Screen name="mypage/terms" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: "modal", title: "Modal" }} />
-            <Stack.Screen
-              name="mountain-info"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="community/write"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="community/post-complete"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="mypage/info" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="mypage/saved-mountains"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="mypage/permissions"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="mypage/terms"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="modal"
-              options={{ presentation: "modal", title: "Modal" }}
-            />
           </Stack>
           {authStatus === "unauthenticated" && <Redirect href="/login" />}
           <Toast />

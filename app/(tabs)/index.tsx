@@ -29,24 +29,13 @@ import {
   VISITED_MARKER_OVERLAY_HEIGHT,
   VISITED_MARKER_OVERLAY_WIDTH,
 } from '@/components/map-markers/visited-marker';
-import { useHomeState } from '@/hooks/useHomeState';
 import { PermissionBottomSheet } from '@/components/permission-bottom-sheet';
+import { type BBox, useMountainsMap } from '@/features/mountains/hooks/use-mountains-map';
 
 type Region = {
   latitude: number;
   longitude: number;
   zoom: number;
-};
-
-type Mountain = {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  visitCount: number;
-  imageUri?: string;
-  category: 'default' | 'popular' | 'curated';
-  visited: boolean;
 };
 
 const DEFAULT_REGION: Region = {
@@ -57,83 +46,20 @@ const DEFAULT_REGION: Region = {
 
 const MOCK_USER_NAME = '맹쏘';
 
-const MOCK_MOUNTAINS: Mountain[] = [
-  {
-    id: '1',
-    name: '북한산',
-    latitude: 37.6577,
-    longitude: 126.9791,
-    visitCount: 3,
-    imageUri: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
-    category: 'popular',
-    visited: true,
-  },
-  {
-    id: '2',
-    name: '관악산',
-    latitude: 37.4441,
-    longitude: 126.9644,
-    visitCount: 1,
-    imageUri: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
-    category: 'default',
-    visited: true,
-  },
-  {
-    id: '3',
-    name: '도봉산',
-    latitude: 37.6892,
-    longitude: 127.0158,
-    visitCount: 5,
-    imageUri: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=600&q=80',
-    category: 'curated',
-    visited: true,
-  },
-  {
-    id: '4',
-    name: '남산',
-    latitude: 37.5512,
-    longitude: 126.9882,
-    visitCount: 7,
-    imageUri: 'https://images.unsplash.com/photo-1570198788870-48acab9571f6?auto=format&fit=crop&w=600&q=80',
-    category: 'curated',
-    visited: true,
-  },
-  {
-    id: '5',
-    name: '수락산',
-    latitude: 37.6873,
-    longitude: 127.0862,
-    visitCount: 2,
-    imageUri: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
-    category: 'default',
-    visited: true,
-  },
-  {
-    id: '6',
-    name: '아차산',
-    latitude: 37.5507,
-    longitude: 127.1065,
-    visitCount: 4,
-    imageUri: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=600&q=80',
-    category: 'popular',
-    visited: true,
-  },
-  { id: '7', name: '인왕산', latitude: 37.5815, longitude: 126.9580, visitCount: 2, category: 'popular', visited: false },
-  { id: '8', name: '청계산', latitude: 37.4239, longitude: 127.0553, visitCount: 0, category: 'popular', visited: false },
-  { id: '9', name: '불암산', latitude: 37.6524, longitude: 127.1012, visitCount: 0, category: 'curated', visited: false },
-];
-
 type MapTab = 'map' | 'feed';
 
 export default function HomeScreen() {
-  const { hasRecords } = useHomeState();
   const [region, setRegion] = useState<Region>(DEFAULT_REGION);
+  const [bbox, setBbox] = useState<BBox>(null);
   const [activeTab, setActiveTab] = useState<Tab>('내 기록');
   const [mapTab, setMapTab] = useState<MapTab>('map');
-  const [selectedMountainId, setSelectedMountainId] = useState<string | null>(null);
+  const [selectedMountainId, setSelectedMountainId] = useState<number | null>(null);
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] = useState(false);
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
   const [showPermissionSheet, setShowPermissionSheet] = useState(false);
+  const { data: mapData } = useMountainsMap(bbox);
+  const hasRecords = mapData?.hasHikingRecord ?? false;
+  const mountains = mapData?.mountains ?? [];
   const { top } = useSafeAreaInsets();
   const sheetRef = useRef<HomeBottomSheetRef>(null);
   const sheetHeight = useSharedValue(SNAP_DEFAULT);
@@ -178,24 +104,23 @@ export default function HomeScreen() {
     }));
   };
 
-  const visitedMountains = MOCK_MOUNTAINS.filter((m) => m.visited);
+  const visitedMountains = mountains.filter((m) => m.visited);
   const visitedCards = visitedMountains.map((m) => ({
-    id: m.id,
+    id: String(m.id),
     name: m.name,
     trailNumber: m.visitCount,
     daysAgo: 1,
     badgeCount: m.visitCount,
-    imageUri: m.imageUri,
+    imageUri: m.imageUrl,
   }));
-  const unvisitedMountains = MOCK_MOUNTAINS.filter(
-    (m) => !m.visited && activeTab === '큐레이션' && m.category === 'curated'
+  const unvisitedMountains = mountains.filter(
+    (m) => !m.visited && activeTab === '큐레이션'
   );
   const allMountains =
     activeTab === '내 기록' ? visitedMountains : [...visitedMountains, ...unvisitedMountains];
   const visibleMountains = selectedMountainId
     ? allMountains.filter((m) => m.id === selectedMountainId)
     : allMountains;
-  const noRecordMountains = MOCK_MOUNTAINS.map((m) => ({ ...m, visited: false }));
   const handleDetailOpenChange = (isOpen: boolean) => {
     setIsMountainRecordListOpen(isOpen);
     if (!isOpen) {
@@ -210,6 +135,15 @@ export default function HomeScreen() {
         camera={{ latitude: region.latitude, longitude: region.longitude, zoom: region.zoom }}
         isShowLocationButton={false}
         onTapMap={() => sheetRef.current?.collapseToMin()}
+        onCameraIdle={(e) => {
+          const { latitude, longitude, latitudeDelta, longitudeDelta } = e.region;
+          setBbox({
+            swLat: latitude,
+            swLng: longitude,
+            neLat: latitude + latitudeDelta,
+            neLng: longitude + longitudeDelta,
+          });
+        }}
       >
         {hasRecords
           ? visibleMountains.map((mountain) => (
@@ -248,20 +182,20 @@ export default function HomeScreen() {
                     <VisitedMarker
                       name={mountain.name}
                       visitCount={mountain.visitCount}
-                      imageUri={mountain.imageUri}
+                      imageUri={mountain.imageUrl}
                       selected={mountain.id === selectedMountainId}
                     />
                   ) : (
                     <UnvisitedMountainPillMarker
                       name={mountain.name}
-                      variant={mountain.visited ? 'visited' : activeTab === '큐레이션' ? 'curation' : 'trending'}
+                      variant={activeTab === '큐레이션' ? 'curation' : 'trending'}
                       selected={mountain.id === selectedMountainId}
                     />
                   )}
                 </View>
               </NaverMapMarkerOverlay>
             ))
-          : noRecordMountains.map((mountain) => (
+          : mountains.map((mountain) => (
               <NaverMapMarkerOverlay
                 key={`no-record-${mountain.id}`}
                 latitude={mountain.latitude}
@@ -314,7 +248,7 @@ export default function HomeScreen() {
               cards={visitedCards}
               showTabs={false}
               scrollEnabled={scrollEnabled}
-              onCardSelect={(id) => setSelectedMountainId(id)}
+              onCardSelect={(id) => setSelectedMountainId(Number(id))}
               onDetailOpenChange={handleDetailOpenChange}
               closeSelectedToken={closeSelectedToken}
             />
