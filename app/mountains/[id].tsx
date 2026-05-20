@@ -11,7 +11,7 @@ import { DIFFICULTY_LABEL } from "@/features/mountains/components/mountain-card"
 import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { LinearGradient } from "expo-linear-gradient";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -111,7 +111,6 @@ export default function MountainDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-fill-normal">
         <ScrollView
           className="flex-1"
