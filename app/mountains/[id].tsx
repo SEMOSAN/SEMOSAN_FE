@@ -1,18 +1,15 @@
-import { CaretDownIcon } from "@/components/icons/caret-down-icon";
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
-import { SunriseIcon } from "@/components/icons/sunrise-icon";
-import { SunsetIcon } from "@/components/icons/sunset-icon";
 import { AmenityTab } from "@/features/mountains-detail/components/amenity-tab";
 import { CourseTab } from "@/features/mountains-detail/components/course-tab";
 import { MountainTabs } from "@/features/mountains-detail/components/mountain-tabs";
 import { RestaurantTab } from "@/features/mountains-detail/components/restaurant-tab";
 import { ReviewTab } from "@/features/mountains-detail/components/review-tab";
 import { TransportTab } from "@/features/mountains-detail/components/transport-tab";
+import { WeatherAccordion } from "@/features/mountains-detail/components/weather-accordion";
 import { MountainBookmarkButton } from "@/features/mountains/components/mountain-bookmark-button";
 import { DIFFICULTY_LABEL } from "@/features/mountains/components/mountain-card";
 import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
-import { buildWeatherDays } from "@/features/mountains/modules/weather";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
@@ -23,9 +20,9 @@ import {
   Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Pressable,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -38,11 +35,13 @@ const TABS: TabKey[] = [
   "주변 맛집",
   "등산 후기",
 ];
-const weatherDays = buildWeatherDays();
-
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-function ImageCarousel({ imageUrls }: { imageUrls: string[] }): React.JSX.Element {
+function ImageCarousel({
+  imageUrls,
+}: {
+  imageUrls: string[];
+}): React.JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList<string>>(null);
 
@@ -78,7 +77,9 @@ function ImageCarousel({ imageUrls }: { imageUrls: string[] }): React.JSX.Elemen
             const activeDot =
               imageUrls.length <= 2
                 ? activeIndex
-                : Math.round((activeIndex / (imageUrls.length - 1)) * (dotCount - 1));
+                : Math.round(
+                    (activeIndex / (imageUrls.length - 1)) * (dotCount - 1),
+                  );
             return (
               <View
                 key={i}
@@ -92,40 +93,12 @@ function ImageCarousel({ imageUrls }: { imageUrls: string[] }): React.JSX.Elemen
   );
 }
 
-function SunriseSunset({
-  sunrise,
-  sunset,
-}: {
-  sunrise: string;
-  sunset: string;
-}) {
-  return (
-    <View className="flex-row items-center gap-3">
-      <View className="flex-row items-center gap-1.5">
-        <View className="flex-row items-center gap-1">
-          <SunriseIcon />
-          <Text className="text-label-subtler typo-body-3-medium">일출</Text>
-        </View>
-        <Text className="text-label-subtle typo-body-3-medium">{sunrise}</Text>
-      </View>
-      <View className="flex-row items-center gap-1.5">
-        <View className="flex-row items-center gap-1">
-          <SunsetIcon />
-          <Text className="text-label-subtler typo-body-3-medium">일몰</Text>
-        </View>
-        <Text className="text-label-subtle typo-body-3-medium">{sunset}</Text>
-      </View>
-    </View>
-  );
-}
-
 export default function MountainDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabKey>("코스");
-  const [accordionOpen, setAccordionOpen] = useState(false);
 
   if (isPending)
     return (
@@ -178,59 +151,9 @@ export default function MountainDetailScreen() {
               </View>
             </View>
 
+            {/* TODO : 임시로 값 추가한것 API값으로 변경 */}
             {/* Weather accordion */}
-            <View className="mx-5 mt-4 gap-2 rounded-[8px] bg-[#F9FAFB] px-4 py-[10px]">
-              {/* Header row — always visible, tappable */}
-              <TouchableOpacity
-                className="flex-row items-center justify-between"
-                onPress={() => setAccordionOpen(!accordionOpen)}
-                activeOpacity={0.7}
-              >
-                <View className="mr-3 flex-1 flex-row items-center justify-between">
-                  <Text
-                    className={
-                      accordionOpen
-                        ? "text-label-normal typo-body-3-semi-bold"
-                        : "text-label-subtle typo-body-3-medium"
-                    }
-                  >
-                    {weatherDays[0].label}
-                  </Text>
-                  <SunriseSunset
-                    sunrise={weatherDays[0].sunrise}
-                    sunset={weatherDays[0].sunset}
-                  />
-                </View>
-                <View
-                  className="w-5 items-center justify-center"
-                  style={{
-                    transform: [{ rotate: accordionOpen ? "180deg" : "0deg" }],
-                  }}
-                >
-                  <CaretDownIcon color="#A4ABC0" />
-                </View>
-              </TouchableOpacity>
-
-              {/* Expanded rows */}
-              {accordionOpen &&
-                weatherDays.slice(1).map((day) => (
-                  <View
-                    key={day.label}
-                    className="h-5 flex-row items-center justify-between"
-                  >
-                    <View className="mr-3 flex-1 flex-row items-center justify-between">
-                      <Text className="text-label-subtle typo-body-3-medium">
-                        {day.label}
-                      </Text>
-                      <SunriseSunset
-                        sunrise={day.sunrise}
-                        sunset={day.sunset}
-                      />
-                    </View>
-                    <View className="w-5" />
-                  </View>
-                ))}
-            </View>
+            <WeatherAccordion latitude={37.445044} longitude={126.964223} />
 
             {/* Tab section */}
             <View className="gap-6 py-6">
@@ -273,9 +196,9 @@ export default function MountainDetailScreen() {
             className="h-14 flex-row items-center px-5"
             pointerEvents="box-none"
           >
-            <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+            <Pressable onPress={() => router.back()} hitSlop={8}>
               <CaretLeftIcon />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </View>
