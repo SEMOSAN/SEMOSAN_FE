@@ -1,6 +1,7 @@
 import { NaverMapMarkerOverlay, NaverMapView } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
@@ -29,6 +30,7 @@ import {
   VISITED_MARKER_OVERLAY_WIDTH,
 } from '@/components/map-markers/visited-marker';
 import { useHomeState } from '@/hooks/useHomeState';
+import { PermissionBottomSheet } from '@/components/permission-bottom-sheet';
 
 type Region = {
   latitude: number;
@@ -131,6 +133,7 @@ export default function HomeScreen() {
   const [selectedMountainId, setSelectedMountainId] = useState<string | null>(null);
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] = useState(false);
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
+  const [showPermissionSheet, setShowPermissionSheet] = useState(false);
   const { top } = useSafeAreaInsets();
   const sheetRef = useRef<HomeBottomSheetRef>(null);
   const sheetHeight = useSharedValue(SNAP_DEFAULT);
@@ -139,6 +142,17 @@ export default function HomeScreen() {
     bottom: sheetHeight.value + 12,
     opacity: interpolate(sheetHeight.value, [SNAP_DEFAULT, SNAP_EXPANDED], [1, 0], 'clamp'),
   }));
+
+  useEffect(() => {
+    AsyncStorage.getItem('permission_sheet_shown').then((val) => {
+      if (!val) setShowPermissionSheet(true);
+    });
+  }, []);
+
+  const handlePermissionConfirm = () => {
+    AsyncStorage.setItem('permission_sheet_shown', 'true');
+    setShowPermissionSheet(false);
+  };
 
   useEffect(() => {
     (async () => {
@@ -311,6 +325,11 @@ export default function HomeScreen() {
             />
           )
         }
+      />
+
+      <PermissionBottomSheet
+        visible={showPermissionSheet}
+        onConfirm={handlePermissionConfirm}
       />
 
       {/* 상단 floating 영역 */}
