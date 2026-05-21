@@ -80,7 +80,10 @@ const NOTIFICATION_ITEMS: { key: NotificationKey; label: string; toastMessage: s
   { key: 'voice', label: '음성 안내', toastMessage: '음성 안내를 활성화했어요' },
 ];
 
-const DEVICE_PERMISSION_KEYS = ['위치 서비스', '카메라'] as const;
+const DEVICE_PERMISSION_KEYS = [
+  '위치 서비스',
+  // '카메라', // 앱 심사 시 비활성화
+] as const;
 
 export default function PermissionsScreen() {
   const router = useRouter();
