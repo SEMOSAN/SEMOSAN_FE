@@ -25,7 +25,8 @@ function CourseCard({
   return (
     <Pressable
       className="flex-row items-center gap-4"
-      onPress={() => router.push(`/mountains/courses/${courseId}`)}
+      // TODO : 코스 이미지 생성되면 페이지 라우팅 추가
+      // onPress={() => router.push(`/mountains/courses/${courseId}`)}
     >
       <Image
         source={require("@/assets/images/default-image.png")}
