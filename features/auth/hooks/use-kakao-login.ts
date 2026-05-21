@@ -7,15 +7,10 @@ import { Platform } from "react-native";
 
 export function useKakaoLogin() {
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<OAuthLoginResponse> => {
       const { accessToken } = await login();
 
-      const deviceType =
-        Platform.OS === "ios"
-          ? "IOS"
-          : Platform.OS === "android"
-            ? "ANDROID"
-            : null;
+      const deviceType = Platform.OS.toUpperCase() as "IOS" | "ANDROID";
 
       const { data } = await api.post<OAuthLoginResponse>({
         path: ENDPOINTS.OAUTH_KAKAO_LOGIN,
