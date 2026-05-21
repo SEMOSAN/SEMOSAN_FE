@@ -139,7 +139,10 @@ export default function MountainDetailScreen() {
                     {data.mountain?.address}
                   </Text>
                 </View>
-                <MountainBookmarkButton mountainId={Number(id)} />
+                <MountainBookmarkButton
+                  mountainId={Number(id)}
+                  mountainData={data.mountain ?? undefined}
+                />
               </View>
 
               <View className="flex-row items-center gap-2">
