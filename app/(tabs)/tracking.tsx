@@ -26,6 +26,7 @@ import {
   TRAIL_MARKER_LEFT,
 } from "@/features/tracking/constants";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
+import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
@@ -68,6 +69,7 @@ export default function TrackingScreen() {
   );
   const [showStopModal, setShowStopModal] = useState(false);
   const [showDifficultyRating, setShowDifficultyRating] = useState(false);
+  const [sessionId, setSessionId] = useState<number | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{
@@ -107,6 +109,8 @@ export default function TrackingScreen() {
     lng: userLocation?.longitude ?? null,
   });
 
+  const { mutate: startSession } = useStartTrackingSession();
+
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
   const selectedCourseId_num = selectedCourseId ? Number(selectedCourseId) : null;
@@ -123,6 +127,26 @@ export default function TrackingScreen() {
     if (countdown === 0) {
       setIsTracking(true);
       setCountdown(null);
+
+      // 트래킹 세션 시작 API 호출
+      const mountainId = nearbyData?.mountain?.mountainId;
+      if (mountainId != null) {
+        startSession(
+          {
+            mountainId,
+            courseId: isFreeMode ? undefined : (selectedCourseId_num ?? undefined),
+            isFreeRecording: isFreeMode,
+          },
+          {
+            onSuccess: (data) => {
+              if (data.sessionId != null) setSessionId(data.sessionId);
+            },
+            onError: (err) => {
+              console.warn('[Tracking] 세션 시작 실패:', err);
+            },
+          },
+        );
+      }
       return;
     }
     const timer = setTimeout(

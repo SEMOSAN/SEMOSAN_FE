@@ -45,6 +45,7 @@ export const ENDPOINTS = {
   COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/community/comments/${commentId}`,
   AUTH_WITHDRAW: "/api/auth/withdraw",
   TRACKING_NEARBY_MOUNTAIN: "/api/tracking/nearby-mountain",
+  TRACKING_SESSIONS: "/api/tracking/sessions",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -765,4 +766,26 @@ export type NearbyMountainInfo = {
 export type NearbyMountainResponse = {
   mountain?: NearbyMountainInfo;
   courses?: NearbyMountainCourse[];
+};
+
+// POST /api/tracking/sessions
+export type StartTrackingSessionRequest = {
+  mountainId: number;
+  courseId?: number;
+  isFreeRecording: boolean;
+};
+
+export type TrackingSessionResponse = {
+  sessionId?: number;
+  userId?: number;
+  mountainId?: number;
+  mountainName?: string;
+  courseId?: number;
+  courseName?: string;
+  isFreeRecording?: boolean;
+  status?: "IN_PROGRESS" | "PAUSED" | "COMPLETED";
+  startedAt?: string;
+  endedAt?: string;
+  pausedAt?: string;
+  pausedSecondsTotal?: number;
 };
