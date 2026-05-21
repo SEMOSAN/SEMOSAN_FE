@@ -2,17 +2,12 @@ import Toast from "@/components/toast/toast";
 import { isExpoGo } from "@/constants/platform";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { useAppState } from "@/hooks/use-app-state";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useOnlineManager } from "@/hooks/use-online-manager";
 import { usePushNotification } from "@/hooks/use-push-notification";
 import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { Lexend_700Bold, useFonts } from "@expo-google-fonts/lexend";
 import { initializeKakaoSDK } from "@react-native-kakao/core";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import {
   QueryClient,
   QueryClientProvider,
@@ -47,7 +42,6 @@ export const unstable_settings = {
 };
 
 export default function RootLayout(): React.JSX.Element | null {
-  const colorScheme = useColorScheme();
   const { status: authStatus } = useAuthState();
 
   usePushNotification(authStatus === "authenticated");
@@ -73,15 +67,19 @@ export default function RootLayout(): React.JSX.Element | null {
   return (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
+        <ThemeProvider value={DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="record/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="mountains/search" options={{ headerShown: false }} />
-            <Stack.Screen name="mountains/[id]" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="mountains/search"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="mountains/[id]"
+              options={{ headerShown: false }}
+            />
             <Stack.Screen
               name="record/photo-report-edit"
               options={{ headerShown: false }}
