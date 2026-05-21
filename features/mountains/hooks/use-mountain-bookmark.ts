@@ -5,9 +5,9 @@ import {
 } from "@/types/api.generated";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const LIKES_KEY = [ENDPOINTS.MOUNTAINS_LIKES] as const;
+export const LIKES_KEY = [ENDPOINTS.MOUNTAINS_LIKES] as const;
 
-async function getLikedMountains(): Promise<PageResponseLikedMountainResponse> {
+export async function getLikedMountains(): Promise<PageResponseLikedMountainResponse> {
   const res = await api.get<PageResponseLikedMountainResponse>({
     path: ENDPOINTS.MOUNTAINS_LIKES,
   });

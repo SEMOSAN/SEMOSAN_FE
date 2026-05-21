@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
+    "expo-install": "npm install && npx expo install --fix && (echo 'Y' | npx expo prebuild --clean) && npx pod-install",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "ios:device": "expo run:ios --device",
@@ -59,11 +60,13 @@
     "react-native-svg": "15.12.1",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
+    "suncalc": "^1.9.0",
     "tailwindcss": "^3.4.19",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "@types/suncalc": "^1.9.2",
     "dotenv": "^17.4.2",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",

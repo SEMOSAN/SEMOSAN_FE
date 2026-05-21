@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+const isLiveActivityEnabled = process.env.EXPO_PUBLIC_LIVE_ACTIVITY_ENABLED === "true";
+
 /** @type {import('expo/config').ExpoConfig} */
 const config = {
   name: "semosan",
@@ -13,9 +15,14 @@ const config = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.tastyhiking.semosanapp",
+    appleTeamId: "M8D59WC33R",
     usesAppleSignIn: true,
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
+      NSCameraUsageDescription:
+        "프로필 사진 촬영을 위해 카메라 접근이 필요합니다.",
+      NSPhotoLibraryUsageDescription:
+        "프로필 사진 선택을 위해 사진 라이브러리 접근이 필요합니다.",
     },
   },
   locales: {
@@ -40,7 +47,7 @@ const config = {
   },
   plugins: [
     "expo-router",
-    "./plugins/withLiveActivity",
+    ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
     [
       "expo-notifications",
       {
@@ -66,11 +73,13 @@ const config = {
       },
     ],
     "expo-apple-authentication",
+    "expo-image-picker",
     "expo-web-browser",
     [
       "expo-image-picker",
       {
-        photosPermission: "사진첩에 접근하여 포토 리포트에 사용할 사진을 가져옵니다.",
+        photosPermission:
+          "사진첩에 접근하여 포토 리포트에 사용할 사진을 가져옵니다.",
       },
     ],
     [
