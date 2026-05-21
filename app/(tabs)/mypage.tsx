@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function MyPageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+
+
   const { data: profile } = useProfile();
   const { mutate: logout } = useLogout();
   const { mutate: withdraw } = useWithdraw();

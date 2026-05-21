@@ -28,22 +28,6 @@ import {
   useMountainsMap,
   type BBox,
 } from "@/features/mountains/hooks/use-mountains-map";
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from "@mj-studio/react-native-naver-map";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient";
-import * as Location from "expo-location";
-import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Animated, {
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-} from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Region = {
   latitude: number;
