@@ -278,6 +278,13 @@ export default function TrackingScreen() {
   /** StopConfirmModal → 난이도 체감 화면으로 전환 */
   const finishTracking = () => {
     setShowStopModal(false);
+    // 정상 인증 없이 기록 종료하는 경우 세션 완료 API 호출
+    // (정상 인증 시에는 onCertify에서 이미 호출했으므로 중복 방지)
+    if (!hasSummited && sessionId != null) {
+      completeSession(sessionId, {
+        onError: (err) => console.warn('[Tracking] 세션 종료 실패:', err),
+      });
+    }
     setShowDifficultyRating(true);
   };
 
