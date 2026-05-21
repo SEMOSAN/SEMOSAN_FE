@@ -48,6 +48,7 @@ export const ENDPOINTS = {
   TRACKING_SESSIONS: "/api/tracking/sessions",
   TRACKING_SESSIONS_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
   TRACKING_SESSIONS_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
+  TRACKING_SESSIONS_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────

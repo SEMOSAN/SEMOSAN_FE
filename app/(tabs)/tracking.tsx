@@ -29,6 +29,7 @@ import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain
 import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
+import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
@@ -72,6 +73,7 @@ export default function TrackingScreen() {
   const [showStopModal, setShowStopModal] = useState(false);
   const [showDifficultyRating, setShowDifficultyRating] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const [hasSummited, setHasSummited] = useState(false);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{
@@ -114,6 +116,7 @@ export default function TrackingScreen() {
   const { mutate: startSession } = useStartTrackingSession();
   const { mutate: pauseSession } = usePauseTrackingSession();
   const { mutate: resumeSession } = useResumeTrackingSession();
+  const { mutate: completeSession } = useCompleteTrackingSession();
 
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
@@ -256,6 +259,8 @@ export default function TrackingScreen() {
     setElapsedSeconds(0);
     setShowTooltip(true);
     setShowSummitSheet(false);
+    setHasSummited(false);
+    setSessionId(null);
     setCollapsed(false);
   };
 
@@ -417,7 +422,23 @@ export default function TrackingScreen() {
         >
           {showSummitSheet ? (
             <SummitSheet
-              onCertify={() => setShowDifficultyRating(true)}
+              onCertify={() => {
+                const proceedToDescentSheet = () => {
+                  setHasSummited(true);
+                  setShowSummitSheet(false);
+                };
+                if (sessionId != null) {
+                  completeSession(sessionId, {
+                    onSuccess: proceedToDescentSheet,
+                    onError: (err) => {
+                      console.warn('[Tracking] 세션 종료 실패:', err);
+                      proceedToDescentSheet(); // 실패해도 하산 시트로 진행
+                    },
+                  });
+                } else {
+                  proceedToDescentSheet();
+                }
+              }}
               onNotYet={() => setShowSummitSheet(false)}
             />
           ) : (
@@ -425,7 +446,7 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
-              hasSummited={false}
+              hasSummited={hasSummited}
               timeToTarget="04:00"
               distanceToTarget="500m"
               onDismissTooltip={() => setShowTooltip(false)}
