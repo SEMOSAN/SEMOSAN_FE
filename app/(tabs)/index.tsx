@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -61,6 +62,7 @@ export default function HomeScreen() {
   const hasRecords = mapData?.hasHikingRecord ?? false;
   const mountains = mapData?.mountains ?? [];
   const { top } = useSafeAreaInsets();
+  const router = useRouter();
   const sheetRef = useRef<HomeBottomSheetRef>(null);
   const sheetHeight = useSharedValue(SNAP_DEFAULT);
 
@@ -166,6 +168,7 @@ export default function HomeScreen() {
                     ? { x: 0.2, y: 1 }
                     : { x: 0.5, y: 0.5 }
                 }
+                onTap={() => router.push(`/mountains/${mountain.id}`)}
               >
                 <View
                   collapsable={false}
@@ -203,6 +206,7 @@ export default function HomeScreen() {
                 width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
                 height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
                 anchor={{ x: 0.5, y: 0.5 }}
+                onTap={() => router.push(`/mountains/${mountain.id}`)}
               >
                 <View
                   collapsable={false}
