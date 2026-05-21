@@ -1,4 +1,13 @@
-import { type Tab } from "@/components/bottom-sheet";
+import { NaverMapMarkerOverlay, NaverMapView } from '@mj-studio/react-native-naver-map';
+import * as Location from 'expo-location';
+import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BottomSheet, { type Tab } from '@/components/bottom-sheet';
 import {
   SNAP_DEFAULT,
   SNAP_EXPANDED,
@@ -80,6 +89,7 @@ export default function HomeScreen() {
   const hasRecords = mapData?.hasHikingRecord ?? false;
   const mountains = mapData?.mountains ?? [];
   const { top } = useSafeAreaInsets();
+  const router = useRouter();
   const sheetRef = useRef<HomeBottomSheetRef>(null);
   const sheetHeight = useSharedValue(SNAP_DEFAULT);
   const { data, isPending, isError } = useMountains();
@@ -94,9 +104,24 @@ export default function HomeScreen() {
     ),
   }));
 
+  const requestLocation = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return;
+    const location = await Location.getCurrentPositionAsync({});
+    setRegion((prev) => ({
+      ...prev,
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    }));
+  };
+
   useEffect(() => {
-    AsyncStorage.getItem("permission_sheet_shown").then((val) => {
-      if (!val) setShowPermissionSheet(true);
+    AsyncStorage.getItem('permission_sheet_shown').then((val) => {
+      if (!val) {
+        setShowPermissionSheet(true);
+      } else {
+        requestLocation();
+      }
     });
   }, []);
 
@@ -113,6 +138,7 @@ export default function HomeScreen() {
 
     AsyncStorage.setItem("permission_sheet_shown", "true");
     setShowPermissionSheet(false);
+    requestLocation();
   };
 
   const moveToCurrentLocation = async () => {
@@ -158,28 +184,25 @@ export default function HomeScreen() {
         {hasRecords
           ? data?.content?.map((mountain) => (
               <NaverMapMarkerOverlay
-                key={`${mountain.mountainId}-${activeTab}-${selectedMountainId}`}
-                onTap={() => {
-                  router.push(`/mountains/${mountain.mountainId}`);
-                }}
-                latitude={mountain?.latitude ?? 0}
-                longitude={mountain.longitude ?? 0}
-                // width={
-                //   mountain.visited
-                //     ? VISITED_MARKER_OVERLAY_WIDTH
-                //     : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
-                // }
-                width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
-                // height={
-                //   mountain.visited
-                //     ? VISITED_MARKER_OVERLAY_HEIGHT
-                //     : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
-                // }
-                height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
-                // anchor={
-                //   mountain.visited ? { x: 0.2, y: 1 } : { x: 0.5, y: 0.5 }
-                // }
-                anchor={{ x: 0.5, y: 0.5 }}
+                key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
+                latitude={mountain.latitude}
+                longitude={mountain.longitude}
+                width={
+                  mountain.visited
+                    ? VISITED_MARKER_OVERLAY_WIDTH
+                    : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
+                }
+                height={
+                  mountain.visited
+                    ? VISITED_MARKER_OVERLAY_HEIGHT
+                    : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
+                }
+                anchor={
+                  mountain.visited
+                    ? { x: 0.2, y: 1 }
+                    : { x: 0.5, y: 0.5 }
+                }
+                onTap={() => router.push(`/mountains/${mountain.id}`)}
               >
                 <View
                   collapsable={false}
@@ -232,6 +255,7 @@ export default function HomeScreen() {
                 width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
                 height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
                 anchor={{ x: 0.5, y: 0.5 }}
+                onTap={() => router.push(`/mountains/${mountain.id}`)}
               >
                 <View
                   collapsable={false}
