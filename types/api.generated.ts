@@ -47,6 +47,7 @@ export const ENDPOINTS = {
   TRACKING_NEARBY_MOUNTAIN: "/api/tracking/nearby-mountain",
   TRACKING_SESSIONS: "/api/tracking/sessions",
   TRACKING_SESSIONS_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
+  TRACKING_SESSIONS_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────

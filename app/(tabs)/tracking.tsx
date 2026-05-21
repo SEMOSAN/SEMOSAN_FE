@@ -28,6 +28,7 @@ import {
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
 import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
+import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
@@ -112,6 +113,7 @@ export default function TrackingScreen() {
 
   const { mutate: startSession } = useStartTrackingSession();
   const { mutate: pauseSession } = usePauseTrackingSession();
+  const { mutate: resumeSession } = useResumeTrackingSession();
 
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
@@ -227,7 +229,14 @@ export default function TrackingScreen() {
       });
     }
   };
-  const resumeTracking = () => setIsPaused(false);
+  const resumeTracking = () => {
+    setIsPaused(false);
+    if (sessionId != null) {
+      resumeSession(sessionId, {
+        onError: (err) => console.warn('[Tracking] 재개 실패:', err),
+      });
+    }
+  };
 
   const requestStop = () => setShowStopModal(true);
 
