@@ -19,7 +19,7 @@ export function useKakaoLogin() {
 
       const { data } = await api.post<OAuthLoginResponse>({
         path: ENDPOINTS.OAUTH_KAKAO_LOGIN,
-        body: { code: accessToken, deviceType },
+        body: { accessToken, deviceType },
       });
 
       return data;
