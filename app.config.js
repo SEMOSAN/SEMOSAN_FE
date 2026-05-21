@@ -10,7 +10,7 @@ const config = {
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "semosan",
-  userInterfaceStyle: "automatic",
+  userInterfaceStyle: "light",
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
