@@ -30,6 +30,7 @@ import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tra
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
+import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
@@ -40,7 +41,8 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
 import { Tabs, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   LayoutChangeEvent,
   StyleSheet,
@@ -117,6 +119,36 @@ export default function TrackingScreen() {
   const { mutate: pauseSession } = usePauseTrackingSession();
   const { mutate: resumeSession } = useResumeTrackingSession();
   const { mutate: completeSession } = useCompleteTrackingSession();
+  const { data: activeSession, refetch: refetchActiveSession } = useActiveTrackingSession();
+
+  // 앱 재진입 시 진행 중인 세션 복원
+  useFocusEffect(
+    useCallback(() => {
+      // 이미 트래킹 중이면 재조회 불필요
+      if (isTracking) return;
+      refetchActiveSession();
+    }, [isTracking, refetchActiveSession]),
+  );
+
+  useEffect(() => {
+    if (!activeSession?.sessionId) return;
+    if (isTracking) return; // 이미 복원된 경우 무시
+
+    const status = activeSession.status;
+    if (status === 'IN_PROGRESS' || status === 'PAUSED') {
+      setSessionId(activeSession.sessionId);
+      setIsTracking(true);
+      setIsPaused(status === 'PAUSED');
+      // 일시정지된 경우 경과 시간 복원 (pausedSecondsTotal 제외한 실제 등산 시간)
+      if (activeSession.startedAt) {
+        const startedMs = new Date(activeSession.startedAt).getTime();
+        const nowMs = Date.now();
+        const totalElapsed = Math.floor((nowMs - startedMs) / 1000);
+        const pausedSeconds = activeSession.pausedSecondsTotal ?? 0;
+        setElapsedSeconds(Math.max(0, totalElapsed - pausedSeconds));
+      }
+    }
+  }, [activeSession]);
 
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
