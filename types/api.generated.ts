@@ -108,6 +108,7 @@ export type TrackingSessionResponse = {
   endedAt?: string;
   pausedAt?: string;
   pausedSecondsTotal?: number;
+  hikingRecordId?: number;
 };
 export type OAuthKakaoLoginRequest = {
   accessToken?: string;
@@ -292,7 +293,7 @@ export type CourseInfo = {
   distance?: number;
   duration?: number;
 };
-export type MountainInfo = {
+export type NearbyMountainInfo = {
   mountainId?: number;
   name?: string;
   address?: string;
@@ -302,7 +303,7 @@ export type MountainInfo = {
   imageUrls?: string[];
 };
 export type NearbyMountainResponse = {
-  mountain?: MountainInfo;
+  mountain?: NearbyMountainInfo;
   courses?: CourseInfo[];
 };
 export type ApiResponsePageResponseMountainListResponse = {
@@ -343,6 +344,17 @@ export type MountainDetailResponse = {
   amenities?: Record<string, ("RESTROOM" | "INFORMATION" | "SHELTER" | "PARKING" | "STORE")[]>;
   restaurantSections?: RestaurantSectionInfo[];
   reviews?: ReviewInfo[];
+};
+export type MountainInfo = {
+  mountainId?: number;
+  name?: string;
+  address?: string;
+  altitude?: number;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  duration?: number;
+  imageUrls?: string[];
+  latitude?: number;
+  longitude?: number;
 };
 export type RestaurantInfo = {
   restaurantId?: number;
