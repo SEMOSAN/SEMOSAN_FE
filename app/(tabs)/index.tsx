@@ -71,31 +71,7 @@ export default function HomeScreen() {
     opacity: interpolate(sheetHeight.value, [SNAP_DEFAULT, SNAP_EXPANDED], [1, 0], 'clamp'),
   }));
 
-  useEffect(() => {
-    AsyncStorage.getItem('permission_sheet_shown').then((val) => {
-      if (!val) setShowPermissionSheet(true);
-    });
-  }, []);
-
-  const handlePermissionConfirm = () => {
-    AsyncStorage.setItem('permission_sheet_shown', 'true');
-    setShowPermissionSheet(false);
-  };
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
-      const location = await Location.getCurrentPositionAsync({});
-      setRegion((prev) => ({
-        ...prev,
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      }));
-    })();
-  }, []);
-
-  const moveToCurrentLocation = async () => {
+  const requestLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return;
     const location = await Location.getCurrentPositionAsync({});
@@ -105,6 +81,24 @@ export default function HomeScreen() {
       longitude: location.coords.longitude,
     }));
   };
+
+  useEffect(() => {
+    AsyncStorage.getItem('permission_sheet_shown').then((val) => {
+      if (!val) {
+        setShowPermissionSheet(true);
+      } else {
+        requestLocation();
+      }
+    });
+  }, []);
+
+  const handlePermissionConfirm = () => {
+    AsyncStorage.setItem('permission_sheet_shown', 'true');
+    setShowPermissionSheet(false);
+    requestLocation();
+  };
+
+  const moveToCurrentLocation = () => requestLocation();
 
   const visitedMountains = mountains.filter((m) => m.visited);
   const visitedCards = visitedMountains.map((m) => ({
