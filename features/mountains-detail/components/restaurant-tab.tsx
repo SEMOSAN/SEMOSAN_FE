@@ -1,6 +1,6 @@
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
 
 export function RestaurantTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -43,8 +43,9 @@ export function RestaurantTab() {
                 </View>
               </View>
             ))}
+            {/* TODO : 화면 개발되면 추가 */}
             {/* 더보기 버튼은 앞에 아이템 3개 이상일때 부터 추가 */}
-            {(section.restaurants?.length ?? 0) >= 3 && (
+            {/* {(section.restaurants?.length ?? 0) >= 3 && (
               <Pressable
                 className="h-[116px] w-[188px] items-center justify-center gap-1 rounded-[10px] bg-fill-stronger"
                 onPress={() => {
@@ -58,7 +59,7 @@ export function RestaurantTab() {
                   {"더보기 >"}
                 </Text>
               </Pressable>
-            )}
+            )} */}
           </ScrollView>
         </View>
       ))}
