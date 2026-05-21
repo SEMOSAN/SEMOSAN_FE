@@ -11,7 +11,11 @@ export function useKakaoLogin() {
       const { accessToken } = await login();
 
       const deviceType =
-        Platform.OS === "ios" ? "IOS" : Platform.OS === "android" ? "ANDROID" : null;
+        Platform.OS === "ios"
+          ? "IOS"
+          : Platform.OS === "android"
+            ? "ANDROID"
+            : null;
 
       const { data } = await api.post<OAuthLoginResponse>({
         path: ENDPOINTS.OAUTH_KAKAO_LOGIN,
