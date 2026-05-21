@@ -44,6 +44,7 @@ export const ENDPOINTS = {
   COMMUNITY_COMMENTS_BY_COMMENTID_REPLIES: (commentId: number | string) => `/api/community/comments/${commentId}/replies`,
   COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/community/comments/${commentId}`,
   AUTH_WITHDRAW: "/api/auth/withdraw",
+  TRACKING_NEARBY_MOUNTAIN: "/api/tracking/nearby-mountain",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -740,4 +741,28 @@ export type GetRepliesParams = {
 // DELETE /api/community/comments/{commentId}
 export type Delete3Params = {
   commentId: number;
+};
+
+// GET /api/tracking/nearby-mountain
+export type NearbyMountainCourse = {
+  courseId?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+};
+
+export type NearbyMountainInfo = {
+  mountainId?: number;
+  name?: string;
+  address?: string;
+  altitude?: number;
+  latitude?: number;
+  longitude?: number;
+  imageUrls?: string[];
+};
+
+export type NearbyMountainResponse = {
+  mountain?: NearbyMountainInfo;
+  courses?: NearbyMountainCourse[];
 };

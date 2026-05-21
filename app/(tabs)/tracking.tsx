@@ -25,6 +25,7 @@ import {
   TRAIL_BAR_WIDTH,
   TRAIL_MARKER_LEFT,
 } from "@/features/tracking/constants";
+import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
@@ -101,8 +102,14 @@ export default function TrackingScreen() {
     })();
   }, []);
 
+  const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
+    lat: userLocation?.latitude ?? null,
+    lng: userLocation?.longitude ?? null,
+  });
+
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
+  const selectedCourseId_num = selectedCourseId ? Number(selectedCourseId) : null;
 
   const startCountdown = (freeMode = false) => {
     if (freeMode) setIsFreeMode(true);
@@ -340,8 +347,11 @@ export default function TrackingScreen() {
       {/* Expanded 바텀시트 */}
       {!isTracking && !collapsed && (
         <CourseSelectSheet
-          selectedCourseId={selectedCourseId}
-          onSelectCourse={setSelectedCourseId}
+          mountain={nearbyData?.mountain}
+          courses={nearbyData?.courses}
+          isLoading={isNearbyLoading}
+          selectedCourseId={selectedCourseId_num}
+          onSelectCourse={(id) => setSelectedCourseId(String(id))}
           onFreeRecord={handleFreeRecord}
           onStartCountdown={startCountdown}
         />
@@ -380,6 +390,7 @@ export default function TrackingScreen() {
               onPause={pauseTracking}
               onResume={resumeTracking}
               onStop={requestStop}
+              onSummit={() => setShowSummitSheet(true)}
             />
           )}
         </View>
