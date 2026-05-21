@@ -27,6 +27,7 @@ import {
 } from "@/features/tracking/constants";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
 import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
+import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
@@ -110,6 +111,7 @@ export default function TrackingScreen() {
   });
 
   const { mutate: startSession } = useStartTrackingSession();
+  const { mutate: pauseSession } = usePauseTrackingSession();
 
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
@@ -217,7 +219,14 @@ export default function TrackingScreen() {
     }
   }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse]);
 
-  const pauseTracking = () => setIsPaused(true);
+  const pauseTracking = () => {
+    setIsPaused(true);
+    if (sessionId != null) {
+      pauseSession(sessionId, {
+        onError: (err) => console.warn('[Tracking] 일시정지 실패:', err),
+      });
+    }
+  };
   const resumeTracking = () => setIsPaused(false);
 
   const requestStop = () => setShowStopModal(true);
