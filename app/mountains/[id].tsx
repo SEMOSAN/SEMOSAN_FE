@@ -109,17 +109,11 @@ export default function MountainDetailScreen() {
   if (isError) return null;
 
   const visibleTabs = TABS.filter((tab) => {
-    if (tab === "코스") return (data.courses?.length ?? 0) > 0;
-    if (tab === "교통 정보") {
-      const t = data.transportations;
-      return (
-        Object.keys(t?.publicTransport ?? {}).length > 0 ||
-        Object.keys(t?.parking ?? {}).length > 0
-      );
-    }
-    if (tab === "편의시설") return Object.keys(data.amenities ?? {}).length > 0;
-    if (tab === "주변 맛집") return (data.restaurantSections?.length ?? 0) > 0;
-    if (tab === "등산 후기") return (data.reviews?.length ?? 0) > 0;
+    if (tab === "코스") return !!data.courses;
+    if (tab === "교통 정보") return !!data.transportations;
+    if (tab === "편의시설") return !!data.amenities;
+    if (tab === "주변 맛집") return !!data.restaurantSections;
+    if (tab === "등산 후기") return !!data.reviews;
     return true;
   });
 
