@@ -109,11 +109,11 @@ export default function MountainDetailScreen() {
   if (isError) return null;
 
   const visibleTabs = TABS.filter((tab) => {
-    if (tab === "코스") return !!data.courses;
+    if (tab === "코스") return !!data.courses?.length;
     if (tab === "교통 정보") return !!data.transportations;
     if (tab === "편의시설") return !!data.amenities;
-    if (tab === "주변 맛집") return !!data.restaurantSections;
-    if (tab === "등산 후기") return !!data.reviews;
+    if (tab === "주변 맛집") return !!data.restaurantSections?.length;
+    if (tab === "등산 후기") return !!data.reviews?.length;
     return true;
   });
 
