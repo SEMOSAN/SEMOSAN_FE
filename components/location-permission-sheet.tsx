@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { requestForegroundPermissionsAsync } from "expo-location";
 import { useEffect, useState } from "react";
 
-export function LocationPermissionSheet(): JSX.Element {
+export function LocationPermissionSheet() {
   const [visible, setVisible] = useState(false);
 
   async function requestLocation(): Promise<void> {

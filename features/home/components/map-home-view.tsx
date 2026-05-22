@@ -128,9 +128,9 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
           }}
         >
           {hasRecords
-            ? data?.content?.map((mountain) => (
+            ? mapData?.mountains?.map((mountain) => (
                 <NaverMapMarkerOverlay
-                  key={`${mountain.mountainId}-${activeTab}-${selectedMountainId}`}
+                  key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
                   latitude={mountain.latitude}
                   longitude={mountain.longitude}
                   width={
@@ -166,7 +166,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
                     <UnvisitedMountainPillMarker
                       name={mountain.name ?? ""}
                       variant={"visited"}
-                      selected={mountain?.mountainId === selectedMountainId}
+                      selected={mountain?.id === selectedMountainId}
                     />
                     {/* {mountain.visited ? (
                          <VisitedMarker

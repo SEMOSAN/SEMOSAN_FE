@@ -72,11 +72,11 @@ export function HomeHeader({
               </Animated.View>
             </View>
           </View>
+          <View className="mt-1 items-center">
+            <MapTabToggle value={mapTab} onChange={onMapTabChange} />
+          </View>
         </>
       )}
-      <View className="mt-1 items-center">
-        <MapTabToggle value={mapTab} onChange={onMapTabChange} />
-      </View>
     </View>
   );
 }
