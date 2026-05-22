@@ -1,5 +1,6 @@
-import { type Tab } from "@/components/bottom-sheet";
+import BottomSheet, { type Tab } from "@/components/bottom-sheet";
 import {
+  HomeBottomSheetContainer,
   HomeBottomSheetRef,
   SNAP_DEFAULT,
   SNAP_EXPANDED,
@@ -14,6 +15,7 @@ import {
   VISITED_MARKER_OVERLAY_HEIGHT,
   VISITED_MARKER_OVERLAY_WIDTH,
 } from "@/components/map-markers/visited-marker";
+import NoRecordBottomSheet from "@/components/no-record-bottom-sheet";
 import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import {
   BBox,
@@ -29,7 +31,7 @@ import {
   requestForegroundPermissionsAsync,
 } from "expo-location";
 import { router } from "expo-router";
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
   interpolate,
@@ -92,6 +94,11 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
         setSelectedMountainId(null);
       }
     };
+
+    useImperativeHandle(ref, () => ({
+      collapseSheet: () => sheetRef.current?.collapseToMin(),
+      expandSheet: () => sheetRef.current?.expandToDefault(),
+    }));
 
     const sheetHeight = useSharedValue(SNAP_DEFAULT);
 
@@ -244,31 +251,31 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
 
         {/* TODO : API 나오면 연동 */}
         {/* 바텀시트 - 절대 위치, 애니메이션 높이 */}
-        {/* <HomeBottomSheetContainer
-             ref={sheetRef}
-             heightSharedValue={sheetHeight}
-             renderContent={({ scrollEnabled }) =>
-               hasRecords ? (
-                 <BottomSheet
-                   title="다녀온 산"
-                   titleCount={visitedCards.length}
-                   cards={visitedCards}
-                   showTabs={false}
-                   scrollEnabled={scrollEnabled}
-                   onCardSelect={(id) => setSelectedMountainId(Number(id))}
-                   onDetailOpenChange={handleDetailOpenChange}
-                   closeSelectedToken={closeSelectedToken}
-                 />
-               ) : (
-                 <NoRecordBottomSheet
-                   userName={MOCK_USER_NAME}
-                   scrollEnabled={scrollEnabled}
-                   lat={region.latitude}
-                   lng={region.longitude}
-                 />
-               )
-             }
-           /> */}
+        <HomeBottomSheetContainer
+          ref={sheetRef}
+          heightSharedValue={sheetHeight}
+          renderContent={({ scrollEnabled }) =>
+            hasRecords ? (
+              <BottomSheet
+                title="다녀온 산"
+                // titleCount={visitedCards.length}
+                // cards={visitedCards}
+                showTabs={false}
+                scrollEnabled={scrollEnabled}
+                onCardSelect={(id) => setSelectedMountainId(Number(id))}
+                onDetailOpenChange={handleDetailOpenChange}
+                closeSelectedToken={closeSelectedToken}
+              />
+            ) : (
+              <NoRecordBottomSheet
+                userName={"맹쏘"}
+                scrollEnabled={scrollEnabled}
+                lat={region.latitude}
+                lng={region.longitude}
+              />
+            )
+          }
+        />
       </View>
     );
   },
