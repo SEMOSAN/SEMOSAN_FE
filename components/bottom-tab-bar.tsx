@@ -1,18 +1,15 @@
-import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { CommunityIcon } from "@/components/icons/community-icon";
 import { HomeIcon } from "@/components/icons/home-icon";
 import { MountainIcon } from "@/components/icons/mountain-icon";
 import { MyIcon } from "@/components/icons/my-icon";
-import { NavigationIcon } from "@/components/icons/navigation-icon";
 import {
   useHomeStateContext,
   type TabBarVariant,
 } from "@/contexts/home-state-context";
 import { Colors } from "@/types/colors.generated";
+import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { ReactNode } from "react";
+import { Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabItem = {
   name: string;
@@ -53,17 +50,17 @@ const TAB_ITEMS: TabItem[] = [
     label: "산목록",
     renderIcon: (color) => <MountainIcon size={24} color={color} />,
   },
-  {
-    name: "tracking",
-    label: null,
-    renderIcon: (color) => <NavigationIcon size={24} color={color} />,
-    isCenter: true,
-  },
-  {
-    name: "community",
-    label: "커뮤니티",
-    renderIcon: (color) => <CommunityIcon size={24} color={color} />,
-  },
+  // {
+  //   name: "tracking",
+  //   label: null,
+  //   renderIcon: (color) => <NavigationIcon size={24} color={color} />,
+  //   isCenter: true,
+  // },
+  // {
+  //   name: "community",
+  //   label: "커뮤니티",
+  //   renderIcon: (color) => <CommunityIcon size={24} color={color} />,
+  // },
   {
     name: "mypage",
     label: "MY",

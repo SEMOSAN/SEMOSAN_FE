@@ -1,17 +1,16 @@
-import { useAppleLogin } from "@/features/auth/hooks/use-apple-login";
-import { useKakaoLogin } from "@/features/auth/hooks/use-kakao-login";
-import { useTestLogin } from "@/features/auth/hooks/use-test-login";
 import { AppleIcon } from "@/components/icons/apple-icon";
 import { KakaoIcon } from "@/components/icons/kakao-icon";
 import { SemosanIcon } from "@/components/icons/semosan-icon";
 import { SemosanTextLogo } from "@/components/icons/semosan-text-logo";
+import { isDevMode, isExpoGo } from "@/constants/platform";
+import { useAppleLogin } from "@/features/auth/hooks/use-apple-login";
+import { useKakaoLogin } from "@/features/auth/hooks/use-kakao-login";
+import { useTestLogin } from "@/features/auth/hooks/use-test-login";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const isDevMode = __DEV__;
 
 export default function LoginScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -55,7 +54,7 @@ export default function LoginScreen(): React.JSX.Element {
   }
 
   async function handleKakaoLogin(): Promise<void> {
-    if (isDevMode) {
+    if (isExpoGo) {
       Alert.alert(
         "카카오 로그인 불가",
         "카카오 로그인은 Expo Go에서 사용할 수 없습니다.",
@@ -109,24 +108,30 @@ export default function LoginScreen(): React.JSX.Element {
 
         <View className="gap-4 px-[43px]" style={{ paddingBottom: 16 }}>
           <Pressable
-            className="h-[45px] flex-row items-center justify-center gap-3 rounded-lg overflow-hidden"
+            className="h-[45px] flex-row items-center justify-center gap-3 overflow-hidden rounded-lg"
             style={{ backgroundColor: "#FEE500" }}
             android_ripple={{ color: "rgba(0,0,0,0.1)" }}
             onPress={handleKakaoLogin}
           >
             <KakaoIcon size={18} />
-            <Text className="typo-body-1-normal-semi-bold" style={{ color: "rgba(0,0,0,0.85)" }}>
+            <Text
+              className="typo-body-1-normal-semi-bold"
+              style={{ color: "rgba(0,0,0,0.85)" }}
+            >
               카카오로 시작하기
             </Text>
           </Pressable>
 
           <Pressable
-            className="h-[45px] flex-row items-center justify-center gap-3 rounded-lg bg-white overflow-hidden"
+            className="h-[45px] flex-row items-center justify-center gap-3 overflow-hidden rounded-lg bg-white"
             android_ripple={{ color: "rgba(0,0,0,0.1)" }}
             onPress={handleAppleLogin}
           >
             <AppleIcon size={20} />
-            <Text className="typo-body-1-normal-semi-bold" style={{ color: "#000000" }}>
+            <Text
+              className="typo-body-1-normal-semi-bold"
+              style={{ color: "#000000" }}
+            >
               Apple로 시작하기
             </Text>
           </Pressable>
@@ -134,10 +139,10 @@ export default function LoginScreen(): React.JSX.Element {
 
         {isDevMode && (
           <Pressable
-            className="absolute bottom-10 right-5 bg-neutral-700 rounded-full px-4 py-2"
+            className="absolute bottom-10 right-5 rounded-full bg-neutral-700 px-4 py-2"
             onPress={handleTestLogin}
           >
-            <Text className="typo-caption-1-semi-bold text-label-normal-inverse">
+            <Text className="text-label-normal-inverse typo-caption-1-semi-bold">
               테스트 로그인
             </Text>
           </Pressable>

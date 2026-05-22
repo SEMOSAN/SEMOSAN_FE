@@ -1,6 +1,10 @@
 import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
+import { useNotificationSettings } from '@/features/mypage/hooks/use-notification-settings';
+import { useUpdateNotification } from '@/features/mypage/hooks/use-update-notification';
 import { toast } from '@/store/toast.store';
 import { useRouter } from 'expo-router';
+import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -76,23 +80,48 @@ const NOTIFICATION_ITEMS: { key: NotificationKey; label: string; toastMessage: s
   { key: 'voice', label: '음성 안내', toastMessage: '음성 안내를 활성화했어요' },
 ];
 
-const DEVICE_PERMISSION_ITEMS = [
-  { label: '위치 서비스' },
-  { label: '카메라' },
-];
+const DEVICE_PERMISSION_KEYS = [
+  '위치 서비스',
+  // '카메라', // 앱 심사 시 비활성화
+] as const;
 
 export default function PermissionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { data: settings } = useNotificationSettings();
   const [notifications, setNotifications] = useState<Record<NotificationKey, boolean>>({
-    push: true,
+    push: false,
     liveActivity: false,
     voice: false,
   });
 
+  useEffect(() => {
+    if (!settings) return;
+    setNotifications({
+      push: settings.pushNotificationEnabled,
+      liveActivity: settings.liveActivityEnabled,
+      voice: settings.voiceEnabled,
+    });
+  }, [settings]);
+
+  const { mutate: updateNotification } = useUpdateNotification();
+
+  const [locationStatus, setLocationStatus] = useState<string>('확인 중');
+  const [cameraStatus, setCameraStatus] = useState<string>('확인 중');
+
+  useEffect(() => {
+    Location.getForegroundPermissionsAsync().then(({ status }) => {
+      setLocationStatus(status === 'granted' ? '허용됨' : '허용 안 함');
+    });
+    ImagePicker.getCameraPermissionsAsync().then(({ status }) => {
+      setCameraStatus(status === 'granted' ? '허용됨' : '허용 안 함');
+    });
+  }, []);
+
   const handleToggle = (key: NotificationKey, value: boolean) => {
     setNotifications((prev) => ({ ...prev, [key]: value }));
+    updateNotification({ key, enabled: value });
     if (value) {
       const item = NOTIFICATION_ITEMS.find((i) => i.key === key);
       if (item) toast.show(item.toastMessage);
@@ -149,27 +178,30 @@ export default function PermissionsScreen() {
         </View>
 
         <View className="bg-fill-normal">
-          {DEVICE_PERMISSION_ITEMS.map((item) => (
-            <TouchableOpacity
-              key={item.label}
-              className="flex-row items-center justify-between"
-              style={{ paddingHorizontal: 20, paddingVertical: 16 }}
-              activeOpacity={0.6}
-              onPress={() => Linking.openSettings()}
-            >
-              <Text className="typo-body-1-normal-regular text-label-normal" style={{ letterSpacing: -0.16 }}>
-                {item.label}
-              </Text>
-              <View className="flex-row items-center" style={{ gap: 4 }}>
-                <Text className="typo-body-1-normal-regular text-label-alternative" style={{ letterSpacing: -0.16 }}>
-                  허용됨
+          {DEVICE_PERMISSION_KEYS.map((label) => {
+            const statusText = label === '위치 서비스' ? locationStatus : cameraStatus;
+            return (
+              <TouchableOpacity
+                key={label}
+                className="flex-row items-center justify-between"
+                style={{ paddingHorizontal: 20, paddingVertical: 16 }}
+                activeOpacity={0.6}
+                onPress={() => Linking.openSettings()}
+              >
+                <Text className="typo-body-1-normal-regular text-label-normal" style={{ letterSpacing: -0.16 }}>
+                  {label}
                 </Text>
-                <View style={{ transform: [{ rotate: '180deg' }] }}>
-                  <ChevronLeftIcon size={16} color="#9CA3AF" />
+                <View className="flex-row items-center" style={{ gap: 4 }}>
+                  <Text className="typo-body-1-normal-regular text-label-alternative" style={{ letterSpacing: -0.16 }}>
+                    {statusText}
+                  </Text>
+                  <View style={{ transform: [{ rotate: '180deg' }] }}>
+                    <ChevronLeftIcon size={16} color="#9CA3AF" />
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <View style={{ height: insets.bottom + 16 }} />

@@ -3,63 +3,28 @@ import { useRouter } from 'expo-router';
 import { Image, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { HikingStartBanner } from '@/components/icons/hiking-start-banner';
 import { InfoIcon } from '@/components/icons/info-icon';
+import { type MountainRecommendationItem, useMountainRecommendations } from '@/features/mountains/hooks/use-mountain-recommendations';
 
-type CuratedMountain = {
-  id: string;
-  name: string;
-  difficulty: string;
-  elevation: string;
-  imageUri?: string;
+const DIFFICULTY_LABEL: Record<MountainRecommendationItem["difficulty"], string> = {
+  EASY: '난이도 하',
+  NORMAL: '난이도 중',
+  HARD: '난이도 상',
 };
-
-const MOCK_CURATED: CuratedMountain[] = [
-  {
-    id: '1',
-    name: '인왕산',
-    difficulty: '난이도 하',
-    elevation: '338m',
-    imageUri: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: '2',
-    name: '청계산',
-    difficulty: '난이도 중',
-    elevation: '618m',
-    imageUri: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: '3',
-    name: '수락산',
-    difficulty: '난이도 중',
-    elevation: '638m',
-    imageUri: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: '4',
-    name: '불암산',
-    difficulty: '난이도 하',
-    elevation: '507m',
-    imageUri: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: '5',
-    name: '관악산',
-    difficulty: '난이도 상',
-    elevation: '632m',
-    imageUri: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
-  },
-];
 
 type Props = {
   userName?: string;
   scrollEnabled?: boolean;
+  lat?: number;
+  lng?: number;
 };
 
-export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled = false }: Props) {
+export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled = false, lat = 0, lng = 0 }: Props) {
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const bannerWidth = screenWidth - 32;
   const bannerHeight = Math.round(90 * bannerWidth / 343);
+  const { data } = useMountainRecommendations(lat, lng);
+  const recommendations = data?.content ?? [];
 
   return (
     <View className="flex-1 w-full">
@@ -87,8 +52,8 @@ export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled
           contentContainerClassName="px-4 gap-2"
           scrollEnabled={scrollEnabled}
         >
-          {MOCK_CURATED.map((mountain) => (
-            <CuratedCard key={mountain.id} mountain={mountain} />
+          {recommendations.map((mountain) => (
+            <CuratedCard key={mountain.mountainId} mountain={mountain} />
           ))}
         </ScrollView>
       </View>
@@ -96,7 +61,7 @@ export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled
   );
 }
 
-function CuratedCard({ mountain }: { mountain: CuratedMountain }) {
+function CuratedCard({ mountain }: { mountain: MountainRecommendationItem }) {
   const router = useRouter();
 
   return (
@@ -107,16 +72,17 @@ function CuratedCard({ mountain }: { mountain: CuratedMountain }) {
         router.push({
           pathname: '/mountain-info',
           params: {
+            id: mountain.mountainId,
             name: mountain.name,
-            difficulty: mountain.difficulty,
-            elevation: mountain.elevation,
+            difficulty: DIFFICULTY_LABEL[mountain.difficulty],
+            elevation: `${Math.round(mountain.altitude)}m`,
           },
         })
       }
     >
-      {mountain.imageUri && (
+      {mountain.imageUrl && (
         <Image
-          source={{ uri: mountain.imageUri }}
+          source={{ uri: mountain.imageUrl }}
           className="absolute inset-0 w-full h-full"
           resizeMode="cover"
         />
@@ -133,11 +99,11 @@ function CuratedCard({ mountain }: { mountain: CuratedMountain }) {
         </Text>
         <View className="flex-row items-center gap-1.5">
           <Text className="typo-caption-1-medium text-neutral-400">
-            {mountain.difficulty}
+            {DIFFICULTY_LABEL[mountain.difficulty]}
           </Text>
           <View className="w-1 h-1 rounded-full bg-neutral-400" />
           <Text className="typo-caption-1-medium text-neutral-400">
-            {mountain.elevation}
+            {Math.round(mountain.altitude)}m
           </Text>
         </View>
       </View>
