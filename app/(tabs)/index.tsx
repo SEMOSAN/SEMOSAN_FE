@@ -326,8 +326,8 @@ export default function HomeScreen() {
         onConfirm={handlePermissionConfirm}
       />
 
-      {/* 공유 헤더 — 항상 최상단에 오버레이 */}
-      <View style={[styles.headerOverlay, { top: 0 }]} pointerEvents="box-none">
+      {/* 상단 floating 영역 */}
+      <View style={[styles.overlay, { top: 0 }]} pointerEvents="box-none">
         <View style={{ height: top }} />
         {isMountainRecordListOpen ? (
           <View className="h-14 flex-row items-center justify-between px-5">
