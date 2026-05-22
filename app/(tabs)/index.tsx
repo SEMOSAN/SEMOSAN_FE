@@ -1,10 +1,7 @@
 import { PermissionBottomSheet } from "@/components/permission-bottom-sheet";
 import { useHomeStateContext } from "@/contexts/home-state-context";
 import { FeedHomeView } from "@/features/home/components/feed-home-view";
-import {
-  HomeHeader,
-  MapTab,
-} from "@/features/home/components/home-header";
+import { HomeHeader, MapTab } from "@/features/home/components/home-header";
 import {
   MapHomeView,
   MapHomeViewRef,
@@ -88,6 +85,14 @@ export default function HomeScreen() {
   return (
     <View className="w-full flex-1">
       <StatusBar style={mapTab === "feed" ? "light" : "dark"} />
+      <HomeHeader
+        isMountainRecordListOpen={isMountainRecordListOpen}
+        onCloseSelected={handleCloseSelected}
+        mapTab={mapTab}
+        onMapTabChange={handleMapTabChange}
+        mapAnimatedStyle={mapAnimatedStyle}
+        feedAnimatedStyle={feedAnimatedStyle}
+      />
       <Animated.View
         className="absolute inset-0"
         style={mapAnimatedStyle}
@@ -110,15 +115,6 @@ export default function HomeScreen() {
       <PermissionBottomSheet
         visible={showPermissionSheet}
         onConfirm={handlePermissionConfirm}
-      />
-
-      <HomeHeader
-        isMountainRecordListOpen={isMountainRecordListOpen}
-        onCloseSelected={handleCloseSelected}
-        mapTab={mapTab}
-        onMapTabChange={handleMapTabChange}
-        mapAnimatedStyle={mapAnimatedStyle}
-        feedAnimatedStyle={feedAnimatedStyle}
       />
     </View>
   );
