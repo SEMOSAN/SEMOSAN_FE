@@ -1,6 +1,7 @@
-import React, { forwardRef, useImperativeHandle, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { HOME_TAB_TRANSITION_DURATION } from "@/app/(tabs)";
+import React, { forwardRef, useImperativeHandle, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Easing,
   runOnJS,
@@ -8,19 +9,22 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
 
 export const SNAP_COLLAPSED = 68;
 export const SNAP_DEFAULT = 360;
 export const SNAP_EXPANDED = 600;
 
-const SNAP_TIMING = { duration: 350, easing: Easing.out(Easing.cubic) };
+const SNAP_TIMING = {
+  duration: HOME_TAB_TRANSITION_DURATION,
+  easing: Easing.out(Easing.cubic),
+};
 
 function snapNearest(projected: number): number {
-  'worklet';
+  "worklet";
   const snaps = [SNAP_COLLAPSED, SNAP_DEFAULT, SNAP_EXPANDED];
   return snaps.reduce((a, b) =>
-    Math.abs(a - projected) < Math.abs(b - projected) ? a : b
+    Math.abs(a - projected) < Math.abs(b - projected) ? a : b,
   );
 }
 
@@ -29,10 +33,13 @@ export type HomeBottomSheetRef = {
   expandToDefault: () => void;
 };
 
-type SnapState = 'collapsed' | 'default' | 'expanded';
+type SnapState = "collapsed" | "default" | "expanded";
 
 type Props = {
-  renderContent: (opts: { scrollEnabled: boolean; snapState: SnapState }) => React.ReactNode;
+  renderContent: (opts: {
+    scrollEnabled: boolean;
+    snapState: SnapState;
+  }) => React.ReactNode;
   heightSharedValue?: SharedValue<number>;
 };
 
@@ -42,18 +49,18 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
     const height = heightSharedValue ?? internalHeight;
     const startH = useSharedValue(SNAP_DEFAULT);
     const [scrollEnabled, setScrollEnabled] = useState(false);
-    const [snapState, setSnapState] = useState<SnapState>('default');
+    const [snapState, setSnapState] = useState<SnapState>("default");
 
     useImperativeHandle(ref, () => ({
       collapseToMin: () => {
         height.value = withTiming(SNAP_COLLAPSED, SNAP_TIMING);
         setScrollEnabled(false);
-        setSnapState('collapsed');
+        setSnapState("collapsed");
       },
       expandToDefault: () => {
         height.value = withTiming(SNAP_DEFAULT, SNAP_TIMING);
         setScrollEnabled(false);
-        setSnapState('default');
+        setSnapState("default");
       },
     }));
 
@@ -66,7 +73,7 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
         .onUpdate((e) => {
           height.value = Math.max(
             SNAP_COLLAPSED,
-            Math.min(SNAP_EXPANDED, startH.value - e.translationY)
+            Math.min(SNAP_EXPANDED, startH.value - e.translationY),
           );
         })
         .onEnd((e) => {
@@ -75,7 +82,11 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
           // 기본 높이(디폴트)에서는 스크롤 비활성, 최대 높이에서만 스크롤 활성
           runOnJS(setScrollEnabled)(target === SNAP_EXPANDED);
           runOnJS(setSnapState)(
-            target === SNAP_COLLAPSED ? 'collapsed' : target === SNAP_EXPANDED ? 'expanded' : 'default'
+            target === SNAP_COLLAPSED
+              ? "collapsed"
+              : target === SNAP_EXPANDED
+                ? "expanded"
+                : "default",
           );
         });
 
@@ -101,21 +112,21 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
         </GestureDetector>
       </Animated.View>
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({
   sheet: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
   handle: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: 12,
     paddingBottom: 8,
   },
@@ -123,10 +134,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 999,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: "#D1D5DB",
   },
   content: {
     flex: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });

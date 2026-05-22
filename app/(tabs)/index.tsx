@@ -10,11 +10,13 @@ import { setStatusBarStyle } from "expo-status-bar";
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import Animated, {
+  Easing,
+  interpolate,
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
 
-const TRANSITION_DURATION = 300;
+export const HOME_TAB_TRANSITION_DURATION = 500;
 
 export default function HomeScreen() {
   const { setTabBarVariant, tabProgress } = useHomeStateContext();
@@ -29,6 +31,12 @@ export default function HomeScreen() {
   }));
   const feedAnimatedStyle = useAnimatedStyle(() => ({
     opacity: tabProgress.value,
+    transform: [
+      { translateY: interpolate(tabProgress.value, [0, 1], [80, 0]) },
+    ],
+  }));
+  const feedOpacityStyle = useAnimatedStyle(() => ({
+    opacity: tabProgress.value,
   }));
 
   function handleMapTabChange(tab: MapTab): void {
@@ -37,12 +45,17 @@ export default function HomeScreen() {
 
     if (tab === "feed") {
       mapViewRef.current?.collapseSheet();
-      tabProgress.value = withTiming(1, { duration: TRANSITION_DURATION });
+      tabProgress.value = withTiming(1, {
+        duration: HOME_TAB_TRANSITION_DURATION,
+        easing: Easing.out(Easing.cubic),
+      });
       setTabBarVariant("dark");
       setStatusBarStyle("light");
     } else {
       mapViewRef.current?.expandSheet();
-      tabProgress.value = withTiming(0, { duration: TRANSITION_DURATION });
+      tabProgress.value = withTiming(0, {
+        duration: HOME_TAB_TRANSITION_DURATION,
+      });
       setTabBarVariant("light");
       setStatusBarStyle("dark");
     }
@@ -66,8 +79,8 @@ export default function HomeScreen() {
         />
       </Animated.View>
       <Animated.View
-        className="absolute inset-0"
-        style={feedAnimatedStyle}
+        className="absolute inset-x-0 bottom-0"
+        style={[{ top: -80 }, feedAnimatedStyle]}
         pointerEvents={mapTab === "feed" ? "auto" : "none"}
       >
         <FeedHomeView />
@@ -79,7 +92,7 @@ export default function HomeScreen() {
         mapTab={mapTab}
         onMapTabChange={handleMapTabChange}
         mapAnimatedStyle={mapAnimatedStyle}
-        feedAnimatedStyle={feedAnimatedStyle}
+        feedAnimatedStyle={feedOpacityStyle}
       />
       <LocationPermissionSheet />
     </View>

@@ -166,7 +166,7 @@ export function FeedHomeView() {
           // (0,0) 셀 중심이 화면 중앙에 오도록
           // 셀(0,0) 중심의 그리드 좌표 = CELL_GAP/2 + CELL_CONTENT_W/2 = CELL_W/2
           const initX = width / 2 - CELL_W / 2;
-          const initY = height / 2 - CELL_H / 2;
+          const initY = height / 2 - CELL_H / 2 + 80;
           translateX.value = initX;
           translateY.value = initY;
           savedX.value = initX;
