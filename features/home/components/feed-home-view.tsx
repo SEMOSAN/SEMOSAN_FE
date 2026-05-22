@@ -1,64 +1,17 @@
-import { memo, useRef, useState } from "react";
-import { Image, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  FadeInDown,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withDecay,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
+import { CELL_H, CELL_W, FeedCell, MAX_COORD, MIN_COORD } from "./feed-cell";
+import { FeedCellDetail } from "./feed-cell-detail";
 
-// ─────────────────────────────────────────────
-// 상수
-// ─────────────────────────────────────────────
-const CELL_CONTENT_W = 234;
-const CELL_CONTENT_H = 416;
-const CELL_GAP = 50;
-const CELL_W = CELL_CONTENT_W + CELL_GAP; // 셀 stride (위치 계산용)
-const CELL_H = CELL_CONTENT_H + CELL_GAP;
 const OVERSCAN = 0; // 화면 밖 여유분 (셀 단위)
-const MIN_COORD = -25; // 그리드 경계
-const MAX_COORD = 25;
-
-function cellImageUrl(col: number, row: number): string {
-  const seed = ((col - MIN_COORD) * 51 + (row - MIN_COORD)) % 1000;
-  return `https://picsum.photos/seed/${seed}/320/200`;
-}
-
-// ─────────────────────────────────────────────
-// 셀 컴포넌트 (memo로 불필요한 리렌더 방지)
-// ─────────────────────────────────────────────
-const Cell = memo(function Cell({
-  col,
-  row,
-}: {
-  col: number;
-  row: number;
-}): React.ReactElement {
-  return (
-    <Animated.View
-      entering={FadeInDown.duration(300).delay(200)}
-      className="absolute overflow-hidden rounded-xl bg-[#1a1a1a]"
-      style={{
-        left: col * CELL_W + CELL_GAP / 2,
-        top: row * CELL_H + CELL_GAP / 2 - (col % 2 !== 0 ? 60 : 0),
-        width: CELL_CONTENT_W,
-        height: CELL_CONTENT_H,
-      }}
-    >
-      <Image
-        source={{ uri: cellImageUrl(col, row) }}
-        className="absolute inset-0 h-full w-full"
-        resizeMode="cover"
-      />
-      <Text className="absolute bottom-3 left-3 font-mono text-[11px] text-white/70">
-        ({col}, {row})
-      </Text>
-    </Animated.View>
-  );
-});
 
 // ─────────────────────────────────────────────
 // 메인 그리드
@@ -69,6 +22,9 @@ export function FeedHomeView() {
 
   // JS 스레드 state: 가상화 계산용
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  // TODO : API연동되면 imageUri 아니라 id가 와야할듯.
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
 
   // UI 스레드 shared value: transform 갱신용
   const translateX = useSharedValue(0);
@@ -101,9 +57,10 @@ export function FeedHomeView() {
   );
 
   // ─────────────────────────────────────────────
-  // Pan 제스처
+  // Pan 제스처 (디테일 열려있으면 비활성)
   // ─────────────────────────────────────────────
   const pan = Gesture.Pan()
+    .enabled(selectedImageUri === null)
     .onBegin(() => {
       // 관성 애니메이션 중 새 제스처가 시작되면 현재 위치부터 시작
       savedX.value = translateX.value;
@@ -150,7 +107,14 @@ export function FeedHomeView() {
       if (c < MIN_COORD || c > MAX_COORD) continue; // 그리드 경계 clamp
       for (let r = rowStart; r <= rowEnd; r++) {
         if (r < MIN_COORD || r > MAX_COORD) continue;
-        cells.push(<Cell key={`${c},${r}`} col={c} row={r} />);
+        cells.push(
+          <FeedCell
+            key={`${c},${r}`}
+            col={c}
+            row={r}
+            onPress={setSelectedImageUri}
+          />,
+        );
       }
     }
   }
@@ -159,27 +123,36 @@ export function FeedHomeView() {
   // 렌더
   // ─────────────────────────────────────────────
   return (
-    <GestureDetector gesture={pan}>
-      <View
-        className="flex-1 overflow-hidden bg-[#111]"
-        onLayout={(e) => {
-          const { width, height } = e.nativeEvent.layout;
-          setScreen({ w: width, h: height });
-          // (0,0) 셀 중심이 화면 중앙에 오도록
-          // 셀(0,0) 중심의 그리드 좌표 = CELL_GAP/2 + CELL_CONTENT_W/2 = CELL_W/2
-          const initX = width / 2 - CELL_W / 2;
-          const initY = height / 2 - CELL_H / 2 + 80;
-          translateX.value = initX;
-          translateY.value = initY;
-          savedX.value = initX;
-          savedY.value = initY;
-          setOffset({ x: initX, y: initY });
-        }}
-      >
-        <Animated.View className="absolute inset-0" style={animStyle}>
-          {cells}
-        </Animated.View>
-      </View>
-    </GestureDetector>
+    <>
+      <GestureDetector gesture={pan}>
+        <View
+          className="flex-1 overflow-hidden bg-[#111]"
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            setScreen({ w: width, h: height });
+            // (0,0) 셀 중심이 화면 중앙에 오도록
+            // 셀(0,0) 중심의 그리드 좌표 = CELL_GAP/2 + CELL_CONTENT_W/2 = CELL_W/2
+            const initX = width / 2 - CELL_W / 2;
+            const initY = height / 2 - CELL_H / 2 + 80;
+            translateX.value = initX;
+            translateY.value = initY;
+            savedX.value = initX;
+            savedY.value = initY;
+            setOffset({ x: initX, y: initY });
+          }}
+        >
+          <Animated.View className="absolute inset-0" style={animStyle}>
+            {cells}
+          </Animated.View>
+        </View>
+      </GestureDetector>
+
+      {selectedImageUri !== null && (
+        <FeedCellDetail
+          imageUri={selectedImageUri}
+          onClose={() => setSelectedImageUri(null)}
+        />
+      )}
+    </>
   );
 }

@@ -1,0 +1,111 @@
+import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
+import { XIcon } from "@/components/icons/x-icon";
+import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const EMOJIS = [
+  { emoji: "❤️‍🔥", count: 14 },
+  { emoji: "🍀", count: 14 },
+  { emoji: "🥳", count: 14 },
+  { emoji: "🤣", count: 14 },
+] as const;
+
+type FeedCellDetailProps = {
+  imageUri: string;
+  onClose: () => void;
+};
+
+export function FeedCellDetail({
+  imageUri,
+  onClose,
+}: FeedCellDetailProps): React.ReactElement {
+  const { top, bottom } = useSafeAreaInsets();
+
+  return (
+    <Modal
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black/80">
+        {/* 헤더 */}
+        <View
+          className="absolute left-0 right-0 z-10 flex-row items-center justify-between px-5"
+          style={{ top: top + 8 }}
+        >
+          <Pressable
+            onPress={onClose}
+            className="h-12 w-12 items-center justify-center rounded-full bg-[#1a1b1f]"
+            style={styles.buttonShadow}
+          >
+            <ChevronLeftIcon size={24} color="#ffffff" />
+          </Pressable>
+          <Pressable
+            onPress={onClose}
+            className="h-12 w-12 items-center justify-center rounded-full bg-[#1a1b1f]"
+            style={styles.buttonShadow}
+          >
+            <XIcon size={24} color="#ffffff" />
+          </Pressable>
+        </View>
+
+        {/* 이미지 + 프로필 */}
+        <View className="flex-1 items-center justify-center">
+          <View
+            className="overflow-hidden rounded-[20px]"
+            style={{ width: 288, height: 512 }}
+          >
+            <Image
+              source={{ uri: imageUri }}
+              className="h-full w-full"
+              resizeMode="cover"
+            />
+            {/* 산 칩 */}
+            <View className="absolute right-4 top-4 flex-row items-center gap-1 rounded-full bg-[rgba(26,27,31,0.6)] px-2.5 py-[5px]">
+              <Text className="typo-caption-1-semi-bold text-label-normal-inverse">
+                관악산
+              </Text>
+            </View>
+          </View>
+
+          {/* 프로필 */}
+          <View className="mt-3 w-72 flex-row items-center gap-2 px-1">
+            <View className="h-8 w-8 items-center justify-center rounded-full bg-fill-normal" />
+            <Text className="typo-body-2-normal-semi-bold text-label-normal-inverse">
+              나는야엄홍길
+            </Text>
+          </View>
+        </View>
+
+        {/* 이모지 반응 */}
+        <View
+          className="flex-row gap-2 px-5"
+          style={{ paddingBottom: bottom + 24 }}
+        >
+          {EMOJIS.map(({ emoji, count }) => (
+            <Pressable
+              key={emoji}
+              className="flex-row items-center gap-1 rounded-full bg-white/10 px-3 py-2"
+            >
+              <Text style={{ fontSize: 20 }}>{emoji}</Text>
+              <Text className="typo-body-2-normal-semi-bold text-label-normal-inverse">
+                {count}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  buttonShadow: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+});
