@@ -6,7 +6,7 @@ import {
   MapHomeView,
   MapHomeViewRef,
 } from "@/features/home/components/map-home-view";
-import { StatusBar } from "expo-status-bar";
+import { setStatusBarStyle } from "expo-status-bar";
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import Animated, {
@@ -41,10 +41,12 @@ export default function HomeScreen() {
       mapViewRef.current?.collapseSheet();
       tabProgress.value = withTiming(1, { duration: TRANSITION_DURATION });
       setTabBarVariant("dark");
+      setStatusBarStyle("light");
     } else {
       mapViewRef.current?.expandSheet();
       tabProgress.value = withTiming(0, { duration: TRANSITION_DURATION });
       setTabBarVariant("light");
+      setStatusBarStyle("dark");
     }
   }
 
@@ -54,7 +56,6 @@ export default function HomeScreen() {
 
   return (
     <View className="w-full flex-1">
-      <StatusBar style={mapTab === "feed" ? "light" : "dark"} />
       <Animated.View
         className="absolute inset-0"
         style={mapAnimatedStyle}
