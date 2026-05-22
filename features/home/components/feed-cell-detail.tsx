@@ -1,3 +1,4 @@
+import { MountainChipIcon } from "@/components/icons/mountain-chip-icon";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { XIcon } from "@/components/icons/x-icon";
 import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
@@ -61,7 +62,8 @@ export function FeedCellDetail({
                 resizeMode="cover"
               />
               {/* 산 칩 */}
-              <View className="absolute right-4 top-4 flex-row items-center gap-1 rounded-full bg-[rgba(26,27,31,0.6)] px-2.5 py-[5px]">
+              <View className="absolute right-4 top-4 flex-row items-center gap-1 rounded-full bg-[rgba(26,27,31,0.6)] py-[5px] pl-[5px] pr-[10px]">
+                <MountainChipIcon size={18} />
                 <Text className="text-label-normal-inverse typo-caption-1-semi-bold">
                   관악산
                 </Text>

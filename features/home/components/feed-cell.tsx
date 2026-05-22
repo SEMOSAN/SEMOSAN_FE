@@ -1,5 +1,6 @@
+import { MountainChipIcon } from "@/components/icons/mountain-chip-icon";
 import { memo } from "react";
-import { Image, Pressable } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 export const CELL_CONTENT_W = 234;
@@ -46,6 +47,16 @@ export const FeedCell = memo(function FeedCell({
           resizeMode="cover"
         />
       </Pressable>
+      {/* 산 뱃지 */}
+      <View
+        className="absolute right-4 top-4 flex-row items-center gap-1 rounded-full bg-[rgba(26,27,31,0.6)] py-[5px] pl-[5px] pr-[10px]"
+        pointerEvents="none"
+      >
+        <MountainChipIcon size={18} />
+        <Text className="text-label-normal-inverse typo-caption-1-semi-bold">
+          관악산
+        </Text>
+      </View>
     </Animated.View>
   );
 });
