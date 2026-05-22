@@ -12,7 +12,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { CELL_H, CELL_W, FeedCell, MAX_COORD, MIN_COORD } from "./feed-cell";
 import { FeedCellDetail } from "./feed-cell-detail";
 
-const OVERSCAN = 0; // 화면 밖 여유분 (셀 단위)
+const OVERSCAN = 1; // 화면 밖 여유분 (셀 단위)
 
 // ─────────────────────────────────────────────
 // 메인 그리드

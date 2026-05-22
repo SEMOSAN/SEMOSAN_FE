@@ -25,12 +25,12 @@ export const FeedCell = memo(function FeedCell({
   col,
   row,
   onPress,
-}: FeedCellProps): React.ReactElement {
+}: FeedCellProps) {
   const imageUri = cellImageUrl(col, row);
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(300).delay(500)}
+      entering={FadeInDown.duration(300).delay(200)}
       className="absolute overflow-hidden rounded-xl bg-[#1a1a1a]"
       style={{
         left: col * CELL_W + CELL_GAP / 2,
