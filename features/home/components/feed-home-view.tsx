@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -141,6 +142,13 @@ export function FeedHomeView() {
             setOffset({ x: initX, y: initY });
           }}
         >
+          {/* 배경 이미지 */}
+          <Image
+            source={require("@/assets/images/blur-feed-bg.png")}
+            className="absolute inset-0 h-full w-full"
+            contentFit="cover"
+            priority="low"
+          />
           <Animated.View className="absolute inset-0" style={animStyle}>
             {cells}
           </Animated.View>
