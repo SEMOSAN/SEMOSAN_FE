@@ -1,111 +1,43 @@
-import { type Tab } from "@/components/bottom-sheet";
-import {
-  SNAP_DEFAULT,
-  SNAP_EXPANDED,
-  type HomeBottomSheetRef,
-} from "@/components/home-bottom-sheet-container";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
-import { CrosshairIcon } from "@/components/icons/crosshair-icon";
 import { SemosanLogo } from "@/components/icons/semosan-logo";
 import { XIcon } from "@/components/icons/x-icon";
-import {
-  UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-  UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-  UnvisitedMountainPillMarker,
-} from "@/components/map-markers/unvisited-mountain-pill-marker";
 import { PermissionBottomSheet } from "@/components/permission-bottom-sheet";
-import { useMountains } from "@/features/mountains/hooks/use-mountains";
+import { FeedHomeView } from "@/features/home/components/feed-home-view";
 import {
-  useMountainsMap,
-  type BBox,
-} from "@/features/mountains/hooks/use-mountains-map";
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from "@mj-studio/react-native-naver-map";
+  MapHomeView,
+  MapHomeViewRef,
+} from "@/features/home/components/map-home-view";
+import { MapTabToggle } from "@/features/home/components/map-tab-toggle";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
-import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
-  interpolate,
   useAnimatedStyle,
   useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type Region = {
-  latitude: number;
-  longitude: number;
-  zoom: number;
-};
-
 const TRANSITION_DURATION = 300;
-
-type Mountain = {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  visitCount: number;
-  imageUri?: string;
-  category: "default" | "popular" | "curated";
-  visited: boolean;
-};
-
-const DEFAULT_REGION: Region = {
-  latitude: 37.5665,
-  longitude: 126.978,
-  zoom: 10,
-};
-
-const MOCK_USER_NAME = "맹쏘";
 
 type MapTab = "map" | "feed";
 
 export default function HomeScreen() {
-  const [region, setRegion] = useState<Region>(DEFAULT_REGION);
-  const [bbox, setBbox] = useState<BBox>(null);
-  const [activeTab, setActiveTab] = useState<Tab>("내 기록");
   const [mapTab, setMapTab] = useState<MapTab>("map");
-  const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
-    null,
-  );
+
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] =
     useState(false);
 
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
   const [showPermissionSheet, setShowPermissionSheet] = useState(false);
-  const { data: mapData } = useMountainsMap(bbox);
-  const hasRecords = mapData?.hasHikingRecord ?? false;
-  const mountains = mapData?.mountains ?? [];
-  const { top } = useSafeAreaInsets();
-  const router = useRouter();
-  const sheetRef = useRef<HomeBottomSheetRef>(null);
-  const sheetHeight = useSharedValue(SNAP_DEFAULT);
-  const { data, isPending, isError } = useMountains();
 
-  const locationButtonStyle = useAnimatedStyle(() => ({
-    bottom: sheetHeight.value + 12,
-    opacity: interpolate(
-      sheetHeight.value,
-      [SNAP_DEFAULT, SNAP_EXPANDED],
-      [1, 0],
-      "clamp",
-    ),
-  }));
+  const { top } = useSafeAreaInsets();
 
   const requestLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") return;
-    const location = await Location.getCurrentPositionAsync({});
-    setRegion((prev) => ({
-      ...prev,
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    }));
   };
 
   useEffect(() => {
@@ -121,206 +53,60 @@ export default function HomeScreen() {
   const handlePermissionConfirm = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") return;
-    const location = await Location.getCurrentPositionAsync({});
-
-    setRegion((prev) => ({
-      ...prev,
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    }));
 
     AsyncStorage.setItem("permission_sheet_shown", "true");
     setShowPermissionSheet(false);
     requestLocation();
   };
 
-  const moveToCurrentLocation = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") return;
-    const location = await Location.getCurrentPositionAsync({});
-    setRegion((prev) => ({
-      ...prev,
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    }));
-  };
-
-  const handleDetailOpenChange = (isOpen: boolean) => {
-    setIsMountainRecordListOpen(isOpen);
-    if (!isOpen) {
-      setSelectedMountainId(null);
-    }
-  };
-
   function handleCloseSelected(): void {
     setCloseSelectedToken((prev) => prev + 1);
   }
 
+  const mapViewRef = useRef<MapHomeViewRef>(null);
+  const mapOpacity = useSharedValue(1);
+  const feedOpacity = useSharedValue(0);
+  const mapAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: mapOpacity.value,
+  }));
+  const feedAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: feedOpacity.value,
+  }));
+
+  function handleMapTabChange(tab: MapTab): void {
+    if (tab === mapTab) return;
+    setMapTab(tab);
+
+    if (tab === "feed") {
+      mapViewRef.current?.collapseSheet();
+      mapOpacity.value = withTiming(0, { duration: TRANSITION_DURATION });
+      feedOpacity.value = withTiming(1, { duration: TRANSITION_DURATION });
+    } else {
+      mapViewRef.current?.expandSheet();
+      feedOpacity.value = withTiming(0, { duration: TRANSITION_DURATION });
+      mapOpacity.value = withTiming(1, { duration: TRANSITION_DURATION });
+    }
+  }
+
   return (
     <View className="w-full flex-1">
-      <NaverMapView
-        style={styles.map}
-        camera={{
-          latitude: region.latitude,
-          longitude: region.longitude,
-          zoom: region.zoom,
-        }}
-        isShowLocationButton={false}
-        onTapMap={() => sheetRef.current?.collapseToMin()}
-        onCameraIdle={(e) => {
-          const { latitude, longitude, latitudeDelta, longitudeDelta } =
-            e.region;
-          setBbox({
-            swLat: latitude,
-            swLng: longitude,
-            neLat: latitude + latitudeDelta,
-            neLng: longitude + longitudeDelta,
-          });
-        }}
-      >
-        {hasRecords
-          ? data?.content?.map((mountain) => (
-              <NaverMapMarkerOverlay
-                key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
-                latitude={mountain.latitude}
-                longitude={mountain.longitude}
-                width={
-                  mountain.visited
-                    ? VISITED_MARKER_OVERLAY_WIDTH
-                    : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
-                }
-                height={
-                  mountain.visited
-                    ? VISITED_MARKER_OVERLAY_HEIGHT
-                    : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
-                }
-                anchor={
-                  mountain.visited ? { x: 0.2, y: 1 } : { x: 0.5, y: 0.5 }
-                }
-                onTap={() => router.push(`/mountains/${mountain.id}`)}
-              >
-                <View
-                  collapsable={false}
-                  // style={{
-                  //   width: mountain.visited
-                  //     ? VISITED_MARKER_OVERLAY_WIDTH
-                  //     : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                  //   height: mountain.visited
-                  //     ? VISITED_MARKER_OVERLAY_HEIGHT
-                  //     : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                  // }}
-                  style={{
-                    width: UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                    height: UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                  }}
-                >
-                  <UnvisitedMountainPillMarker
-                    name={mountain.name ?? ""}
-                    variant={"visited"}
-                    selected={mountain?.mountainId === selectedMountainId}
-                  />
-                  {/* {mountain.visited ? (
-                    <VisitedMarker
-                      name={mountain.name}
-                      visitCount={mountain.visitCount}
-                      imageUri={mountain.imageUrl}
-                      selected={mountain.id === selectedMountainId}
-                    />
-                  ) : (
-                    <UnvisitedMountainPillMarker
-                      name={mountain.name}
-                      variant={
-                        mountain.visited
-                          ? "visited"
-                          : activeTab === "큐레이션"
-                            ? "curation"
-                            : "trending"
-                      }
-                      selected={mountain.id === selectedMountainId}
-                    />
-                  )} */}
-                </View>
-              </NaverMapMarkerOverlay>
-            ))
-          : mountains.map((mountain) => (
-              <NaverMapMarkerOverlay
-                key={`no-record-${mountain.id}`}
-                latitude={mountain.latitude}
-                longitude={mountain.longitude}
-                width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
-                height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
-                anchor={{ x: 0.5, y: 0.5 }}
-                onTap={() => router.push(`/mountains/${mountain.id}`)}
-              >
-                <View
-                  collapsable={false}
-                  style={{
-                    width: UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                    height: UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                  }}
-                >
-                  <UnvisitedMountainPillMarker
-                    name={mountain.name}
-                    variant="trending"
-                  />
-                </View>
-              </NaverMapMarkerOverlay>
-            ))}
-      </NaverMapView>
-
-      <LinearGradient
-        colors={["rgba(255,255,255,1)", "rgba(255,255,255,0)"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.mapTopGradient}
-        pointerEvents="none"
-      />
-
-      {/* 현위치 버튼 - 바텀시트 높이에 따라 이동 */}
+      <StatusBar style={mapTab === "feed" ? "light" : "dark"} />
       <Animated.View
-        style={[
-          styles.locationButton,
-          // locationButtonStyle, // TODO : 하단 바텀시트  (HomeBottomSheetContainer) 가 주석처리가 풀리면 다시 사용하도록 한다.
-          { bottom: 12 }, // TODO : 하단 바텀시트  (HomeBottomSheetContainer) 가 주석처리 풀리면 삭제하도록 한다.
-        ]}
+        style={[StyleSheet.absoluteFill, mapAnimatedStyle]}
+        pointerEvents={mapTab === "map" ? "auto" : "none"}
       >
-        <TouchableOpacity
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          onPress={moveToCurrentLocation}
-          hitSlop={8}
-        >
-          <CrosshairIcon size={24} />
-        </TouchableOpacity>
+        <MapHomeView
+          ref={mapViewRef}
+          closeSelectedToken={closeSelectedToken}
+          onMountainRecordListOpenChange={setIsMountainRecordListOpen}
+        />
       </Animated.View>
-
-      {/* TODO : API 나오면 연동 */}
-      {/* 바텀시트 - 절대 위치, 애니메이션 높이 */}
-      {/* <HomeBottomSheetContainer
-        ref={sheetRef}
-        heightSharedValue={sheetHeight}
-        renderContent={({ scrollEnabled }) =>
-          hasRecords ? (
-            <BottomSheet
-              title="다녀온 산"
-              titleCount={visitedCards.length}
-              cards={visitedCards}
-              showTabs={false}
-              scrollEnabled={scrollEnabled}
-              onCardSelect={(id) => setSelectedMountainId(Number(id))}
-              onDetailOpenChange={handleDetailOpenChange}
-              closeSelectedToken={closeSelectedToken}
-            />
-          ) : (
-            <NoRecordBottomSheet
-              userName={MOCK_USER_NAME}
-              scrollEnabled={scrollEnabled}
-              lat={region.latitude}
-              lng={region.longitude}
-            />
-          )
-        }
-      /> */}
-
+      <Animated.View
+        style={[StyleSheet.absoluteFill, feedAnimatedStyle]}
+        pointerEvents={mapTab === "feed" ? "auto" : "none"}
+      >
+        <FeedHomeView />
+      </Animated.View>
       <PermissionBottomSheet
         visible={showPermissionSheet}
         onConfirm={handlePermissionConfirm}
@@ -332,7 +118,7 @@ export default function HomeScreen() {
         {isMountainRecordListOpen ? (
           <View className="h-14 flex-row items-center justify-between px-5">
             <TouchableOpacity
-              onPress={() => setCloseSelectedToken((prev) => prev + 1)}
+              onPress={handleCloseSelected}
               className="h-12 w-12 items-center justify-center rounded-full bg-fill-normal"
               style={styles.bellButton}
               hitSlop={8}
@@ -340,7 +126,7 @@ export default function HomeScreen() {
               <ChevronLeftIcon size={24} />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setCloseSelectedToken((prev) => prev + 1)}
+              onPress={handleCloseSelected}
               className="h-12 w-12 items-center justify-center rounded-full bg-fill-normal"
               style={styles.bellButton}
               hitSlop={8}
@@ -361,44 +147,14 @@ export default function HomeScreen() {
                 <BellIcon size={24} color="#1A1B1F" />
               </TouchableOpacity> */}
             </View>
-            {/* TODO : 세모피드 구현되면 다시추가 */}
+
             {/* 정복 지도 / 세모피드 토글 */}
-            {/* <View className="mt-1 items-center">
-              <MapTabToggle value={mapTab} onChange={setMapTab} />
-            </View> */}
+            <View className="mt-1 items-center">
+              <MapTabToggle value={mapTab} onChange={handleMapTabChange} />
+            </View>
           </>
         )}
       </View>
-    </View>
-  );
-}
-
-function MapTabToggle({
-  value,
-  onChange,
-}: {
-  value: MapTab;
-  onChange: (v: MapTab) => void;
-}) {
-  return (
-    <View style={toggleStyles.container}>
-      {(["map", "feed"] as const).map((tab) => (
-        <TouchableOpacity
-          key={tab}
-          style={[toggleStyles.tab, value === tab && toggleStyles.activeTab]}
-          onPress={() => onChange(tab)}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[
-              toggleStyles.tabText,
-              value === tab && toggleStyles.activeTabText,
-            ]}
-          >
-            {tab === "map" ? "정복 지도" : "세모피드"}
-          </Text>
-        </TouchableOpacity>
-      ))}
     </View>
   );
 }
