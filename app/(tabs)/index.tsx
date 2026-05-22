@@ -11,7 +11,8 @@ import BottomSheet, { type Tab } from '@/components/bottom-sheet';
 import {
   HomeBottomSheetContainer,
   SNAP_DEFAULT,
-  SNAP_EXPANDED,
+  SNAP_EXPANDED_WITH_RECORDS,
+  SNAP_EXPANDED_NO_RECORDS,
   type HomeBottomSheetRef,
 } from '@/components/home-bottom-sheet-container';
 import NoRecordBottomSheet from '@/components/no-record-bottom-sheet';
@@ -61,6 +62,7 @@ export default function HomeScreen() {
   const { data: mapData } = useMountainsMap(bbox);
   const hasRecords = mapData?.hasHikingRecord ?? false;
   const mountains = mapData?.mountains ?? [];
+  const snapExpanded = hasRecords ? SNAP_EXPANDED_WITH_RECORDS : SNAP_EXPANDED_NO_RECORDS;
   const { top } = useSafeAreaInsets();
   const router = useRouter();
   const sheetRef = useRef<HomeBottomSheetRef>(null);
@@ -68,7 +70,7 @@ export default function HomeScreen() {
 
   const locationButtonStyle = useAnimatedStyle(() => ({
     bottom: sheetHeight.value + 12,
-    opacity: interpolate(sheetHeight.value, [SNAP_DEFAULT, SNAP_EXPANDED], [1, 0], 'clamp'),
+    opacity: interpolate(sheetHeight.value, [SNAP_DEFAULT, snapExpanded], [1, 0], 'clamp'),
   }));
 
   const requestLocation = async () => {
@@ -238,6 +240,7 @@ export default function HomeScreen() {
       <HomeBottomSheetContainer
         ref={sheetRef}
         heightSharedValue={sheetHeight}
+        snapExpanded={snapExpanded}
         renderContent={({ scrollEnabled }) =>
           hasRecords ? (
             <BottomSheet
