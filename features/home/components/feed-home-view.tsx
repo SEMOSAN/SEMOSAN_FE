@@ -2,6 +2,7 @@ import { memo, useRef, useState } from "react";
 import { Image, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  FadeInDown,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
@@ -17,7 +18,7 @@ const CELL_CONTENT_H = 416;
 const CELL_GAP = 50;
 const CELL_W = CELL_CONTENT_W + CELL_GAP; // 셀 stride (위치 계산용)
 const CELL_H = CELL_CONTENT_H + CELL_GAP;
-const OVERSCAN = 2; // 화면 밖 여유분 (셀 단위)
+const OVERSCAN = 0; // 화면 밖 여유분 (셀 단위)
 const MIN_COORD = -25; // 그리드 경계
 const MAX_COORD = 25;
 
@@ -37,7 +38,8 @@ const Cell = memo(function Cell({
   row: number;
 }): React.ReactElement {
   return (
-    <View
+    <Animated.View
+      entering={FadeInDown.duration(300).delay(200)}
       className="absolute overflow-hidden rounded-xl bg-[#1a1a1a]"
       style={{
         left: col * CELL_W + CELL_GAP / 2,
@@ -54,7 +56,7 @@ const Cell = memo(function Cell({
       <Text className="absolute bottom-3 left-3 font-mono text-[11px] text-white/70">
         ({col}, {row})
       </Text>
-    </View>
+    </Animated.View>
   );
 });
 
