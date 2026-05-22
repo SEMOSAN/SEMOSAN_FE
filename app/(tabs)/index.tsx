@@ -11,21 +11,19 @@ import { useRef, useState } from "react";
 import { View } from "react-native";
 import Animated, {
   useAnimatedStyle,
-  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 
 const TRANSITION_DURATION = 300;
 
 export default function HomeScreen() {
-  const { setTabBarVariant } = useHomeStateContext();
+  const { setTabBarVariant, tabProgress } = useHomeStateContext();
   const [mapTab, setMapTab] = useState<MapTab>("map");
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] =
     useState(false);
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
 
   const mapViewRef = useRef<MapHomeViewRef>(null);
-  const tabProgress = useSharedValue(0); // 0 = map, 1 = feed
   const mapAnimatedStyle = useAnimatedStyle(() => ({
     opacity: 1 - tabProgress.value,
   }));

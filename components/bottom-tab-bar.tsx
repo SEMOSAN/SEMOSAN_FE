@@ -7,17 +7,13 @@ import {
 } from "@/contexts/home-state-context";
 import { Colors } from "@/types/colors.generated";
 import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 import { Pressable, Text } from "react-native";
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
-  useSharedValue,
-  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const TRANSITION_DURATION = 300;
 
 const BG_LIGHT = "#ffffff";
 const BG_DARK = "#000000";
@@ -84,25 +80,17 @@ export function BottomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { toggleHasRecords, tabBarVariant } = useHomeStateContext();
+  const { toggleHasRecords, tabBarVariant, tabProgress } = useHomeStateContext();
   const variant = VARIANT_CONFIG[tabBarVariant];
-
-  const progress = useSharedValue(tabBarVariant === "dark" ? 1 : 0);
-
-  useEffect(() => {
-    progress.value = withTiming(tabBarVariant === "dark" ? 1 : 0, {
-      duration: TRANSITION_DURATION,
-    });
-  }, [tabBarVariant, progress]);
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
-      progress.value,
+      tabProgress.value,
       [0, 1],
       [BG_LIGHT, BG_DARK],
     ),
     borderTopColor: interpolateColor(
-      progress.value,
+      tabProgress.value,
       [0, 1],
       [BORDER_LIGHT, BORDER_DARK],
     ),
