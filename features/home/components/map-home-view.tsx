@@ -258,8 +258,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             hasRecords ? (
               <BottomSheet
                 title="다녀온 산"
-                // titleCount={visitedCards.length}
-                // cards={visitedCards}
+                titleCount={visitedCards.length}
+                cards={visitedCards}
                 showTabs={false}
                 scrollEnabled={scrollEnabled}
                 onCardSelect={(id) => setSelectedMountainId(Number(id))}
