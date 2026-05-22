@@ -1,14 +1,11 @@
 import { HomeIcon } from "@/components/icons/home-icon";
 import { MountainIcon } from "@/components/icons/mountain-icon";
 import { MyIcon } from "@/components/icons/my-icon";
-import {
-  useHomeStateContext,
-  type TabBarVariant,
-} from "@/contexts/home-state-context";
+import { useHomeStateContext } from "@/contexts/home-state-context";
 import { Colors } from "@/types/colors.generated";
 import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { ReactNode } from "react";
-import { Pressable, Text } from "react-native";
+import { Pressable, View } from "react-native";
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -20,29 +17,16 @@ const BG_DARK = "#000000";
 const BORDER_LIGHT = "#e5e7eb";
 const BORDER_DARK = "#464a57";
 
+const FOCUSED_LIGHT = Colors["global-neutral-900"];
+const FOCUSED_DARK = Colors["color-label-normal-inverse"];
+const UNFOCUSED_LIGHT = Colors["global-neutral-100"];
+const UNFOCUSED_DARK = Colors["global-neutral-700"];
+
 type TabItem = {
   name: string;
   label: string | null;
   renderIcon: (color: string) => ReactNode;
   isCenter?: boolean;
-};
-
-type VariantConfig = {
-  iconColor: (isFocused: boolean) => string;
-  labelClass: (isFocused: boolean) => string;
-};
-
-const VARIANT_CONFIG: Record<TabBarVariant, VariantConfig> = {
-  light: {
-    iconColor: (f) =>
-      f ? Colors["global-neutral-900"] : Colors["global-neutral-100"],
-    labelClass: (f) => (f ? "text-label-normal" : "text-neutral-100"),
-  },
-  dark: {
-    iconColor: (f) =>
-      f ? Colors["color-label-normal-inverse"] : Colors["global-neutral-700"],
-    labelClass: (f) => (f ? "text-label-normal-inverse" : "text-neutral-700"),
-  },
 };
 
 const TAB_ITEMS: TabItem[] = [
@@ -80,23 +64,23 @@ export function BottomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { toggleHasRecords, tabBarVariant, tabProgress } = useHomeStateContext();
-  const variant = VARIANT_CONFIG[tabBarVariant];
+  const { toggleHasRecords, tabProgress } = useHomeStateContext();
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(
-      tabProgress.value,
-      [0, 1],
-      [BG_LIGHT, BG_DARK],
-    ),
-    borderTopColor: interpolateColor(
-      tabProgress.value,
-      [0, 1],
-      [BORDER_LIGHT, BORDER_DARK],
-    ),
+    backgroundColor: interpolateColor(tabProgress.value, [0, 1], [BG_LIGHT, BG_DARK]),
+    borderTopColor: interpolateColor(tabProgress.value, [0, 1], [BORDER_LIGHT, BORDER_DARK]),
   }));
 
-  // 현재 활성 라우트의 tabBarStyle이 hidden이면 탭바 숨기기
+  const lightLayerStyle = useAnimatedStyle(() => ({ opacity: 1 - tabProgress.value }));
+  const darkLayerStyle = useAnimatedStyle(() => ({ opacity: tabProgress.value }));
+
+  const focusedTextStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(tabProgress.value, [0, 1], [FOCUSED_LIGHT, FOCUSED_DARK]),
+  }));
+  const unfocusedTextStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(tabProgress.value, [0, 1], [UNFOCUSED_LIGHT, UNFOCUSED_DARK]),
+  }));
+
   const currentRoute = state.routes[state.index];
   const { tabBarStyle } = descriptors[currentRoute.key].options;
   if (tabBarStyle && (tabBarStyle as { display?: string }).display === "none") {
@@ -143,6 +127,9 @@ export function BottomTabBar({
           );
         }
 
+        const lightColor = isFocused ? FOCUSED_LIGHT : UNFOCUSED_LIGHT;
+        const darkColor = isFocused ? FOCUSED_DARK : UNFOCUSED_DARK;
+
         return (
           <Pressable
             key={route.key}
@@ -150,12 +137,23 @@ export function BottomTabBar({
             className="items-center justify-center gap-0.5 rounded"
             style={{ width: 48, height: 48 }}
           >
-            {item.renderIcon(variant.iconColor(isFocused))}
-            <Text
-              className={`text-center typo-caption-1-medium ${variant.labelClass(isFocused)}`}
+            <View style={{ width: 24, height: 24 }}>
+              <Animated.View style={lightLayerStyle}>
+                {item.renderIcon(lightColor)}
+              </Animated.View>
+              <Animated.View
+                className="absolute left-0 top-0"
+                style={darkLayerStyle}
+              >
+                {item.renderIcon(darkColor)}
+              </Animated.View>
+            </View>
+            <Animated.Text
+              className="text-center typo-caption-1-medium"
+              style={isFocused ? focusedTextStyle : unfocusedTextStyle}
             >
               {item.label}
-            </Text>
+            </Animated.Text>
           </Pressable>
         );
       })}
