@@ -1,4 +1,4 @@
-import { PermissionBottomSheet } from "@/components/permission-bottom-sheet";
+import { LocationPermissionSheet } from "@/components/location-permission-sheet";
 import { useHomeStateContext } from "@/contexts/home-state-context";
 import { FeedHomeView } from "@/features/home/components/feed-home-view";
 import { HomeHeader, MapTab } from "@/features/home/components/home-header";
@@ -6,10 +6,8 @@ import {
   MapHomeView,
   MapHomeViewRef,
 } from "@/features/home/components/map-home-view";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { requestForegroundPermissionsAsync } from "expo-location";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -25,7 +23,6 @@ export default function HomeScreen() {
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] =
     useState(false);
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
-  const [showPermissionSheet, setShowPermissionSheet] = useState(false);
 
   const mapViewRef = useRef<MapHomeViewRef>(null);
   const mapOpacity = useSharedValue(1);
@@ -54,33 +51,9 @@ export default function HomeScreen() {
     }
   }
 
-  const requestLocation = async () => {
-    const { status } = await requestForegroundPermissionsAsync();
-    if (status !== "granted") return;
-  };
-
-  const handlePermissionConfirm = async () => {
-    const { status } = await requestForegroundPermissionsAsync();
-    if (status !== "granted") return;
-
-    AsyncStorage.setItem("permission_sheet_shown", "true");
-    setShowPermissionSheet(false);
-    requestLocation();
-  };
-
   function handleCloseSelected(): void {
     setCloseSelectedToken((prev) => prev + 1);
   }
-
-  useEffect(() => {
-    AsyncStorage.getItem("permission_sheet_shown").then((val) => {
-      if (!val) {
-        setShowPermissionSheet(true);
-      } else {
-        requestLocation();
-      }
-    });
-  }, []);
 
   return (
     <View className="w-full flex-1">
@@ -112,10 +85,7 @@ export default function HomeScreen() {
         <FeedHomeView />
       </Animated.View>
 
-      <PermissionBottomSheet
-        visible={showPermissionSheet}
-        onConfirm={handlePermissionConfirm}
-      />
+      <LocationPermissionSheet />
     </View>
   );
 }
