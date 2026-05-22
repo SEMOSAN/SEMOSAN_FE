@@ -12,8 +12,8 @@ type Props = {
   selected?: boolean;
 };
 
-export const VISITED_MARKER_OVERLAY_WIDTH = 108;
-export const VISITED_MARKER_OVERLAY_HEIGHT = 62;
+export const VISITED_MARKER_OVERLAY_WIDTH = 88;
+export const VISITED_MARKER_OVERLAY_HEIGHT = 52;
 
 const SELECTED_BG = '#464A57';
 
@@ -29,7 +29,7 @@ export function VisitedMarker({ name, visitCount, imageUri, flagColor = '#00D864
           <View style={[styles.flag, { borderLeftColor: selected ? SELECTED_BG : flagColor }]} />
 
           <View style={styles.imageShapeWrap}>
-            <Svg width={36} height={32} viewBox="0 0 32 29">
+            <Svg width={28} height={25} viewBox="0 0 32 29">
               <Defs>
                 <ClipPath id={clipIdOuter}>
                   <Path d="M13.7571 1.26472C14.7408 -0.421574 17.1773 -0.421574 18.161 1.26472L31.567 24.2465C32.5584 25.9459 31.3326 28.0802 29.3651 28.0802H2.55302C0.585586 28.0802 -0.640242 25.946 0.351092 24.2465L13.7571 1.26472Z" />
@@ -63,7 +63,7 @@ export function VisitedMarker({ name, visitCount, imageUri, flagColor = '#00D864
           </View>
 
           <View style={styles.imageIcon}>
-            <MountainIcon size={8} color="#ffffff" />
+            <MountainIcon size={6} color="#ffffff" />
           </View>
         </View>
 
@@ -90,8 +90,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 8,
     top: 8,
-    width: 92,
-    height: 46,
+    width: 72,
+    height: 36,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
@@ -101,61 +101,61 @@ const styles = StyleSheet.create({
   imageGroup: {
     position: 'absolute',
     top: 0,
-    left: -4,
-    width: 36,
-    height: 46,
+    left: -3,
+    width: 28,
+    height: 36,
     zIndex: 2,
   },
   flagPole: {
     position: 'absolute',
-    left: 16.7,
+    left: 13,
     top: 0,
-    width: 2.08,
-    height: 20,
+    width: 1.6,
+    height: 16,
     borderRadius: 999,
     backgroundColor: '#FFFFFF',
   },
   flag: {
     position: 'absolute',
-    top: 0.7,
-    left: 18.9,
+    top: 0.5,
+    left: 14.8,
     width: 0,
     height: 0,
-    borderTopWidth: 6,
-    borderBottomWidth: 5,
-    borderLeftWidth: 8.2,
+    borderTopWidth: 5,
+    borderBottomWidth: 4,
+    borderLeftWidth: 6.4,
     borderTopColor: 'transparent',
     borderBottomColor: 'transparent',
   },
   imageShapeWrap: {
     position: 'absolute',
     left: 0,
-    top: 14,
-    width: 36,
-    height: 32,
+    top: 11,
+    width: 28,
+    height: 25,
   },
   imageIcon: {
     position: 'absolute',
     top: 0,
-    left: 19.6,
-    width: 8,
-    height: 11,
+    left: 15,
+    width: 6,
+    height: 9,
     alignItems: 'center',
     justifyContent: 'center',
   },
   textBoxWrap: {
     position: 'absolute',
-    left: 3,
+    left: 2,
     bottom: 0,
     zIndex: 1,
   },
   textBox: {
-    height: 28,
+    height: 21,
     borderRadius: 999,
-    paddingLeft: 30,
-    paddingRight: 12,
-    paddingTop: 6,
-    paddingBottom: 6,
+    paddingLeft: 24,
+    paddingRight: 9,
+    paddingTop: 2,
+    paddingBottom: 2,
     alignSelf: 'flex-start',
   },
 });
