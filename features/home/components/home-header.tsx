@@ -1,10 +1,10 @@
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { SemosanLogo } from "@/components/icons/semosan-logo";
 import { XIcon } from "@/components/icons/x-icon";
-import { MapTabToggle } from "./map-tab-toggle";
-import { Pressable, View } from "react-native";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import { Pressable, StyleProp, View, ViewStyle } from "react-native";
+import Animated, { AnimatedStyle } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { MapTabToggle } from "./map-tab-toggle";
 
 export type MapTab = "map" | "feed";
 
@@ -21,8 +21,8 @@ type HomeHeaderProps = {
   onCloseSelected: () => void;
   mapTab: MapTab;
   onMapTabChange: (tab: MapTab) => void;
-  mapAnimatedStyle: ReturnType<typeof useAnimatedStyle>;
-  feedAnimatedStyle: ReturnType<typeof useAnimatedStyle>;
+  mapAnimatedStyle: StyleProp<AnimatedStyle<ViewStyle>>;
+  feedAnimatedStyle: StyleProp<AnimatedStyle<ViewStyle>>;
 };
 
 export function HomeHeader({
@@ -32,7 +32,7 @@ export function HomeHeader({
   onMapTabChange,
   mapAnimatedStyle,
   feedAnimatedStyle,
-}: HomeHeaderProps): JSX.Element {
+}: HomeHeaderProps) {
   const { top } = useSafeAreaInsets();
 
   return (
@@ -72,11 +72,11 @@ export function HomeHeader({
               </Animated.View>
             </View>
           </View>
-          <View className="mt-1 items-center">
-            <MapTabToggle value={mapTab} onChange={onMapTabChange} />
-          </View>
         </>
       )}
+      <View className="mt-1 items-center">
+        <MapTabToggle value={mapTab} onChange={onMapTabChange} />
+      </View>
     </View>
   );
 }

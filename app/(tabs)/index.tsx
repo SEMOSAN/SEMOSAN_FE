@@ -25,13 +25,12 @@ export default function HomeScreen() {
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
 
   const mapViewRef = useRef<MapHomeViewRef>(null);
-  const mapOpacity = useSharedValue(1);
-  const feedOpacity = useSharedValue(0);
+  const tabProgress = useSharedValue(0); // 0 = map, 1 = feed
   const mapAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: mapOpacity.value,
+    opacity: 1 - tabProgress.value,
   }));
   const feedAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: feedOpacity.value,
+    opacity: tabProgress.value,
   }));
 
   function handleMapTabChange(tab: MapTab): void {
@@ -40,13 +39,11 @@ export default function HomeScreen() {
 
     if (tab === "feed") {
       mapViewRef.current?.collapseSheet();
-      mapOpacity.value = withTiming(0, { duration: TRANSITION_DURATION });
-      feedOpacity.value = withTiming(1, { duration: TRANSITION_DURATION });
+      tabProgress.value = withTiming(1, { duration: TRANSITION_DURATION });
       setTabBarVariant("dark");
     } else {
       mapViewRef.current?.expandSheet();
-      feedOpacity.value = withTiming(0, { duration: TRANSITION_DURATION });
-      mapOpacity.value = withTiming(1, { duration: TRANSITION_DURATION });
+      tabProgress.value = withTiming(0, { duration: TRANSITION_DURATION });
       setTabBarVariant("light");
     }
   }
@@ -58,14 +55,6 @@ export default function HomeScreen() {
   return (
     <View className="w-full flex-1">
       <StatusBar style={mapTab === "feed" ? "light" : "dark"} />
-      <HomeHeader
-        isMountainRecordListOpen={isMountainRecordListOpen}
-        onCloseSelected={handleCloseSelected}
-        mapTab={mapTab}
-        onMapTabChange={handleMapTabChange}
-        mapAnimatedStyle={mapAnimatedStyle}
-        feedAnimatedStyle={feedAnimatedStyle}
-      />
       <Animated.View
         className="absolute inset-0"
         style={mapAnimatedStyle}
@@ -85,6 +74,14 @@ export default function HomeScreen() {
         <FeedHomeView />
       </Animated.View>
 
+      <HomeHeader
+        isMountainRecordListOpen={isMountainRecordListOpen}
+        onCloseSelected={handleCloseSelected}
+        mapTab={mapTab}
+        onMapTabChange={handleMapTabChange}
+        mapAnimatedStyle={mapAnimatedStyle}
+        feedAnimatedStyle={feedAnimatedStyle}
+      />
       <LocationPermissionSheet />
     </View>
   );
