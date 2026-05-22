@@ -2,12 +2,12 @@ import { memo, useRef, useState } from "react";
 import { Image, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  runOnJS,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withDecay,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 // ─────────────────────────────────────────────
 // 상수
@@ -94,7 +94,7 @@ export function FeedHomeView() {
   useAnimatedReaction(
     () => ({ x: translateX.value, y: translateY.value }),
     (current) => {
-      runOnJS(scheduleSetOffset)(current.x, current.y);
+      scheduleOnRN(scheduleSetOffset, current.x, current.y);
     },
   );
 
