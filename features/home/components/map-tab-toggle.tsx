@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 export type MapTab = "map" | "feed";
 
@@ -9,48 +9,21 @@ type MapTabToggleProps = {
 
 export function MapTabToggle({ value, onChange }: MapTabToggleProps): React.JSX.Element {
   return (
-    <View style={styles.container}>
+    <View className="h-[39px] w-[171px] flex-row rounded-full bg-[#2F323A] p-0.5">
       {(["map", "feed"] as const).map((tab) => (
-        <TouchableOpacity
+        <Pressable
           key={tab}
-          style={[styles.tab, value === tab && styles.activeTab]}
+          className={`flex-1 items-center justify-center rounded-full ${value === tab ? "bg-fill-normal" : ""}`}
           onPress={() => onChange(tab)}
-          activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, value === tab && styles.activeTabText]}>
+          <Text
+            className={value === tab ? "text-label-normal" : "text-line-subtle"}
+            style={{ fontFamily: "Pretendard", fontSize: 15, fontWeight: "600" }}
+          >
             {tab === "map" ? "정복 지도" : "세모피드"}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    backgroundColor: "#2F323A",
-    borderRadius: 999,
-    padding: 2,
-    height: 39,
-    width: 171,
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 999,
-  },
-  activeTab: {
-    backgroundColor: "#ffffff",
-  },
-  tabText: {
-    fontFamily: "Pretendard",
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#E5E7EB",
-  },
-  activeTabText: {
-    color: "#1A1B1F",
-  },
-});

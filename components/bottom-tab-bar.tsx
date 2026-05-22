@@ -7,9 +7,22 @@ import {
 } from "@/contexts/home-state-context";
 import { Colors } from "@/types/colors.generated";
 import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { ReactNode, useEffect } from "react";
+import { Pressable, Text } from "react-native";
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const TRANSITION_DURATION = 300;
+
+const BG_LIGHT = "#ffffff";
+const BG_DARK = "#000000";
+const BORDER_LIGHT = "#e5e7eb";
+const BORDER_DARK = "#464a57";
 
 type TabItem = {
   name: string;
@@ -19,20 +32,17 @@ type TabItem = {
 };
 
 type VariantConfig = {
-  containerClass: string;
   iconColor: (isFocused: boolean) => string;
   labelClass: (isFocused: boolean) => string;
 };
 
 const VARIANT_CONFIG: Record<TabBarVariant, VariantConfig> = {
   light: {
-    containerClass: "border-t border-line-subtle bg-fill-normal",
     iconColor: (f) =>
       f ? Colors["global-neutral-900"] : Colors["global-neutral-100"],
     labelClass: (f) => (f ? "text-label-normal" : "text-neutral-100"),
   },
   dark: {
-    containerClass: "border-t border-neutral-700 bg-black",
     iconColor: (f) =>
       f ? Colors["color-label-normal-inverse"] : Colors["global-neutral-700"],
     labelClass: (f) => (f ? "text-label-normal-inverse" : "text-neutral-700"),
@@ -77,6 +87,27 @@ export function BottomTabBar({
   const { toggleHasRecords, tabBarVariant } = useHomeStateContext();
   const variant = VARIANT_CONFIG[tabBarVariant];
 
+  const progress = useSharedValue(tabBarVariant === "dark" ? 1 : 0);
+
+  useEffect(() => {
+    progress.value = withTiming(tabBarVariant === "dark" ? 1 : 0, {
+      duration: TRANSITION_DURATION,
+    });
+  }, [tabBarVariant, progress]);
+
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [BG_LIGHT, BG_DARK],
+    ),
+    borderTopColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [BORDER_LIGHT, BORDER_DARK],
+    ),
+  }));
+
   // 현재 활성 라우트의 tabBarStyle이 hidden이면 탭바 숨기기
   const currentRoute = state.routes[state.index];
   const { tabBarStyle } = descriptors[currentRoute.key].options;
@@ -85,9 +116,12 @@ export function BottomTabBar({
   }
 
   return (
-    <View
-      className={`flex-row items-center justify-between px-5 ${variant.containerClass}`}
-      style={{ paddingBottom: Math.max(insets.bottom, 4), paddingTop: 4 }}
+    <Animated.View
+      className="flex-row items-center justify-between border-t px-5"
+      style={[
+        animatedContainerStyle,
+        { paddingBottom: Math.max(insets.bottom, 4), paddingTop: 4 },
+      ]}
     >
       {state.routes.map((route, index) => {
         const item = TAB_ITEMS[index];
@@ -137,6 +171,6 @@ export function BottomTabBar({
           </Pressable>
         );
       })}
-    </View>
+    </Animated.View>
   );
 }
