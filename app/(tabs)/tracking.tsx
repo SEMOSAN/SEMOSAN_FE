@@ -31,6 +31,7 @@ import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tra
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
+import { useTrackingSocket } from "@/features/tracking/hooks/use-tracking-socket";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
@@ -67,7 +68,7 @@ export default function TrackingScreen() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showTooltip, setShowTooltip] = useState(true);
   // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
-  const [isAtSummit, setIsAtSummit] = useState(true); // 목 값
+  const [isAtSummit, setIsAtSummit] = useState(false); // 목 값 (GPS 연동 전까지 false)
   const [showSummitSheet, setShowSummitSheet] = useState(false);
   const [trackingSheetHeight, setTrackingSheetHeight] = useState(
     TRACKING_SHEET_HEIGHT,
@@ -115,6 +116,8 @@ export default function TrackingScreen() {
     lng: userLocation?.longitude ?? null,
   });
 
+  const { connect: connectSocket, disconnect: disconnectSocket } = useTrackingSocket();
+
   const { mutate: startSession } = useStartTrackingSession();
   const { mutate: pauseSession } = usePauseTrackingSession();
   const { mutate: resumeSession } = useResumeTrackingSession();
@@ -139,6 +142,7 @@ export default function TrackingScreen() {
       setSessionId(activeSession.sessionId);
       setIsTracking(true);
       setIsPaused(status === 'PAUSED');
+      connectSocket();
       // 일시정지된 경우 경과 시간 복원 (pausedSecondsTotal 제외한 실제 등산 시간)
       if (activeSession.startedAt) {
         const startedMs = new Date(activeSession.startedAt).getTime();
@@ -166,6 +170,9 @@ export default function TrackingScreen() {
     if (countdown === 0) {
       setIsTracking(true);
       setCountdown(null);
+
+      // 웹소켓 연결
+      connectSocket();
 
       // 트래킹 세션 시작 API 호출
       const mountainId = nearbyData?.mountain?.mountainId;
@@ -291,6 +298,7 @@ export default function TrackingScreen() {
   /** 난이도 체감 완료 후 상태 초기화 */
   const completeTracking = () => {
     if (isLiveActivityEnabled) LiveActivity.stop().catch(() => {});
+    disconnectSocket();
     setShowDifficultyRating(false);
     setIsTracking(false);
     setIsPaused(false);
