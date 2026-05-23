@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { useRef, useState } from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedReaction,
@@ -148,7 +148,7 @@ export function FeedHomeView() {
           {/* 배경 이미지 */}
           <Image
             source={require("@/assets/images/blur-feed-bg.png")}
-            className="absolute inset-0 h-full w-full"
+            style={StyleSheet.absoluteFill}
             contentFit="cover"
             priority="low"
           />
