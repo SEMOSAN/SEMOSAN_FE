@@ -7,10 +7,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
 export const ENDPOINTS = {
   USERS_ONBOARDING: "/api/users/onboarding",
+  TRACKING_SESSIONS: "/api/tracking/sessions",
+  TRACKING_SESSIONS_BY_SESSIONID_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
+  TRACKING_SESSIONS_BY_SESSIONID_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
+  TRACKING_SESSIONS_BY_SESSIONID_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
+  TRACKING_SESSIONS_BY_SESSIONID_ABANDON: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/abandon`,
   OAUTH_KAKAO_LOGIN: "/api/oauth/kakao/login",
   OAUTH_APPLE_LOGIN: "/api/oauth/apple/login",
   MOUNTAINS_BY_MOUNTAINID_LIKE: (mountainId: number | string) => `/api/mountains/${mountainId}/like`,
   FCM_TOKENS: "/api/fcm/tokens",
+  COMMUNITY_RECORD_POSTS: "/api/community/record-posts",
+  COMMUNITY_POSTS_BY_POSTID_LIKES: (postId: number | string) => `/api/community/posts/${postId}/likes`,
+  COMMUNITY_POSTS_BY_POSTID_COMMENTS: (postId: number | string) => `/api/community/posts/${postId}/comments`,
+  COMMUNITY_POSTS_BY_POSTID_COMMENTS_REPLIES: (postId: number | string) => `/api/community/posts/${postId}/comments/replies`,
+  COMMUNITY_FREE_POSTS: "/api/community/free-posts",
   AUTH_TOKEN_REISSUE: "/api/auth/token/reissue",
   AUTH_TEST_LOGIN: "/api/auth/test/login",
   AUTH_LOGOUT: "/api/auth/logout",
@@ -20,14 +30,34 @@ export const ENDPOINTS = {
   USERS_NOTIFICATION_SETTINGS_LIVE_ACTIVITY: "/api/users/notification-settings/live-activity",
   USERS_NOTIFICATION_SETTINGS: "/api/users/notification-settings",
   USERS_NICKNAME: "/api/users/nickname",
+  TRACKING_SESSIONS_BY_SESSIONID: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}`,
+  TRACKING_SESSIONS_ME_ACTIVE: "/api/tracking/sessions/me/active",
+  TRACKING_NEARBY_MOUNTAIN: "/api/tracking/nearby-mountain",
   MOUNTAINS: "/api/mountains",
   MOUNTAINS_BY_MOUNTAINID: (mountainId: number | string) => `/api/mountains/${mountainId}`,
   MOUNTAINS_SEARCH: "/api/mountains/search",
+  MOUNTAINS_RECOMMENDATIONS: "/api/mountains/recommendations",
+  MOUNTAINS_MAP: "/api/mountains/map",
   MOUNTAINS_LIKES: "/api/mountains/likes",
+  IMAGES_PRESIGNED_URL: "/api/images/presigned-url",
   HIKING_RECORDS_ME: "/api/hiking-records/me",
   HIKING_RECORDS_ME_SUMMARY: "/api/hiking-records/me/summary",
   HIKING_RECORDS_ME_MOUNTAINS: "/api/hiking-records/me/mountains",
+  HIKING_RECORDS_ME_MOUNTAINS_BY_MOUNTAINID: (mountainId: number | string) => `/api/hiking-records/me/mountains/${mountainId}`,
+  COMMUNITY_RECORD_POSTS_BY_POSTID: (postId: number | string) => `/api/community/record-posts/${postId}`,
+  COMMUNITY_RECORD_POSTS_ME: "/api/community/record-posts/me",
+  COMMUNITY_POSTS_BY_POSTID_LIKES_COUNT: (postId: number | string) => `/api/community/posts/${postId}/likes/count`,
+  COMMUNITY_FREE_POSTS_BY_POSTID: (postId: number | string) => `/api/community/free-posts/${postId}`,
+  COMMUNITY_FREE_POSTS_ME: "/api/community/free-posts/me",
+  COMMUNITY_COMMENTS_BY_COMMENTID_REPLIES: (commentId: number | string) => `/api/community/comments/${commentId}/replies`,
+  COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/community/comments/${commentId}`,
   AUTH_WITHDRAW: "/api/auth/withdraw",
+  TRACKING_NEARBY_MOUNTAIN: "/api/tracking/nearby-mountain",
+  TRACKING_SESSIONS: "/api/tracking/sessions",
+  TRACKING_SESSIONS_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
+  TRACKING_SESSIONS_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
+  TRACKING_SESSIONS_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
+  TRACKING_SESSIONS_ACTIVE: "/api/tracking/sessions/me/active",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,14 +90,41 @@ export type ApiResponseVoid = {
   message?: string;
   data?: Record<string, unknown>;
 };
-export type OAuthKakaoLoginRequest = {
+export type CreateTrackingSessionRequest = {
+  mountainId: number;
+  courseId?: number;
+  isFreeRecording: boolean;
+};
+export type ApiResponseTrackingSessionResponse = {
+  isSuccess?: boolean;
   code?: string;
+  message?: string;
+  data?: TrackingSessionResponse;
+};
+export type TrackingSessionResponse = {
+  sessionId?: number;
+  userId?: number;
+  mountainId?: number;
+  mountainName?: string;
+  courseId?: number;
+  courseName?: string;
+  isFreeRecording?: boolean;
+  status?: "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "ABANDONED";
+  startedAt?: string;
+  endedAt?: string;
+  pausedAt?: string;
+  pausedSecondsTotal?: number;
+  hikingRecordId?: number;
+};
+export type OAuthKakaoLoginRequest = {
+  accessToken?: string;
   deviceType: "IOS" | "ANDROID";
 };
 export type OAuthLoginResponse = {
   userId?: number;
   accessToken?: string;
   refreshToken?: string;
+  onboardingCompleted?: boolean;
 };
 export type OAuthAppleLoginRequest = {
   identityToken?: string;
@@ -77,6 +134,101 @@ export type OAuthAppleLoginRequest = {
 export type FcmTokenRegisterRequest = {
   token?: string;
   deviceType: "IOS" | "ANDROID";
+};
+export type RecordPostCreateRequest = {
+  hikingRecordId: number;
+  content?: string;
+};
+export type ApiResponseRecordPostResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: RecordPostResponse;
+};
+export type AuthorResponse = {
+  id?: number;
+  name?: string;
+  profileUrl?: string;
+  isDeleted?: boolean;
+};
+export type HikingRecordSummaryResponse = {
+  id?: number;
+  mountainName?: string;
+  courseName?: string;
+  duration?: number;
+  altitude?: number;
+  calories?: number;
+  cliveImageUrl?: string;
+  photoReportImageUrl?: string;
+};
+export type RecordPostResponse = {
+  id?: number;
+  author?: AuthorResponse;
+  content?: string;
+  hikingRecord?: HikingRecordSummaryResponse;
+  viewCount?: number;
+  createdAt?: string;
+};
+export type ApiResponsePostLikeToggleResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: PostLikeToggleResponse;
+};
+export type PostLikeToggleResponse = {
+  liked?: boolean;
+  count?: number;
+};
+export type CommentCreateRequest = {
+  content?: string;
+};
+export type ApiResponseCommentResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: CommentResponse;
+};
+export type CommentResponse = {
+  id?: number;
+  author?: AuthorResponse;
+  content?: string;
+  parentId?: number;
+  mentionedUser?: AuthorResponse;
+  createdAt?: string;
+};
+export type CommentReplyRequest = {
+  parentId: number;
+  mentionedUserId?: number;
+  content?: string;
+};
+export type FreePostCreateRequest = {
+  title?: string;
+  content?: string;
+  imageUrls?: string[];
+  mainImageIndex?: number;
+};
+export type ApiResponseFreePostDetailResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: FreePostDetailResponse;
+};
+export type FreePostDetailResponse = {
+  id?: number;
+  author?: AuthorResponse;
+  title?: string;
+  content?: string;
+  images?: PostImageResponse[];
+  viewCount?: number;
+  likeCount?: number;
+  commentCount?: number;
+  createdAt?: string;
+};
+export type PostImageResponse = {
+  id?: number;
+  imageUrl?: string;
+  sortOrder?: number;
+  main?: boolean;
 };
 export type ReissueResponse = {
   accessToken?: string;
@@ -91,6 +243,7 @@ export type LoginResponse = {
   userId?: number;
   accessToken?: string;
   refreshToken?: string;
+  onboardingCompleted?: boolean;
 };
 export type UpdateUserProfileRequest = {
   profileUrl?: string;
@@ -120,6 +273,7 @@ export type GetUserProfileResponse = {
   height?: number;
   weight?: number;
   exerciseType?: "GYM" | "HOME_TRAINING" | "PILATES_YOGA" | "WALKING" | "RUNNING" | "HIKING" | "SPORTS" | "CROSSFIT" | "SWIMMING" | "NONE";
+  birthDate?: string;
 };
 export type ApiResponseGetNotificationSettingResponse = {
   isSuccess?: boolean;
@@ -131,6 +285,32 @@ export type GetNotificationSettingResponse = {
   pushNotificationEnabled?: boolean;
   liveActivityEnabled?: boolean;
   voiceEnabled?: boolean;
+};
+export type ApiResponseNearbyMountainResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: NearbyMountainResponse;
+};
+export type CourseInfo = {
+  courseId?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+};
+export type NearbyMountainInfo = {
+  mountainId?: number;
+  name?: string;
+  address?: string;
+  altitude?: number;
+  latitude?: number;
+  longitude?: number;
+  imageUrls?: string[];
+};
+export type NearbyMountainResponse = {
+  mountain?: NearbyMountainInfo;
+  courses?: CourseInfo[];
 };
 export type ApiResponsePageResponseMountainListResponse = {
   isSuccess?: boolean;
@@ -145,7 +325,7 @@ export type MountainListResponse = {
   altitude?: number;
   difficulty?: "EASY" | "NORMAL" | "HARD";
   duration?: number;
-  imageUrl?: string;
+  imageUrls?: string[];
   latitude?: number;
   longitude?: number;
 };
@@ -163,13 +343,6 @@ export type ApiResponseMountainDetailResponse = {
   message?: string;
   data?: MountainDetailResponse;
 };
-export type CourseInfo = {
-  courseId?: number;
-  name?: string;
-  difficulty?: "EASY" | "NORMAL" | "HARD";
-  distance?: number;
-  duration?: number;
-};
 export type MountainDetailResponse = {
   mountain?: MountainInfo;
   courses?: CourseInfo[];
@@ -185,7 +358,9 @@ export type MountainInfo = {
   altitude?: number;
   difficulty?: "EASY" | "NORMAL" | "HARD";
   duration?: number;
-  imageUrl?: string;
+  imageUrls?: string[];
+  latitude?: number;
+  longitude?: number;
 };
 export type RestaurantInfo = {
   restaurantId?: number;
@@ -215,6 +390,47 @@ export type TransportationItem = {
   name?: string;
   description?: string;
 };
+export type ApiResponsePageResponseMountainRecommendationResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: PageResponseMountainRecommendationResponse;
+};
+export type MountainRecommendationResponse = {
+  mountainId?: number;
+  name?: string;
+  imageUrl?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  altitude?: number;
+  address?: string;
+};
+export type PageResponseMountainRecommendationResponse = {
+  content?: MountainRecommendationResponse[];
+  page?: number;
+  size?: number;
+  totalElements?: number;
+  totalPages?: number;
+  last?: boolean;
+};
+export type ApiResponseMountainMapListResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: MountainMapListResponse;
+};
+export type MountainMapListResponse = {
+  hasHikingRecord?: boolean;
+  mountains?: MountainMapResponse[];
+};
+export type MountainMapResponse = {
+  id?: number;
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  visited?: boolean;
+  visitCount?: number;
+  imageUrl?: string;
+};
 export type ApiResponsePageResponseLikedMountainResponse = {
   isSuccess?: boolean;
   code?: string;
@@ -227,7 +443,7 @@ export type LikedMountainResponse = {
   address?: string;
   altitude?: number;
   difficulty?: "EASY" | "NORMAL" | "HARD";
-  imageUrl?: string;
+  imageUrls?: string[];
 };
 export type PageResponseLikedMountainResponse = {
   content?: LikedMountainResponse[];
@@ -236,6 +452,16 @@ export type PageResponseLikedMountainResponse = {
   totalElements?: number;
   totalPages?: number;
   last?: boolean;
+};
+export type ApiResponsePresignedUrlResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: PresignedUrlResponse;
+};
+export type PresignedUrlResponse = {
+  uploadUrl?: string;
+  imageUrl?: string;
 };
 export type ApiResponsePageResponseGetUserHikingRecordResponse = {
   isSuccess?: boolean;
@@ -249,7 +475,7 @@ export type GetUserHikingRecordResponse = {
   mountainName?: string;
   courseId?: number;
   courseName?: string;
-  imageUrl?: string;
+  imageUrls?: string[];
   distance?: number;
   duration?: number;
   hikedAt?: string;
@@ -294,6 +520,71 @@ export type PageResponseGetUserHikingMountainRecordResponse = {
   totalPages?: number;
   last?: boolean;
 };
+export type ApiResponsePageResponseRecordPostResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: PageResponseRecordPostResponse;
+};
+export type PageResponseRecordPostResponse = {
+  content?: RecordPostResponse[];
+  page?: number;
+  size?: number;
+  totalElements?: number;
+  totalPages?: number;
+  last?: boolean;
+};
+export type ApiResponseLong = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: number;
+};
+export type ApiResponsePageResponseCommentResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: PageResponseCommentResponse;
+};
+export type PageResponseCommentResponse = {
+  content?: CommentResponse[];
+  page?: number;
+  size?: number;
+  totalElements?: number;
+  totalPages?: number;
+  last?: boolean;
+};
+export type ApiResponsePageResponseFreePostListResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: PageResponseFreePostListResponse;
+};
+export type FreePostListResponse = {
+  id?: number;
+  author?: AuthorResponse;
+  title?: string;
+  contentPreview?: string;
+  representativeImageUrl?: string;
+  viewCount?: number;
+  likeCount?: number;
+  commentCount?: number;
+  createdAt?: string;
+};
+export type PageResponseFreePostListResponse = {
+  content?: FreePostListResponse[];
+  page?: number;
+  size?: number;
+  totalElements?: number;
+  totalPages?: number;
+  last?: boolean;
+};
+export type ApiResponseListCommentResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: CommentResponse[];
+};
 export type FcmTokenDeleteRequest = {
   token?: string;
 };
@@ -303,6 +594,29 @@ export type FcmTokenDeleteRequest = {
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/users/onboarding
 export type RegisterUserOnboardingBody = RegisterOnboardingRequest;
+
+// POST /api/tracking/sessions
+export type CreateSessionBody = CreateTrackingSessionRequest;
+
+// POST /api/tracking/sessions/{sessionId}/resume
+export type ResumeSessionParams = {
+  sessionId: number;
+};
+
+// POST /api/tracking/sessions/{sessionId}/pause
+export type PauseSessionParams = {
+  sessionId: number;
+};
+
+// POST /api/tracking/sessions/{sessionId}/complete
+export type CompleteSessionParams = {
+  sessionId: number;
+};
+
+// POST /api/tracking/sessions/{sessionId}/abandon
+export type AbandonSessionParams = {
+  sessionId: number;
+};
 
 // POST /api/oauth/kakao/login
 export type KakaoLoginBody = OAuthKakaoLoginRequest;
@@ -326,6 +640,51 @@ export type RegisterBody = FcmTokenRegisterRequest;
 // DELETE /api/fcm/tokens
 export type DeleteBody = FcmTokenDeleteRequest;
 
+// GET /api/community/record-posts
+export type GetListParams = {
+  page?: number;
+  size?: number;
+  sort?: string[];
+};
+
+// POST /api/community/record-posts
+export type CreateBody = RecordPostCreateRequest;
+
+// POST /api/community/posts/{postId}/likes
+export type ToggleParams = {
+  postId: number;
+};
+
+// GET /api/community/posts/{postId}/comments
+export type GetCommentsParams = {
+  postId: number;
+  page?: number;
+  size?: number;
+  sort?: string[];
+};
+
+// POST /api/community/posts/{postId}/comments
+export type Create1Params = {
+  postId: number;
+};
+export type Create1Body = CommentCreateRequest;
+
+// POST /api/community/posts/{postId}/comments/replies
+export type ReplyParams = {
+  postId: number;
+};
+export type ReplyBody = CommentReplyRequest;
+
+// GET /api/community/free-posts
+export type GetList1Params = {
+  page?: number;
+  size?: number;
+  sort?: string[];
+};
+
+// POST /api/community/free-posts
+export type Create2Body = FreePostCreateRequest;
+
 // POST /api/auth/test/login
 export type LoginBody = LoginRequest;
 
@@ -344,6 +703,17 @@ export type UpdateLiveActivitySettingBody = UpdateNotificationSettingRequest;
 // GET /api/users/nickname
 export type CheckNicknameParams = {
   nickname: string;
+};
+
+// GET /api/tracking/sessions/{sessionId}
+export type GetSessionParams = {
+  sessionId: number;
+};
+
+// GET /api/tracking/nearby-mountain
+export type GetNearbyMountainParams = {
+  lat: number;
+  lng: number;
 };
 
 // GET /api/mountains
@@ -366,11 +736,34 @@ export type SearchMountainsParams = {
   sort?: string[];
 };
 
+// GET /api/mountains/recommendations
+export type GetRecommendedMountainsParams = {
+  lat: number;
+  lng: number;
+  page?: number;
+  size?: number;
+  sort?: string[];
+};
+
+// GET /api/mountains/map
+export type GetMountainsForMapParams = {
+  swLat?: number;
+  swLng?: number;
+  neLat?: number;
+  neLng?: number;
+};
+
 // GET /api/mountains/likes
 export type GetLikedMountainsParams = {
   page?: number;
   size?: number;
   sort?: string[];
+};
+
+// GET /api/images/presigned-url
+export type GetPresignedUrlParams = {
+  bucket: string;
+  filename: string;
 };
 
 // GET /api/hiking-records/me
@@ -385,4 +778,108 @@ export type GetUserHikingMountainRecordsParams = {
   page?: number;
   size?: number;
   sort?: string[];
+};
+
+// GET /api/hiking-records/me/mountains/{mountainId}
+export type GetUserHikingRecordsByMountainIdParams = {
+  mountainId: number;
+  page?: number;
+  size?: number;
+  sort?: string[];
+};
+
+// GET /api/community/record-posts/{postId}
+export type GetDetailParams = {
+  postId: number;
+};
+
+// DELETE /api/community/record-posts/{postId}
+export type Delete1Params = {
+  postId: number;
+};
+
+// GET /api/community/record-posts/me
+export type GetMyListParams = {
+  page?: number;
+  size?: number;
+  sort?: string[];
+};
+
+// GET /api/community/posts/{postId}/likes/count
+export type GetCountParams = {
+  postId: number;
+};
+
+// GET /api/community/free-posts/{postId}
+export type GetDetail1Params = {
+  postId: number;
+};
+
+// DELETE /api/community/free-posts/{postId}
+export type Delete2Params = {
+  postId: number;
+};
+
+// GET /api/community/free-posts/me
+export type GetMyList1Params = {
+  page?: number;
+  size?: number;
+  sort?: string[];
+};
+
+// GET /api/community/comments/{commentId}/replies
+export type GetRepliesParams = {
+  commentId: number;
+};
+
+// DELETE /api/community/comments/{commentId}
+export type Delete3Params = {
+  commentId: number;
+};
+
+// GET /api/tracking/nearby-mountain
+export type NearbyMountainCourse = {
+  courseId?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+};
+
+export type NearbyMountainInfo = {
+  mountainId?: number;
+  name?: string;
+  address?: string;
+  altitude?: number;
+  latitude?: number;
+  longitude?: number;
+  imageUrls?: string[];
+};
+
+export type NearbyMountainResponse = {
+  mountain?: NearbyMountainInfo;
+  courses?: NearbyMountainCourse[];
+};
+
+// POST /api/tracking/sessions
+export type StartTrackingSessionRequest = {
+  mountainId: number;
+  courseId?: number;
+  isFreeRecording: boolean;
+};
+
+export type TrackingSessionResponse = {
+  sessionId?: number;
+  userId?: number;
+  mountainId?: number;
+  mountainName?: string;
+  courseId?: number;
+  courseName?: string;
+  isFreeRecording?: boolean;
+  status?: "IN_PROGRESS" | "PAUSED" | "COMPLETED";
+  startedAt?: string;
+  endedAt?: string;
+  pausedAt?: string;
+  pausedSecondsTotal?: number;
+  hikingRecordId?: number;
 };

@@ -25,6 +25,13 @@ import {
   TRAIL_BAR_WIDTH,
   TRAIL_MARKER_LEFT,
 } from "@/features/tracking/constants";
+import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
+import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
+import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
+import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
+import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
+import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
+import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
   NaverMapMarkerOverlay,
@@ -34,7 +41,8 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
 import { Tabs, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   LayoutChangeEvent,
   StyleSheet,
@@ -66,6 +74,8 @@ export default function TrackingScreen() {
   );
   const [showStopModal, setShowStopModal] = useState(false);
   const [showDifficultyRating, setShowDifficultyRating] = useState(false);
+  const [sessionId, setSessionId] = useState<number | null>(null);
+  const [hasSummited, setHasSummited] = useState(false);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{
@@ -100,8 +110,49 @@ export default function TrackingScreen() {
     })();
   }, []);
 
+  const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
+    lat: userLocation?.latitude ?? null,
+    lng: userLocation?.longitude ?? null,
+  });
+
+  const { mutate: startSession } = useStartTrackingSession();
+  const { mutate: pauseSession } = usePauseTrackingSession();
+  const { mutate: resumeSession } = useResumeTrackingSession();
+  const { mutate: completeSession } = useCompleteTrackingSession();
+  const { data: activeSession, refetch: refetchActiveSession } = useActiveTrackingSession();
+
+  // 앱 재진입 시 진행 중인 세션 복원
+  useFocusEffect(
+    useCallback(() => {
+      // 이미 트래킹 중이면 재조회 불필요
+      if (isTracking) return;
+      refetchActiveSession();
+    }, [isTracking, refetchActiveSession]),
+  );
+
+  useEffect(() => {
+    if (!activeSession?.sessionId) return;
+    if (isTracking) return; // 이미 복원된 경우 무시
+
+    const status = activeSession.status;
+    if (status === 'IN_PROGRESS' || status === 'PAUSED') {
+      setSessionId(activeSession.sessionId);
+      setIsTracking(true);
+      setIsPaused(status === 'PAUSED');
+      // 일시정지된 경우 경과 시간 복원 (pausedSecondsTotal 제외한 실제 등산 시간)
+      if (activeSession.startedAt) {
+        const startedMs = new Date(activeSession.startedAt).getTime();
+        const nowMs = Date.now();
+        const totalElapsed = Math.floor((nowMs - startedMs) / 1000);
+        const pausedSeconds = activeSession.pausedSecondsTotal ?? 0;
+        setElapsedSeconds(Math.max(0, totalElapsed - pausedSeconds));
+      }
+    }
+  }, [activeSession]);
+
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
+  const selectedCourseId_num = selectedCourseId ? Number(selectedCourseId) : null;
 
   const startCountdown = (freeMode = false) => {
     if (freeMode) setIsFreeMode(true);
@@ -115,6 +166,26 @@ export default function TrackingScreen() {
     if (countdown === 0) {
       setIsTracking(true);
       setCountdown(null);
+
+      // 트래킹 세션 시작 API 호출
+      const mountainId = nearbyData?.mountain?.mountainId;
+      if (mountainId != null) {
+        startSession(
+          {
+            mountainId,
+            courseId: isFreeMode ? undefined : (selectedCourseId_num ?? undefined),
+            isFreeRecording: isFreeMode,
+          },
+          {
+            onSuccess: (data) => {
+              if (data.sessionId != null) setSessionId(data.sessionId);
+            },
+            onError: (err) => {
+              console.warn('[Tracking] 세션 시작 실패:', err);
+            },
+          },
+        );
+      }
       return;
     }
     const timer = setTimeout(
@@ -128,18 +199,20 @@ export default function TrackingScreen() {
   useEffect(() => {
     if (!isTracking) return;
 
-    if (isFreeMode) {
-      LiveActivity.start({ mode: "free" }).catch(() => {});
-    } else {
-      const totalMinutes =
-        selectedCourse.durationHours * 60 + selectedCourse.durationMinutes;
-      const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
-      LiveActivity.start({
-        mode: "course",
-        remainingMinutes: totalMinutes,
-        remainingMeters: totalMeters,
-        progress: 0,
-      }).catch(() => {});
+    if (isLiveActivityEnabled) {
+      if (isFreeMode) {
+        LiveActivity.start({ mode: "free" }).catch(() => {});
+      } else {
+        const totalMinutes =
+          selectedCourse.durationHours * 60 + selectedCourse.durationMinutes;
+        const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+        LiveActivity.start({
+          mode: "course",
+          remainingMinutes: totalMinutes,
+          remainingMeters: totalMeters,
+          progress: 0,
+        }).catch(() => {});
+      }
     }
 
     return () => {};
@@ -156,45 +229,68 @@ export default function TrackingScreen() {
   useEffect(() => {
     if (!isTracking) return;
 
-    if (isFreeMode) {
-      LiveActivity.update({
-        elapsedSeconds,
-        isRunning: !isPaused,
-        mode: "free",
-      }).catch(() => {});
-    } else {
-      const totalSeconds =
-        (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) *
-        60;
-      const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
-      const progress =
-        totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
-      const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
-      LiveActivity.update({
-        elapsedSeconds,
-        isRunning: !isPaused,
-        mode: "course",
-        remainingMinutes: Math.ceil(remainingSeconds / 60),
-        remainingMeters: Math.round(totalMeters * (1 - progress)),
-        progress,
-      }).catch(() => {});
+    if (isLiveActivityEnabled) {
+      if (isFreeMode) {
+        LiveActivity.update({
+          elapsedSeconds,
+          isRunning: !isPaused,
+          mode: "free",
+        }).catch(() => {});
+      } else {
+        const totalSeconds =
+          (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) *
+          60;
+        const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+        const progress =
+          totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
+        const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+        LiveActivity.update({
+          elapsedSeconds,
+          isRunning: !isPaused,
+          mode: "course",
+          remainingMinutes: Math.ceil(remainingSeconds / 60),
+          remainingMeters: Math.round(totalMeters * (1 - progress)),
+          progress,
+        }).catch(() => {});
+      }
     }
   }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse]);
 
-  const pauseTracking = () => setIsPaused(true);
-  const resumeTracking = () => setIsPaused(false);
+  const pauseTracking = () => {
+    setIsPaused(true);
+    if (sessionId != null) {
+      pauseSession(sessionId, {
+        onError: (err) => console.warn('[Tracking] 일시정지 실패:', err),
+      });
+    }
+  };
+  const resumeTracking = () => {
+    setIsPaused(false);
+    if (sessionId != null) {
+      resumeSession(sessionId, {
+        onError: (err) => console.warn('[Tracking] 재개 실패:', err),
+      });
+    }
+  };
 
   const requestStop = () => setShowStopModal(true);
 
   /** StopConfirmModal → 난이도 체감 화면으로 전환 */
   const finishTracking = () => {
     setShowStopModal(false);
+    // 정상 인증 없이 기록 종료하는 경우 세션 완료 API 호출
+    // (정상 인증 시에는 onCertify에서 이미 호출했으므로 중복 방지)
+    if (!hasSummited && sessionId != null) {
+      completeSession(sessionId, {
+        onError: (err) => console.warn('[Tracking] 세션 종료 실패:', err),
+      });
+    }
     setShowDifficultyRating(true);
   };
 
   /** 난이도 체감 완료 후 상태 초기화 */
   const completeTracking = () => {
-    LiveActivity.stop().catch(() => {});
+    if (isLiveActivityEnabled) LiveActivity.stop().catch(() => {});
     setShowDifficultyRating(false);
     setIsTracking(false);
     setIsPaused(false);
@@ -202,6 +298,8 @@ export default function TrackingScreen() {
     setElapsedSeconds(0);
     setShowTooltip(true);
     setShowSummitSheet(false);
+    setHasSummited(false);
+    setSessionId(null);
     setCollapsed(false);
   };
 
@@ -335,8 +433,11 @@ export default function TrackingScreen() {
       {/* Expanded 바텀시트 */}
       {!isTracking && !collapsed && (
         <CourseSelectSheet
-          selectedCourseId={selectedCourseId}
-          onSelectCourse={setSelectedCourseId}
+          mountain={nearbyData?.mountain}
+          courses={nearbyData?.courses}
+          isLoading={isNearbyLoading}
+          selectedCourseId={selectedCourseId_num}
+          onSelectCourse={(id) => setSelectedCourseId(String(id))}
           onFreeRecord={handleFreeRecord}
           onStartCountdown={startCountdown}
         />
@@ -360,7 +461,23 @@ export default function TrackingScreen() {
         >
           {showSummitSheet ? (
             <SummitSheet
-              onCertify={() => setShowDifficultyRating(true)}
+              onCertify={() => {
+                const proceedToDescentSheet = () => {
+                  setHasSummited(true);
+                  setShowSummitSheet(false);
+                };
+                if (sessionId != null) {
+                  completeSession(sessionId, {
+                    onSuccess: proceedToDescentSheet,
+                    onError: (err) => {
+                      console.warn('[Tracking] 세션 종료 실패:', err);
+                      proceedToDescentSheet(); // 실패해도 하산 시트로 진행
+                    },
+                  });
+                } else {
+                  proceedToDescentSheet();
+                }
+              }}
               onNotYet={() => setShowSummitSheet(false)}
             />
           ) : (
@@ -368,13 +485,14 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
-              hasSummited={false}
+              hasSummited={hasSummited}
               timeToTarget="04:00"
               distanceToTarget="500m"
               onDismissTooltip={() => setShowTooltip(false)}
               onPause={pauseTracking}
               onResume={resumeTracking}
               onStop={requestStop}
+              onSummit={() => setShowSummitSheet(true)}
             />
           )}
         </View>

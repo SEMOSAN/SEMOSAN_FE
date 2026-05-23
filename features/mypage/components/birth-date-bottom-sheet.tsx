@@ -85,7 +85,7 @@ export function BirthDateBottomSheet({ visible, initialValue, onClose, onSave }:
                 onChangeText={setValue}
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor="#8b92a6"
-                keyboardType="numeric"
+                keyboardType="numbers-and-punctuation"
                 autoFocus
                 style={{ paddingVertical: 0, letterSpacing: -0.16 }}
               />

@@ -1,37 +1,51 @@
-import React, { forwardRef, useImperativeHandle, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { HOME_TAB_TRANSITION_DURATION } from "@/features/home/constants";
+import React, { forwardRef, useImperativeHandle, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  Easing,
   runOnJS,
   type SharedValue,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+  withTiming,
+} from "react-native-reanimated";
 
 export const SNAP_COLLAPSED = 24;
 export const SNAP_DEFAULT = 232;
 export const SNAP_EXPANDED_WITH_RECORDS = 542;
 export const SNAP_EXPANDED_NO_RECORDS = 360;
 
-const SPRING = { damping: 28, stiffness: 280 };
+const SNAP_TIMING_COLLAPSE = {
+  duration: HOME_TAB_TRANSITION_DURATION,
+  easing: Easing.in(Easing.cubic),
+};
+
+const SNAP_TIMING_EXPAND = {
+  duration: HOME_TAB_TRANSITION_DURATION,
+  easing: Easing.out(Easing.cubic),
+};
 
 function snapNearest(projected: number, snapExpanded: number): number {
   'worklet';
   const snaps = [SNAP_COLLAPSED, SNAP_DEFAULT, snapExpanded];
   return snaps.reduce((a, b) =>
-    Math.abs(a - projected) < Math.abs(b - projected) ? a : b
+    Math.abs(a - projected) < Math.abs(b - projected) ? a : b,
   );
 }
 
 export type HomeBottomSheetRef = {
   collapseToMin: () => void;
+  expandToDefault: () => void;
 };
 
-type SnapState = 'collapsed' | 'default' | 'expanded';
+type SnapState = "collapsed" | "default" | "expanded";
 
 type Props = {
-  renderContent: (opts: { scrollEnabled: boolean; snapState: SnapState }) => React.ReactNode;
+  renderContent: (opts: {
+    scrollEnabled: boolean;
+    snapState: SnapState;
+  }) => React.ReactNode;
   heightSharedValue?: SharedValue<number>;
   snapExpanded: number;
 };
@@ -42,13 +56,18 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
     const height = heightSharedValue ?? internalHeight;
     const startH = useSharedValue(SNAP_DEFAULT);
     const [scrollEnabled, setScrollEnabled] = useState(false);
-    const [snapState, setSnapState] = useState<SnapState>('default');
+    const [snapState, setSnapState] = useState<SnapState>("default");
 
     useImperativeHandle(ref, () => ({
       collapseToMin: () => {
-        height.value = withSpring(SNAP_COLLAPSED, SPRING);
+        height.value = withTiming(SNAP_COLLAPSED, SNAP_TIMING_COLLAPSE);
         setScrollEnabled(false);
-        setSnapState('collapsed');
+        setSnapState("collapsed");
+      },
+      expandToDefault: () => {
+        height.value = withTiming(SNAP_DEFAULT, SNAP_TIMING_EXPAND);
+        setScrollEnabled(false);
+        setSnapState("default");
       },
     }));
 
@@ -96,21 +115,21 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
         </GestureDetector>
       </Animated.View>
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({
   sheet: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
   handle: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: 12,
     paddingBottom: 8,
   },
@@ -118,10 +137,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 999,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: "#D1D5DB",
   },
   content: {
     flex: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });
