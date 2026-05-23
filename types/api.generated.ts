@@ -299,19 +299,6 @@ export type CourseInfo = {
   distance?: number;
   duration?: number;
 };
-export type NearbyMountainInfo = {
-  mountainId?: number;
-  name?: string;
-  address?: string;
-  altitude?: number;
-  latitude?: number;
-  longitude?: number;
-  imageUrls?: string[];
-};
-export type NearbyMountainResponse = {
-  mountain?: NearbyMountainInfo;
-  courses?: CourseInfo[];
-};
 export type ApiResponsePageResponseMountainListResponse = {
   isSuccess?: boolean;
   code?: string;
@@ -868,18 +855,3 @@ export type StartTrackingSessionRequest = {
   isFreeRecording: boolean;
 };
 
-export type TrackingSessionResponse = {
-  sessionId?: number;
-  userId?: number;
-  mountainId?: number;
-  mountainName?: string;
-  courseId?: number;
-  courseName?: string;
-  isFreeRecording?: boolean;
-  status?: "IN_PROGRESS" | "PAUSED" | "COMPLETED";
-  startedAt?: string;
-  endedAt?: string;
-  pausedAt?: string;
-  pausedSecondsTotal?: number;
-  hikingRecordId?: number;
-};
