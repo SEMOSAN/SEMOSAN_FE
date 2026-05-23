@@ -35,12 +35,12 @@ export default function LoginScreen(): React.JSX.Element {
         .filter(Boolean)
         .join("");
 
-      await appleLoginAsync({
+      const result = await appleLoginAsync({
         identityToken,
         name,
         deviceType: Platform.OS.toUpperCase() as "IOS" | "ANDROID",
       });
-      router.replace("/(tabs)");
+      router.replace(result.onboardingCompleted ? "/(tabs)" : "/onboarding");
     } catch (e: unknown) {
       if (
         e instanceof Error &&
@@ -62,8 +62,8 @@ export default function LoginScreen(): React.JSX.Element {
       return;
     }
     try {
-      await kakaoLoginAsync();
-      router.replace("/(tabs)");
+      const result = await kakaoLoginAsync();
+      router.replace(result.onboardingCompleted ? "/(tabs)" : "/onboarding");
     } catch (e: unknown) {
       console.error("Kakao login error:", e);
     }
@@ -80,8 +80,10 @@ export default function LoginScreen(): React.JSX.Element {
           onPress: async (value: string | undefined) => {
             const testUserId = parseInt(value ?? "1", 10) || 1;
             try {
-              await testLoginAsync({ testUserId });
-              router.replace("/(tabs)");
+              const result = await testLoginAsync({ testUserId });
+              router.replace(
+                result.onboardingCompleted ? "/(tabs)" : "/onboarding",
+              );
             } catch (e: unknown) {
               console.error("Test login error:", e);
             }
