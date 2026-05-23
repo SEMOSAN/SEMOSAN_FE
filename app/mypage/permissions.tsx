@@ -60,11 +60,7 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
             height: THUMB_SIZE,
             borderRadius: 9999,
             backgroundColor: COLOR_THUMB,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 6,
-            elevation: 4,
+            boxShadow: '0px 4px 6px 0px rgba(0, 0, 0, 0.1)',
           }}
         />
       </Animated.View>

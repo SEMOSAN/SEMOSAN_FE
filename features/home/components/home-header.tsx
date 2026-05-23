@@ -9,11 +9,7 @@ import { MapTabToggle } from "./map-tab-toggle";
 export type MapTab = "map" | "feed";
 
 const buttonShadow = {
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 2,
-  elevation: 2,
+  boxShadow: '0px 2px 2px 0px rgba(0, 0, 0, 0.1)',
 };
 
 type HomeHeaderProps = {

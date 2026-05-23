@@ -92,11 +92,7 @@ const styles = StyleSheet.create({
     top: 8,
     width: 92,
     height: 46,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    boxShadow: '0px 1px 4px 0px rgba(0, 0, 0, 0.2)',
   },
   imageGroup: {
     position: 'absolute',
