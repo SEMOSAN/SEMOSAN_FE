@@ -2,15 +2,25 @@ import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { TextField } from "@/components/text-field";
 import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
+import { useSubmitOnboarding } from "@/features/onboarding/hooks/use-submit-onboarding";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
-import { Image, Keyboard, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  Image,
+  Keyboard,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Gender = "female" | "male";
 
 export function OnboardingScreen() {
   const insets = useSafeAreaInsets();
+  const { mutate: submitOnboarding, isPending } = useSubmitOnboarding();
   const scrollRef = useRef<ScrollView>(null);
   const birthDateRef = useRef<TextInput>(null);
   const heightRef = useRef<TextInput>(null);
@@ -132,6 +142,23 @@ export function OnboardingScreen() {
     advance(5);
   }
 
+  function handleSubmit(): void {
+    submitOnboarding({
+      nickname: nickname.trim() || undefined,
+      profileUrl: profileImageUrl ?? undefined,
+      birthDate,
+      gender:
+        gender === "male" ? "MALE" : gender === "female" ? "FEMALE" : "NONE",
+      height: Number(height),
+      weight: Number(weight),
+      pushNotificationEnabled: true,
+      liveActivityEnabled: true,
+      voiceEnabled: true,
+      hikingLevel: "BEGINNER",
+      exerciseType: "NONE",
+    });
+  }
+
   return (
     <>
       <View
@@ -158,7 +185,7 @@ export function OnboardingScreen() {
             {/* 아바타 */}
             <View className="items-center py-5">
               <Pressable className="relative" onPress={handleProfileImagePress}>
-                <View className="size-[100px] items-center justify-center rounded-full bg-fill-stronger overflow-hidden">
+                <View className="size-[100px] items-center justify-center overflow-hidden rounded-full bg-fill-stronger">
                   {profileImageUrl ? (
                     <Image
                       source={{ uri: profileImageUrl }}
@@ -270,7 +297,12 @@ export function OnboardingScreen() {
         {/* 다음 버튼 */}
         {step >= 5 && (
           <View className="px-5 pb-4 pt-3">
-            <Pressable className="h-[52px] items-center justify-center rounded-[12px] bg-primary-normal">
+            {/* TODO : 다음 누르면 로띠 돌아가는거 하나하자 */}
+            <Pressable
+              className="h-[52px] items-center justify-center rounded-[12px] bg-primary-normal"
+              onPress={handleSubmit}
+              disabled={isPending}
+            >
               <Text className="text-label-normal-inverse typo-label-large">
                 다음
               </Text>
