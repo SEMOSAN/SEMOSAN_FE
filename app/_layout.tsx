@@ -71,6 +71,7 @@ export default function RootLayout(): React.JSX.Element | null {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="record/[id]" options={{ headerShown: false }} />
             <Stack.Screen
               name="mountains/search"
