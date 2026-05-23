@@ -6,6 +6,7 @@ import {
   MapHomeView,
   MapHomeViewRef,
 } from "@/features/home/components/map-home-view";
+import { HOME_TAB_TRANSITION_DURATION } from "@/features/home/constants";
 import { setStatusBarStyle } from "expo-status-bar";
 import { useRef, useState } from "react";
 import { View } from "react-native";
@@ -16,7 +17,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-export const HOME_TAB_TRANSITION_DURATION = 500;
 
 export default function HomeScreen() {
   const { setTabBarVariant, tabProgress } = useHomeStateContext();
@@ -47,7 +47,7 @@ export default function HomeScreen() {
       mapViewRef.current?.collapseSheet();
       tabProgress.value = withTiming(1, {
         duration: HOME_TAB_TRANSITION_DURATION,
-        easing: Easing.out(Easing.cubic),
+        easing: Easing.out(Easing.sin),
       });
       setTabBarVariant("dark");
       setStatusBarStyle("light");
@@ -55,6 +55,7 @@ export default function HomeScreen() {
       mapViewRef.current?.expandSheet();
       tabProgress.value = withTiming(0, {
         duration: HOME_TAB_TRANSITION_DURATION,
+        easing: Easing.in(Easing.sin),
       });
       setTabBarVariant("light");
       setStatusBarStyle("dark");
