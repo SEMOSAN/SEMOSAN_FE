@@ -88,5 +88,23 @@ export function useTrackingSocket({ onPhotoWindow }: UseTrackingSocketOptions = 
     };
   }, []);
 
-  return { connect, disconnect, subscribePhotoWindow, status };
+  const publishGps = useCallback((
+    sessionId: number,
+    coords: { lat: number; lng: number; altitude: number | null; recordedAt: string },
+  ) => {
+    const client = clientRef.current;
+    if (!client?.connected) return;
+
+    client.publish({
+      destination: `/app/tracking/${sessionId}/gps`,
+      body: JSON.stringify({
+        lat: coords.lat,
+        lng: coords.lng,
+        altitude: coords.altitude ?? 0,
+        recordedAt: coords.recordedAt,
+      }),
+    });
+  }, []);
+
+  return { connect, disconnect, subscribePhotoWindow, publishGps, status };
 }

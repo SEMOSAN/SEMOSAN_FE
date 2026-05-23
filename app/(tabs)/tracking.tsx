@@ -44,7 +44,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
 import { Tabs, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   LayoutChangeEvent,
@@ -93,8 +93,9 @@ export default function TrackingScreen() {
     latitude: number;
     longitude: number;
   } | null>(null);
+  const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
 
-  // 위치 권한 요청 및 현재 위치 조회
+  // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
     (async () => {
       try {
@@ -102,7 +103,6 @@ export default function TrackingScreen() {
         if (status !== "granted") return;
         const loc = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
-          timeInterval: 5000,
         });
         setUserLocation({
           latitude: loc.coords.latitude,
@@ -127,7 +127,7 @@ export default function TrackingScreen() {
     }
   }, []);
 
-  const { connect: connectSocket, disconnect: disconnectSocket, subscribePhotoWindow } = useTrackingSocket({
+  const { connect: connectSocket, disconnect: disconnectSocket, subscribePhotoWindow, publishGps } = useTrackingSocket({
     onPhotoWindow: handlePhotoWindow,
   });
 
@@ -159,6 +159,23 @@ export default function TrackingScreen() {
       setIsTracking(true);
       setIsPaused(status === 'PAUSED');
       connectSocket(activeSession.sessionId);
+      // GPS watch 재시작
+      const sid = activeSession.sessionId;
+      Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 3000, distanceInterval: 10 },
+        (loc) => {
+          const { latitude, longitude, altitude } = loc.coords;
+          setUserLocation({ latitude, longitude });
+          publishGps(sid, {
+            lat: latitude,
+            lng: longitude,
+            altitude: altitude,
+            recordedAt: new Date(loc.timestamp).toISOString(),
+          });
+        },
+      ).then((sub) => {
+        locationWatchRef.current = sub;
+      }).catch((err) => console.warn('[Location] watch 재시작 실패:', err));
       // 일시정지된 경우 경과 시간 복원 (pausedSecondsTotal 제외한 실제 등산 시간)
       if (activeSession.startedAt) {
         const startedMs = new Date(activeSession.startedAt).getTime();
@@ -199,9 +216,32 @@ export default function TrackingScreen() {
           {
             onSuccess: (data) => {
               if (data.sessionId != null) {
-                setSessionId(data.sessionId);
+                const sid = data.sessionId;
+                setSessionId(sid);
                 // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
-                connectSocket(data.sessionId);
+                connectSocket(sid);
+                // GPS watch 시작 — 3초/10m 간격으로 좌표 발행
+                Location.watchPositionAsync(
+                  {
+                    accuracy: Location.Accuracy.BestForNavigation,
+                    timeInterval: 3000,
+                    distanceInterval: 10,
+                  },
+                  (loc) => {
+                    const { latitude, longitude, altitude } = loc.coords;
+                    setUserLocation({ latitude, longitude });
+                    publishGps(sid, {
+                      lat: latitude,
+                      lng: longitude,
+                      altitude: altitude,
+                      recordedAt: new Date(loc.timestamp).toISOString(),
+                    });
+                  },
+                ).then((sub) => {
+                  locationWatchRef.current = sub;
+                }).catch((err) => {
+                  console.warn('[Location] watch 시작 실패:', err);
+                });
               }
             },
             onError: (err) => {
@@ -315,6 +355,8 @@ export default function TrackingScreen() {
   /** 난이도 체감 완료 후 상태 초기화 */
   const completeTracking = () => {
     if (isLiveActivityEnabled) LiveActivity.stop().catch(() => {});
+    locationWatchRef.current?.remove();
+    locationWatchRef.current = null;
     disconnectSocket();
     setShowDifficultyRating(false);
     setIsTracking(false);
