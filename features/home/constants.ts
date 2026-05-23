@@ -1,0 +1,1 @@
+export const HOME_TAB_TRANSITION_DURATION = 600;
