@@ -11,6 +11,7 @@ import Animated, {
 
 export const SNAP_COLLAPSED = 24;
 export const SNAP_DEFAULT = 232;
+export const SNAP_EXPANDED = 600;
 export const SNAP_EXPANDED_WITH_RECORDS = 542;
 export const SNAP_EXPANDED_NO_RECORDS = 360;
 
@@ -26,6 +27,7 @@ function snapNearest(projected: number, snapExpanded: number): number {
 
 export type HomeBottomSheetRef = {
   collapseToMin: () => void;
+  expandToDefault: () => void;
 };
 
 type SnapState = 'collapsed' | 'default' | 'expanded';
@@ -33,11 +35,11 @@ type SnapState = 'collapsed' | 'default' | 'expanded';
 type Props = {
   renderContent: (opts: { scrollEnabled: boolean; snapState: SnapState }) => React.ReactNode;
   heightSharedValue?: SharedValue<number>;
-  snapExpanded: number;
+  snapExpanded?: number;
 };
 
 export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
-  function HomeBottomSheetContainer({ renderContent, heightSharedValue, snapExpanded }, ref) {
+  function HomeBottomSheetContainer({ renderContent, heightSharedValue, snapExpanded = SNAP_EXPANDED }, ref) {
     const internalHeight = useSharedValue(SNAP_DEFAULT);
     const height = heightSharedValue ?? internalHeight;
     const startH = useSharedValue(SNAP_DEFAULT);
@@ -49,6 +51,11 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
         height.value = withSpring(SNAP_COLLAPSED, SPRING);
         setScrollEnabled(false);
         setSnapState('collapsed');
+      },
+      expandToDefault: () => {
+        height.value = withSpring(SNAP_DEFAULT, SPRING);
+        setScrollEnabled(false);
+        setSnapState('default');
       },
     }));
 
