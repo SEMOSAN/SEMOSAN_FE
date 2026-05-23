@@ -2,8 +2,8 @@ import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { TextField } from "@/components/text-field";
 import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
-import { useSubmitOnboarding } from "@/features/onboarding/hooks/use-submit-onboarding";
 import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Image,
@@ -20,7 +20,6 @@ type Gender = "female" | "male";
 
 export function OnboardingScreen() {
   const insets = useSafeAreaInsets();
-  const { mutate: submitOnboarding, isPending } = useSubmitOnboarding();
   const scrollRef = useRef<ScrollView>(null);
   const birthDateRef = useRef<TextInput>(null);
   const heightRef = useRef<TextInput>(null);
@@ -143,19 +142,17 @@ export function OnboardingScreen() {
   }
 
   function handleSubmit(): void {
-    submitOnboarding({
-      nickname: nickname.trim() || undefined,
-      profileUrl: profileImageUrl ?? undefined,
-      birthDate,
-      gender:
-        gender === "male" ? "MALE" : gender === "female" ? "FEMALE" : "NONE",
-      height: Number(height),
-      weight: Number(weight),
-      pushNotificationEnabled: true,
-      liveActivityEnabled: true,
-      voiceEnabled: true,
-      hikingLevel: "BEGINNER",
-      exerciseType: "NONE",
+    router.push({
+      pathname: "/onboarding/hiking",
+      params: {
+        nickname: nickname.trim(),
+        profileUrl: profileImageUrl ?? "",
+        birthDate,
+        gender:
+          gender === "male" ? "MALE" : gender === "female" ? "FEMALE" : "NONE",
+        height,
+        weight,
+      },
     });
   }
 
@@ -301,7 +298,6 @@ export function OnboardingScreen() {
             <Pressable
               className="h-[52px] items-center justify-center rounded-[12px] bg-primary-normal"
               onPress={handleSubmit}
-              disabled={isPending}
             >
               <Text className="text-label-normal-inverse typo-label-large">
                 다음
