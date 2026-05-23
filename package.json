@@ -11,7 +11,7 @@
     "ios:device": "expo run:ios --device",
     "web": "expo start --web",
     "lint": "expo lint",
-    "tokens": "node tokens-build-script.mjs --verbose",
+    "tokens": "node scripts/tokens-build-script.mjs --verbose",
     "typegen": "node scripts/generate-api-types.mjs"
   },
   "dependencies": {

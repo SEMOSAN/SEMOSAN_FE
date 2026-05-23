@@ -78,14 +78,16 @@ module.exports = {
   "secondary": {
     "strong": "#16a34a",
     "normal": "#00d864",
-    "subtle": "#dcfce7"
+    "subtle": "#dcfce7",
+    "weak": "#4ade80"
   },
   "label": {
     "normal": "#1a1b1f",
     "subtle": "#464a57",
     "disabled": "#8b92a6",
     "normal-inverse": "#ffffff",
-    "subtler": "#73798c"
+    "subtler": "#73798c",
+    "subtler-inverse": "#d1d5db"
   },
   "line": {
     "normal": "#d1d5db",

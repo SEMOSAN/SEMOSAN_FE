@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 export type BBox = {
   swLat: number;
@@ -38,5 +38,6 @@ export function useMountainsMap(bbox: BBox) {
   return useQuery({
     queryKey: ["mountains/map", bbox],
     queryFn: () => getMountainsMap(bbox),
+    placeholderData: keepPreviousData,
   });
 }

@@ -102,7 +102,9 @@ StyleDictionary.registerFormat({
       const value = token.$value ?? token.value;
       if (typeof value !== "string") return;
 
-      const rest = token.path.map((k) => k.toLowerCase().replace(/\s+/g, "-")).slice(1);
+      const rest = token.path
+        .map((k) => k.toLowerCase().replace(/\s+/g, "-"))
+        .slice(1);
       setDeep(colors, rest, value);
     });
 
@@ -138,7 +140,7 @@ StyleDictionary.registerFormat({
       Object.entries(groups).map(([prefix, styles]) => [
         `.typo-${prefix}`,
         styles,
-      ])
+      ]),
     );
 
     return `// 이 파일은 자동 생성됩니다. 직접 수정하지 마세요.
@@ -152,7 +154,42 @@ module.exports = plugin(function({ addUtilities }) {
 });
 
 /* =========================================
- * 4) spacing/radius/font-size에 px 단위 붙이기
+ * 4) TypeScript 컬러 상수 포맷
+ *    - color 토큰을 전체 경로 kebab-case 키로 내보냄
+ *    - 예: global.neutral.700  → Colors["global-neutral-700"]
+ *    - 예: Color.Label.Normal  → Colors["color-label-normal"]
+ * ========================================= */
+StyleDictionary.registerFormat({
+  name: "typescript/colors",
+  format: ({ dictionary }) => {
+    const entries = [];
+
+    dictionary.allTokens.forEach((token) => {
+      const type = token.$type ?? token.type;
+      if (type !== "color") return;
+
+      const value = token.$value ?? token.value;
+      if (typeof value !== "string") return;
+
+      // 전체 경로를 소문자 + 공백→하이픈으로 변환해 full kebab-case 키 생성
+      const key = token.path
+        .map((k) => k.toLowerCase().replace(/\s+/g, "-"))
+        .join("-");
+      entries.push(`  "${key}": "${value}",`);
+    });
+
+    return `// 이 파일은 자동 생성됩니다. 직접 수정하지 마세요.
+export const Colors = {
+${entries.join("\n")}
+} as const;
+
+export type ColorValue = (typeof Colors)[keyof typeof Colors];
+`;
+  },
+});
+
+/* =========================================
+ * 5) spacing/radius/font-size에 px 단위 붙이기
  * ========================================= */
 StyleDictionary.registerTransform({
   name: "size/append-px",
@@ -205,6 +242,14 @@ const sd = new StyleDictionary({
           destination: "typography-plugin.cjs",
           format: "tailwind/typography-plugin",
         },
+      ],
+    },
+    typescript: {
+      transformGroup: "tokens-studio",
+      transforms: ["name/kebab", "size/append-px"],
+      buildPath: "types/",
+      files: [
+        { destination: "colors.generated.ts", format: "typescript/colors" },
       ],
     },
   },
