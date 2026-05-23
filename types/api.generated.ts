@@ -52,6 +52,12 @@ export const ENDPOINTS = {
   COMMUNITY_COMMENTS_BY_COMMENTID_REPLIES: (commentId: number | string) => `/api/community/comments/${commentId}/replies`,
   COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/community/comments/${commentId}`,
   AUTH_WITHDRAW: "/api/auth/withdraw",
+  TRACKING_NEARBY_MOUNTAIN: "/api/tracking/nearby-mountain",
+  TRACKING_SESSIONS: "/api/tracking/sessions",
+  TRACKING_SESSIONS_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
+  TRACKING_SESSIONS_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
+  TRACKING_SESSIONS_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
+  TRACKING_SESSIONS_ACTIVE: "/api/tracking/sessions/me/active",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -829,4 +835,51 @@ export type GetRepliesParams = {
 // DELETE /api/community/comments/{commentId}
 export type Delete3Params = {
   commentId: number;
+};
+
+// GET /api/tracking/nearby-mountain
+export type NearbyMountainCourse = {
+  courseId?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+};
+
+export type NearbyMountainInfo = {
+  mountainId?: number;
+  name?: string;
+  address?: string;
+  altitude?: number;
+  latitude?: number;
+  longitude?: number;
+  imageUrls?: string[];
+};
+
+export type NearbyMountainResponse = {
+  mountain?: NearbyMountainInfo;
+  courses?: NearbyMountainCourse[];
+};
+
+// POST /api/tracking/sessions
+export type StartTrackingSessionRequest = {
+  mountainId: number;
+  courseId?: number;
+  isFreeRecording: boolean;
+};
+
+export type TrackingSessionResponse = {
+  sessionId?: number;
+  userId?: number;
+  mountainId?: number;
+  mountainName?: string;
+  courseId?: number;
+  courseName?: string;
+  isFreeRecording?: boolean;
+  status?: "IN_PROGRESS" | "PAUSED" | "COMPLETED";
+  startedAt?: string;
+  endedAt?: string;
+  pausedAt?: string;
+  pausedSecondsTotal?: number;
+  hikingRecordId?: number;
 };

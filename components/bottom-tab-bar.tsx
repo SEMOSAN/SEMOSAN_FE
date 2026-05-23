@@ -1,6 +1,7 @@
 import { HomeIcon } from "@/components/icons/home-icon";
 import { MountainIcon } from "@/components/icons/mountain-icon";
 import { MyIcon } from "@/components/icons/my-icon";
+import { NavigationIcon } from "@/components/icons/navigation-icon";
 import { useHomeStateContext } from "@/contexts/home-state-context";
 import { Colors } from "@/types/colors.generated";
 import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
@@ -40,12 +41,12 @@ const TAB_ITEMS: TabItem[] = [
     label: "산목록",
     renderIcon: (color) => <MountainIcon size={24} color={color} />,
   },
-  // {
-  //   name: "tracking",
-  //   label: null,
-  //   renderIcon: (color) => <NavigationIcon size={24} color={color} />,
-  //   isCenter: true,
-  // },
+  {
+    name: "tracking",
+    label: null,
+    renderIcon: (color) => <NavigationIcon size={24} color={color} />,
+    isCenter: true,
+  },
   // {
   //   name: "community",
   //   label: "커뮤니티",

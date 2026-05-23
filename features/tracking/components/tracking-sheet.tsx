@@ -22,6 +22,7 @@ type Props = {
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
+  onSummit: () => void;
 };
 
 export function TrackingSheet({
@@ -35,6 +36,7 @@ export function TrackingSheet({
   onPause,
   onResume,
   onStop,
+  onSummit,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -124,29 +126,51 @@ export function TrackingSheet({
 
           {isPaused ? (
             <>
-              <TouchableOpacity
-                className="flex-1 bg-secondary-normal rounded-[10px] items-center justify-center"
-                style={{ minHeight: 48, maxHeight: 48, paddingVertical: 11, paddingHorizontal: 20 }}
-                onPress={onResume}
-              >
-                <Text className="typo-label-large text-label-normal">기록 재개</Text>
-              </TouchableOpacity>
+              {/* 일시 정지 상태 (등산 중 / 하산 중 공통): 다시 시작 + 기록 종료 */}
               <TouchableOpacity
                 className="flex-1 bg-label-normal rounded-[10px] items-center justify-center"
                 style={{ minHeight: 48, maxHeight: 48, paddingVertical: 11, paddingHorizontal: 20 }}
+                onPress={onResume}
+              >
+                <Text className="typo-label-large text-common-100">다시 시작</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 bg-fill-stronger rounded-[10px] items-center justify-center"
+                style={{ minHeight: 48, maxHeight: 48, paddingVertical: 11, paddingHorizontal: 20 }}
                 onPress={onStop}
               >
-                <Text className="typo-label-large text-common-100">기록 종료</Text>
+                <Text className="typo-label-large text-label-subtle">기록 종료</Text>
+              </TouchableOpacity>
+            </>
+          ) : hasSummited ? (
+            <>
+              {/* 하산 중: 일시 정지만 (전체 너비) */}
+              <TouchableOpacity
+                className="flex-1 bg-fill-stronger rounded-[10px] items-center justify-center"
+                style={{ minHeight: 48, maxHeight: 48, paddingVertical: 11, paddingHorizontal: 20 }}
+                onPress={onPause}
+              >
+                <Text className="typo-label-large text-label-subtle">일시 정지</Text>
               </TouchableOpacity>
             </>
           ) : (
-            <TouchableOpacity
-              className="flex-1 bg-label-normal rounded-[10px] items-center justify-center"
-              style={{ minHeight: 48, maxHeight: 48, paddingVertical: 11, paddingHorizontal: 20 }}
-              onPress={onPause}
-            >
-              <Text className="typo-label-large text-common-100">기록 중단</Text>
-            </TouchableOpacity>
+            <>
+              {/* 등산 중: 일시 정지 + 정상 도착 */}
+              <TouchableOpacity
+                className="flex-1 bg-fill-stronger rounded-[10px] items-center justify-center"
+                style={{ minHeight: 48, maxHeight: 48, paddingVertical: 11, paddingHorizontal: 20 }}
+                onPress={onPause}
+              >
+                <Text className="typo-label-large text-label-subtle">일시 정지</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 bg-secondary-normal rounded-[10px] items-center justify-center"
+                style={{ minHeight: 48, maxHeight: 48, paddingVertical: 11, paddingHorizontal: 20 }}
+                onPress={onSummit}
+              >
+                <Text className="typo-label-large text-label-normal">정상 도착</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
       </View>
