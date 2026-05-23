@@ -26,6 +26,8 @@ import {
   TRAIL_MARKER_LEFT,
 } from "@/features/tracking/constants";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
+import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
+import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
 import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
@@ -42,6 +44,7 @@ import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
   NaverMapView,
+  type NaverMapViewRef,
 } from "@mj-studio/react-native-naver-map";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
@@ -100,6 +103,33 @@ export default function TrackingScreen() {
   } | null>(null);
   const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
+  const mapRef = useRef<NaverMapViewRef>(null);
+  const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // [DEV] 좌표 시뮬레이션: 현재 위치에서 북쪽으로 10m씩 이동하는 좌표를 빠르게 발행
+  const startCoordSimulation = () => {
+    if (!userLocation || !sessionId) return;
+    let step = 0;
+    const STEP_METER = 10; // 한 스텝당 이동 거리 (m)
+    const LAT_PER_METER = 1 / 111320; // 위도 1도 ≈ 111320m
+    simIntervalRef.current = setInterval(() => {
+      step++;
+      const lat = userLocation.latitude + step * STEP_METER * LAT_PER_METER;
+      publishGps(sessionId, {
+        lat,
+        lng: userLocation.longitude,
+        altitude: userLocation.altitude,
+        recordedAt: new Date().toISOString(),
+      });
+      console.log(`[SIM] step=${step}, 누적거리≈${step * STEP_METER}m`);
+      // 600m 도달하면 자동 종료
+      if (step * STEP_METER >= 600) {
+        clearInterval(simIntervalRef.current!);
+        simIntervalRef.current = null;
+        console.log('[SIM] 시뮬레이션 완료');
+      }
+    }, 500); // 0.5초 간격으로 발행
+  };
 
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
@@ -188,9 +218,33 @@ export default function TrackingScreen() {
     }
   }, [activeSession]);
 
+  const selectedCourseId_num = selectedCourseId ? Number(selectedCourseId) : null;
+  const { data: courseDetail } = useCourseDetail(isFreeMode ? null : selectedCourseId_num);
+  const courseCoords = parseCoursePolyline(courseDetail?.polyline);
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
-  const selectedCourseId_num = selectedCourseId ? Number(selectedCourseId) : null;
+
+  // [DEV] 선택된 courseId 로그 (1회만)
+  useEffect(() => {
+    console.log('[Course] selectedCourseId:', selectedCourseId_num);
+  }, [selectedCourseId_num]);
+
+  // polyline 로드 완료 시 카메라를 전체 경로가 보이도록 맞춤
+  useEffect(() => {
+    if (courseCoords.length < 2) return;
+    const lats = courseCoords.map((c) => c.latitude);
+    const lngs = courseCoords.map((c) => c.longitude);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    mapRef.current?.animateRegionTo({
+      latitude: (minLat + maxLat) / 2,
+      longitude: (minLng + maxLng) / 2,
+      latitudeDelta: (maxLat - minLat) * 1.3,
+      longitudeDelta: (maxLng - minLng) * 1.3,
+    });
+  }, [courseDetail?.polyline]);
 
   const startCountdown = (freeMode = false) => {
     if (freeMode) setIsFreeMode(true);
@@ -450,44 +504,33 @@ export default function TrackingScreen() {
       {/* 지도 영역 */}
       <View style={styles.mapContainer}>
         <NaverMapView
+          ref={mapRef}
           style={styles.map}
           camera={{
-            latitude: selectedCourse.centerLatitude,
-            longitude: selectedCourse.centerLongitude,
+            latitude: courseCoords[0]?.latitude ?? selectedCourse.centerLatitude,
+            longitude: courseCoords[0]?.longitude ?? selectedCourse.centerLongitude,
             zoom: selectedCourse.zoom,
           }}
         >
-          {/* 코스 경로 */}
-          <NaverMapPathOverlay
-            coords={selectedCourse.coordinates}
-            width={6}
-            color="#4ADE80"
-          />
-
-          {/* 출발지 마커 */}
-          {selectedCourse.coordinates[0] && (
-            <NaverMapMarkerOverlay
-              latitude={selectedCourse.coordinates[0].latitude}
-              longitude={selectedCourse.coordinates[0].longitude}
-              caption={{ text: "출발" }}
-            />
-          )}
-
-          {/* 도착지 마커 */}
-          {selectedCourse.coordinates.length > 0 && (
-            <NaverMapMarkerOverlay
-              latitude={
-                selectedCourse.coordinates[
-                  selectedCourse.coordinates.length - 1
-                ].latitude
-              }
-              longitude={
-                selectedCourse.coordinates[
-                  selectedCourse.coordinates.length - 1
-                ].longitude
-              }
-              caption={{ text: "도착" }}
-            />
+          {/* 코스 경로 — API polyline */}
+          {courseCoords.length > 1 && (
+            <>
+              <NaverMapPathOverlay
+                coords={courseCoords}
+                width={6}
+                color="#4ADE80"
+              />
+              <NaverMapMarkerOverlay
+                latitude={courseCoords[0].latitude}
+                longitude={courseCoords[0].longitude}
+                caption={{ text: "출발" }}
+              />
+              <NaverMapMarkerOverlay
+                latitude={courseCoords[courseCoords.length - 1].latitude}
+                longitude={courseCoords[courseCoords.length - 1].longitude}
+                caption={{ text: "도착" }}
+              />
+            </>
           )}
 
           {/* 현재 사용자 위치 마커 */}
