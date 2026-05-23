@@ -1,7 +1,8 @@
 import { MountainChipIcon } from "@/components/icons/mountain-chip-icon";
 import { memo } from "react";
-import { Image, Pressable, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Image, Text, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, { FadeInDown, runOnJS } from "react-native-reanimated";
 
 export const CELL_CONTENT_W = 234;
 export const CELL_CONTENT_H = 416;
@@ -29,6 +30,11 @@ export const FeedCell = memo(function FeedCell({
 }: FeedCellProps) {
   const imageUri = cellImageUrl(col, row);
 
+  // Gesture.Tap: Pan이 활성화되면 자동 취소됨 (Pressable과 달리 RNGH 취소 시스템 내)
+  const tap = Gesture.Tap().onEnd(() => {
+    runOnJS(onPress)(imageUri);
+  });
+
   return (
     <Animated.View
       entering={FadeInDown.duration(300).delay(200)}
@@ -40,13 +46,15 @@ export const FeedCell = memo(function FeedCell({
         height: CELL_CONTENT_H,
       }}
     >
-      <Pressable style={{ flex: 1 }} onPress={() => onPress(imageUri)}>
-        <Image
-          source={{ uri: imageUri }}
-          className="absolute inset-0 h-full w-full"
-          resizeMode="cover"
-        />
-      </Pressable>
+      <GestureDetector gesture={tap}>
+        <View style={{ flex: 1 }}>
+          <Image
+            source={{ uri: imageUri }}
+            className="absolute inset-0 h-full w-full"
+            resizeMode="cover"
+          />
+        </View>
+      </GestureDetector>
       {/* 산 뱃지 */}
       <View
         className="absolute right-4 top-4 flex-row items-center gap-1 rounded-full bg-[rgba(26,27,31,0.6)] py-[5px] pl-[5px] pr-[10px]"

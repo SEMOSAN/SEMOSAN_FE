@@ -62,6 +62,9 @@ export function FeedHomeView() {
   // ─────────────────────────────────────────────
   const pan = Gesture.Pan()
     .enabled(selectedImageUri === null)
+    // 8px 이상 움직여야 Pan 활성화 → 그 전엔 Tap이 우선
+    .activeOffsetX([-8, 8])
+    .activeOffsetY([-8, 8])
     .onBegin(() => {
       // 관성 애니메이션 중 새 제스처가 시작되면 현재 위치부터 시작
       savedX.value = translateX.value;
