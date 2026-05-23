@@ -4,7 +4,7 @@ const plugin = require('tailwindcss/plugin');
 module.exports = plugin(function({ addUtilities }) {
   addUtilities({
   ".typo-title-1-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "700",
     "line-height": "1.2",
     "font-size": "28px",
@@ -24,7 +24,7 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-title-1-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.2",
     "font-size": "28px",
@@ -34,7 +34,7 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-title-2-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "700",
     "line-height": "1.2",
     "font-size": "24px",
@@ -54,7 +54,7 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-title-2-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.2",
     "font-size": "24px",
@@ -64,7 +64,7 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-heading-1-semi-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.3",
     "font-size": "20px",
@@ -84,7 +84,7 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-heading-1-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.3",
     "font-size": "20px",
@@ -94,7 +94,7 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-headline-1-semi-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.5",
     "font-size": "18px",
@@ -114,7 +114,7 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-headline-1-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.5",
     "font-size": "18px",
@@ -124,11 +124,11 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-body-1-normal-semi-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.5",
     "font-size": "16px",
-    "letter-spacing": "0.005em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
@@ -138,27 +138,27 @@ module.exports = plugin(function({ addUtilities }) {
     "font-weight": "500",
     "line-height": "1.5",
     "font-size": "16px",
-    "letter-spacing": "0.005em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-body-1-normal-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.5",
     "font-size": "16px",
-    "letter-spacing": "0.005em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-body-1-reading-semi-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.6",
     "font-size": "16px",
-    "letter-spacing": "0.005em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
@@ -168,27 +168,27 @@ module.exports = plugin(function({ addUtilities }) {
     "font-weight": "500",
     "line-height": "1.6",
     "font-size": "16px",
-    "letter-spacing": "0.005em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-body-1-reading-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.6",
     "font-size": "16px",
-    "letter-spacing": "0.005em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-body-2-normal-semi-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.5",
     "font-size": "14px",
-    "letter-spacing": "0.015em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
@@ -198,27 +198,27 @@ module.exports = plugin(function({ addUtilities }) {
     "font-weight": "500",
     "line-height": "1.5",
     "font-size": "14px",
-    "letter-spacing": "0.015em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-body-2-normal-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.5",
     "font-size": "14px",
-    "letter-spacing": "0.015em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-body-2-reading-semi-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.5",
     "font-size": "14px",
-    "letter-spacing": "0.015em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
@@ -228,27 +228,27 @@ module.exports = plugin(function({ addUtilities }) {
     "font-weight": "500",
     "line-height": "1.5",
     "font-size": "14px",
-    "letter-spacing": "0.015em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-body-2-reading-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.5",
     "font-size": "14px",
-    "letter-spacing": "0.015em",
+    "letter-spacing": "-0.01em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-body-3-semi-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.4",
     "font-size": "13px",
-    "letter-spacing": "0.02em",
+    "letter-spacing": "0em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
@@ -258,27 +258,27 @@ module.exports = plugin(function({ addUtilities }) {
     "font-weight": "500",
     "line-height": "1.4",
     "font-size": "13px",
-    "letter-spacing": "0.02em",
+    "letter-spacing": "0em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-body-3-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.4",
     "font-size": "13px",
-    "letter-spacing": "0.02em",
+    "letter-spacing": "0em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-caption-1-semi-bold": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.3",
     "font-size": "12px",
-    "letter-spacing": "0.025em",
+    "letter-spacing": "0em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
@@ -288,23 +288,23 @@ module.exports = plugin(function({ addUtilities }) {
     "font-weight": "500",
     "line-height": "1.3",
     "font-size": "12px",
-    "letter-spacing": "0.025em",
+    "letter-spacing": "0em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-caption-1-regular": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "400",
     "line-height": "1.3",
     "font-size": "12px",
-    "letter-spacing": "0.025em",
+    "letter-spacing": "0em",
     "text-indent": "0",
     "text-transform": "none",
     "text-decoration": "none"
   },
   ".typo-label-large": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.5",
     "font-size": "17px",
@@ -314,7 +314,7 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-label-medium": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.5",
     "font-size": "15px",
@@ -324,7 +324,7 @@ module.exports = plugin(function({ addUtilities }) {
     "text-decoration": "none"
   },
   ".typo-label-small": {
-    "font-family": "Pretendard",
+    "font-family": "'Pretendard Variable'",
     "font-weight": "600",
     "line-height": "1.5",
     "font-size": "13px",

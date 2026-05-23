@@ -2,18 +2,19 @@ import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Easing,
   runOnJS,
   type SharedValue,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
 export const SNAP_COLLAPSED = 68;
 export const SNAP_DEFAULT = 360;
 export const SNAP_EXPANDED = 600;
 
-const SPRING = { damping: 28, stiffness: 280 };
+const SNAP_TIMING = { duration: 350, easing: Easing.out(Easing.cubic) };
 
 function snapNearest(projected: number): number {
   'worklet';
@@ -25,6 +26,7 @@ function snapNearest(projected: number): number {
 
 export type HomeBottomSheetRef = {
   collapseToMin: () => void;
+  expandToDefault: () => void;
 };
 
 type SnapState = 'collapsed' | 'default' | 'expanded';
@@ -44,9 +46,14 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
 
     useImperativeHandle(ref, () => ({
       collapseToMin: () => {
-        height.value = withSpring(SNAP_COLLAPSED, SPRING);
+        height.value = withTiming(SNAP_COLLAPSED, SNAP_TIMING);
         setScrollEnabled(false);
         setSnapState('collapsed');
+      },
+      expandToDefault: () => {
+        height.value = withTiming(SNAP_DEFAULT, SNAP_TIMING);
+        setScrollEnabled(false);
+        setSnapState('default');
       },
     }));
 
@@ -64,7 +71,7 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
         })
         .onEnd((e) => {
           const target = snapNearest(height.value - e.velocityY * 0.15);
-          height.value = withSpring(target, SPRING);
+          height.value = withTiming(target, SNAP_TIMING);
           // 기본 높이(디폴트)에서는 스크롤 비활성, 최대 높이에서만 스크롤 활성
           runOnJS(setScrollEnabled)(target === SNAP_EXPANDED);
           runOnJS(setSnapState)(
