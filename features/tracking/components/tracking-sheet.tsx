@@ -21,6 +21,7 @@ type Props = {
   /** 정상/하산까지 남은 거리 */
   distanceToTarget: string;
   onDismissTooltip: () => void;
+  onCameraPress: () => void;
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
@@ -36,6 +37,7 @@ export function TrackingSheet({
   timeToTarget,
   distanceToTarget,
   onDismissTooltip,
+  onCameraPress,
   onPause,
   onResume,
   onStop,
@@ -125,7 +127,10 @@ export function TrackingSheet({
 
         {/* 카메라 + 액션 버튼 */}
         <View className="flex-row gap-2">
-          <TouchableOpacity className="w-12 h-12 rounded-full bg-fill-normal border border-line-normal items-center justify-center">
+          <TouchableOpacity
+            className="w-12 h-12 rounded-full bg-fill-normal border border-line-normal items-center justify-center"
+            onPress={onCameraPress}
+          >
             <CameraIcon />
           </TouchableOpacity>
 

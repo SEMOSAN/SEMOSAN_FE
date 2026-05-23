@@ -34,6 +34,8 @@ import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-t
 import { PhotoWindowPayload, useTrackingSocket } from "@/features/tracking/hooks/use-tracking-socket";
 import { PhotoWindowBanner } from "@/features/tracking/components/photo-window-banner";
 import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
+import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
+import { useSaveTrackingPhoto } from "@/features/tracking/hooks/use-save-tracking-photo";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
@@ -42,9 +44,11 @@ import {
   NaverMapView,
 } from "@mj-studio/react-native-naver-map";
 import { LinearGradient } from "expo-linear-gradient";
+import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { Tabs, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAppState } from "@/hooks/use-app-state";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   LayoutChangeEvent,
@@ -92,8 +96,10 @@ export default function TrackingScreen() {
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
+    altitude: number | null;
   } | null>(null);
   const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
+  const backgroundedAtRef = useRef<number | null>(null);
 
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
@@ -107,6 +113,7 @@ export default function TrackingScreen() {
         setUserLocation({
           latitude: loc.coords.latitude,
           longitude: loc.coords.longitude,
+          altitude: loc.coords.altitude,
         });
       } catch (error) {
         console.warn("[Location] 현재 위치 조회 실패:", error);
@@ -138,6 +145,7 @@ export default function TrackingScreen() {
   const { mutate: pauseSession } = usePauseTrackingSession();
   const { mutate: resumeSession } = useResumeTrackingSession();
   const { mutate: completeSession } = useCompleteTrackingSession();
+  const { mutateAsync: savePhoto } = useSaveTrackingPhoto();
   const { data: activeSession, refetch: refetchActiveSession } = useActiveTrackingSession();
 
   // 앱 재진입 시 진행 중인 세션 복원
@@ -165,7 +173,7 @@ export default function TrackingScreen() {
         { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 3000, distanceInterval: 10 },
         (loc) => {
           const { latitude, longitude, altitude } = loc.coords;
-          setUserLocation({ latitude, longitude });
+          setUserLocation({ latitude, longitude, altitude });
           publishGps(sid, {
             lat: latitude,
             lng: longitude,
@@ -176,14 +184,7 @@ export default function TrackingScreen() {
       ).then((sub) => {
         locationWatchRef.current = sub;
       }).catch((err) => console.warn('[Location] watch 재시작 실패:', err));
-      // 일시정지된 경우 경과 시간 복원 (pausedSecondsTotal 제외한 실제 등산 시간)
-      if (activeSession.startedAt) {
-        const startedMs = new Date(activeSession.startedAt).getTime();
-        const nowMs = Date.now();
-        const totalElapsed = Math.floor((nowMs - startedMs) / 1000);
-        const pausedSeconds = activeSession.pausedSecondsTotal ?? 0;
-        setElapsedSeconds(Math.max(0, totalElapsed - pausedSeconds));
-      }
+      setElapsedSeconds(0);
     }
   }, [activeSession]);
 
@@ -229,7 +230,7 @@ export default function TrackingScreen() {
                   },
                   (loc) => {
                     const { latitude, longitude, altitude } = loc.coords;
-                    setUserLocation({ latitude, longitude });
+                    setUserLocation({ latitude, longitude, altitude });
                     publishGps(sid, {
                       lat: latitude,
                       lng: longitude,
@@ -289,6 +290,18 @@ export default function TrackingScreen() {
     return () => clearInterval(interval);
   }, [isTracking, isPaused]);
 
+  // 백그라운드 진입 시 시각 저장, 포어그라운드 복귀 시 차이만큼 누적
+  useAppState(useCallback((state) => {
+    if (!isTracking || isPaused) return;
+    if (state === 'background' || state === 'inactive') {
+      backgroundedAtRef.current = Date.now();
+    } else if (state === 'active' && backgroundedAtRef.current != null) {
+      const diffSeconds = Math.floor((Date.now() - backgroundedAtRef.current) / 1000);
+      setElapsedSeconds((s) => s + diffSeconds);
+      backgroundedAtRef.current = null;
+    }
+  }, [isTracking, isPaused]));
+
   // 매 초 Live Activity 업데이트
   useEffect(() => {
     if (!isTracking) return;
@@ -324,7 +337,10 @@ export default function TrackingScreen() {
     setIsPaused(true);
     if (sessionId != null) {
       pauseSession(sessionId, {
-        onError: (err) => console.warn('[Tracking] 일시정지 실패:', err),
+        onError: (err) => {
+          console.warn('[Tracking] 일시정지 실패:', err);
+          setIsPaused(false); // API 실패 시 UI 되돌리기
+        },
       });
     }
   };
@@ -332,19 +348,62 @@ export default function TrackingScreen() {
     setIsPaused(false);
     if (sessionId != null) {
       resumeSession(sessionId, {
-        onError: (err) => console.warn('[Tracking] 재개 실패:', err),
+        onError: (err) => {
+          console.warn('[Tracking] 재개 실패:', err);
+          setIsPaused(true); // API 실패 시 UI 되돌리기
+        },
       });
     }
   };
 
   const requestStop = () => setShowStopModal(true);
 
+  const handleCameraPress = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      console.warn('[Camera] 카메라 권한 거부됨');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+      allowsEditing: false,
+    });
+
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+
+    // 사진 윈도우 OPEN 상태일 때 → MinIO 업로드 → 메타 저장
+    if (photoWindow?.status === 'OPEN' && sessionId != null) {
+      try {
+        const capturedAt = new Date().toISOString();
+        const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
+        console.log('[Tracking] 인증 사진 업로드 완료:', imageUrl);
+
+        await savePhoto({
+          sessionId,
+          body: {
+            milestoneIndex: photoWindow.milestoneIndex,
+            milestoneDistanceM: photoWindow.milestoneDistance,
+            imageUrl,
+            capturedAt,
+            lat: userLocation?.latitude ?? 0,
+            lng: userLocation?.longitude ?? 0,
+            altitude: userLocation?.altitude ?? 0,
+          },
+        });
+        console.log('[Tracking] 사진 메타 저장 완료');
+      } catch (err) {
+        console.warn('[Tracking] 인증 사진 처리 실패:', err);
+      }
+    }
+  };
+
   /** StopConfirmModal → 난이도 체감 화면으로 전환 */
   const finishTracking = () => {
     setShowStopModal(false);
-    // 정상 인증 없이 기록 종료하는 경우 세션 완료 API 호출
-    // (정상 인증 시에는 onCertify에서 이미 호출했으므로 중복 방지)
-    if (!hasSummited && sessionId != null) {
+    // 기록 종료 시 항상 세션 완료 API 호출 (정상 인증 여부와 무관)
+    if (sessionId != null) {
       completeSession(sessionId, {
         onError: (err) => console.warn('[Tracking] 세션 종료 실패:', err),
       });
@@ -537,21 +596,9 @@ export default function TrackingScreen() {
           {showSummitSheet ? (
             <SummitSheet
               onCertify={() => {
-                const proceedToDescentSheet = () => {
-                  setHasSummited(true);
-                  setShowSummitSheet(false);
-                };
-                if (sessionId != null) {
-                  completeSession(sessionId, {
-                    onSuccess: proceedToDescentSheet,
-                    onError: (err) => {
-                      console.warn('[Tracking] 세션 종료 실패:', err);
-                      proceedToDescentSheet(); // 실패해도 하산 시트로 진행
-                    },
-                  });
-                } else {
-                  proceedToDescentSheet();
-                }
+                // 정상 인증 → 하산 시트로만 전환 (세션 완료는 기록 종료 시)
+                setHasSummited(true);
+                setShowSummitSheet(false);
               }}
               onNotYet={() => setShowSummitSheet(false)}
             />
@@ -565,6 +612,7 @@ export default function TrackingScreen() {
               timeToTarget="04:00"
               distanceToTarget="500m"
               onDismissTooltip={() => setShowTooltip(false)}
+              onCameraPress={handleCameraPress}
               onPause={pauseTracking}
               onResume={resumeTracking}
               onStop={requestStop}

@@ -1,7 +1,9 @@
 import { Client } from '@stomp/stompjs';
 import { tokenStorage } from './auth/tokenStorage';
 
-const WS_URL = process.env.EXPO_PUBLIC_API_URL!.replace(/^https/, 'wss').replace(/^http/, 'ws') + '/ws/tracking';
+const WS_URL = process.env.EXPO_PUBLIC_API_URL!
+  .replace(/^https/, 'wss')
+  .replace(/^http/, 'ws') + '/ws/tracking';
 
 export type TrackingSocketCallbacks = {
   onConnect?: () => void;
@@ -9,37 +11,42 @@ export type TrackingSocketCallbacks = {
   onError?: (error: unknown) => void;
 };
 
-export function createTrackingStompClient(callbacks?: TrackingSocketCallbacks): Client {
+export async function createTrackingStompClient(
+  callbacks?: TrackingSocketCallbacks,
+): Promise<Client> {
+  const accessToken = await tokenStorage.getAccessToken();
+
   const client = new Client({
-    brokerURL: WS_URL,
+    webSocketFactory: () => new WebSocket(WS_URL),
+    appendMissingNULLonIncoming: true,
+    forceBinaryWSFrames: true,
+    connectHeaders: accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : {},
+    heartbeatIncoming: 0,
+    heartbeatOutgoing: 0,
     reconnectDelay: 5000,
+    debug: (str) => console.log('[STOMP]', str),
     onConnect: () => {
-      console.log('[TrackingSocket] 연결됨');
+      console.log('[STOMP] CONNECTED ✓');
       callbacks?.onConnect?.();
     },
     onDisconnect: () => {
-      console.log('[TrackingSocket] 연결 해제됨');
+      console.log('[STOMP] 연결 해제됨');
       callbacks?.onDisconnect?.();
     },
     onStompError: (frame) => {
-      console.warn('[TrackingSocket] STOMP 에러:', frame.headers['message']);
+      console.warn('[STOMP] STOMP ERROR:', frame.headers['message'], frame.body);
       callbacks?.onError?.(frame);
     },
-    onWebSocketError: (event) => {
-      console.warn('[TrackingSocket] WebSocket 에러:', event);
-      callbacks?.onError?.(event);
+    onWebSocketError: (e: any) => {
+      console.warn('[STOMP] WS ERROR:', e?.message ?? e);
+      callbacks?.onError?.(e);
+    },
+    onWebSocketClose: (e: any) => {
+      console.warn('[STOMP] WS CLOSE: code=', e?.code, 'reason=', e?.reason);
     },
   });
-
-  // 연결 전 액세스 토큰을 헤더에 주입
-  client.beforeConnect = async () => {
-    const accessToken = await tokenStorage.getAccessToken();
-    if (accessToken) {
-      client.connectHeaders = {
-        Authorization: `Bearer ${accessToken}`,
-      };
-    }
-  };
 
   return client;
 }
