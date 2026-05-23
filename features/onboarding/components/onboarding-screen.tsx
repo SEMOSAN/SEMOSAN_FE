@@ -2,7 +2,7 @@ import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { TextField } from "@/components/text-field";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Keyboard, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Gender = "female" | "male";
@@ -61,8 +61,17 @@ export function OnboardingScreen() {
   }
 
   function handleBirthDateChange(text: string): void {
-    setBirthDate(text);
+    const digits = text.replace(/\D/g, "").slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 4) {
+      formatted = `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    }
+    if (digits.length > 6) {
+      formatted = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+    }
+    setBirthDate(formatted);
     if (birthDateError) setBirthDateError(false);
+    if (digits.length === 8) Keyboard.dismiss();
   }
 
   function handleBirthDateEnd(): void {
@@ -179,6 +188,7 @@ export function OnboardingScreen() {
                 onChangeText={handleBirthDateChange}
                 placeholder="YYYY-MM-DD"
                 error={birthDateError}
+                keyboardType="number-pad"
                 onEndEditing={handleBirthDateEnd}
               />
             )}
