@@ -31,7 +31,9 @@ import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tra
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
-import { useTrackingSocket } from "@/features/tracking/hooks/use-tracking-socket";
+import { PhotoWindowPayload, useTrackingSocket } from "@/features/tracking/hooks/use-tracking-socket";
+import { PhotoWindowBanner } from "@/features/tracking/components/photo-window-banner";
+import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
 import {
@@ -77,6 +79,7 @@ export default function TrackingScreen() {
   const [showDifficultyRating, setShowDifficultyRating] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [hasSummited, setHasSummited] = useState(false);
+  const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{
@@ -116,7 +119,20 @@ export default function TrackingScreen() {
     lng: userLocation?.longitude ?? null,
   });
 
-  const { connect: connectSocket, disconnect: disconnectSocket } = useTrackingSocket();
+  const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
+    if (payload.status === 'OPEN') {
+      setPhotoWindow(payload);
+    } else {
+      setPhotoWindow(null);
+    }
+  }, []);
+
+  const { connect: connectSocket, disconnect: disconnectSocket, subscribePhotoWindow } = useTrackingSocket({
+    onPhotoWindow: handlePhotoWindow,
+  });
+
+  // 포어그라운드 FCM 수신 (백그라운드는 OS가 시스템 알림으로 자동 처리)
+  useTrackingFcm({ enabled: isTracking, onPhotoWindow: handlePhotoWindow });
 
   const { mutate: startSession } = useStartTrackingSession();
   const { mutate: pauseSession } = usePauseTrackingSession();
@@ -142,7 +158,7 @@ export default function TrackingScreen() {
       setSessionId(activeSession.sessionId);
       setIsTracking(true);
       setIsPaused(status === 'PAUSED');
-      connectSocket();
+      connectSocket(activeSession.sessionId);
       // 일시정지된 경우 경과 시간 복원 (pausedSecondsTotal 제외한 실제 등산 시간)
       if (activeSession.startedAt) {
         const startedMs = new Date(activeSession.startedAt).getTime();
@@ -171,9 +187,6 @@ export default function TrackingScreen() {
       setIsTracking(true);
       setCountdown(null);
 
-      // 웹소켓 연결
-      connectSocket();
-
       // 트래킹 세션 시작 API 호출
       const mountainId = nearbyData?.mountain?.mountainId;
       if (mountainId != null) {
@@ -185,7 +198,11 @@ export default function TrackingScreen() {
           },
           {
             onSuccess: (data) => {
-              if (data.sessionId != null) setSessionId(data.sessionId);
+              if (data.sessionId != null) {
+                setSessionId(data.sessionId);
+                // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
+                connectSocket(data.sessionId);
+              }
             },
             onError: (err) => {
               console.warn('[Tracking] 세션 시작 실패:', err);
@@ -308,6 +325,7 @@ export default function TrackingScreen() {
     setShowSummitSheet(false);
     setHasSummited(false);
     setSessionId(null);
+    setPhotoWindow(null);
     setCollapsed(false);
   };
 
@@ -380,6 +398,13 @@ export default function TrackingScreen() {
             />
           )}
         </NaverMapView>
+
+        {/* 사진 윈도우 배너 — 지도 위 오버레이 */}
+        {isTracking && photoWindow?.status === 'OPEN' && (
+          <View style={{ position: 'absolute', top: TRACKING_COURSE_CARD_TOP + TRACKING_COURSE_CARD_HEIGHT + 8, left: 0, right: 0, zIndex: 10 }}>
+            <PhotoWindowBanner milestoneDistance={photoWindow.milestoneDistance} />
+          </View>
+        )}
 
         {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 */}
         {isTracking && (
@@ -493,6 +518,7 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
+              isPhotoWindowOpen={photoWindow?.status === 'OPEN'}
               hasSummited={hasSummited}
               timeToTarget="04:00"
               distanceToTarget="500m"
