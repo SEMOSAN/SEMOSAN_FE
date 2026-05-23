@@ -1,4 +1,4 @@
-import { HOME_TAB_TRANSITION_DURATION } from "@/features/home/constants";
+import { HOME_TAB_TRANSITION_DURATION } from "@/app/(tabs)";
 import React, { forwardRef, useImperativeHandle, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -15,12 +15,7 @@ export const SNAP_COLLAPSED = 68;
 export const SNAP_DEFAULT = 360;
 export const SNAP_EXPANDED = 600;
 
-const SNAP_TIMING_COLLAPSE = {
-  duration: HOME_TAB_TRANSITION_DURATION,
-  easing: Easing.in(Easing.cubic),
-};
-
-const SNAP_TIMING_EXPAND = {
+const SNAP_TIMING = {
   duration: HOME_TAB_TRANSITION_DURATION,
   easing: Easing.out(Easing.cubic),
 };
@@ -58,12 +53,12 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
 
     useImperativeHandle(ref, () => ({
       collapseToMin: () => {
-        height.value = withTiming(SNAP_COLLAPSED, SNAP_TIMING_COLLAPSE);
+        height.value = withTiming(SNAP_COLLAPSED, SNAP_TIMING);
         setScrollEnabled(false);
         setSnapState("collapsed");
       },
       expandToDefault: () => {
-        height.value = withTiming(SNAP_DEFAULT, SNAP_TIMING_EXPAND);
+        height.value = withTiming(SNAP_DEFAULT, SNAP_TIMING);
         setScrollEnabled(false);
         setSnapState("default");
       },
@@ -83,8 +78,7 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
         })
         .onEnd((e) => {
           const target = snapNearest(height.value - e.velocityY * 0.15);
-          const timing = target < height.value ? SNAP_TIMING_COLLAPSE : SNAP_TIMING_EXPAND;
-          height.value = withTiming(target, timing);
+          height.value = withTiming(target, SNAP_TIMING);
           // 기본 높이(디폴트)에서는 스크롤 비활성, 최대 높이에서만 스크롤 활성
           runOnJS(setScrollEnabled)(target === SNAP_EXPANDED);
           runOnJS(setSnapState)(
