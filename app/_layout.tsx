@@ -1,5 +1,4 @@
 import Toast from "@/components/toast/toast";
-import { isExpoGo } from "@/constants/platform";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { useAppState } from "@/hooks/use-app-state";
 import { useOnlineManager } from "@/hooks/use-online-manager";
@@ -23,8 +22,7 @@ import "react-native-reanimated";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
-if (!isExpoGo)
-  initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
+if (!__DEV__) initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
 
 function onAppStateChange(status: AppStateStatus) {
   // React Query already supports in web browser refetch on window focus by default
@@ -44,7 +42,7 @@ export const unstable_settings = {
 export default function RootLayout(): React.JSX.Element | null {
   const { status: authStatus } = useAuthState();
 
-  usePushNotification(authStatus === "authenticated");
+  usePushNotification(!__DEV__ && authStatus === "authenticated");
   const [fontsLoaded] = useFonts({
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
     Lexend_700Bold,
