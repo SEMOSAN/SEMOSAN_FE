@@ -101,19 +101,11 @@ export const DIFFICULTY_TEXT_COLOR: Record<Difficulty, string> = {
 };
 
 export const SHADOW = {
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.15,
-  shadowRadius: 4,
-  elevation: 4,
+  boxShadow: '0px 1px 4px 0px rgba(0, 0, 0, 0.15)',
 } as const;
 
 export const CARD_SHADOW = {
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.10,
-  shadowRadius: 4,
-  elevation: 3,
+  boxShadow: '0px 2px 4px 0px rgba(0, 0, 0, 0.1)',
 } as const;
 
 // ─── 타이포그래피 ─────────────────────────────────────────
