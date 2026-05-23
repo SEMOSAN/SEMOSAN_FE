@@ -1,8 +1,10 @@
 import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { TextField } from "@/components/text-field";
+import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
+import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
-import { Keyboard, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Image, Keyboard, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Gender = "female" | "male";
@@ -15,6 +17,7 @@ export function OnboardingScreen() {
   const weightRef = useRef<TextInput>(null);
 
   const [step, setStep] = useState(0);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState(false);
@@ -45,6 +48,20 @@ export function OnboardingScreen() {
         delay,
       );
   }, [step]);
+
+  async function handleProfileImagePress(): Promise<void> {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    const filename = asset.uri.split("/").pop() ?? "profile.jpg";
+    const url = await uploadImage(asset.uri, filename);
+    setProfileImageUrl(url);
+  }
 
   function handleNicknameChange(text: string): void {
     setNickname(text);
@@ -87,6 +104,7 @@ export function OnboardingScreen() {
   function handleHeightChange(text: string): void {
     setHeight(text);
     if (heightError) setHeightError(false);
+    if (text.length === 3) Keyboard.dismiss();
   }
 
   function handleHeightEnd(): void {
@@ -139,14 +157,21 @@ export function OnboardingScreen() {
           <View className="mt-6 gap-6">
             {/* 아바타 */}
             <View className="items-center py-5">
-              <View className="relative">
-                <View className="size-[100px] items-center justify-center rounded-full bg-fill-stronger">
-                  <UserIcon size={70} />
+              <Pressable className="relative" onPress={handleProfileImagePress}>
+                <View className="size-[100px] items-center justify-center rounded-full bg-fill-stronger overflow-hidden">
+                  {profileImageUrl ? (
+                    <Image
+                      source={{ uri: profileImageUrl }}
+                      className="size-[100px]"
+                    />
+                  ) : (
+                    <UserIcon size={70} />
+                  )}
                 </View>
-                <Pressable className="absolute -right-2 bottom-0 size-8 items-center justify-center rounded-full bg-primary-normal">
+                <View className="absolute -right-2 bottom-0 size-8 items-center justify-center rounded-full bg-primary-normal">
                   <PlusIcon size={16} />
-                </Pressable>
-              </View>
+                </View>
+              </Pressable>
             </View>
 
             {/* 체중 */}
