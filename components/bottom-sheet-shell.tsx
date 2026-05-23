@@ -6,11 +6,12 @@ type Props = {
   titleCount?: number;
   titleSuffix?: ReactNode;
   header?: ReactNode;
+  aboveTitle?: ReactNode;
   children: ReactNode;
   scrollEnabled?: boolean;
 };
 
-export default function BottomSheetShell({ title, titleCount, titleSuffix, header, children, scrollEnabled = false }: Props) {
+export default function BottomSheetShell({ title, titleCount, titleSuffix, header, aboveTitle, children, scrollEnabled = false }: Props) {
   return (
     <View className="flex-1 w-full">
       {/* 탭바 등 헤더 슬롯 */}
@@ -23,6 +24,9 @@ export default function BottomSheetShell({ title, titleCount, titleSuffix, heade
         scrollEnabled={scrollEnabled}
       >
         <View className="w-full flex-col gap-2.5">
+          {/* 타이틀 위 슬롯 */}
+          {aboveTitle}
+
           {/* 섹션 타이틀 */}
           <View className="flex-row items-center gap-1">
             <Text className="typo-headline-1-semi-bold text-label-normal">{title}</Text>
