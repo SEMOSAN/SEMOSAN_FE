@@ -1,13 +1,13 @@
 import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
-import { StatusBar } from "expo-status-bar";
+import { TextField } from "@/components/text-field";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Gender = "female" | "male";
 
-export function OnboardingScreen(): React.JSX.Element {
+export function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const birthDateRef = useRef<TextInput>(null);
@@ -15,11 +15,20 @@ export function OnboardingScreen(): React.JSX.Element {
   const weightRef = useRef<TextInput>(null);
 
   const [step, setStep] = useState(0);
+
   const [nickname, setNickname] = useState("");
+  const [nicknameError, setNicknameError] = useState(false);
+
   const [gender, setGender] = useState<Gender | null>(null);
+
   const [birthDate, setBirthDate] = useState("");
+  const [birthDateError, setBirthDateError] = useState(false);
+
   const [height, setHeight] = useState("");
+  const [heightError, setHeightError] = useState(false);
+
   const [weight, setWeight] = useState("");
+  const [weightError, setWeightError] = useState(false);
 
   function advance(to: number): void {
     setStep((prev) => Math.max(prev, to));
@@ -37,8 +46,13 @@ export function OnboardingScreen(): React.JSX.Element {
       );
   }, [step]);
 
+  function handleNicknameChange(text: string): void {
+    setNickname(text);
+    setNicknameError(text.length > 0 && !/^[가-힣a-zA-Z0-9]+$/.test(text));
+  }
+
   function handleNicknameEnd(): void {
-    if (nickname.trim()) advance(1);
+    if (nickname.trim() && !nicknameError) advance(1);
   }
 
   function handleGenderSelect(value: Gender): void {
@@ -46,21 +60,53 @@ export function OnboardingScreen(): React.JSX.Element {
     advance(2);
   }
 
+  function handleBirthDateChange(text: string): void {
+    setBirthDate(text);
+    if (birthDateError) setBirthDateError(false);
+  }
+
   function handleBirthDateEnd(): void {
-    if (birthDate.trim()) advance(3);
+    if (!birthDate.trim()) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate.trim())) {
+      setBirthDateError(true);
+      return;
+    }
+    setBirthDateError(false);
+    advance(3);
+  }
+
+  function handleHeightChange(text: string): void {
+    setHeight(text);
+    if (heightError) setHeightError(false);
   }
 
   function handleHeightEnd(): void {
-    if (height.trim()) advance(4);
+    if (!height.trim()) return;
+    if (Number(height) <= 0) {
+      setHeightError(true);
+      return;
+    }
+    setHeightError(false);
+    advance(4);
+  }
+
+  function handleWeightChange(text: string): void {
+    setWeight(text);
+    if (weightError) setWeightError(false);
   }
 
   function handleWeightEnd(): void {
-    if (weight.trim()) advance(5);
+    if (!weight.trim()) return;
+    if (Number(weight) <= 0) {
+      setWeightError(true);
+      return;
+    }
+    setWeightError(false);
+    advance(5);
   }
 
   return (
     <>
-      <StatusBar style="dark" />
       <View
         className="flex-1 bg-fill-normal"
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
@@ -96,73 +142,45 @@ export function OnboardingScreen(): React.JSX.Element {
 
             {/* 체중 */}
             {step >= 4 && (
-              <View className="gap-2">
-                <Text className="text-label-subtle typo-body-2-normal-semi-bold">
-                  체중
-                </Text>
-                <View className="h-12 flex-row items-center rounded-[10px] border border-line-subtle bg-fill-normal px-3">
-                  <TextInput
-                    ref={weightRef}
-                    className="flex-1 text-label-normal typo-body-1-reading-regular"
-                    placeholder="60"
-                    placeholderTextColor="#73798c"
-                    value={weight}
-                    onChangeText={setWeight}
-                    keyboardType="number-pad"
-                    returnKeyType="done"
-                    onEndEditing={handleWeightEnd}
-                  />
-                  <Text className="text-label-subtler typo-body-1-reading-regular">
-                    kg
-                  </Text>
-                </View>
-              </View>
+              <TextField
+                ref={weightRef}
+                label="체중"
+                value={weight}
+                onChangeText={handleWeightChange}
+                placeholder="60"
+                suffix="kg"
+                error={weightError}
+                keyboardType="number-pad"
+                onEndEditing={handleWeightEnd}
+              />
             )}
 
             {/* 키 */}
             {step >= 3 && (
-              <View className="gap-2">
-                <Text className="text-label-subtle typo-body-2-normal-semi-bold">
-                  키
-                </Text>
-                <View className="h-12 flex-row items-center rounded-[10px] border border-line-subtle bg-fill-normal px-3">
-                  <TextInput
-                    ref={heightRef}
-                    className="flex-1 text-label-normal typo-body-1-reading-regular"
-                    placeholder="170"
-                    placeholderTextColor="#73798c"
-                    value={height}
-                    onChangeText={setHeight}
-                    keyboardType="number-pad"
-                    returnKeyType="done"
-                    onEndEditing={handleHeightEnd}
-                  />
-                  <Text className="text-label-subtler typo-body-1-reading-regular">
-                    cm
-                  </Text>
-                </View>
-              </View>
+              <TextField
+                ref={heightRef}
+                label="키"
+                value={height}
+                onChangeText={handleHeightChange}
+                placeholder="170"
+                suffix="cm"
+                error={heightError}
+                keyboardType="number-pad"
+                onEndEditing={handleHeightEnd}
+              />
             )}
 
             {/* 생년월일 */}
             {step >= 2 && (
-              <View className="gap-2">
-                <Text className="text-label-subtle typo-body-2-normal-semi-bold">
-                  생년월일
-                </Text>
-                <View className="h-12 flex-row items-center rounded-[10px] border border-line-subtle bg-fill-normal px-3">
-                  <TextInput
-                    ref={birthDateRef}
-                    className="flex-1 text-label-normal typo-body-1-reading-regular"
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="#73798c"
-                    value={birthDate}
-                    onChangeText={setBirthDate}
-                    returnKeyType="done"
-                    onEndEditing={handleBirthDateEnd}
-                  />
-                </View>
-              </View>
+              <TextField
+                ref={birthDateRef}
+                label="생년월일"
+                value={birthDate}
+                onChangeText={handleBirthDateChange}
+                placeholder="YYYY-MM-DD"
+                error={birthDateError}
+                onEndEditing={handleBirthDateEnd}
+              />
             )}
 
             {/* 성별 */}
@@ -201,26 +219,16 @@ export function OnboardingScreen(): React.JSX.Element {
             )}
 
             {/* 닉네임 */}
-            <View className="gap-2">
-              <Text className="text-label-subtle typo-body-2-normal-semi-bold">
-                닉네임
-              </Text>
-              <View className="h-12 flex-row items-center rounded-[10px] border border-line-subtle bg-fill-normal px-3">
-                <TextInput
-                  className="flex-1 text-label-normal typo-body-1-reading-regular"
-                  placeholder="닉네임을 입력해 주세요"
-                  placeholderTextColor="#73798c"
-                  value={nickname}
-                  onChangeText={setNickname}
-                  maxLength={10}
-                  returnKeyType="done"
-                  onEndEditing={handleNicknameEnd}
-                />
-              </View>
-              <Text className="text-label-subtler typo-caption-1-regular">
-                10자 이내의 한글, 영문, 숫자만 가능해요
-              </Text>
-            </View>
+            <TextField
+              label="닉네임"
+              value={nickname}
+              onChangeText={handleNicknameChange}
+              placeholder="닉네임을 입력해 주세요"
+              description="10자 이내의 한글, 영문, 숫자만 가능해요"
+              error={nicknameError}
+              maxLength={10}
+              onEndEditing={handleNicknameEnd}
+            />
           </View>
         </ScrollView>
 
