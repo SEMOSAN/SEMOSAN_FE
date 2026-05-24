@@ -3,7 +3,7 @@ import { AscentIcon } from '@/components/icons/ascent-icon';
 import { ClockIcon } from '@/components/icons/clock-icon';
 import { DescentIcon } from '@/components/icons/descent-icon';
 import { DistanceIcon } from '@/components/icons/distance-icon';
-import { NearbyMountainCourse } from '@/types/api.generated';
+import { CourseInfo } from '@/types/api.generated';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { Course, DIFFICULTY_BG, DIFFICULTY_TEXT_COLOR } from '../constants';
 
@@ -25,7 +25,7 @@ const API_DIFFICULTY_TEXT: Record<string, string> = {
 };
 
 type ApiCourseItemProps = {
-  course: NearbyMountainCourse;
+  course: CourseInfo;
   selected: boolean;
   onPress: () => void;
 };

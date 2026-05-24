@@ -201,8 +201,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             : data?.content?.map((mountain) => (
                 <NaverMapMarkerOverlay
                   key={`no-record-${mountain.mountainId}`}
-                  latitude={mountain.latitude}
-                  longitude={mountain.longitude}
+                  latitude={mountain.latitude ?? 0}
+                  longitude={mountain.longitude ?? 0}
                   width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
                   height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
                   anchor={{ x: 0.5, y: 0.5 }}
@@ -216,7 +216,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
                     }}
                   >
                     <UnvisitedMountainPillMarker
-                      name={mountain.name}
+                      name={mountain.name ?? ""}
                       variant="trending"
                     />
                   </View>
@@ -258,8 +258,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             hasRecords ? (
               <BottomSheet
                 title="다녀온 산"
-                titleCount={visitedCards.length}
-                cards={visitedCards}
+                titleCount={0}
+                cards={[]}
                 showTabs={false}
                 scrollEnabled={scrollEnabled}
                 onCardSelect={(id) => setSelectedMountainId(Number(id))}

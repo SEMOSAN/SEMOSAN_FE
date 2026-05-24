@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 type Props = {
   name: string;
@@ -7,7 +7,7 @@ type Props = {
   leading?: ReactNode;
   nameColor?: string;
   suffixColor?: string;
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
 };
 
 export function MountainMarkerTextBox({
