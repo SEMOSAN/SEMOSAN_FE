@@ -4,7 +4,7 @@ import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store
 import { toast } from "@/store/toast.store";
 import { RegisterOnboardingRequest } from "@/types/api.generated";
 import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -46,7 +46,6 @@ const FREQUENCY_OPTIONS: { label: string; value: ExerciseFrequency }[] = [
 
 export function OnboardingExerciseDetailScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef<ScrollView>(null);
 
   const exerciseType = useOnboardingStore((s) => s.exerciseType);
   const setExerciseDuration = useOnboardingStore((s) => s.setExerciseDuration);
@@ -59,12 +58,6 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
     useState<ExerciseDuration | null>(null);
   const [selectedFrequency, setSelectedFrequency] =
     useState<ExerciseFrequency | null>(null);
-
-  useEffect(() => {
-    if (selectedDuration !== null) {
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300);
-    }
-  }, [selectedDuration]);
 
   async function handleStart(): Promise<void> {
     if (!selectedDuration || !selectedFrequency) return;
@@ -97,7 +90,6 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
       </View>
 
       <ScrollView
-        ref={scrollRef}
         className="flex-1"
         contentContainerClassName="px-5 pt-7 pb-6"
         keyboardShouldPersistTaps="handled"
@@ -114,22 +106,7 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
           </Text>
         </View>
 
-        {/* 섹션 1: 운동 빈도 */}
-        <View className="mt-8 gap-[10px]">
-          <Text className="text-label-normal typo-headline-1-semi-bold">
-            운동 빈도는 어떻게 되시나요?
-          </Text>
-          {DURATION_OPTIONS.map((option) => (
-            <OptionButton
-              key={option.value}
-              label={option.label}
-              selected={selectedDuration === option.value}
-              onPress={() => setSelectedDuration(option.value)}
-            />
-          ))}
-        </View>
-
-        {/* 섹션 2: 운동 시간 — 빈도 선택 후 노출 */}
+        {/* 섹션 1: 운동 시간 — 빈도 선택 후 위에 노출 */}
         {selectedDuration !== null && (
           <View className="mt-8 gap-[10px]">
             <Text className="text-label-normal typo-headline-1-semi-bold">
@@ -145,6 +122,21 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
             ))}
           </View>
         )}
+
+        {/* 섹션 2: 운동 빈도 — 항상 노출, 운동 시간 섹션 생성 시 아래로 밀림 */}
+        <View className="mt-8 gap-[10px]">
+          <Text className="text-label-normal typo-headline-1-semi-bold">
+            운동 빈도는 어떻게 되시나요?
+          </Text>
+          {DURATION_OPTIONS.map((option) => (
+            <OptionButton
+              key={option.value}
+              label={option.label}
+              selected={selectedDuration === option.value}
+              onPress={() => setSelectedDuration(option.value)}
+            />
+          ))}
+        </View>
       </ScrollView>
 
       {/* 시작하기 버튼 — 두 섹션 모두 선택 시 노출 */}
