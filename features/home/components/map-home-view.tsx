@@ -112,6 +112,9 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
       ),
     }));
 
+    // TODO : visitedCards 구현필요.
+    const visitedCards: any = [];
+
     return (
       <View className="w-full flex-1">
         <NaverMapView
@@ -258,8 +261,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             hasRecords ? (
               <BottomSheet
                 title="다녀온 산"
-                titleCount={0}
-                cards={[]}
+                titleCount={visitedCards.length}
+                cards={visitedCards}
                 showTabs={false}
                 scrollEnabled={scrollEnabled}
                 onCardSelect={(id) => setSelectedMountainId(Number(id))}
@@ -296,7 +299,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   bellButton: {
-    boxShadow: '0px 2px 2px 0px rgba(0, 0, 0, 0.1)',
+    boxShadow: "0px 2px 2px 0px rgba(0, 0, 0, 0.1)",
   },
   locationButton: {
     position: "absolute",
@@ -309,6 +312,6 @@ const styles = StyleSheet.create({
     borderColor: "#D1D5DB",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: '0px 2px 4px 0px rgba(0, 0, 0, 0.15)',
+    boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.15)",
   },
 });
