@@ -112,8 +112,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
       ),
     }));
 
-    // TODO : 임시로 변수생성
-    const visitedCards = [];
+    // TODO : visitedCards 구현필요.
+    const visitedCards: any = [];
 
     return (
       <View className="w-full flex-1">
@@ -204,8 +204,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             : data?.content?.map((mountain) => (
                 <NaverMapMarkerOverlay
                   key={`no-record-${mountain.mountainId}`}
-                  latitude={mountain.latitude}
-                  longitude={mountain.longitude}
+                  latitude={mountain.latitude ?? 0}
+                  longitude={mountain.longitude ?? 0}
                   width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
                   height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
                   anchor={{ x: 0.5, y: 0.5 }}
@@ -219,7 +219,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
                     }}
                   >
                     <UnvisitedMountainPillMarker
-                      name={mountain.name}
+                      name={mountain.name ?? ""}
                       variant="trending"
                     />
                   </View>

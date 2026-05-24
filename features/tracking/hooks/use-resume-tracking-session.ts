@@ -6,7 +6,7 @@ export function useResumeTrackingSession() {
   return useMutation({
     mutationFn: async (sessionId: number): Promise<TrackingSessionResponse> => {
       const res = await api.post<TrackingSessionResponse>({
-        path: ENDPOINTS.TRACKING_SESSIONS_RESUME(sessionId),
+        path: ENDPOINTS.TRACKING_SESSIONS_BY_SESSIONID_RESUME(sessionId),
       });
       return res.data;
     },

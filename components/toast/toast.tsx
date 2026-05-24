@@ -39,7 +39,7 @@ export default function Toast({ containerClassName, gap = 8 }: Props) {
 
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(10)).current;
-  const timer = useRef<number | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const insets = useSafeAreaInsets();
 
