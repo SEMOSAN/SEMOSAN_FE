@@ -1,3 +1,4 @@
+import { LongButton } from "@/components/long-button";
 import { OptionButton } from "@/components/option-button";
 import {
   EXERCISE_OPTIONS,
@@ -6,7 +7,7 @@ import {
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function OnboardingExerciseScreen(): React.JSX.Element {
@@ -53,14 +54,7 @@ export function OnboardingExerciseScreen(): React.JSX.Element {
 
       {selected !== null && (
         <View className="px-5 pb-4 pt-3">
-          <Pressable
-            className="h-[52px] items-center justify-center rounded-[12px] bg-primary-normal"
-            onPress={handleNext}
-          >
-            <Text className="text-label-normal-inverse typo-label-large">
-              다음
-            </Text>
-          </Pressable>
+          <LongButton label="다음" onPress={handleNext} />
         </View>
       )}
     </View>

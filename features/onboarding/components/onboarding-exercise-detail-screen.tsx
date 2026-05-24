@@ -1,10 +1,11 @@
+import { LongButton } from "@/components/long-button";
 import { OptionButton } from "@/components/option-button";
 import {
   DURATION_OPTIONS,
   EXERCISE_LABELS,
-  FREQUENCY_OPTIONS,
   ExerciseDuration,
   ExerciseFrequency,
+  FREQUENCY_OPTIONS,
 } from "@/features/onboarding/constants/exercise";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
 import { useSubmitOnboardingFromStore } from "@/features/onboarding/store/use-submit-onboarding-from-store";
@@ -12,7 +13,7 @@ import { ApiError } from "@/lib/api";
 import { toast } from "@/store/toast.store";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function OnboardingExerciseDetailScreen(): React.JSX.Element {
@@ -112,15 +113,11 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
       {/* 시작하기 버튼 — 두 섹션 모두 선택 시 노출 */}
       {selectedDuration !== null && selectedFrequency !== null && (
         <View className="px-5 pb-4 pt-3">
-          <Pressable
-            className="h-[52px] items-center justify-center rounded-[12px] bg-primary-normal"
+          <LongButton
+            label="시작하기"
             onPress={handleStart}
-            disabled={isPending}
-          >
-            <Text className="text-label-normal-inverse typo-label-large">
-              시작하기
-            </Text>
-          </Pressable>
+            loading={isPending}
+          />
         </View>
       )}
     </View>

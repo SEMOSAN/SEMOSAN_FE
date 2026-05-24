@@ -1,8 +1,10 @@
 import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
+import { LongButton } from "@/components/long-button";
 import { TextField } from "@/components/text-field";
 import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
+import { formatBirthDate, isValidBirthDate } from "@/utils/birth-date";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -16,7 +18,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { formatBirthDate, isValidBirthDate } from "@/utils/birth-date";
 
 type Gender = "female" | "male";
 
@@ -296,15 +297,7 @@ export function OnboardingScreen() {
         {/* 다음 버튼 */}
         {step >= 5 && (
           <View className="px-5 pb-4 pt-3">
-            {/* TODO : 다음 누르면 로띠 돌아가는거 하나하자 */}
-            <Pressable
-              className="h-[52px] items-center justify-center rounded-[12px] bg-primary-normal"
-              onPress={handleSubmit}
-            >
-              <Text className="text-label-normal-inverse typo-label-large">
-                다음
-              </Text>
-            </Pressable>
+            <LongButton label="다음" onPress={handleSubmit} />
           </View>
         )}
       </View>
