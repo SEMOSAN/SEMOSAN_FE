@@ -129,6 +129,8 @@ export function OnboardingScreen() {
   function handleWeightChange(text: string): void {
     setWeight(text);
     if (weightError) setWeightError(false);
+    if (text.length >= 2) advance(5);
+    if (text.length === 3) Keyboard.dismiss();
   }
 
   function handleWeightEnd(): void {

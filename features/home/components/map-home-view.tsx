@@ -112,6 +112,9 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
       ),
     }));
 
+    // TODO : 임시로 변수생성
+    const visitedCards = [];
+
     return (
       <View className="w-full flex-1">
         <NaverMapView
@@ -296,7 +299,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   bellButton: {
-    boxShadow: '0px 2px 2px 0px rgba(0, 0, 0, 0.1)',
+    boxShadow: "0px 2px 2px 0px rgba(0, 0, 0, 0.1)",
   },
   locationButton: {
     position: "absolute",
@@ -309,6 +312,6 @@ const styles = StyleSheet.create({
     borderColor: "#D1D5DB",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: '0px 2px 4px 0px rgba(0, 0, 0, 0.15)',
+    boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.15)",
   },
 });
