@@ -112,6 +112,9 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
       ),
     }));
 
+    // TODO : visitedCards 구현필요.
+    const visitedCards: any = [];
+
     return (
       <View className="w-full flex-1">
         <NaverMapView
@@ -201,8 +204,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             : data?.content?.map((mountain) => (
                 <NaverMapMarkerOverlay
                   key={`no-record-${mountain.mountainId}`}
-                  latitude={mountain.latitude}
-                  longitude={mountain.longitude}
+                  latitude={mountain.latitude ?? 0}
+                  longitude={mountain.longitude ?? 0}
                   width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
                   height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
                   anchor={{ x: 0.5, y: 0.5 }}
@@ -216,7 +219,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
                     }}
                   >
                     <UnvisitedMountainPillMarker
-                      name={mountain.name}
+                      name={mountain.name ?? ""}
                       variant="trending"
                     />
                   </View>
@@ -296,7 +299,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   bellButton: {
-    boxShadow: '0px 2px 2px 0px rgba(0, 0, 0, 0.1)',
+    boxShadow: "0px 2px 2px 0px rgba(0, 0, 0, 0.1)",
   },
   locationButton: {
     position: "absolute",
@@ -309,6 +312,6 @@ const styles = StyleSheet.create({
     borderColor: "#D1D5DB",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: '0px 2px 4px 0px rgba(0, 0, 0, 0.15)',
+    boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.15)",
   },
 });

@@ -24,7 +24,7 @@ export function UnvisitedMountainPillMarker({ name, variant, selected = false }:
       name={name}
       leading={<MountainsPinIcon size={18} circleColor={iconColor} />}
       nameColor={selected ? '#ffffff' : '#464A57'}
-      style={[styles.container, selected && { backgroundColor: SELECTED_BG }]}
+      style={[styles.container, selected ? { backgroundColor: SELECTED_BG } : undefined]}
     />
   );
 }
