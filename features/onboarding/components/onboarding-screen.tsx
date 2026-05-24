@@ -3,7 +3,9 @@ import { UserIcon } from "@/components/icons/user-icon";
 import { LongButton } from "@/components/long-button";
 import { TextField } from "@/components/text-field";
 import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
+import { useCheckNickname } from "@/features/onboarding/hooks/use-check-nickname";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
+import { ApiError } from "@/lib/api";
 import {
   formatBirthDate,
   isAtLeast14YearsOld,
@@ -33,6 +35,7 @@ export function OnboardingScreen() {
   const weightRef = useRef<TextInput>(null);
 
   const setProfile = useOnboardingStore((s) => s.setProfile);
+  const { mutateAsync: checkNickname } = useCheckNickname();
 
   const [step, setStep] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
@@ -94,7 +97,7 @@ export function OnboardingScreen() {
     }
   }
 
-  function handleNicknameEnd(): void {
+  async function handleNicknameEnd(): Promise<void> {
     const trimmed = nickname.trim();
     if (!trimmed) return;
     if (!/^[가-힣a-zA-Z0-9]+$/.test(trimmed)) {
@@ -105,8 +108,17 @@ export function OnboardingScreen() {
       setNicknameError("2자 이상 입력해 주세요");
       return;
     }
-    setNicknameError(null);
-    advance(1);
+    try {
+      await checkNickname(trimmed);
+      setNicknameError(null);
+      advance(1);
+    } catch (e) {
+      if (e instanceof ApiError && e.statusCode === 409) {
+        setNicknameError("이미 사용 중인 닉네임이에요");
+      } else {
+        setNicknameError("닉네임 확인 중 오류가 발생했어요");
+      }
+    }
   }
 
   function handleGenderSelect(value: Gender): void {
