@@ -9,18 +9,20 @@ import type { Coord } from '@mj-studio/react-native-naver-map';
  *
  * GeoJSON coordinates 순서: [longitude, latitude]
  */
-export function parseCoursePolyline(polyline: string | null | undefined): Coord[] {
+export function parseCoursePolyline(polyline: string | object | null | undefined): Coord[] {
   if (!polyline) return [];
   try {
-    const geojson = JSON.parse(polyline);
+    // API가 문자열로 줄 수도, 이미 파싱된 객체로 줄 수도 있음
+    const geojson = typeof polyline === 'string' ? JSON.parse(polyline) : polyline;
     if (geojson?.type === 'LineString' && Array.isArray(geojson.coordinates)) {
       return geojson.coordinates.map(([lng, lat]: [number, number]) => ({
         latitude: lat,
         longitude: lng,
       }));
     }
+    console.warn('[parseCoursePolyline] 예상과 다른 포맷:', JSON.stringify(geojson)?.slice(0, 100));
   } catch {
-    console.warn('[parseCoursePolyline] polyline 파싱 실패:', polyline?.slice(0, 100));
+    console.warn('[parseCoursePolyline] polyline 파싱 실패');
   }
   return [];
 }

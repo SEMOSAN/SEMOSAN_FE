@@ -335,8 +335,8 @@ export type CourseDetailResponse = {
   duration?: number;
   startName?: string;
   endName?: string;
-  polyline?: string | null;
-  altitudes?: string | null;
+  polyline?: string | object | null;
+  altitudes?: string | object | null;
 };
 export type NearbyMountainInfo = {
   mountainId?: number;
