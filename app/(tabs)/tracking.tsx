@@ -103,6 +103,8 @@ export default function TrackingScreen() {
     longitude: number;
     altitude: number | null;
   } | null>(null);
+  // 자유기록 실시간 경로 누적 (회색 polyline)
+  const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
   const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
@@ -115,8 +117,9 @@ export default function TrackingScreen() {
       console.warn('[SIM] 이미 실행 중');
       return;
     }
-    const coords = courseCoords;
-    console.log('[SIM] isFreeMode:', isFreeMode, 'courseCoords.length:', coords.length, 'sessionId:', sessionId);
+    // 자유기록이면 DEV 코스 좌표 사용, 코스 따라가기면 해당 코스 좌표 사용
+    const coords = isFreeMode ? devCourseCoords : courseCoords;
+    console.log('[SIM] isFreeMode:', isFreeMode, 'coords.length:', coords.length, 'sessionId:', sessionId);
     if (coords.length === 0) {
       console.warn('[SIM] 코스 좌표 없음 — courseDetail polyline 확인 필요');
       return;
@@ -137,10 +140,15 @@ export default function TrackingScreen() {
         altitude: 0,
         recordedAt: new Date().toISOString(),
       });
-      console.log(`[SIM] ${idx + 1}/${coords.length} (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`);
+      // 자유기록이면 경로도 지도에 표시
+      if (isFreeMode) {
+        setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
+      }
+      // 50개마다 한 번만 로그 출력
+      if (idx % 50 === 0) console.log(`[SIM] ${idx + 1}/${coords.length}`);
       idx++;
     }, 300); // 0.3초 간격 — 빠른 테스트용 (실제는 3~5초)
-  }, [sessionId, courseCoords, isFreeMode, publishGps]);
+  }, [sessionId, courseCoords, devCourseCoords, isFreeMode, publishGps]);
 
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
@@ -216,6 +224,7 @@ export default function TrackingScreen() {
         (loc) => {
           const { latitude, longitude, altitude } = loc.coords;
           setUserLocation({ latitude, longitude, altitude });
+          setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
           publishGps(sid, {
             lat: latitude,
             lng: longitude,
@@ -234,6 +243,12 @@ export default function TrackingScreen() {
   // [DEV] 관악산 polyline 테스트용 임시 하드코딩 — 확인 후 제거
   const DEV_TEST_COURSE_ID = 205;
   const { data: courseDetail } = useCourseDetail(isFreeMode ? null : (selectedCourseId_num ?? DEV_TEST_COURSE_ID));
+  // [DEV] 자유기록 시뮬용 — 항상 DEV 코스 좌표 로드
+  const { data: devCourseDetail } = useCourseDetail(DEV_TEST_COURSE_ID);
+  const devCourseCoords = useMemo(
+    () => parseCoursePolyline(devCourseDetail?.polyline),
+    [devCourseDetail?.polyline],
+  );
   const courseCoords = useMemo(
     () => parseCoursePolyline(courseDetail?.polyline),
     [courseDetail?.polyline],
@@ -304,6 +319,7 @@ export default function TrackingScreen() {
                 // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
                 connectSocket(sid);
                 // GPS watch 시작 — 3초/10m 간격으로 좌표 발행
+                setRecordedCoords([]); // 새 세션 시작 시 경로 초기화
                 Location.watchPositionAsync(
                   {
                     accuracy: Location.Accuracy.BestForNavigation,
@@ -313,6 +329,7 @@ export default function TrackingScreen() {
                   (loc) => {
                     const { latitude, longitude, altitude } = loc.coords;
                     setUserLocation({ latitude, longitude, altitude });
+                    setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
                     publishGps(sid, {
                       lat: latitude,
                       lng: longitude,
@@ -510,6 +527,7 @@ export default function TrackingScreen() {
     setSessionId(null);
     setPhotoWindow(null);
     setCollapsed(false);
+    setRecordedCoords([]);
   };
 
   // GPS로 정상 부근 감지 시 자동으로 정상 시트 표시
@@ -561,13 +579,57 @@ export default function TrackingScreen() {
             </>
           )}
 
-          {/* 현재 사용자 위치 마커 */}
-          {userLocation && (
+          {/* 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커 */}
+          {isFreeMode && recordedCoords.length > 0 && (
+            <>
+              {recordedCoords.length > 1 && (
+                <NaverMapPathOverlay
+                  coords={recordedCoords}
+                  width={6}
+                  color="#9CA3AF"
+                  outlineWidth={1}
+                  outlineColor="#6B7280"
+                />
+              )}
+              <NaverMapMarkerOverlay
+                latitude={recordedCoords[0].latitude}
+                longitude={recordedCoords[0].longitude}
+                caption={{ text: "출발" }}
+              />
+              <NaverMapMarkerOverlay
+                latitude={recordedCoords[recordedCoords.length - 1].latitude}
+                longitude={recordedCoords[recordedCoords.length - 1].longitude}
+                caption={{ text: "도착" }}
+              />
+            </>
+          )}
+
+          {/* 현재 사용자 위치 — 초록 원 마커 */}
+          {userLocation && isTracking && (
             <NaverMapMarkerOverlay
               latitude={userLocation.latitude}
               longitude={userLocation.longitude}
-              caption={{ text: "내 위치" }}
-            />
+              width={22}
+              height={22}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <View
+                collapsable={false}
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  backgroundColor: '#22C55E',
+                  borderWidth: 3,
+                  borderColor: '#FFFFFF',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 2,
+                  elevation: 3,
+                }}
+              />
+            </NaverMapMarkerOverlay>
           )}
         </NaverMapView>
 
