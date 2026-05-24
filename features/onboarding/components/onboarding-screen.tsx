@@ -4,7 +4,11 @@ import { LongButton } from "@/components/long-button";
 import { TextField } from "@/components/text-field";
 import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
-import { formatBirthDate, isValidBirthDate } from "@/utils/birth-date";
+import {
+  formatBirthDate,
+  isAtLeast14YearsOld,
+  isValidBirthDate,
+} from "@/utils/birth-date";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -34,18 +38,18 @@ export function OnboardingScreen() {
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
   const [nickname, setNickname] = useState("");
-  const [nicknameError, setNicknameError] = useState(false);
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
 
   const [gender, setGender] = useState<Gender | null>(null);
 
   const [birthDate, setBirthDate] = useState("");
-  const [birthDateError, setBirthDateError] = useState(false);
+  const [birthDateError, setBirthDateError] = useState<string | null>(null);
 
   const [height, setHeight] = useState("");
-  const [heightError, setHeightError] = useState(false);
+  const [heightError, setHeightError] = useState<string | null>(null);
 
   const [weight, setWeight] = useState("");
-  const [weightError, setWeightError] = useState(false);
+  const [weightError, setWeightError] = useState<string | null>(null);
 
   function advance(to: number): void {
     setStep((prev) => Math.max(prev, to));
@@ -83,11 +87,26 @@ export function OnboardingScreen() {
 
   function handleNicknameChange(text: string): void {
     setNickname(text);
-    setNicknameError(text.length > 0 && !/^[가-힣a-zA-Z0-9]+$/.test(text));
+    if (text.length > 0 && !/^[가-힣a-zA-Z0-9]+$/.test(text)) {
+      setNicknameError("한글, 영문, 숫자만 입력 가능해요");
+    } else {
+      setNicknameError(null);
+    }
   }
 
   function handleNicknameEnd(): void {
-    if (nickname.trim() && !nicknameError) advance(1);
+    const trimmed = nickname.trim();
+    if (!trimmed) return;
+    if (!/^[가-힣a-zA-Z0-9]+$/.test(trimmed)) {
+      setNicknameError("한글, 영문, 숫자만 입력 가능해요");
+      return;
+    }
+    if (trimmed.length < 2) {
+      setNicknameError("2자 이상 입력해 주세요");
+      return;
+    }
+    setNicknameError(null);
+    advance(1);
   }
 
   function handleGenderSelect(value: Gender): void {
@@ -98,7 +117,7 @@ export function OnboardingScreen() {
   function handleBirthDateChange(text: string): void {
     const formatted = formatBirthDate(text);
     setBirthDate(formatted);
-    if (birthDateError) setBirthDateError(false);
+    if (birthDateError) setBirthDateError(null);
     const digits = text.replace(/\D/g, "");
     if (digits.length === 8) Keyboard.dismiss();
   }
@@ -106,43 +125,52 @@ export function OnboardingScreen() {
   function handleBirthDateEnd(): void {
     if (!birthDate.trim()) return;
     if (!isValidBirthDate(birthDate)) {
-      setBirthDateError(true);
+      setBirthDateError("올바른 날짜를 입력해 주세요");
       return;
     }
-    setBirthDateError(false);
+    if (!isAtLeast14YearsOld(birthDate)) {
+      setBirthDateError("만 14세 이상만 가입할 수 있어요");
+      return;
+    }
+    setBirthDateError(null);
     advance(3);
   }
 
   function handleHeightChange(text: string): void {
     setHeight(text);
-    if (heightError) setHeightError(false);
+    if (heightError) setHeightError(null);
     if (text.length === 3) Keyboard.dismiss();
   }
 
   function handleHeightEnd(): void {
     if (!height.trim()) return;
-    if (Number(height) <= 0) {
-      setHeightError(true);
+    const val = Number(height);
+    if (val < 50 || val > 250) {
+      setHeightError("50cm ~ 250cm 사이로 입력해 주세요");
       return;
     }
-    setHeightError(false);
+    setHeightError(null);
     advance(4);
   }
 
   function handleWeightChange(text: string): void {
     setWeight(text);
-    if (weightError) setWeightError(false);
+    if (weightError) setWeightError(null);
     if (text.length >= 2) advance(5);
     if (text.length === 3) Keyboard.dismiss();
   }
 
   function handleWeightEnd(): void {
-    if (!weight.trim()) return;
-    if (Number(weight) <= 0) {
-      setWeightError(true);
+    if (!weight.trim()) {
+      setWeightError("체중을 입력해 주세요");
       return;
     }
-    setWeightError(false);
+    const val = Number(weight);
+    if (isNaN(val) || val < 20 || val > 300) {
+      setWeightError("20kg ~ 300kg 사이로 입력해 주세요");
+      return;
+    }
+    setWeightError(null);
     advance(5);
   }
 
@@ -210,7 +238,8 @@ export function OnboardingScreen() {
                 onChangeText={handleWeightChange}
                 placeholder="60"
                 suffix="kg"
-                error={weightError}
+                error={!!weightError}
+                description={weightError ?? undefined}
                 keyboardType="number-pad"
                 onEndEditing={handleWeightEnd}
               />
@@ -225,7 +254,8 @@ export function OnboardingScreen() {
                 onChangeText={handleHeightChange}
                 placeholder="170"
                 suffix="cm"
-                error={heightError}
+                error={!!heightError}
+                description={heightError ?? undefined}
                 keyboardType="number-pad"
                 onEndEditing={handleHeightEnd}
               />
@@ -239,7 +269,8 @@ export function OnboardingScreen() {
                 value={birthDate}
                 onChangeText={handleBirthDateChange}
                 placeholder="YYYY-MM-DD"
-                error={birthDateError}
+                error={!!birthDateError}
+                description={birthDateError ?? undefined}
                 keyboardType="number-pad"
                 onEndEditing={handleBirthDateEnd}
               />
@@ -286,8 +317,8 @@ export function OnboardingScreen() {
               value={nickname}
               onChangeText={handleNicknameChange}
               placeholder="닉네임을 입력해 주세요"
-              description="10자 이내의 한글, 영문, 숫자만 가능해요"
-              error={nicknameError}
+              description={nicknameError ?? "2자 이상 10자 이내의 한글, 영문, 숫자만 가능해요"}
+              error={!!nicknameError}
               maxLength={10}
               onEndEditing={handleNicknameEnd}
             />
@@ -295,7 +326,11 @@ export function OnboardingScreen() {
         </ScrollView>
 
         {/* 다음 버튼 */}
-        {step >= 5 && (
+        {step >= 5 &&
+          !nicknameError &&
+          !birthDateError &&
+          !heightError &&
+          !weightError && (
           <View className="px-5 pb-4 pt-3">
             <LongButton label="다음" onPress={handleSubmit} />
           </View>
