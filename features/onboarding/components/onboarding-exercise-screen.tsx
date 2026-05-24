@@ -1,28 +1,34 @@
 import { OptionButton } from "@/components/option-button";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
+import { RegisterOnboardingRequest } from "@/types/api.generated";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type HikingLevel = "EXPERT" | "EXPERIENCED" | "HOBBY" | "BEGINNER";
+type ExerciseType = RegisterOnboardingRequest["exerciseType"];
 
-const OPTIONS: { label: string; value: HikingLevel }[] = [
-  { label: "등산이 제 일상이에요 (숙련자)", value: "EXPERT" },
-  { label: "취미로 즐기는 편이에요 (경험자)", value: "EXPERIENCED" },
-  { label: "가끔 기분 전환으로 가요 (취미자)", value: "HOBBY" },
-  { label: "이제 막 시작했어요 (입문자)", value: "BEGINNER" },
+const OPTIONS: { label: string; value: ExerciseType }[] = [
+  { label: "헬스", value: "GYM" },
+  { label: "등산", value: "HIKING" },
+  { label: "러닝", value: "RUNNING" },
+  { label: "수영", value: "SWIMMING" },
+  { label: "홈트레이닝", value: "HOME_TRAINING" },
+  { label: "필라테스/요가", value: "PILATES_YOGA" },
+  { label: "스포츠 (배드민턴, 테니스, 축구 등)", value: "SPORTS" },
+  { label: "크로스핏", value: "CROSSFIT" },
+  { label: "운동 안 함", value: "NONE" },
 ];
 
-export function OnboardingHikingScreen(): React.JSX.Element {
+export function OnboardingExerciseScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
-  const setHikingLevel = useOnboardingStore((s) => s.setHikingLevel);
-  const [selected, setSelected] = useState<HikingLevel | null>(null);
+  const setExerciseType = useOnboardingStore((s) => s.setExerciseType);
+  const [selected, setSelected] = useState<ExerciseType | null>(null);
 
   function handleNext(): void {
     if (!selected) return;
-    setHikingLevel(selected);
-    router.push("/onboarding/exercise" as never);
+    setExerciseType(selected);
+    router.push("/onboarding/exercise-detail");
   }
 
   return (
@@ -32,12 +38,16 @@ export function OnboardingHikingScreen(): React.JSX.Element {
     >
       {/* 진행 바 */}
       <View className="h-1 w-full bg-fill-neutral">
-        <View className="h-1 w-2/4 bg-secondary-normal" />
+        <View className="h-1 w-3/4 bg-secondary-normal" />
       </View>
 
-      <View className="flex-1 px-5 pt-7">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-5 pt-7 pb-6"
+        keyboardShouldPersistTaps="handled"
+      >
         <Text className="text-label-normal typo-heading-1-semi-bold">
-          등산을 얼마나 자주 하시나요?
+          가장 즐겨하는 운동은 무엇인가요?
         </Text>
 
         <View className="mt-6 gap-[10px]">
@@ -50,7 +60,7 @@ export function OnboardingHikingScreen(): React.JSX.Element {
             />
           ))}
         </View>
-      </View>
+      </ScrollView>
 
       {selected !== null && (
         <View className="px-5 pb-4 pt-3">

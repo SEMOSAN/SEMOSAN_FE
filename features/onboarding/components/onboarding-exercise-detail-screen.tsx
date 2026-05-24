@@ -1,0 +1,166 @@
+import { OptionButton } from "@/components/option-button";
+import { useSubmitOnboardingFromStore } from "@/features/onboarding/hooks/use-submit-onboarding";
+import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
+import { toast } from "@/store/toast.store";
+import { RegisterOnboardingRequest } from "@/types/api.generated";
+import { router } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+type ExerciseDuration = NonNullable<
+  RegisterOnboardingRequest["exerciseDuration"]
+>;
+type ExerciseFrequency = NonNullable<
+  RegisterOnboardingRequest["exerciseFrequency"]
+>;
+type ExerciseType = RegisterOnboardingRequest["exerciseType"];
+
+const EXERCISE_LABELS: Record<ExerciseType, string> = {
+  GYM: "헬스",
+  HIKING: "등산",
+  RUNNING: "러닝",
+  SWIMMING: "수영",
+  HOME_TRAINING: "홈트레이닝",
+  PILATES_YOGA: "필라테스/요가",
+  SPORTS: "스포츠",
+  CROSSFIT: "크로스핏",
+  WALKING: "워킹",
+  NONE: "운동 안 함",
+};
+
+const DURATION_OPTIONS: { label: string; value: ExerciseDuration }[] = [
+  { label: "4시간 이상", value: "OVER_4H" },
+  { label: "2~4시간", value: "HOUR_2_4" },
+  { label: "1~2시간", value: "HOUR_1_2" },
+  { label: "1시간 미만", value: "UNDER_1H" },
+];
+
+const FREQUENCY_OPTIONS: { label: string; value: ExerciseFrequency }[] = [
+  { label: "거의 매일", value: "DAILY" },
+  { label: "주 3~4회", value: "WEEK_3_4" },
+  { label: "주 1~2회", value: "WEEK_1_2" },
+  { label: "월 1~2회", value: "MONTH_1_2" },
+  { label: "연 1~2회", value: "LESS_THAN_MONTH_1" },
+];
+
+export function OnboardingExerciseDetailScreen(): React.JSX.Element {
+  const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
+
+  const exerciseType = useOnboardingStore((s) => s.exerciseType);
+  const setExerciseDuration = useOnboardingStore((s) => s.setExerciseDuration);
+  const setExerciseFrequency = useOnboardingStore(
+    (s) => s.setExerciseFrequency,
+  );
+  const { submit, isPending } = useSubmitOnboardingFromStore();
+
+  const [selectedDuration, setSelectedDuration] =
+    useState<ExerciseDuration | null>(null);
+  const [selectedFrequency, setSelectedFrequency] =
+    useState<ExerciseFrequency | null>(null);
+
+  useEffect(() => {
+    if (selectedDuration !== null) {
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300);
+    }
+  }, [selectedDuration]);
+
+  async function handleStart(): Promise<void> {
+    if (!selectedDuration || !selectedFrequency) return;
+    setExerciseDuration(selectedDuration);
+    setExerciseFrequency(selectedFrequency);
+    try {
+      await submit();
+      router.replace("/(tabs)");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "";
+      if (message.includes("API Error: 409")) {
+        toast.show("이미 등록된 사용자입니다.");
+        router.replace("/(tabs)");
+      } else {
+        toast.show("잠시후 다시 시도해주십시오.");
+      }
+    }
+  }
+
+  const exerciseLabel = EXERCISE_LABELS[exerciseType];
+
+  return (
+    <View
+      className="flex-1 bg-fill-normal"
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+    >
+      {/* 진행 바 */}
+      <View className="h-1 w-full bg-fill-neutral">
+        <View className="h-1 w-full bg-secondary-normal" />
+      </View>
+
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1"
+        contentContainerClassName="px-5 pt-7 pb-6"
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* 헤더 */}
+        <View className="flex-row items-center gap-1">
+          <View className="rounded-[6px] bg-fill-stronger px-2 py-[2px]">
+            <Text className="text-label-normal typo-headline-1-semi-bold">
+              {exerciseLabel}
+            </Text>
+          </View>
+          <Text className="text-label-normal typo-heading-1-semi-bold">
+            루틴에 대해 궁금해요.
+          </Text>
+        </View>
+
+        {/* 섹션 1: 운동 빈도 */}
+        <View className="mt-8 gap-[10px]">
+          <Text className="text-label-normal typo-headline-1-semi-bold">
+            운동 빈도는 어떻게 되시나요?
+          </Text>
+          {DURATION_OPTIONS.map((option) => (
+            <OptionButton
+              key={option.value}
+              label={option.label}
+              selected={selectedDuration === option.value}
+              onPress={() => setSelectedDuration(option.value)}
+            />
+          ))}
+        </View>
+
+        {/* 섹션 2: 운동 시간 — 빈도 선택 후 노출 */}
+        {selectedDuration !== null && (
+          <View className="mt-8 gap-[10px]">
+            <Text className="text-label-normal typo-headline-1-semi-bold">
+              운동 시간은 어떻게 되시나요?
+            </Text>
+            {FREQUENCY_OPTIONS.map((option) => (
+              <OptionButton
+                key={option.value}
+                label={option.label}
+                selected={selectedFrequency === option.value}
+                onPress={() => setSelectedFrequency(option.value)}
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* 시작하기 버튼 — 두 섹션 모두 선택 시 노출 */}
+      {selectedDuration !== null && selectedFrequency !== null && (
+        <View className="px-5 pb-4 pt-3">
+          <Pressable
+            className="h-[52px] items-center justify-center rounded-[12px] bg-primary-normal"
+            onPress={handleStart}
+            disabled={isPending}
+          >
+            <Text className="text-label-normal-inverse typo-label-large">
+              시작하기
+            </Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  );
+}

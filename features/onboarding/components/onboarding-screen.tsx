@@ -2,6 +2,7 @@ import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { TextField } from "@/components/text-field";
 import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
+import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -143,19 +144,19 @@ export function OnboardingScreen() {
     advance(5);
   }
 
+  const setProfile = useOnboardingStore((s) => s.setProfile);
+
   function handleSubmit(): void {
-    router.push({
-      pathname: "/onboarding/hiking",
-      params: {
-        nickname: nickname.trim(),
-        profileUrl: profileImageUrl ?? "",
-        birthDate,
-        gender:
-          gender === "male" ? "MALE" : gender === "female" ? "FEMALE" : "NONE",
-        height,
-        weight,
-      },
+    setProfile({
+      nickname: nickname.trim(),
+      profileUrl: profileImageUrl ?? "",
+      birthDate,
+      gender:
+        gender === "male" ? "MALE" : gender === "female" ? "FEMALE" : "NONE",
+      height: Number(height),
+      weight: Number(weight),
     });
+    router.push("/onboarding/hiking");
   }
 
   return (
