@@ -14,7 +14,7 @@ export function OptionButton({
   align = "left",
   onPress,
   disabled,
-}: OptionButtonProps): React.JSX.Element {
+}: OptionButtonProps): React.ReactNode {
   return (
     <Pressable
       className={`rounded-[12px] border p-4 ${

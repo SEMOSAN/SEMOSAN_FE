@@ -1,18 +1,13 @@
 import { OptionButton } from "@/components/option-button";
+import {
+  HIKING_OPTIONS,
+  HikingLevel,
+} from "@/features/onboarding/constants/hiking";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-type HikingLevel = "EXPERT" | "EXPERIENCED" | "HOBBY" | "BEGINNER";
-
-const OPTIONS: { label: string; value: HikingLevel }[] = [
-  { label: "등산이 제 일상이에요 (숙련자)", value: "EXPERT" },
-  { label: "취미로 즐기는 편이에요 (경험자)", value: "EXPERIENCED" },
-  { label: "가끔 기분 전환으로 가요 (취미자)", value: "HOBBY" },
-  { label: "이제 막 시작했어요 (입문자)", value: "BEGINNER" },
-];
 
 export function OnboardingHikingScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -41,7 +36,7 @@ export function OnboardingHikingScreen(): React.JSX.Element {
         </Text>
 
         <View className="mt-6 gap-[10px]">
-          {OPTIONS.map((option) => (
+          {HIKING_OPTIONS.map((option) => (
             <OptionButton
               key={option.value}
               label={option.label}

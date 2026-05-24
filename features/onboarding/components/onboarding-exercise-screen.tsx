@@ -1,24 +1,13 @@
 import { OptionButton } from "@/components/option-button";
+import {
+  EXERCISE_OPTIONS,
+  ExerciseType,
+} from "@/features/onboarding/constants/exercise";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
-import { RegisterOnboardingRequest } from "@/types/api.generated";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-type ExerciseType = RegisterOnboardingRequest["exerciseType"];
-
-const OPTIONS: { label: string; value: ExerciseType }[] = [
-  { label: "헬스", value: "GYM" },
-  { label: "등산", value: "HIKING" },
-  { label: "러닝", value: "RUNNING" },
-  { label: "수영", value: "SWIMMING" },
-  { label: "홈트레이닝", value: "HOME_TRAINING" },
-  { label: "필라테스/요가", value: "PILATES_YOGA" },
-  { label: "스포츠 (배드민턴, 테니스, 축구 등)", value: "SPORTS" },
-  { label: "크로스핏", value: "CROSSFIT" },
-  { label: "운동 안 함", value: "NONE" },
-];
 
 export function OnboardingExerciseScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -51,7 +40,7 @@ export function OnboardingExerciseScreen(): React.JSX.Element {
         </Text>
 
         <View className="mt-6 gap-[10px]">
-          {OPTIONS.map((option) => (
+          {EXERCISE_OPTIONS.map((option) => (
             <OptionButton
               key={option.value}
               label={option.label}

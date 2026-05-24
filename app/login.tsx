@@ -73,7 +73,8 @@ export default function LoginScreen(): React.JSX.Element {
     if (Platform.OS === "web") {
       const value = window.prompt("testUserId를 입력하세요", "1");
       if (value === null) return;
-      const testUserId = parseInt(value, 10) || 1;
+      const parsed = parseInt(value, 10);
+      const testUserId = !isNaN(parsed) ? parsed : 1;
       testLoginAsync({ testUserId })
         .then((result) => {
           router.replace(
@@ -94,7 +95,8 @@ export default function LoginScreen(): React.JSX.Element {
         {
           text: "로그인",
           onPress: async (value: string | undefined) => {
-            const testUserId = parseInt(value ?? "1", 10) || 1;
+            const parsed = parseInt(value ?? "", 10);
+            const testUserId = !isNaN(parsed) ? parsed : 1;
             try {
               const result = await testLoginAsync({ testUserId });
               router.replace(

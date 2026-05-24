@@ -16,6 +16,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { formatBirthDate, isValidBirthDate } from "@/utils/birth-date";
 
 type Gender = "female" | "male";
 
@@ -25,6 +26,8 @@ export function OnboardingScreen() {
   const birthDateRef = useRef<TextInput>(null);
   const heightRef = useRef<TextInput>(null);
   const weightRef = useRef<TextInput>(null);
+
+  const setProfile = useOnboardingStore((s) => s.setProfile);
 
   const [step, setStep] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
@@ -60,17 +63,21 @@ export function OnboardingScreen() {
   }, [step]);
 
   async function handleProfileImagePress(): Promise<void> {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-    if (result.canceled) return;
-    const asset = result.assets[0];
-    const filename = asset.uri.split("/").pop() ?? "profile.jpg";
-    const url = await uploadImage(asset.uri, filename);
-    setProfileImageUrl(url);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (result.canceled) return;
+      const asset = result.assets[0];
+      const filename = asset.uri.split("/").pop() ?? "profile.jpg";
+      const url = await uploadImage(asset.uri, filename);
+      setProfileImageUrl(url);
+    } catch (e: unknown) {
+      console.error("Profile image upload error:", e);
+    }
   }
 
   function handleNicknameChange(text: string): void {
@@ -88,22 +95,16 @@ export function OnboardingScreen() {
   }
 
   function handleBirthDateChange(text: string): void {
-    const digits = text.replace(/\D/g, "").slice(0, 8);
-    let formatted = digits;
-    if (digits.length > 4) {
-      formatted = `${digits.slice(0, 4)}-${digits.slice(4)}`;
-    }
-    if (digits.length > 6) {
-      formatted = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
-    }
+    const formatted = formatBirthDate(text);
     setBirthDate(formatted);
     if (birthDateError) setBirthDateError(false);
+    const digits = text.replace(/\D/g, "");
     if (digits.length === 8) Keyboard.dismiss();
   }
 
   function handleBirthDateEnd(): void {
     if (!birthDate.trim()) return;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate.trim())) {
+    if (!isValidBirthDate(birthDate)) {
       setBirthDateError(true);
       return;
     }
@@ -143,8 +144,6 @@ export function OnboardingScreen() {
     setWeightError(false);
     advance(5);
   }
-
-  const setProfile = useOnboardingStore((s) => s.setProfile);
 
   function handleSubmit(): void {
     setProfile({
