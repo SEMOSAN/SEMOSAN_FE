@@ -103,6 +103,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     }));
 
     const sheetHeight = useSharedValue(SNAP_DEFAULT);
+    // TODO: 다녀온 산 API 연동 전 임시 빈 배열
+    const visitedCards: never[] = [];
 
     const locationButtonStyle = useAnimatedStyle(() => ({
       bottom: sheetHeight.value + 12,
