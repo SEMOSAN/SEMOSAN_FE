@@ -73,7 +73,7 @@ export function VisitedMarker({ name, visitCount, imageUri, flagColor = '#00D864
             suffix={visitCount}
             nameColor={selected ? '#ffffff' : '#464A57'}
             suffixColor={selected ? '#A4ABC0' : '#BFC4D1'}
-            style={[styles.textBox, selected && { backgroundColor: SELECTED_BG }]}
+            style={[styles.textBox, selected ? { backgroundColor: SELECTED_BG } : undefined]}
           />
         </View>
       </View>

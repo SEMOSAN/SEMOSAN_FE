@@ -35,12 +35,12 @@ export default function LoginScreen(): React.JSX.Element {
         .filter(Boolean)
         .join("");
 
-      await appleLoginAsync({
+      const result = await appleLoginAsync({
         identityToken,
         name,
         deviceType: Platform.OS.toUpperCase() as "IOS" | "ANDROID",
       });
-      router.replace("/(tabs)");
+      router.replace(result.onboardingCompleted ? "/(tabs)" : "/onboarding");
     } catch (e: unknown) {
       if (
         e instanceof Error &&
@@ -62,14 +62,31 @@ export default function LoginScreen(): React.JSX.Element {
       return;
     }
     try {
-      await kakaoLoginAsync();
-      router.replace("/(tabs)");
+      const result = await kakaoLoginAsync();
+      router.replace(result.onboardingCompleted ? "/(tabs)" : "/onboarding");
     } catch (e: unknown) {
       console.error("Kakao login error:", e);
     }
   }
 
   function handleTestLogin(): void {
+    if (Platform.OS === "web") {
+      const value = window.prompt("testUserId를 입력하세요", "1");
+      if (value === null) return;
+      const parsed = parseInt(value, 10);
+      const testUserId = !isNaN(parsed) ? parsed : 1;
+      testLoginAsync({ testUserId })
+        .then((result) => {
+          router.replace(
+            result.onboardingCompleted ? "/(tabs)" : "/onboarding",
+          );
+        })
+        .catch((e: unknown) => {
+          console.error("Test login error:", e);
+        });
+      return;
+    }
+
     Alert.prompt(
       "테스트 로그인",
       "testUserId를 입력하세요",
@@ -78,10 +95,13 @@ export default function LoginScreen(): React.JSX.Element {
         {
           text: "로그인",
           onPress: async (value: string | undefined) => {
-            const testUserId = parseInt(value ?? "1", 10) || 1;
+            const parsed = parseInt(value ?? "", 10);
+            const testUserId = !isNaN(parsed) ? parsed : 1;
             try {
-              await testLoginAsync({ testUserId });
-              router.replace("/(tabs)");
+              const result = await testLoginAsync({ testUserId });
+              router.replace(
+                result.onboardingCompleted ? "/(tabs)" : "/onboarding",
+              );
             } catch (e: unknown) {
               console.error("Test login error:", e);
             }

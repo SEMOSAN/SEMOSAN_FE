@@ -205,11 +205,7 @@ const styles = StyleSheet.create({
     left: 154,
   },
   shadowBtn: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    boxShadow: '0px 2px 2px 0px rgba(0, 0, 0, 0.1)',
   },
   crosshairBtn: {
     width: 48,
@@ -217,11 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: '#D1D5DB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
+    boxShadow: '0px 2px 4px 0px rgba(0, 0, 0, 0.15)',
   },
   locationButton: {
     position: 'absolute',
