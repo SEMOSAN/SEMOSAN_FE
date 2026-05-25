@@ -19,6 +19,9 @@ export function useDeleteComment(postId: number, parentCommentId?: number) {
           queryKey: [ENDPOINTS.COMMUNITY_POSTS_BY_POSTID_COMMENTS(postId)],
         });
       }
+      queryClient.invalidateQueries({
+        queryKey: [ENDPOINTS.COMMUNITY_FREE_POSTS_BY_POSTID(postId)],
+      });
     },
   });
 }

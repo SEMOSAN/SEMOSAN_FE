@@ -1,15 +1,16 @@
 import { ChatIcon } from "@/components/icons/chat-icon";
 import { DotsThreeIcon } from "@/components/icons/dots-three-icon";
+import { HeartIcon } from "@/components/icons/heart-icon";
 import { SirenIcon } from "@/components/icons/siren-icon";
 import { TrashIcon } from "@/components/icons/trash-icon";
 import { UserBlockIcon } from "@/components/icons/user-block-icon";
-import { HeartIcon } from "@/components/icons/heart-icon";
 import { useTogglePostLike } from "@/features/community/hooks/use-post-like";
 import { FreePostDetailResponse } from "@/types/api.generated";
 import { useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
+  Image,
   Modal,
   Pressable,
   Text,
@@ -29,15 +30,18 @@ type PostBodyProps = {
   onDelete?: () => void;
 };
 
-export function PostBody({ post, currentUserNickname, onDelete }: PostBodyProps) {
+export function PostBody({
+  post,
+  currentUserNickname,
+  onDelete,
+}: PostBodyProps) {
   const { mutate: toggleLike } = useTogglePostLike(post.id!);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<View>(null);
 
   const isAuthor =
-    !!currentUserNickname &&
-    post.author?.nickname === currentUserNickname;
+    !!currentUserNickname && post.author?.nickname === currentUserNickname;
 
   function handleMenuPress(): void {
     buttonRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
@@ -81,12 +85,19 @@ export function PostBody({ post, currentUserNickname, onDelete }: PostBodyProps)
     <View className="gap-3 px-5 py-4">
       <View className="flex-row items-center gap-2">
         <View className="flex-1 flex-row items-center gap-2">
-          <View className="size-10 rounded-full bg-fill-strong" />
+          {post.author?.profileUrl ? (
+            <Image
+              source={{ uri: post.author.profileUrl }}
+              className="size-10 rounded-full"
+            />
+          ) : (
+            <View className="size-10 rounded-full bg-fill-strong" />
+          )}
           <View>
-            <Text className="typo-body-2-normal-semi-bold text-label-normal">
+            <Text className="text-label-normal typo-body-2-normal-semi-bold">
               {post.author?.nickname ?? ""}
             </Text>
-            <Text className="typo-caption-1-regular text-label-subtler">
+            <Text className="text-label-subtler typo-caption-1-regular">
               {formatDate(post.createdAt)}
             </Text>
           </View>
@@ -99,10 +110,10 @@ export function PostBody({ post, currentUserNickname, onDelete }: PostBodyProps)
       </View>
 
       <View className="gap-2">
-        <Text className="typo-body-1-normal-semi-bold text-label-normal">
+        <Text className="text-label-normal typo-body-1-normal-semi-bold">
           {post.title}
         </Text>
-        <Text className="typo-body-2-reading-regular text-label-subtle">
+        <Text className="text-label-subtle typo-body-2-reading-regular">
           {post.content}
         </Text>
       </View>
@@ -114,13 +125,13 @@ export function PostBody({ post, currentUserNickname, onDelete }: PostBodyProps)
           hitSlop={8}
         >
           <HeartIcon size={20} color="#464a57" />
-          <Text className="typo-body-1-normal-medium text-label-subtle">
+          <Text className="text-label-subtle typo-body-1-normal-medium">
             {post.likeCount ?? 0}
           </Text>
         </Pressable>
         <View className="flex-row items-center gap-1">
           <ChatIcon size={20} color="#464a57" />
-          <Text className="typo-body-1-normal-medium text-label-subtle">
+          <Text className="text-label-subtle typo-body-1-normal-medium">
             {post.commentCount ?? 0}
           </Text>
         </View>
@@ -155,71 +166,82 @@ export function PostBody({ post, currentUserNickname, onDelete }: PostBodyProps)
               <Pressable
                 onPress={handleDelete}
                 style={({ pressed }) => ({
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 4,
-                  paddingHorizontal: 2,
                   opacity: pressed ? 0.7 : 1,
+                  paddingHorizontal: 2,
                 })}
               >
-                <TrashIcon size={16} color="#ff5249" />
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: "600",
-                    color: "#ff5249",
-                    lineHeight: 19.5,
-                  }}
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
                 >
-                  삭제하기
-                </Text>
+                  <TrashIcon size={16} color="#ff5249" />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "600",
+                      color: "#ff5249",
+                      lineHeight: 19.5,
+                    }}
+                  >
+                    삭제하기
+                  </Text>
+                </View>
               </Pressable>
             ) : (
               <>
                 <Pressable
                   onPress={handleReport}
                   style={({ pressed }) => ({
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 4,
-                    paddingHorizontal: 2,
                     opacity: pressed ? 0.7 : 1,
+                    paddingHorizontal: 2,
                   })}
                 >
-                  <SirenIcon size={16} color="#73798c" />
-                  <Text
+                  <View
                     style={{
-                      fontSize: 13,
-                      fontWeight: "600",
-                      color: "#73798c",
-                      lineHeight: 19.5,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
                     }}
                   >
-                    신고하기
-                  </Text>
+                    <SirenIcon size={16} color="#73798c" />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "600",
+                        color: "#73798c",
+                        lineHeight: 19.5,
+                      }}
+                    >
+                      신고하기
+                    </Text>
+                  </View>
                 </Pressable>
                 <View style={{ height: 1, backgroundColor: "#f0f0f0" }} />
                 <Pressable
                   onPress={handleBlock}
                   style={({ pressed }) => ({
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 4,
-                    paddingHorizontal: 2,
                     opacity: pressed ? 0.7 : 1,
+                    paddingHorizontal: 2,
                   })}
                 >
-                  <UserBlockIcon size={16} color="#73798c" />
-                  <Text
+                  <View
                     style={{
-                      fontSize: 13,
-                      fontWeight: "600",
-                      color: "#73798c",
-                      lineHeight: 19.5,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
                     }}
                   >
-                    차단하기
-                  </Text>
+                    <UserBlockIcon size={16} color="#73798c" />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "600",
+                        color: "#73798c",
+                        lineHeight: 19.5,
+                      }}
+                    >
+                      차단하기
+                    </Text>
+                  </View>
                 </Pressable>
               </>
             )}

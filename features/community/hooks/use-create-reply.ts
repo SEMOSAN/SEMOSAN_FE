@@ -20,6 +20,9 @@ export function useCreateReply(postId: number) {
       queryClient.invalidateQueries({
         queryKey: [ENDPOINTS.COMMUNITY_COMMENTS_BY_COMMENTID_REPLIES(parentId)],
       });
+      queryClient.invalidateQueries({
+        queryKey: [ENDPOINTS.COMMUNITY_FREE_POSTS_BY_POSTID(postId)],
+      });
     },
   });
 }
