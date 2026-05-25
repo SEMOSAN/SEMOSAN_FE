@@ -1,5 +1,4 @@
 import { ChatIcon } from "@/components/icons/chat-icon";
-import { EyeIcon } from "@/components/icons/eye-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
 import { FreePostListResponse } from "@/types/api.generated";
 import { useRouter } from "expo-router";
@@ -13,7 +12,7 @@ function formatDate(iso?: string): string {
 }
 
 export function PostItem({ post }: { post: FreePostListResponse }) {
-  const hasImage = !!post.representativeImageUrl;
+  const hasImage = !!post.thumbnailUrl;
   const router = useRouter();
   return (
     <Pressable
@@ -36,14 +35,13 @@ export function PostItem({ post }: { post: FreePostListResponse }) {
               {post.contentPreview}
             </Text>
           </View>
-          {hasImage && <Thumbnail imageUrl={post.representativeImageUrl!} />}
+          {hasImage && <Thumbnail imageUrl={post.thumbnailUrl!} />}
         </View>
         <View className="flex-row items-center justify-between">
           <Text className="text-label-subtler typo-caption-1-regular">
             {formatDate(post.createdAt)}
           </Text>
           <View className="flex-row gap-3">
-            <StatItem icon={<EyeIcon />} count={post.viewCount ?? 0} />
             <StatItem
               icon={<HeartIcon size={14} color="#73798c" />}
               count={post.likeCount ?? 0}

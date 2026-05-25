@@ -40,7 +40,12 @@ export function FreeBoardDetailScreen({ postId }: FreeBoardDetailScreenProps) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {post && <PostBody post={post} />}
+          {post && (
+              <PostBody
+                post={post}
+                currentUserNickname={profile?.nickname}
+              />
+            )}
           <View className="h-[6px] bg-fill-strong" />
           <CommentList
             postId={postId}
