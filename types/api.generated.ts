@@ -228,6 +228,7 @@ export type CommentResponse = {
   parentId?: number;
   mentionedUser?: AuthorResponse;
   createdAt?: string;
+  isDeleted?: boolean;
 };
 export type CommentReplyRequest = {
   parentId: number;
