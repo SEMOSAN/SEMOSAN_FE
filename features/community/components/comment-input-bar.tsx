@@ -2,7 +2,7 @@ import { CloseSmallIcon } from "@/components/icons/close-small-icon";
 import { PaperPlaneIcon } from "@/components/icons/paper-plane-icon";
 import { useCreateComment } from "@/features/community/hooks/use-create-comment";
 import { useCreateReply } from "@/features/community/hooks/use-create-reply";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -24,7 +24,14 @@ export function CommentInputBar({
   onReplyCancel,
 }: CommentInputBarProps) {
   const insets = useSafeAreaInsets();
+  const inputRef = useRef<TextInput>(null);
   const [text, setText] = useState("");
+
+  useEffect(() => {
+    if (replyTarget) {
+      inputRef.current?.focus();
+    }
+  }, [replyTarget]);
   const { mutateAsync: createComment, isPending: isCreatingComment } =
     useCreateComment(postId);
   const { mutateAsync: createReply, isPending: isCreatingReply } =
@@ -60,6 +67,7 @@ export function CommentInputBar({
       )}
       <View className="flex-row items-end gap-2 rounded-[24px] bg-fill-strong py-2 pl-4 pr-[10px]">
         <TextInput
+          ref={inputRef}
           className="flex-1 py-[3px] text-label-normal typo-body-1-reading-regular"
           placeholder={replyTarget ? "답글을 입력하세요" : "댓글을 입력하세요"}
           placeholderTextColor="#8b92a6"

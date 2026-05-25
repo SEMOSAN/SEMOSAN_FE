@@ -49,7 +49,11 @@ export function ImageUploadButton({ value, onChange }: ImageUploadButtonProps) {
   }
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    <ScrollView
+      className="pt-4"
+      horizontal
+      showsHorizontalScrollIndicator={false}
+    >
       <View className="flex-row items-center gap-2">
         {value.length < MAX_IMAGES && (
           <Pressable
@@ -82,7 +86,7 @@ export function ImageUploadButton({ value, onChange }: ImageUploadButtonProps) {
                 className="absolute bottom-0 left-0 right-0 items-center justify-center rounded-b-lg py-0.5"
                 style={{ backgroundColor: "#2f323a" }}
               >
-                <Text className="text-base-00 typo-caption-1-medium">
+                <Text className="text-label-normal-inverse typo-caption-1-medium">
                   대표 사진
                 </Text>
               </View>

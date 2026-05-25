@@ -1,6 +1,6 @@
 import { ChatIcon } from "@/components/icons/chat-icon";
 import { DotsThreeIcon } from "@/components/icons/dots-three-icon";
-import { HeartIcon } from "@/components/icons/heart-icon";
+import { HeartFilledIcon, HeartIcon } from "@/components/icons/heart-icon";
 import { SirenIcon } from "@/components/icons/siren-icon";
 import { TrashIcon } from "@/components/icons/trash-icon";
 import { useTogglePostLike } from "@/features/community/hooks/use-post-like";
@@ -16,6 +16,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { PostAvatar } from "./post-avatar";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -31,6 +32,7 @@ export function PostBody({
   onDelete,
 }: PostBodyProps) {
   const { mutate: toggleLike } = useTogglePostLike(post.id!);
+  const [liked, setLiked] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<View>(null);
@@ -86,7 +88,7 @@ export function PostBody({
               className="size-10 rounded-full"
             />
           ) : (
-            <View className="size-10 rounded-full bg-fill-strong" />
+            <PostAvatar size="lg" />
           )}
           <View>
             <Text className="text-label-normal typo-body-2-normal-semi-bold">
@@ -116,10 +118,14 @@ export function PostBody({
       <View className="flex-row gap-3">
         <Pressable
           className="flex-row items-center gap-1"
-          onPress={() => toggleLike()}
+          onPress={() =>
+            toggleLike(undefined, {
+              onSuccess: (res) => setLiked(res.data.liked),
+            })
+          }
           hitSlop={8}
         >
-          <HeartIcon size={20} color="#464a57" />
+          {liked ? <HeartFilledIcon size={20} /> : <HeartIcon size={20} color="#464a57" />}
           <Text className="text-label-subtle typo-body-1-normal-medium">
             {post.likeCount ?? 0}
           </Text>

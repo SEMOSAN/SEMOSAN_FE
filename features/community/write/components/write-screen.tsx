@@ -1,4 +1,7 @@
 import { IOSKeyboardAccessoryToolbar } from "@/components/ios-keyboard-accessory-toolbar";
+import { toast } from "@/store/toast.store";
+import { ENDPOINTS } from "@/types/api.generated";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -20,6 +23,7 @@ const TITLE_TOOLBAR_ID = "write-title-toolbar";
 const BODY_TOOLBAR_ID = "write-body-toolbar";
 
 export function WriteScreen() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { top, bottom } = useSafeAreaInsets();
   const { title, setTitle, body, setBody, isSubmittable } = useWriteForm();
@@ -33,6 +37,10 @@ export function WriteScreen() {
       imageUrls,
       mainImageIndex: imageUrls.length > 0 ? 0 : undefined,
     });
+    queryClient.invalidateQueries({
+      queryKey: [ENDPOINTS.COMMUNITY_FREE_POSTS],
+    });
+    toast.show("게시글을 업로드했어요.");
     router.back();
   }
 
@@ -79,7 +87,7 @@ export function WriteScreen() {
 
         <View className="h-[6px] bg-fill-strong" />
 
-        <View className="px-5 py-4">
+        <View className="px-5 pb-4">
           <ImageUploadButton value={imageUrls} onChange={setImageUrls} />
         </View>
       </ScrollView>
@@ -92,12 +100,16 @@ export function WriteScreen() {
           disabled={!isSubmittable || isPending}
           onPress={handleSubmit}
           className={`h-14 items-center justify-center rounded-xl ${
-            isSubmittable && !isPending ? "bg-primary-normal" : "bg-fill-disabled"
+            isSubmittable && !isPending
+              ? "bg-primary-normal"
+              : "bg-fill-disabled"
           }`}
         >
           <Text
             className={`typo-label-large ${
-              isSubmittable && !isPending ? "text-common-100" : "text-label-disabled"
+              isSubmittable && !isPending
+                ? "text-common-100"
+                : "text-label-disabled"
             }`}
           >
             완료
