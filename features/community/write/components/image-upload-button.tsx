@@ -14,12 +14,12 @@ import {
 
 const MAX_IMAGES = 10;
 
-type Props = {
+type ImageUploadButtonProps = {
   value: string[];
   onChange: (urls: string[]) => void;
 };
 
-export function ImageUploadButton({ value, onChange }: Props) {
+export function ImageUploadButton({ value, onChange }: ImageUploadButtonProps) {
   const [isUploading, setIsUploading] = useState(false);
 
   async function handlePress(): Promise<void> {
@@ -27,22 +27,18 @@ export function ImageUploadButton({ value, onChange }: Props) {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsMultipleSelection: true,
-      selectionLimit: MAX_IMAGES - value.length,
+      allowsMultipleSelection: false,
       quality: 0.8,
     });
 
     if (result.canceled) return;
 
+    const asset = result.assets[0];
     setIsUploading(true);
     try {
-      const urls = await Promise.all(
-        result.assets.map((asset) => {
-          const filename = asset.uri.split("/").pop() ?? "image.jpg";
-          return uploadImage(asset.uri, filename);
-        }),
-      );
-      onChange([...value, ...urls]);
+      const filename = asset.uri.split("/").pop() ?? "image.jpg";
+      const url = await uploadImage(asset.uri, filename);
+      onChange([...value, url]);
     } finally {
       setIsUploading(false);
     }
@@ -54,23 +50,7 @@ export function ImageUploadButton({ value, onChange }: Props) {
 
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      <View className="flex-row gap-2">
-        {value.map((url, index) => (
-          <View key={url} className="relative size-16">
-            <Image
-              source={{ uri: url }}
-              className="size-16 rounded-lg"
-              resizeMode="cover"
-            />
-            <Pressable
-              onPress={() => handleRemove(index)}
-              className="absolute -right-1 -top-1 size-5 items-center justify-center rounded-full bg-label-normal"
-            >
-              <CloseSmallIcon size={12} color="#ffffff" />
-            </Pressable>
-          </View>
-        ))}
-
+      <View className="flex-row items-center gap-2">
         {value.length < MAX_IMAGES && (
           <Pressable
             onPress={handlePress}
@@ -82,13 +62,39 @@ export function ImageUploadButton({ value, onChange }: Props) {
             ) : (
               <>
                 <CameraIcon color="#73798c" />
-                <Text className="text-label-subtler typo-caption-1-regular">
-                  {value.length}/{MAX_IMAGES}
+                <Text className="text-label-subtler typo-caption-1-medium">
+                  업로드
                 </Text>
               </>
             )}
           </Pressable>
         )}
+
+        {value.map((url, index) => (
+          <View key={url} className="relative size-16">
+            <Image
+              source={{ uri: url }}
+              className="size-16 rounded-lg"
+              resizeMode="cover"
+            />
+            {index === 0 && (
+              <View
+                className="absolute bottom-0 left-0 right-0 items-center justify-center rounded-b-lg py-0.5"
+                style={{ backgroundColor: "#2f323a" }}
+              >
+                <Text className="text-base-00 typo-caption-1-medium">
+                  대표 사진
+                </Text>
+              </View>
+            )}
+            <Pressable
+              onPress={() => handleRemove(index)}
+              className="absolute -right-1 -top-2 size-5 items-center justify-center rounded-full bg-label-normal"
+            >
+              <CloseSmallIcon size={10} color="#ffffff" />
+            </Pressable>
+          </View>
+        ))}
       </View>
     </ScrollView>
   );

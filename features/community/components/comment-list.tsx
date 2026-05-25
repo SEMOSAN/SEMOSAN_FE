@@ -5,7 +5,7 @@ import { CommentItem } from "./comment-item";
 type CommentListProps = {
   postId: number;
   currentUserNickname?: string;
-  onReplyPress: (commentId: number, authorName: string) => void;
+  onReplyPress: (commentId: number, authorId: number, authorName: string) => void;
 };
 
 export function CommentList({

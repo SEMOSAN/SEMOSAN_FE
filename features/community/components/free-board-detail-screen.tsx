@@ -12,6 +12,7 @@ import { PostDetailHeader } from "./post-detail-header";
 
 type ReplyTarget = {
   commentId: number;
+  authorId: number;
   authorName: string;
 };
 
@@ -28,8 +29,8 @@ export function FreeBoardDetailScreen({ postId }: FreeBoardDetailScreenProps) {
   const { data: profile } = useProfile();
   const { mutate: deletePost } = useDeletePost(postId);
 
-  function handleReplyPress(commentId: number, authorName: string): void {
-    setReplyTarget({ commentId, authorName });
+  function handleReplyPress(commentId: number, authorId: number, authorName: string): void {
+    setReplyTarget({ commentId, authorId, authorName });
   }
 
   function handleDeletePost(): void {

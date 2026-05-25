@@ -1,15 +1,11 @@
 import { ChatIcon } from "@/components/icons/chat-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
+import { formatDate } from "@/lib/utils";
 import { FreePostListResponse } from "@/types/api.generated";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { StatItem } from "./stat-item";
 import { Thumbnail } from "./thumbnail";
-
-function formatDate(iso?: string): string {
-  if (!iso) return "";
-  return iso.slice(0, 10).replace(/-/g, ".");
-}
 
 export function PostItem({ post }: { post: FreePostListResponse }) {
   const hasImage = !!post.thumbnailUrl;

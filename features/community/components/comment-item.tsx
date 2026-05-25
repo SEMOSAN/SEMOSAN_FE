@@ -1,13 +1,9 @@
 import { useCommentReplies } from "@/features/community/hooks/use-comment-replies";
 import { useDeleteComment } from "@/features/community/hooks/use-delete-comment";
+import { formatDate } from "@/lib/utils";
 import { CommentResponse } from "@/types/api.generated";
 import { Alert, Pressable, Text, View } from "react-native";
 import { PostAvatar } from "./post-avatar";
-
-function formatDate(iso?: string): string {
-  if (!iso) return "";
-  return iso.slice(0, 10).replace(/-/g, ".");
-}
 
 function confirmDelete(onConfirm: () => void): void {
   Alert.alert("댓글 삭제", "삭제하시겠습니까?", [
@@ -21,7 +17,7 @@ type ReplyItemProps = {
   postId: number;
   parentCommentId: number;
   currentUserNickname?: string;
-  onReplyPress: (commentId: number, authorName: string) => void;
+  onReplyPress: (commentId: number, authorId: number, authorName: string) => void;
 };
 
 function ReplyItem({
@@ -54,7 +50,7 @@ function ReplyItem({
           <Pressable
             hitSlop={8}
             onPress={() =>
-              onReplyPress(parentCommentId, reply.author?.nickname ?? "")
+              onReplyPress(parentCommentId, reply.author?.id ?? 0, reply.author?.nickname ?? "")
             }
           >
             <Text className="text-neutral-500 typo-label-small">답글 달기</Text>
@@ -74,7 +70,7 @@ type CommentItemProps = {
   comment: CommentResponse;
   postId: number;
   currentUserNickname?: string;
-  onReplyPress: (commentId: number, authorName: string) => void;
+  onReplyPress: (commentId: number, authorId: number, authorName: string) => void;
 };
 
 export function CommentItem({
@@ -108,7 +104,7 @@ export function CommentItem({
             <Pressable
               hitSlop={8}
               onPress={() =>
-                onReplyPress(comment.id!, comment.author?.nickname ?? "")
+                onReplyPress(comment.id!, comment.author?.id ?? 0, comment.author?.nickname ?? "")
               }
             >
               <Text className="text-neutral-500 typo-label-small">

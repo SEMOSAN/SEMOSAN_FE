@@ -4,6 +4,7 @@ import { HeartIcon } from "@/components/icons/heart-icon";
 import { SirenIcon } from "@/components/icons/siren-icon";
 import { TrashIcon } from "@/components/icons/trash-icon";
 import { useTogglePostLike } from "@/features/community/hooks/use-post-like";
+import { formatDate } from "@/lib/utils";
 import { FreePostDetailResponse } from "@/types/api.generated";
 import { useRef, useState } from "react";
 import {
@@ -17,11 +18,6 @@ import {
 } from "react-native";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
-
-function formatDate(iso?: string): string {
-  if (!iso) return "";
-  return iso.slice(0, 10).replace(/-/g, ".");
-}
 
 type PostBodyProps = {
   post: FreePostDetailResponse;
@@ -77,14 +73,6 @@ export function PostBody({
           ),
       })),
       { text: "취소", style: "cancel" as const },
-    ]);
-  }
-
-  function handleBlock(): void {
-    setMenuVisible(false);
-    Alert.alert("차단하기", "이 사용자를 차단하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      { text: "차단", style: "destructive", onPress: () => {} },
     ]);
   }
 

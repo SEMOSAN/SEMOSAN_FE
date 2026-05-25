@@ -11,5 +11,6 @@ export function useCommentReplies(commentId: number) {
       });
       return res.data;
     },
+    enabled: !!commentId,
   });
 }

@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ReplyTarget = {
   commentId: number;
+  authorId: number;
   authorName: string;
 };
 
@@ -34,7 +35,7 @@ export function CommentInputBar({
   async function handleSubmit(): Promise<void> {
     if (!text.trim() || isPending) return;
     if (replyTarget) {
-      await createReply({ parentId: replyTarget.commentId, content: text.trim() });
+      await createReply({ parentId: replyTarget.commentId, mentionedUserId: replyTarget.authorId, content: text.trim() });
       onReplyCancel();
     } else {
       await createComment(text.trim());
