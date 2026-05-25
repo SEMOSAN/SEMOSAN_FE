@@ -10,7 +10,6 @@ import { MountainBookmarkButton } from "@/features/mountains/components/mountain
 import { DIFFICULTY_LABEL } from "@/features/mountains/components/mountain-card";
 import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
-import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
@@ -30,12 +29,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabKey = "코스" | "교통 정보" | "편의시설" | "주변 맛집" | "등산 후기";
 const TABS: TabKey[] = [
-  // TODO : 코스 API 추가시 연동
-  // "코스",
+  "코스",
   "교통 정보",
   "편의시설",
-  // "주변 맛집",
-  // "등산 후기",
+  "주변 맛집",
+  "등산 후기",
 ];
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -98,11 +96,6 @@ function ImageCarousel({
 export default function MountainDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
-  // TODO: 상세 API에 위도/경도 추가되면 제거
-  const { data: mountainsData } = useMountains({ size: 1000 });
-  const mountainCoords = mountainsData?.content?.find(
-    (m) => m.mountainId === Number(id),
-  );
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabKey>("교통 정보");
@@ -114,6 +107,15 @@ export default function MountainDetailScreen() {
       </View>
     );
   if (isError) return null;
+
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab === "코스") return !!data.courses?.length;
+    if (tab === "교통 정보") return !!data.transportations;
+    if (tab === "편의시설") return !!data.amenities;
+    if (tab === "주변 맛집") return !!data.restaurantSections?.length;
+    if (tab === "등산 후기") return !!data.reviews?.length;
+    return true;
+  });
 
   return (
     <>
@@ -131,15 +133,21 @@ export default function MountainDetailScreen() {
             {/* Mountain info */}
             <View className="gap-[7px] px-5 pt-5">
               <View className="flex-row items-center justify-between">
-                <View className="flex-row items-end gap-3">
-                  <Text className="text-label-normal typo-title-2-bold">
+                <View className="mr-3 flex-1 flex-row items-end gap-3">
+                  <Text className="shrink-0 text-label-normal typo-title-2-bold">
                     {data.mountain?.name}
                   </Text>
-                  <Text className="pb-px text-label-subtler typo-body-2-normal-regular">
+                  <Text
+                    className="flex-1 pb-px text-label-subtler typo-body-2-normal-regular"
+                    numberOfLines={1}
+                  >
                     {data.mountain?.address}
                   </Text>
                 </View>
-                <MountainBookmarkButton mountainId={Number(id)} />
+                <MountainBookmarkButton
+                  mountainId={Number(id)}
+                  mountainData={data.mountain ?? undefined}
+                />
               </View>
 
               <View className="flex-row items-center gap-2">
@@ -158,17 +166,17 @@ export default function MountainDetailScreen() {
             </View>
 
             {/* Weather accordion */}
-            {mountainCoords?.latitude && mountainCoords?.longitude && (
+            {data.mountain?.latitude && data.mountain?.longitude && (
               <WeatherAccordion
-                latitude={mountainCoords.latitude}
-                longitude={mountainCoords.longitude}
+                latitude={data.mountain.latitude}
+                longitude={data.mountain.longitude}
               />
             )}
 
             {/* Tab section */}
             <View className="gap-6 py-6">
               <MountainTabs
-                tabs={TABS}
+                tabs={visibleTabs}
                 activeTab={activeTab}
                 onTabChange={(tab) => setActiveTab(tab as TabKey)}
               />

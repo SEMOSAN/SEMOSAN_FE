@@ -197,10 +197,7 @@ export function RegionFilterContent({ initialSelections = [], onApply }: Props) 
             className="absolute bottom-0 left-0 right-0 bg-fill-normal px-5 pb-3 pt-3"
             style={{
               zIndex: 10,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: -12 },
-              shadowOpacity: 0.04,
-              shadowRadius: 20,
+              boxShadow: '0px -12px 20px 0px rgba(0, 0, 0, 0.04)',
             }}
           >
             <Text className="text-label-subtler typo-body-3-medium">

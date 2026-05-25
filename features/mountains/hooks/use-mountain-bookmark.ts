@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import {
   ENDPOINTS,
+  LikedMountainResponse,
   PageResponseLikedMountainResponse,
 } from "@/types/api.generated";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,7 +15,10 @@ export async function getLikedMountains(): Promise<PageResponseLikedMountainResp
   return res.data;
 }
 
-export function useMountainBookmark(mountainId: number) {
+export function useMountainBookmark(
+  mountainId: number,
+  mountainData?: LikedMountainResponse,
+) {
   const queryClient = useQueryClient();
 
   const { data: likedMountains } = useQuery({
@@ -32,17 +36,24 @@ export function useMountainBookmark(mountainId: number) {
       await queryClient.cancelQueries({ queryKey: LIKES_KEY });
       const previous =
         queryClient.getQueryData<PageResponseLikedMountainResponse>(LIKES_KEY);
-      queryClient.setQueryData<PageResponseLikedMountainResponse>(
-        LIKES_KEY,
-        (old) => ({
-          ...old,
-          content: [...(old?.content ?? []), { mountainId }],
-        }),
-      );
+
+      // name이 있는 완전한 데이터일 때만 즉시 캐시 업데이트
+      if (mountainData?.name) {
+        queryClient.setQueryData<PageResponseLikedMountainResponse>(
+          LIKES_KEY,
+          (old) => ({
+            ...old,
+            content: [...(old?.content ?? []), mountainData],
+          }),
+        );
+      }
       return { previous };
     },
     onError: (_err, _vars, context) => {
       queryClient.setQueryData(LIKES_KEY, context?.previous);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LIKES_KEY });
     },
   });
 

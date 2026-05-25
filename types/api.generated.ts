@@ -7,6 +7,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 export const ENDPOINTS = {
   USERS_ONBOARDING: "/api/users/onboarding",
+  TRACKING_SESSIONS: "/api/tracking/sessions",
+  TRACKING_SESSIONS_BY_SESSIONID_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
+  TRACKING_SESSIONS_BY_SESSIONID_PHOTOS: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/photos`,
+  TRACKING_SESSIONS_BY_SESSIONID_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
+  TRACKING_SESSIONS_BY_SESSIONID_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
+  TRACKING_SESSIONS_BY_SESSIONID_ABANDON: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/abandon`,
   OAUTH_KAKAO_LOGIN: "/api/oauth/kakao/login",
   OAUTH_APPLE_LOGIN: "/api/oauth/apple/login",
   MOUNTAINS_BY_MOUNTAINID_LIKE: (mountainId: number | string) => `/api/mountains/${mountainId}/like`,
@@ -25,6 +31,9 @@ export const ENDPOINTS = {
   USERS_NOTIFICATION_SETTINGS_LIVE_ACTIVITY: "/api/users/notification-settings/live-activity",
   USERS_NOTIFICATION_SETTINGS: "/api/users/notification-settings",
   USERS_NICKNAME: "/api/users/nickname",
+  TRACKING_SESSIONS_BY_SESSIONID: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}`,
+  TRACKING_SESSIONS_ME_ACTIVE: "/api/tracking/sessions/me/active",
+  TRACKING_NEARBY_MOUNTAIN: "/api/tracking/nearby-mountain",
   MOUNTAINS: "/api/mountains",
   MOUNTAINS_BY_MOUNTAINID: (mountainId: number | string) => `/api/mountains/${mountainId}`,
   MOUNTAINS_SEARCH: "/api/mountains/search",
@@ -44,6 +53,7 @@ export const ENDPOINTS = {
   COMMUNITY_COMMENTS_BY_COMMENTID_REPLIES: (commentId: number | string) => `/api/community/comments/${commentId}/replies`,
   COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/community/comments/${commentId}`,
   AUTH_WITHDRAW: "/api/auth/withdraw",
+  COURSES_BY_COURSEID: (courseId: number | string) => `/api/courses/${courseId}`,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -76,8 +86,60 @@ export type ApiResponseVoid = {
   message?: string;
   data?: Record<string, unknown>;
 };
-export type OAuthKakaoLoginRequest = {
+export type CreateTrackingSessionRequest = {
+  mountainId: number;
+  courseId?: number;
+  isFreeRecording: boolean;
+};
+export type ApiResponseTrackingSessionResponse = {
+  isSuccess?: boolean;
   code?: string;
+  message?: string;
+  data?: TrackingSessionResponse;
+};
+export type TrackingSessionResponse = {
+  sessionId?: number;
+  userId?: number;
+  mountainId?: number;
+  mountainName?: string;
+  courseId?: number;
+  courseName?: string;
+  isFreeRecording?: boolean;
+  status?: "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "ABANDONED";
+  startedAt?: string;
+  endedAt?: string;
+  pausedAt?: string;
+  pausedSecondsTotal?: number;
+  hikingRecordId?: number;
+};
+export type TrackingPhotoUploadRequest = {
+  milestoneIndex: number;
+  milestoneDistanceM: number;
+  imageUrl?: string;
+  capturedAt: string;
+  lat: number;
+  lng: number;
+  altitude?: number;
+};
+export type ApiResponseTrackingPhotoResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: TrackingPhotoResponse;
+};
+export type TrackingPhotoResponse = {
+  photoId?: number;
+  trackingSessionId?: number;
+  milestoneIndex?: number;
+  milestoneDistanceM?: number;
+  imageUrl?: string;
+  capturedAt?: string;
+  lat?: number;
+  lng?: number;
+  altitude?: number;
+};
+export type OAuthKakaoLoginRequest = {
+  accessToken?: string;
   deviceType: "IOS" | "ANDROID";
 };
 export type OAuthLoginResponse = {
@@ -246,6 +308,49 @@ export type GetNotificationSettingResponse = {
   liveActivityEnabled?: boolean;
   voiceEnabled?: boolean;
 };
+export type ApiResponseListTrackingPhotoResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: TrackingPhotoResponse[];
+};
+export type ApiResponseNearbyMountainResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: NearbyMountainResponse;
+};
+export type CourseInfo = {
+  courseId?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+};
+export type CourseDetailResponse = {
+  id?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+  startName?: string;
+  endName?: string;
+  polyline?: string | object | null;
+  altitudes?: string | object | null;
+};
+export type NearbyMountainInfo = {
+  mountainId?: number;
+  name?: string;
+  address?: string;
+  altitude?: number;
+  latitude?: number;
+  longitude?: number;
+  imageUrls?: string[];
+};
+export type NearbyMountainResponse = {
+  mountain?: NearbyMountainInfo;
+  courses?: CourseInfo[];
+};
 export type ApiResponsePageResponseMountainListResponse = {
   isSuccess?: boolean;
   code?: string;
@@ -277,13 +382,6 @@ export type ApiResponseMountainDetailResponse = {
   message?: string;
   data?: MountainDetailResponse;
 };
-export type CourseInfo = {
-  courseId?: number;
-  name?: string;
-  difficulty?: "EASY" | "NORMAL" | "HARD";
-  distance?: number;
-  duration?: number;
-};
 export type MountainDetailResponse = {
   mountain?: MountainInfo;
   courses?: CourseInfo[];
@@ -300,6 +398,8 @@ export type MountainInfo = {
   difficulty?: "EASY" | "NORMAL" | "HARD";
   duration?: number;
   imageUrls?: string[];
+  latitude?: number;
+  longitude?: number;
 };
 export type RestaurantInfo = {
   restaurantId?: number;
@@ -534,6 +634,40 @@ export type FcmTokenDeleteRequest = {
 // POST /api/users/onboarding
 export type RegisterUserOnboardingBody = RegisterOnboardingRequest;
 
+// POST /api/tracking/sessions
+export type CreateSessionBody = CreateTrackingSessionRequest;
+
+// POST /api/tracking/sessions/{sessionId}/resume
+export type ResumeSessionParams = {
+  sessionId: number;
+};
+
+// GET /api/tracking/sessions/{sessionId}/photos
+export type ListParams = {
+  sessionId: number;
+};
+
+// POST /api/tracking/sessions/{sessionId}/photos
+export type UploadParams = {
+  sessionId: number;
+};
+export type UploadBody = TrackingPhotoUploadRequest;
+
+// POST /api/tracking/sessions/{sessionId}/pause
+export type PauseSessionParams = {
+  sessionId: number;
+};
+
+// POST /api/tracking/sessions/{sessionId}/complete
+export type CompleteSessionParams = {
+  sessionId: number;
+};
+
+// POST /api/tracking/sessions/{sessionId}/abandon
+export type AbandonSessionParams = {
+  sessionId: number;
+};
+
 // POST /api/oauth/kakao/login
 export type KakaoLoginBody = OAuthKakaoLoginRequest;
 
@@ -619,6 +753,17 @@ export type UpdateLiveActivitySettingBody = UpdateNotificationSettingRequest;
 // GET /api/users/nickname
 export type CheckNicknameParams = {
   nickname: string;
+};
+
+// GET /api/tracking/sessions/{sessionId}
+export type GetSessionParams = {
+  sessionId: number;
+};
+
+// GET /api/tracking/nearby-mountain
+export type GetNearbyMountainParams = {
+  lat: number;
+  lng: number;
 };
 
 // GET /api/mountains

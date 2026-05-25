@@ -64,6 +64,18 @@ Figma 재내보내기 후 반드시 실행하세요. `tokens.cjs`, `typography-p
 
 토큰으로 정의된 값이 있다면 Tailwind 클래스로 참조하세요. 원시 hex 값이나 숫자를 직접 사용하지 마세요.
 
+### 3. 그림자는 `boxShadow`를 사용할 것
+
+iOS 전용 shadow 속성(`shadowColor`, `shadowOffset`, `shadowOpacity`, `shadowRadius`) 및 Android 전용 `elevation` 사용 금지. 반드시 `boxShadow`를 사용하세요.
+
+```tsx
+// ✅
+style={{ boxShadow: '0px 2px 4px 0px rgba(0, 0, 0, 0.1)' }}
+
+// ❌
+style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 4 }}
+```
+
 ---
 
 ## 디자인 토큰 참고

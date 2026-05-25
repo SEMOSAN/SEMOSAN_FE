@@ -4,7 +4,8 @@ import { DIFFICULTY_LABEL } from '@/features/mountains/components/mountain-card'
 import { COURSE_BADGE } from '@/features/mountains/constants/course-badge';
 import { useSavedMountains } from '@/features/mountains/hooks/use-saved-mountains';
 import { LikedMountainResponse } from '@/types/api.generated';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -57,7 +58,7 @@ function SavedMountainItem({ mountain }: { mountain: LikedMountainResponse }) {
 
       {/* 북마크 버튼 */}
       {mountain.mountainId != null && (
-        <MountainBookmarkButton mountainId={mountain.mountainId} />
+        <MountainBookmarkButton mountainId={mountain.mountainId} mountainData={mountain} />
       )}
     </TouchableOpacity>
   );
@@ -79,9 +80,17 @@ function EmptyState() {
 export default function SavedMountainsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { data, isLoading } = useSavedMountains();
+  const { data, isLoading, refetch } = useSavedMountains();
 
-  const mountains = data?.content ?? [];
+  // 화면 포커스될 때마다 최신 데이터 동기화
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
+  // 낙관적 업데이트로 임시 추가된 불완전한 항목(name 없는 항목) 필터링
+  const mountains = (data?.content ?? []).filter((m) => !!m.name);
 
   return (
     <View className="flex-1 bg-fill-normal">

@@ -84,7 +84,8 @@ type NotificationType =
   | 'TRAIL_CLOSED'
   | 'SYSTEM_NOTICE'
   | 'SYSTEM_MAINTENANCE'
-  | 'APP_UPDATE';
+  | 'APP_UPDATE'
+  | 'TRACKING_PHOTO_MILESTONE';
 
 // ─── FCM 토큰 등록 ───────────────────────────────────────────
 
@@ -157,6 +158,7 @@ function navigateByType(
     case 'HIKING_FINISHED':
     case 'HIKING_CHAT':
     case 'EMERGENCY_SOS':
+    case 'TRACKING_PHOTO_MILESTONE':
       router.push('/(tabs)/tracking');
       break;
 

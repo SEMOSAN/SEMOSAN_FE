@@ -6,6 +6,14 @@ import { buildQueryParams } from "./buildQueryParams";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+export class ApiError extends Error {
+  statusCode: number;
+  constructor(status: number, statusText: string) {
+    super(`API Error: ${status} ${statusText}`);
+    this.statusCode = status;
+  }
+}
+
 type RequestOptions = {
   path: string;
   params?: Record<string, string | number | boolean>;
@@ -115,7 +123,7 @@ async function request<T>(
       toast.show(errorMessage);
     }
 
-    throw new Error(`${errorMessage} ${statusText}`);
+    throw new ApiError(status ?? 0, statusText);
   }
 }
 

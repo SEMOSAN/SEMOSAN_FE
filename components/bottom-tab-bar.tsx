@@ -1,12 +1,27 @@
-import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import { HomeIcon } from "@/components/icons/home-icon";
 import { MountainIcon } from "@/components/icons/mountain-icon";
 import { MyIcon } from "@/components/icons/my-icon";
+import { NavigationIcon } from "@/components/icons/navigation-icon";
 import { useHomeStateContext } from "@/contexts/home-state-context";
+import { Colors } from "@/types/colors.generated";
+import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { ReactNode } from "react";
+import { Pressable, View } from "react-native";
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const BG_LIGHT = "#ffffff";
+const BG_DARK = "#000000";
+const BORDER_LIGHT = "#e5e7eb";
+const BORDER_DARK = "#464a57";
+
+const FOCUSED_LIGHT = Colors["global-neutral-900"];
+const FOCUSED_DARK = Colors["color-label-normal-inverse"];
+const UNFOCUSED_LIGHT = Colors["global-neutral-100"];
+const UNFOCUSED_DARK = Colors["global-neutral-700"];
 
 type TabItem = {
   name: string;
@@ -14,9 +29,6 @@ type TabItem = {
   renderIcon: (color: string) => ReactNode;
   isCenter?: boolean;
 };
-
-const ACTIVE_COLOR = "#1a1b1f";
-const INACTIVE_COLOR = "#d1d5db";
 
 const TAB_ITEMS: TabItem[] = [
   {
@@ -29,12 +41,12 @@ const TAB_ITEMS: TabItem[] = [
     label: "산목록",
     renderIcon: (color) => <MountainIcon size={24} color={color} />,
   },
-  // {
-  //   name: "tracking",
-  //   label: null,
-  //   renderIcon: (color) => <NavigationIcon size={24} color={color} />,
-  //   isCenter: true,
-  // },
+  {
+    name: "tracking",
+    label: null,
+    renderIcon: (color) => <NavigationIcon size={24} color={color} />,
+    isCenter: true,
+  },
   // {
   //   name: "community",
   //   label: "커뮤니티",
@@ -53,9 +65,23 @@ export function BottomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { hasRecords, toggleHasRecords } = useHomeStateContext();
+  const { toggleHasRecords, tabProgress } = useHomeStateContext();
 
-  // 현재 활성 라우트의 tabBarStyle이 hidden이면 탭바 숨기기
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(tabProgress.value, [0, 1], [BG_LIGHT, BG_DARK]),
+    borderTopColor: interpolateColor(tabProgress.value, [0, 1], [BORDER_LIGHT, BORDER_DARK]),
+  }));
+
+  const lightLayerStyle = useAnimatedStyle(() => ({ opacity: 1 - tabProgress.value }));
+  const darkLayerStyle = useAnimatedStyle(() => ({ opacity: tabProgress.value }));
+
+  const focusedTextStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(tabProgress.value, [0, 1], [FOCUSED_LIGHT, FOCUSED_DARK]),
+  }));
+  const unfocusedTextStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(tabProgress.value, [0, 1], [UNFOCUSED_LIGHT, UNFOCUSED_DARK]),
+  }));
+
   const currentRoute = state.routes[state.index];
   const { tabBarStyle } = descriptors[currentRoute.key].options;
   if (tabBarStyle && (tabBarStyle as { display?: string }).display === "none") {
@@ -63,9 +89,12 @@ export function BottomTabBar({
   }
 
   return (
-    <View
-      className="flex-row items-center justify-between border-t border-line-subtle bg-fill-normal px-5"
-      style={{ paddingBottom: Math.max(insets.bottom, 4), paddingTop: 4 }}
+    <Animated.View
+      className="flex-row items-center justify-between border-t px-5"
+      style={[
+        animatedContainerStyle,
+        { paddingBottom: Math.max(insets.bottom, 4), paddingTop: 4 },
+      ]}
     >
       {state.routes.map((route, index) => {
         const item = TAB_ITEMS[index];
@@ -94,10 +123,13 @@ export function BottomTabBar({
               className="items-center justify-center rounded-full bg-primary-normal"
               style={{ width: 68, height: 42 }}
             >
-              {item.renderIcon("#ffffff")}
+              {item.renderIcon(Colors["color-label-normal-inverse"])}
             </Pressable>
           );
         }
+
+        const lightColor = isFocused ? FOCUSED_LIGHT : UNFOCUSED_LIGHT;
+        const darkColor = isFocused ? FOCUSED_DARK : UNFOCUSED_DARK;
 
         return (
           <Pressable
@@ -106,15 +138,26 @@ export function BottomTabBar({
             className="items-center justify-center gap-0.5 rounded"
             style={{ width: 48, height: 48 }}
           >
-            {item.renderIcon(isFocused ? ACTIVE_COLOR : INACTIVE_COLOR)}
-            <Text
-              className={`text-center typo-caption-1-medium ${isFocused ? "text-label-normal" : "text-neutral-100"}`}
+            <View style={{ width: 24, height: 24 }}>
+              <Animated.View style={lightLayerStyle}>
+                {item.renderIcon(lightColor)}
+              </Animated.View>
+              <Animated.View
+                className="absolute left-0 top-0"
+                style={darkLayerStyle}
+              >
+                {item.renderIcon(darkColor)}
+              </Animated.View>
+            </View>
+            <Animated.Text
+              className="text-center typo-caption-1-medium"
+              style={isFocused ? focusedTextStyle : unfocusedTextStyle}
             >
               {item.label}
-            </Text>
+            </Animated.Text>
           </Pressable>
         );
       })}
-    </View>
+    </Animated.View>
   );
 }

@@ -60,11 +60,7 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
             height: THUMB_SIZE,
             borderRadius: 9999,
             backgroundColor: COLOR_THUMB,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 6,
-            elevation: 4,
+            boxShadow: '0px 4px 6px 0px rgba(0, 0, 0, 0.1)',
           }}
         />
       </Animated.View>
@@ -80,7 +76,10 @@ const NOTIFICATION_ITEMS: { key: NotificationKey; label: string; toastMessage: s
   { key: 'voice', label: '음성 안내', toastMessage: '음성 안내를 활성화했어요' },
 ];
 
-const DEVICE_PERMISSION_KEYS = ['위치 서비스', '카메라'] as const;
+const DEVICE_PERMISSION_KEYS = [
+  '위치 서비스',
+  // '카메라', // 앱 심사 시 비활성화
+] as const;
 
 export default function PermissionsScreen() {
   const router = useRouter();

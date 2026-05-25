@@ -1,6 +1,7 @@
 import "dotenv/config";
 
-const isLiveActivityEnabled = process.env.EXPO_PUBLIC_LIVE_ACTIVITY_ENABLED === "true";
+const isLiveActivityEnabled =
+  process.env.EXPO_PUBLIC_LIVE_ACTIVITY_ENABLED === "true";
 
 /** @type {import('expo/config').ExpoConfig} */
 const config = {
@@ -8,9 +9,9 @@ const config = {
   slug: "semosan",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/images/icon.png",
+  icon: "./assets/logo.png",
   scheme: "semosan",
-  userInterfaceStyle: "automatic",
+  userInterfaceStyle: "light",
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
@@ -23,6 +24,7 @@ const config = {
         "프로필 사진 촬영을 위해 카메라 접근이 필요합니다.",
       NSPhotoLibraryUsageDescription:
         "프로필 사진 선택을 위해 사진 라이브러리 접근이 필요합니다.",
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   locales: {
@@ -42,7 +44,7 @@ const config = {
   },
   web: {
     output: "static",
-    favicon: "./assets/images/favicon.png",
+    favicon: "./assets/logo.png",
     bundler: "metro",
   },
   plugins: [
@@ -51,7 +53,7 @@ const config = {
     [
       "expo-notifications",
       {
-        icon: "./assets/images/icon.png",
+        icon: "./assets/logo.png",
         color: "#ffffff",
         googleServicesFile: "./google-services.json",
       },
