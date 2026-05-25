@@ -2,7 +2,7 @@ import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { LongButton } from "@/components/long-button";
 import { TextField } from "@/components/text-field";
-import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
+import { uploadImage } from "@/hooks/use-upload-image";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
 import {
   formatBirthDate,

@@ -1,58 +1,58 @@
 import { ChatIcon } from "@/components/icons/chat-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
-import React from "react";
-import { Text, View } from "react-native";
+import { useTogglePostLike } from "@/features/community/hooks/use-post-like";
+import { FreePostDetailResponse } from "@/types/api.generated";
+import { Pressable, Text, View } from "react-native";
 import { PostAvatar } from "./post-avatar";
 
+function formatDate(iso?: string): string {
+  if (!iso) return "";
+  return iso.slice(0, 10).replace(/-/g, ".");
+}
+
 type PostBodyProps = {
-  author: string;
-  date: string;
-  title: string;
-  body: string;
-  likes: number;
-  comments: number;
+  post: FreePostDetailResponse;
 };
 
-export function PostBody({
-  author,
-  date,
-  title,
-  body,
-  likes,
-  comments,
-}: PostBodyProps) {
+export function PostBody({ post }: PostBodyProps) {
+  const { mutate: toggleLike } = useTogglePostLike(post.id!);
+
   return (
     <View className="gap-3 px-5 py-4">
       <View className="flex-row items-center gap-2">
         <PostAvatar size="lg" />
         <View>
           <Text className="typo-body-2-normal-semi-bold text-label-normal">
-            {author}
+            {post.author?.nickname ?? ""}
           </Text>
           <Text className="typo-caption-1-regular text-label-subtler">
-            {date}
+            {formatDate(post.createdAt)}
           </Text>
         </View>
       </View>
       <View className="gap-2">
         <Text className="typo-body-1-normal-semi-bold text-label-normal">
-          {title}
+          {post.title}
         </Text>
         <Text className="typo-body-2-reading-regular text-label-subtle">
-          {body}
+          {post.content}
         </Text>
       </View>
       <View className="flex-row gap-3">
-        <View className="flex-row items-center gap-1">
+        <Pressable
+          className="flex-row items-center gap-1"
+          onPress={() => toggleLike()}
+          hitSlop={8}
+        >
           <HeartIcon size={20} color="#464a57" />
           <Text className="typo-body-1-normal-medium text-label-subtle">
-            {likes}
+            {post.likeCount ?? 0}
           </Text>
-        </View>
+        </Pressable>
         <View className="flex-row items-center gap-1">
           <ChatIcon size={20} color="#464a57" />
           <Text className="typo-body-1-normal-medium text-label-subtle">
-            {comments}
+            {post.commentCount ?? 0}
           </Text>
         </View>
       </View>
