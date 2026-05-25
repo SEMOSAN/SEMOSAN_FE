@@ -27,6 +27,8 @@ import {
 } from "@/features/tracking/constants";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity } from "@/modules/live-activity";
+import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
+import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -89,7 +91,6 @@ export default function TrackingScreen() {
         if (status !== "granted") return;
         const loc = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
-          timeInterval: 5000,
         });
         setUserLocation({
           latitude: loc.coords.latitude,
@@ -101,8 +102,23 @@ export default function TrackingScreen() {
     })();
   }, []);
 
+  // 트래킹 중 위치 지속 업데이트 (코스 진행률 계산용)
+  useEffect(() => {
+    if (!isTracking || isFreeMode) return;
+    let subscription: Location.LocationSubscription | null = null;
+    Location.watchPositionAsync(
+      { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 10 },
+      (loc) => {
+        setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      }
+    ).then((sub) => { subscription = sub; });
+    return () => { subscription?.remove(); };
+  }, [isTracking, isFreeMode]);
+
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
+
+  const { data: liveActivityCourse } = useLiveActivityCourse(selectedCourseId);
 
   const startCountdown = (freeMode = false) => {
     if (freeMode) setIsFreeMode(true);
@@ -133,13 +149,14 @@ export default function TrackingScreen() {
       if (isFreeMode) {
         LiveActivity.start({ mode: "free" }).catch(() => {});
       } else {
-        const totalMinutes =
-          selectedCourse.durationHours * 60 + selectedCourse.durationMinutes;
-        const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+        const totalMeters = liveActivityCourse?.totalDistance
+          ?? Math.round(selectedCourse.distanceKm * 1000);
+        const totalMinutes = liveActivityCourse?.estimatedTime
+          ?? (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes);
         LiveActivity.start({
           mode: "course",
           remainingMinutes: totalMinutes,
-          remainingMeters: totalMeters,
+          remainingMeters: Math.round(totalMeters),
           progress: 0,
         }).catch(() => {});
       }
@@ -167,24 +184,39 @@ export default function TrackingScreen() {
           mode: "free",
         }).catch(() => {});
       } else {
-        const totalSeconds =
-          (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) *
-          60;
-        const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
-        const progress =
-          totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
-        const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+        let progress = 0;
+        let remainingMeters = 0;
+        let remainingMinutes = 0;
+
+        if (liveActivityCourse && userLocation) {
+          const result = calcCourseProgress(
+            userLocation,
+            liveActivityCourse.coordinates,
+            liveActivityCourse.totalDistance
+          );
+          progress = result.progress;
+          remainingMeters = Math.round(result.remainingMeters);
+          remainingMinutes = Math.ceil(liveActivityCourse.estimatedTime * (1 - progress));
+        } else {
+          const totalSeconds =
+            (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) * 60;
+          const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+          progress = totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
+          remainingMinutes = Math.ceil(Math.max(0, totalSeconds - elapsedSeconds) / 60);
+          remainingMeters = Math.round(totalMeters * (1 - progress));
+        }
+
         LiveActivity.update({
           elapsedSeconds,
           isRunning: !isPaused,
           mode: "course",
-          remainingMinutes: Math.ceil(remainingSeconds / 60),
-          remainingMeters: Math.round(totalMeters * (1 - progress)),
+          remainingMinutes,
+          remainingMeters,
           progress,
         }).catch(() => {});
       }
     }
-  }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse]);
+  }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse, liveActivityCourse, userLocation]);
 
   const pauseTracking = () => setIsPaused(true);
   const resumeTracking = () => setIsPaused(false);
