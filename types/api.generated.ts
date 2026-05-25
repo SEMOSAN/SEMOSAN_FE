@@ -53,6 +53,7 @@ export const ENDPOINTS = {
   COMMUNITY_COMMENTS_BY_COMMENTID_REPLIES: (commentId: number | string) => `/api/community/comments/${commentId}/replies`,
   COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/community/comments/${commentId}`,
   AUTH_WITHDRAW: "/api/auth/withdraw",
+  COURSES_BY_COURSEID: (courseId: number | string) => `/api/courses/${courseId}`,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -325,6 +326,17 @@ export type CourseInfo = {
   difficulty?: "EASY" | "NORMAL" | "HARD";
   distance?: number;
   duration?: number;
+};
+export type CourseDetailResponse = {
+  id?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+  startName?: string;
+  endName?: string;
+  polyline?: string | object | null;
+  altitudes?: string | object | null;
 };
 export type NearbyMountainInfo = {
   mountainId?: number;
