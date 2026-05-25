@@ -1,5 +1,7 @@
+import { useDeletePost } from "@/features/community/hooks/use-delete-post";
 import { useFreePostDetail } from "@/features/community/hooks/use-free-post-detail";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,14 +20,20 @@ type FreeBoardDetailScreenProps = {
 };
 
 export function FreeBoardDetailScreen({ postId }: FreeBoardDetailScreenProps) {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
 
   const { data: post } = useFreePostDetail(postId);
   const { data: profile } = useProfile();
+  const { mutate: deletePost } = useDeletePost(postId);
 
   function handleReplyPress(commentId: number, authorName: string): void {
     setReplyTarget({ commentId, authorName });
+  }
+
+  function handleDeletePost(): void {
+    deletePost(undefined, { onSuccess: () => router.back() });
   }
 
   return (
@@ -41,11 +49,12 @@ export function FreeBoardDetailScreen({ postId }: FreeBoardDetailScreenProps) {
           keyboardShouldPersistTaps="handled"
         >
           {post && (
-              <PostBody
-                post={post}
-                currentUserNickname={profile?.nickname}
-              />
-            )}
+            <PostBody
+              post={post}
+              currentUserNickname={profile?.nickname}
+              onDelete={handleDeletePost}
+            />
+          )}
           <View className="h-[6px] bg-fill-strong" />
           <CommentList
             postId={postId}

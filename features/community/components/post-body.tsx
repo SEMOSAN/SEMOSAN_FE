@@ -3,7 +3,6 @@ import { DotsThreeIcon } from "@/components/icons/dots-three-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
 import { SirenIcon } from "@/components/icons/siren-icon";
 import { TrashIcon } from "@/components/icons/trash-icon";
-import { UserBlockIcon } from "@/components/icons/user-block-icon";
 import { useTogglePostLike } from "@/features/community/hooks/use-post-like";
 import { FreePostDetailResponse } from "@/types/api.generated";
 import { useRef, useState } from "react";
@@ -67,9 +66,17 @@ export function PostBody({
 
   function handleReport(): void {
     setMenuVisible(false);
-    Alert.alert("신고하기", "이 게시글을 신고하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      { text: "신고", style: "destructive", onPress: () => {} },
+    const reasons = ["스팸", "욕설/혐오", "음란/부적절", "허위정보", "기타"];
+    Alert.alert("신고 사유 선택", "신고 사유를 선택해주세요.", [
+      ...reasons.map((reason) => ({
+        text: reason,
+        onPress: () =>
+          Alert.alert(
+            "신고 완료",
+            "정상적으로 신고 접수되었습니다.\n\n신고된 게시글은 커뮤니티 가이드라인에 따라 모니터링 및 조치될 예정입니다.",
+          ),
+      })),
+      { text: "취소", style: "cancel" as const },
     ]);
   }
 
@@ -215,8 +222,10 @@ export function PostBody({
                     </Text>
                   </View>
                 </Pressable>
-                <View style={{ height: 1, backgroundColor: "#f0f0f0" }} />
-                <Pressable
+
+                {/* TODO : 차단 API 나오기 전까지 임시 주석처리 */}
+                {/* <View style={{ height: 1, backgroundColor: "#f0f0f0" }} /> */}
+                {/* <Pressable
                   onPress={handleBlock}
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.7 : 1,
@@ -242,7 +251,7 @@ export function PostBody({
                       차단하기
                     </Text>
                   </View>
-                </Pressable>
+                </Pressable> */}
               </>
             )}
           </View>
