@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import BottomSheetShell from './bottom-sheet-shell';
 import CourseBottomSheet, { type Course } from './course-bottom-sheet';
+import { HikingStatsCard } from './hiking-stats-card';
 import { InfoIcon } from './icons/info-icon';
 
 export type Tab = '내 기록' | '큐레이션';
@@ -115,6 +116,7 @@ export default function BottomSheet({
       titleCount={tabTitleCount}
       titleSuffix={tabTitleSuffix}
       scrollEnabled={scrollEnabled}
+      aboveTitle={activeTab === '내 기록' ? <HikingStatsCard /> : undefined}
       header={showTabs ? (
         <View className="flex-row items-center bg-fill-stronger rounded-[10px] p-1 gap-1 mx-4 mb-4">
           {TABS.map((tab) => (
@@ -138,7 +140,6 @@ export default function BottomSheet({
       ) : undefined}
     >
       {activeTab === '내 기록' && (
-        /* 카드 그리드 */
         <View className="w-full gap-y-4">
           {Array.from({ length: Math.ceil(cards.length / 2) }).map((_, rowIdx) => (
             <View key={rowIdx} className="flex-row gap-x-[9px]">

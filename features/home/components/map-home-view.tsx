@@ -3,7 +3,8 @@ import {
   HomeBottomSheetContainer,
   HomeBottomSheetRef,
   SNAP_DEFAULT,
-  SNAP_EXPANDED,
+  SNAP_EXPANDED_WITH_RECORDS,
+  SNAP_EXPANDED_NO_RECORDS,
 } from "@/components/home-bottom-sheet-container";
 import { CrosshairIcon } from "@/components/icons/crosshair-icon";
 import {
@@ -75,6 +76,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     );
     const { data: mapData } = useMountainsMap(bbox);
     const hasRecords = mapData?.hasHikingRecord ?? false;
+    const snapExpanded = hasRecords ? SNAP_EXPANDED_WITH_RECORDS : SNAP_EXPANDED_NO_RECORDS;
     const { data, isPending, isError } = useMountains();
 
     const moveToCurrentLocation = async () => {
@@ -101,12 +103,11 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     }));
 
     const sheetHeight = useSharedValue(SNAP_DEFAULT);
-
     const locationButtonStyle = useAnimatedStyle(() => ({
       bottom: sheetHeight.value + 12,
       opacity: interpolate(
         sheetHeight.value,
-        [SNAP_DEFAULT, SNAP_EXPANDED],
+        [SNAP_DEFAULT, snapExpanded],
         [1, 0],
         "clamp",
       ),
@@ -257,6 +258,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
         <HomeBottomSheetContainer
           ref={sheetRef}
           heightSharedValue={sheetHeight}
+          snapExpanded={snapExpanded}
           renderContent={({ scrollEnabled }) =>
             hasRecords ? (
               <BottomSheet
