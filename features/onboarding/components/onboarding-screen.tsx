@@ -90,8 +90,16 @@ export function OnboardingScreen() {
 
   function handleNicknameChange(text: string): void {
     setNickname(text);
-    if (text.length > 0 && !/^[가-힣a-zA-Z0-9]+$/.test(text)) {
+    if (text.length === 0) {
+      setNicknameError(null);
+      return;
+    }
+    if (/[ㄱ-ㅎㅏ-ㅣ]/.test(text)) {
+      setNicknameError("자음·모음만으로는 사용할 수 없어요");
+    } else if (!/^[가-힣a-zA-Z0-9]+$/.test(text)) {
       setNicknameError("한글, 영문, 숫자만 입력 가능해요");
+    } else if (/^[0-9]+$/.test(text)) {
+      setNicknameError("숫자만으로는 사용할 수 없어요");
     } else {
       setNicknameError(null);
     }
@@ -101,8 +109,16 @@ export function OnboardingScreen() {
     if (isCheckingNickname) return;
     const trimmed = nickname.trim();
     if (!trimmed) return;
+    if (/[ㄱ-ㅎㅏ-ㅣ]/.test(trimmed)) {
+      setNicknameError("자음·모음만으로는 사용할 수 없어요");
+      return;
+    }
     if (!/^[가-힣a-zA-Z0-9]+$/.test(trimmed)) {
       setNicknameError("한글, 영문, 숫자만 입력 가능해요");
+      return;
+    }
+    if (/^[0-9]+$/.test(trimmed)) {
+      setNicknameError("숫자만으로는 사용할 수 없어요");
       return;
     }
     if (trimmed.length < 2) {
