@@ -116,11 +116,9 @@ async function request<T>(
 
     const errorMessage = `API Error: ${status ?? "N/A"}`;
 
-    if (
-      !ignoreErrorToast &&
-      (status === 500 || status === 401 || status === 403)
-    ) {
-      toast.show(errorMessage);
+    if (!ignoreErrorToast && status !== undefined && status >= 500) {
+      toast.show("잠시후 다시 시도해주세요.");
+      console.log(errorMessage, statusText);
     }
 
     throw new ApiError(status ?? 0, statusText);
