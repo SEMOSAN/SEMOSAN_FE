@@ -39,7 +39,7 @@ import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useSaveTrackingPhoto } from "@/features/tracking/hooks/use-save-tracking-photo";
 import { isLiveActivityEnabled } from "@/constants/platform";
-import { LiveActivity } from "@/modules/live-activity";
+import { LiveActivity, addLiveActivityControlListener } from "@/modules/live-activity";
 import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
 import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
 import {
@@ -472,6 +472,22 @@ export default function TrackingScreen() {
       });
     }
   };
+
+  // Live Activity 버튼(pause/resume) → 앱 동기화
+  // refs로 항상 최신 함수를 참조 (리스너는 isTracking 변경 시에만 재등록)
+  const pauseTrackingRef = useRef(pauseTracking);
+  pauseTrackingRef.current = pauseTracking;
+  const resumeTrackingRef = useRef(resumeTracking);
+  resumeTrackingRef.current = resumeTracking;
+
+  useEffect(() => {
+    if (!isLiveActivityEnabled || !isTracking) return;
+    const sub = addLiveActivityControlListener((action) => {
+      if (action === 'pause') pauseTrackingRef.current();
+      else resumeTrackingRef.current();
+    });
+    return () => sub.remove();
+  }, [isTracking]);
 
   const requestStop = () => setShowStopModal(true);
 

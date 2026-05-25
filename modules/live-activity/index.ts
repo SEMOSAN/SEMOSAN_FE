@@ -1,8 +1,13 @@
-import { requireOptionalNativeModule } from 'expo-modules-core';
+import { EventEmitter, requireOptionalNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 
 const LiveActivityNativeModule = Platform.OS === 'ios'
   ? requireOptionalNativeModule('LiveActivityModule')
+  : null;
+
+const emitter = LiveActivityNativeModule
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ? new EventEmitter<Record<string, any>>(LiveActivityNativeModule)
   : null;
 
 export type LiveActivityMode = 'course' | 'free';
@@ -51,3 +56,16 @@ export const LiveActivity = {
     return LiveActivityNativeModule.stopActivity();
   },
 };
+
+export type LiveActivityControlAction = 'pause' | 'resume';
+
+export function addLiveActivityControlListener(
+  callback: (action: LiveActivityControlAction) => void,
+): { remove: () => void } {
+  if (!emitter) return { remove: () => {} };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sub = emitter.addListener('onLiveActivityControl', (event: any) =>
+    callback(event.action as LiveActivityControlAction),
+  );
+  return sub;
+}
