@@ -35,7 +35,7 @@ export function OnboardingScreen() {
   const weightRef = useRef<TextInput>(null);
 
   const setProfile = useOnboardingStore((s) => s.setProfile);
-  const { mutateAsync: checkNickname } = useCheckNickname();
+  const { mutateAsync: checkNickname, isPending: isCheckingNickname } = useCheckNickname();
 
   const [step, setStep] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
@@ -98,6 +98,7 @@ export function OnboardingScreen() {
   }
 
   async function handleNicknameEnd(): Promise<void> {
+    if (isCheckingNickname) return;
     const trimmed = nickname.trim();
     if (!trimmed) return;
     if (!/^[가-힣a-zA-Z0-9]+$/.test(trimmed)) {
@@ -110,9 +111,11 @@ export function OnboardingScreen() {
     }
     try {
       await checkNickname(trimmed);
+      if (nickname.trim() !== trimmed) return;
       setNicknameError(null);
       advance(1);
     } catch (e) {
+      if (nickname.trim() !== trimmed) return;
       if (e instanceof ApiError && e.statusCode === 409) {
         setNicknameError("이미 사용 중인 닉네임이에요");
       } else {
