@@ -13,9 +13,11 @@ import {
   Image,
   Modal,
   Pressable,
+  ScrollView,
   Text,
   View,
 } from "react-native";
+import { ImageViewerModal } from "./image-viewer-modal";
 import { PostAvatar } from "./post-avatar";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -33,6 +35,7 @@ export function PostBody({
 }: PostBodyProps) {
   const { mutate: toggleLike } = useTogglePostLike(post.id!);
   const [liked, setLiked] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<View>(null);
@@ -114,6 +117,25 @@ export function PostBody({
           {post.content}
         </Text>
       </View>
+
+      {post.images && post.images.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View className="flex-row gap-2">
+            {[...post.images]
+              .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+              .map((img) => (
+                <Pressable key={img.id} onPress={() => setSelectedImage(img.imageUrl ?? null)}>
+                  <Image
+                    source={{ uri: img.imageUrl }}
+                    className="rounded-xl"
+                    style={{ width: 148, height: 148 }}
+                    resizeMode="cover"
+                  />
+                </Pressable>
+              ))}
+          </View>
+        </ScrollView>
+      )}
 
       <View className="flex-row gap-3">
         <Pressable
@@ -251,6 +273,11 @@ export function PostBody({
           </View>
         </Pressable>
       </Modal>
+
+      <ImageViewerModal
+        uri={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
     </View>
   );
 }
