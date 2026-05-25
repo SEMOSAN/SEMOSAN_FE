@@ -118,7 +118,7 @@ async function request<T>(
 
     if (!ignoreErrorToast && status !== undefined && status >= 500) {
       toast.show("잠시후 다시 시도해주세요.");
-      console.log(errorMessage, e.message);
+      console.log(errorMessage, statusText);
     }
 
     throw new ApiError(status ?? 0, statusText);
