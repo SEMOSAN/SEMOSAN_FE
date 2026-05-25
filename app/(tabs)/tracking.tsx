@@ -125,7 +125,11 @@ export default function TrackingScreen() {
       return;
     }
     let idx = 0;
+    const mid = Math.floor(coords.length / 2);
     console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
+    console.log(`[SIM] coords[0]:   (${coords[0].latitude.toFixed(5)}, ${coords[0].longitude.toFixed(5)})`);
+    console.log(`[SIM] coords[${mid}]: (${coords[mid].latitude.toFixed(5)}, ${coords[mid].longitude.toFixed(5)})`);
+    console.log(`[SIM] coords[${coords.length - 1}]: (${coords[coords.length - 1].latitude.toFixed(5)}, ${coords[coords.length - 1].longitude.toFixed(5)})`);
     simIntervalRef.current = setInterval(() => {
       if (idx >= coords.length) {
         clearInterval(simIntervalRef.current!);
