@@ -9,7 +9,7 @@ const config = {
   slug: "semosan",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/logo.png",
+  icon: "./assets/images/app-icon.png",
   scheme: "semosan",
   userInterfaceStyle: "light",
   newArchEnabled: true,
@@ -44,7 +44,7 @@ const config = {
   },
   web: {
     output: "static",
-    favicon: "./assets/logo.png",
+    favicon: "./assets/images/app-icon.png",
     bundler: "metro",
   },
   plugins: [
@@ -53,7 +53,7 @@ const config = {
     [
       "expo-notifications",
       {
-        icon: "./assets/logo.png",
+        icon: "./assets/images/app-icon.png",
         color: "#ffffff",
         googleServicesFile: "./google-services.json",
       },
@@ -67,7 +67,7 @@ const config = {
     [
       "expo-splash-screen",
       {
-        image: "./assets/logo.png",
+        image: "./assets/images/app-icon.png",
         imageWidth: 120,
         resizeMode: "contain",
         backgroundColor: "#1a1b1f",
