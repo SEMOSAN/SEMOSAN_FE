@@ -4,8 +4,8 @@ import { MountainMarkerTextBox } from '@/components/map-markers/mountain-marker-
 
 export type UnvisitedMountainPillVariant = 'trending' | 'curation' | 'visited';
 
-export const UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH = 120;
-export const UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT = 28;
+export const UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH = 84;
+export const UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT = 20;
 
 type Props = {
   name: string;
@@ -22,7 +22,7 @@ export function UnvisitedMountainPillMarker({ name, variant, selected = false }:
   return (
     <MountainMarkerTextBox
       name={name}
-      leading={<MountainsPinIcon size={18} circleColor={iconColor} />}
+      leading={<MountainsPinIcon size={13} circleColor={iconColor} />}
       nameColor={selected ? '#ffffff' : '#464A57'}
       style={[styles.container, selected ? { backgroundColor: SELECTED_BG } : undefined]}
     />
@@ -37,10 +37,14 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 5,
-    paddingBottom: 5,
-    paddingLeft: 5,
-    paddingRight: 10,
-    boxShadow: '0px 1px 4px 0px rgba(0, 0, 0, 0.2)',
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 4,
+    paddingRight: 7,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
