@@ -85,7 +85,7 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
         })
         .onEnd((e) => {
           const target = snapNearest(height.value - e.velocityY * 0.15, snapExpanded);
-          height.value = withSpring(target, SPRING);
+          height.value = withTiming(target, target === SNAP_COLLAPSED ? SNAP_TIMING_COLLAPSE : SNAP_TIMING_EXPAND);
           // 기본 높이(디폴트)에서는 스크롤 비활성, 최대 높이에서만 스크롤 활성
           runOnJS(setScrollEnabled)(target === snapExpanded);
           runOnJS(setSnapState)(
