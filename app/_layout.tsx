@@ -104,6 +104,18 @@ export default function RootLayout(): React.JSX.Element | null {
               options={{ headerShown: false }}
             />
             <Stack.Screen
+              name="community/free-board/write"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/free-board/[id]"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/free-board/search"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
               name="community/post-complete"
               options={{ headerShown: false }}
             />

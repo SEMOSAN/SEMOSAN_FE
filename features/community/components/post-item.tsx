@@ -1,15 +1,14 @@
 import { ChatIcon } from "@/components/icons/chat-icon";
-import { EyeIcon } from "@/components/icons/eye-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
-import { Post } from "@/features/community/constants/mock-posts";
+import { formatDate } from "@/lib/utils";
+import { FreePostListResponse } from "@/types/api.generated";
 import { useRouter } from "expo-router";
-import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { StatItem } from "./stat-item";
 import { Thumbnail } from "./thumbnail";
 
-export function PostItem({ post }: { post: Post }) {
-  const hasImage = !!post.imageCount && post.imageCount > 0;
+export function PostItem({ post }: { post: FreePostListResponse }) {
+  const hasImage = !!post.thumbnailUrl;
   const router = useRouter();
   return (
     <Pressable
@@ -29,22 +28,21 @@ export function PostItem({ post }: { post: Post }) {
               className="text-label-subtle typo-body-2-reading-regular"
               numberOfLines={2}
             >
-              {post.body}
+              {post.contentPreview}
             </Text>
           </View>
-          {hasImage && <Thumbnail imageCount={post.imageCount!} />}
+          {hasImage && <Thumbnail imageUrl={post.thumbnailUrl!} />}
         </View>
         <View className="flex-row items-center justify-between">
           <Text className="text-label-subtler typo-caption-1-regular">
-            {post.date}
+            {formatDate(post.createdAt)}
           </Text>
           <View className="flex-row gap-3">
-            <StatItem icon={<EyeIcon />} count={post.views} />
             <StatItem
               icon={<HeartIcon size={14} color="#73798c" />}
-              count={post.likes}
+              count={post.likeCount ?? 0}
             />
-            <StatItem icon={<ChatIcon />} count={post.comments} />
+            <StatItem icon={<ChatIcon />} count={post.commentCount ?? 0} />
           </View>
         </View>
       </View>

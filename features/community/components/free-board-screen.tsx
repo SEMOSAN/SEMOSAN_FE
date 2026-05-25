@@ -1,18 +1,31 @@
 import { PlusIcon } from "@/components/icons/plus-icon";
-import { MOCK_POSTS } from "@/features/community/constants/mock-posts";
+import { useFreePosts } from "@/features/community/hooks/use-free-posts";
 import { useRouter } from "expo-router";
-import React from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import { PostItem } from "./post-item";
 
 export function FreeBoardScreen() {
   const router = useRouter();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useFreePosts();
+
+  const posts = data?.pages.flatMap((page) => page.content ?? []) ?? [];
+
   return (
     <View className="flex-1">
       <FlatList
-        data={MOCK_POSTS}
-        keyExtractor={(item) => item.id}
+        data={posts}
+        keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <PostItem post={item} />}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <ActivityIndicator className="py-4" />
+          ) : null
+        }
       />
       <Pressable
         onPress={() => router.push("/community/free-board/write")}

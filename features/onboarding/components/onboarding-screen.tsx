@@ -2,9 +2,9 @@ import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { LongButton } from "@/components/long-button";
 import { TextField } from "@/components/text-field";
-import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
 import { useCheckNickname } from "@/features/onboarding/hooks/use-check-nickname";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
+import { uploadImage } from "@/hooks/use-upload-image";
 import { ApiError } from "@/lib/api";
 import {
   formatBirthDate,
@@ -35,7 +35,8 @@ export function OnboardingScreen() {
   const weightRef = useRef<TextInput>(null);
 
   const setProfile = useOnboardingStore((s) => s.setProfile);
-  const { mutateAsync: checkNickname, isPending: isCheckingNickname } = useCheckNickname();
+  const { mutateAsync: checkNickname, isPending: isCheckingNickname } =
+    useCheckNickname();
 
   const [step, setStep] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
@@ -348,7 +349,10 @@ export function OnboardingScreen() {
               value={nickname}
               onChangeText={handleNicknameChange}
               placeholder="닉네임을 입력해 주세요"
-              description={nicknameError ?? "2자 이상 10자 이내의 한글, 영문, 숫자만 가능해요"}
+              description={
+                nicknameError ??
+                "2자 이상 10자 이내의 한글, 영문, 숫자만 가능해요"
+              }
               error={!!nicknameError}
               maxLength={10}
               onEndEditing={handleNicknameEnd}
@@ -362,10 +366,10 @@ export function OnboardingScreen() {
           !birthDateError &&
           !heightError &&
           !weightError && (
-          <View className="px-5 pb-4 pt-3">
-            <LongButton label="다음" onPress={handleSubmit} />
-          </View>
-        )}
+            <View className="px-5 pb-4 pt-3">
+              <LongButton label="다음" onPress={handleSubmit} />
+            </View>
+          )}
       </View>
     </>
   );

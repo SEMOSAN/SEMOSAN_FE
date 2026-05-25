@@ -1,5 +1,9 @@
 import { IOSKeyboardAccessoryToolbar } from "@/components/ios-keyboard-accessory-toolbar";
+import { toast } from "@/store/toast.store";
+import { ENDPOINTS } from "@/types/api.generated";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCreatePost } from "../hooks/use-create-post";
 import { useWriteForm } from "../hooks/use-write-form";
 import { ImageUploadButton } from "./image-upload-button";
 import { WriteHeader } from "./write-header";
@@ -18,9 +23,26 @@ const TITLE_TOOLBAR_ID = "write-title-toolbar";
 const BODY_TOOLBAR_ID = "write-body-toolbar";
 
 export function WriteScreen() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { top, bottom } = useSafeAreaInsets();
   const { title, setTitle, body, setBody, isSubmittable } = useWriteForm();
+  const { mutateAsync: createPost, isPending } = useCreatePost();
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+
+  async function handleSubmit(): Promise<void> {
+    await createPost({
+      title: title.trim(),
+      content: body.trim(),
+      imageUrls,
+      mainImageIndex: imageUrls.length > 0 ? 0 : undefined,
+    });
+    queryClient.invalidateQueries({
+      queryKey: [ENDPOINTS.COMMUNITY_FREE_POSTS],
+    });
+    toast.show("게시글을 업로드했어요.");
+    router.back();
+  }
 
   return (
     <KeyboardAvoidingView
@@ -65,8 +87,8 @@ export function WriteScreen() {
 
         <View className="h-[6px] bg-fill-strong" />
 
-        <View className="px-5 py-4">
-          <ImageUploadButton />
+        <View className="px-5 pb-4">
+          <ImageUploadButton value={imageUrls} onChange={setImageUrls} />
         </View>
       </ScrollView>
 
@@ -75,15 +97,19 @@ export function WriteScreen() {
         style={{ paddingBottom: Math.max(bottom, 20) }}
       >
         <Pressable
-          disabled={!isSubmittable}
-          onPress={() => router.back()}
+          disabled={!isSubmittable || isPending}
+          onPress={handleSubmit}
           className={`h-14 items-center justify-center rounded-xl ${
-            isSubmittable ? "bg-primary-normal" : "bg-fill-disabled"
+            isSubmittable && !isPending
+              ? "bg-primary-normal"
+              : "bg-fill-disabled"
           }`}
         >
           <Text
             className={`typo-label-large ${
-              isSubmittable ? "text-common-100" : "text-label-disabled"
+              isSubmittable && !isPending
+                ? "text-common-100"
+                : "text-label-disabled"
             }`}
           >
             완료
