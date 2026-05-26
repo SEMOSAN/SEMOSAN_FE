@@ -14,9 +14,10 @@ import { TrailAvatarMarker } from "@/features/tracking/components/trail-avatar-m
 import { PinMarkerIcon } from "@/components/icons/pin-marker-icon";
 import {
   COLLAPSED_PEEK_HEIGHT,
+  Course,
+  Difficulty,
   FLOATING_CARD_GAP,
   LOCATION_BUTTON_GAP,
-  MOCK_COURSES,
   SHADOW,
   TRACKING_COURSE_CARD_HEIGHT,
   TRACKING_COURSE_CARD_TOP,
@@ -65,15 +66,20 @@ import {
   View,
 } from "react-native";
 
+const DIFFICULTY_KO: Record<string, Difficulty> = {
+  EASY: '초급',
+  NORMAL: '중급',
+  HARD: '고급',
+};
+
 export default function TrackingScreen() {
   const { collapse: collapseParameter, courseId: courseIdParameter } =
     useLocalSearchParams<{
       collapse?: string;
       courseId?: string;
     }>();
-  // [DEV] 관악산 코스 1 (courseId=205) 하드코딩 — GPX 없는 인근산 테스트용, 확인 후 제거
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
-    courseIdParameter ?? "205",
+    courseIdParameter ?? null,
   );
   const [collapsed, setCollapsed] = useState(collapseParameter === "true");
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -119,7 +125,6 @@ export default function TrackingScreen() {
   const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
-  const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (courseIdParameter) setSelectedCourseId(courseIdParameter);
@@ -236,68 +241,27 @@ export default function TrackingScreen() {
   const selectedCourseId_num = selectedCourseId
     ? Number(selectedCourseId)
     : null;
-  // [DEV] 관악산 polyline 테스트용 임시 하드코딩 — 확인 후 제거
-  const DEV_TEST_COURSE_ID = 205;
-  const { data: courseDetail } = useCourseDetail(isFreeMode ? null : (selectedCourseId_num ?? DEV_TEST_COURSE_ID));
-  // [DEV] 자유기록 시뮬용 — 항상 DEV 코스 좌표 로드
-  const { data: devCourseDetail } = useCourseDetail(DEV_TEST_COURSE_ID);
-  const devCourseCoords = useMemo(
-    () => parseCoursePolyline(devCourseDetail?.polyline),
-    [devCourseDetail?.polyline],
-  );
+  const { data: courseDetail } = useCourseDetail(isFreeMode ? null : selectedCourseId_num);
   const courseCoords = useMemo(
     () => parseCoursePolyline(courseDetail?.polyline),
     [courseDetail?.polyline],
   );
 
-  const selectedCourse =
-    MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
-
-  // [DEV] 코스 polyline 좌표를 순서대로 빠르게 publish → 백엔드 마일스톤 트리거 테스트
-  const startCoordSimulation = useCallback(() => {
-    if (!sessionId) return;
-    if (simIntervalRef.current) {
-      console.warn("[SIM] 이미 실행 중");
-      return;
-    }
-    // 자유기록이면 DEV 코스 좌표 사용, 코스 따라가기면 해당 코스 좌표 사용
-    const coords = isFreeMode ? devCourseCoords : courseCoords;
-    console.log('[SIM] isFreeMode:', isFreeMode, 'coords.length:', coords.length, 'sessionId:', sessionId);
-    if (coords.length === 0) {
-      console.warn("[SIM] 코스 좌표 없음 — courseDetail polyline 확인 필요");
-      return;
-    }
-    let idx = 0;
-    const mid = Math.floor(coords.length / 2);
-    console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
-    console.log(`[SIM] coords[0]:   (${coords[0].latitude.toFixed(5)}, ${coords[0].longitude.toFixed(5)})`);
-    console.log(`[SIM] coords[${mid}]: (${coords[mid].latitude.toFixed(5)}, ${coords[mid].longitude.toFixed(5)})`);
-    console.log(`[SIM] coords[${coords.length - 1}]: (${coords[coords.length - 1].latitude.toFixed(5)}, ${coords[coords.length - 1].longitude.toFixed(5)})`);
-    simIntervalRef.current = setInterval(() => {
-      if (idx >= coords.length) {
-        clearInterval(simIntervalRef.current!);
-        simIntervalRef.current = null;
-        console.log("[SIM] 완료");
-        return;
-      }
-      const { latitude, longitude } = coords[idx];
-      publishGps(sessionId, {
-        lat: latitude,
-        lng: longitude,
-        altitude: 0,
-        recordedAt: new Date().toISOString(),
-      });
-      // 현재 위치 마커 이동 (시뮬 전용 — userLocation은 API용이므로 건드리지 않음)
-      setMarkerCoord({ latitude, longitude });
-      // 자유기록이면 경로도 지도에 표시
-      if (isFreeMode) {
-        setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-      }
-      // 50개마다 한 번만 로그 출력
-      if (idx % 50 === 0) console.log(`[SIM] ${idx + 1}/${coords.length}`);
-      idx++;
-    }, 300); // 0.3초 간격 — 빠른 테스트용 (실제는 3~5초)
-  }, [sessionId, courseCoords, devCourseCoords, isFreeMode, publishGps]);
+  const selectedCourse = useMemo((): Course => ({
+    id: String(courseDetail?.id ?? ''),
+    name: courseDetail?.name ?? '',
+    difficulty: DIFFICULTY_KO[courseDetail?.difficulty ?? ''] ?? '중급',
+    altitudeNm: 0,
+    distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
+    ascentM: 0,
+    descentM: 0,
+    durationHours: Math.floor((courseDetail?.duration ?? 0) / 60),
+    durationMinutes: (courseDetail?.duration ?? 0) % 60,
+    coordinates: [],
+    centerLatitude: 0,
+    centerLongitude: 0,
+    zoom: 14,
+  }), [courseDetail]);
 
   // 정적 맵 오버레이 — markerCoord 변경 시 리렌더 방지
   const staticMapOverlays = useMemo(() => (
@@ -393,26 +357,6 @@ export default function TrackingScreen() {
     </>
   ), [courseCoords, isFreeMode, recordedCoords, isTracking, nearbyData]);
 
-  // [DEV] 선택된 courseId 로그 (1회만)
-  useEffect(() => {
-    console.log("[Course] selectedCourseId:", selectedCourseId_num);
-  }, [selectedCourseId_num]);
-
-  useEffect(() => {
-    console.log('[NearbyMountain] data:', JSON.stringify(nearbyData?.mountain));
-  }, [nearbyData]);
-
-  useEffect(() => {
-    console.log('[Course] courseDetail polyline type:', typeof courseDetail?.polyline, 'courseCoords.length:', courseCoords.length);
-    if (courseCoords[0]) {
-      console.log(
-        "[Course] 첫 좌표:",
-        courseCoords[0].latitude,
-        courseCoords[0].longitude,
-      );
-    }
-  }, [courseCoords.length, isFreeMode, isTracking]);
-
   // polyline 로드되거나 트래킹 시작 시 카메라를 전체 경로가 보이도록 맞춤
   useEffect(() => {
     if (courseCoords.length < 2) return;
@@ -448,8 +392,7 @@ export default function TrackingScreen() {
       setCountdown(null);
 
       // 트래킹 세션 시작 API 호출
-      // [DEV] 관악산 하드코딩 — 확인 후 nearbyData?.mountain?.mountainId 로 교체
-      const mountainId = 2;
+      const mountainId = nearbyData?.mountain?.mountainId;
       if (mountainId != null) {
         startSession(
           {
@@ -817,32 +760,9 @@ export default function TrackingScreen() {
       {/* Expanded 바텀시트 */}
       {!isTracking && !collapsed && (
         <CourseSelectSheet
-          // [DEV] 관악산 하드코딩 — 확인 후 제거
-          mountain={{ mountainId: 2, name: "관악산", altitude: 632 }}
-          courses={[
-            {
-              courseId: 205,
-              name: "관악산 코스 1",
-              difficulty: "HARD",
-              distance: 8922.2,
-              duration: 290,
-            },
-            {
-              courseId: 206,
-              name: "관악산 코스 2",
-              difficulty: "NORMAL",
-              distance: 6782.1,
-              duration: 163,
-            },
-            {
-              courseId: 209,
-              name: "관악산 코스 5",
-              difficulty: "NORMAL",
-              distance: 6365.4,
-              duration: 169,
-            },
-          ]}
-          isLoading={false}
+          mountain={nearbyData?.mountain}
+          courses={nearbyData?.courses}
+          isLoading={isNearbyLoading}
           selectedCourseId={selectedCourseId_num}
           onSelectCourse={(id) => setSelectedCourseId(String(id))}
           onFreeRecord={handleFreeRecord}
@@ -895,26 +815,6 @@ export default function TrackingScreen() {
         </View>
       )}
 
-      {/* [DEV] 좌표 시뮬레이션 버튼 */}
-      {isTracking && (
-        <TouchableOpacity
-          onPress={startCoordSimulation}
-          style={{
-            position: "absolute",
-            bottom: trackingSheetHeight + 16,
-            left: 16,
-            backgroundColor: "#FF6B00",
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 8,
-            zIndex: 99,
-          }}
-        >
-          <Text style={{ color: "#fff", fontSize: 12, fontWeight: "bold" }}>
-            [DEV] 좌표 시뮬
-          </Text>
-        </TouchableOpacity>
-      )}
 
 
       {/* 카운트다운 오버레이 */}
@@ -946,7 +846,7 @@ export default function TrackingScreen() {
       <DifficultyRatingModal
         visible={showDifficultyRating}
         course={selectedCourse}
-        mountainName="관악산"
+        mountainName={nearbyData?.mountain?.name ?? ""}
         onClose={completeTracking}
         onComplete={completeTracking}
       />
