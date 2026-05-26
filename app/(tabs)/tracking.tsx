@@ -110,50 +110,6 @@ export default function TrackingScreen() {
   const mapRef = useRef<NaverMapViewRef>(null);
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // [DEV] 코스 polyline 좌표를 순서대로 빠르게 publish → 백엔드 마일스톤 트리거 테스트
-  const startCoordSimulation = useCallback(() => {
-    if (!sessionId) return;
-    if (simIntervalRef.current) {
-      console.warn('[SIM] 이미 실행 중');
-      return;
-    }
-    // 자유기록이면 DEV 코스 좌표 사용, 코스 따라가기면 해당 코스 좌표 사용
-    const coords = isFreeMode ? devCourseCoords : courseCoords;
-    console.log('[SIM] isFreeMode:', isFreeMode, 'coords.length:', coords.length, 'sessionId:', sessionId);
-    if (coords.length === 0) {
-      console.warn('[SIM] 코스 좌표 없음 — courseDetail polyline 확인 필요');
-      return;
-    }
-    let idx = 0;
-    const mid = Math.floor(coords.length / 2);
-    console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
-    console.log(`[SIM] coords[0]:   (${coords[0].latitude.toFixed(5)}, ${coords[0].longitude.toFixed(5)})`);
-    console.log(`[SIM] coords[${mid}]: (${coords[mid].latitude.toFixed(5)}, ${coords[mid].longitude.toFixed(5)})`);
-    console.log(`[SIM] coords[${coords.length - 1}]: (${coords[coords.length - 1].latitude.toFixed(5)}, ${coords[coords.length - 1].longitude.toFixed(5)})`);
-    simIntervalRef.current = setInterval(() => {
-      if (idx >= coords.length) {
-        clearInterval(simIntervalRef.current!);
-        simIntervalRef.current = null;
-        console.log('[SIM] 완료');
-        return;
-      }
-      const { latitude, longitude } = coords[idx];
-      publishGps(sessionId, {
-        lat: latitude,
-        lng: longitude,
-        altitude: 0,
-        recordedAt: new Date().toISOString(),
-      });
-      // 자유기록이면 경로도 지도에 표시
-      if (isFreeMode) {
-        setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-      }
-      // 50개마다 한 번만 로그 출력
-      if (idx % 50 === 0) console.log(`[SIM] ${idx + 1}/${coords.length}`);
-      idx++;
-    }, 300); // 0.3초 간격 — 빠른 테스트용 (실제는 3~5초)
-  }, [sessionId, courseCoords, devCourseCoords, isFreeMode, publishGps]);
-
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
     (async () => {
@@ -259,6 +215,50 @@ export default function TrackingScreen() {
   );
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
+
+  // [DEV] 코스 polyline 좌표를 순서대로 빠르게 publish → 백엔드 마일스톤 트리거 테스트
+  const startCoordSimulation = useCallback(() => {
+    if (!sessionId) return;
+    if (simIntervalRef.current) {
+      console.warn('[SIM] 이미 실행 중');
+      return;
+    }
+    // 자유기록이면 DEV 코스 좌표 사용, 코스 따라가기면 해당 코스 좌표 사용
+    const coords = isFreeMode ? devCourseCoords : courseCoords;
+    console.log('[SIM] isFreeMode:', isFreeMode, 'coords.length:', coords.length, 'sessionId:', sessionId);
+    if (coords.length === 0) {
+      console.warn('[SIM] 코스 좌표 없음 — courseDetail polyline 확인 필요');
+      return;
+    }
+    let idx = 0;
+    const mid = Math.floor(coords.length / 2);
+    console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
+    console.log(`[SIM] coords[0]:   (${coords[0].latitude.toFixed(5)}, ${coords[0].longitude.toFixed(5)})`);
+    console.log(`[SIM] coords[${mid}]: (${coords[mid].latitude.toFixed(5)}, ${coords[mid].longitude.toFixed(5)})`);
+    console.log(`[SIM] coords[${coords.length - 1}]: (${coords[coords.length - 1].latitude.toFixed(5)}, ${coords[coords.length - 1].longitude.toFixed(5)})`);
+    simIntervalRef.current = setInterval(() => {
+      if (idx >= coords.length) {
+        clearInterval(simIntervalRef.current!);
+        simIntervalRef.current = null;
+        console.log('[SIM] 완료');
+        return;
+      }
+      const { latitude, longitude } = coords[idx];
+      publishGps(sessionId, {
+        lat: latitude,
+        lng: longitude,
+        altitude: 0,
+        recordedAt: new Date().toISOString(),
+      });
+      // 자유기록이면 경로도 지도에 표시
+      if (isFreeMode) {
+        setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
+      }
+      // 50개마다 한 번만 로그 출력
+      if (idx % 50 === 0) console.log(`[SIM] ${idx + 1}/${coords.length}`);
+      idx++;
+    }, 300); // 0.3초 간격 — 빠른 테스트용 (실제는 3~5초)
+  }, [sessionId, courseCoords, devCourseCoords, isFreeMode, publishGps]);
 
   // [DEV] 선택된 courseId 로그 (1회만)
   useEffect(() => {
@@ -784,6 +784,7 @@ export default function TrackingScreen() {
           </Text>
         </TouchableOpacity>
       )}
+
 
       {/* 카운트다운 오버레이 */}
       {countdown !== null && countdown > 0 && (

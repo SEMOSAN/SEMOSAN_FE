@@ -18,12 +18,14 @@ const config = {
     bundleIdentifier: "com.tastyhiking.semosanapp",
     appleTeamId: "M8D59WC33R",
     usesAppleSignIn: true,
+    googleServicesFile: "./GoogleService-Info.plist",
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
       NSCameraUsageDescription:
         "프로필 사진 촬영을 위해 카메라 접근이 필요합니다.",
       NSPhotoLibraryUsageDescription:
         "프로필 사진 선택을 위해 사진 라이브러리 접근이 필요합니다.",
+      UIBackgroundModes: ["remote-notification"],
     },
   },
   locales: {
@@ -48,6 +50,7 @@ const config = {
   },
   plugins: [
     "expo-router",
+    "@react-native-firebase/app",
     ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
     [
       "expo-notifications",
@@ -55,6 +58,7 @@ const config = {
         icon: "./assets/logo.png",
         color: "#ffffff",
         googleServicesFile: "./google-services.json",
+        enableBackgroundRemoteNotifications: true,
       },
     ],
     [

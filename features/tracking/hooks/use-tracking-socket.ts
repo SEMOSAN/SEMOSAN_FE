@@ -34,9 +34,11 @@ export function useTrackingSocket({ onPhotoWindow }: UseTrackingSocketOptions = 
           const client = clientRef.current;
           if (!client) return;
           subscriptionRef.current?.unsubscribe();
+          console.log(`[TrackingSocket] 구독 시작: /topic/tracking/${sessionId}/photo-window`);
           subscriptionRef.current = client.subscribe(
             `/topic/tracking/${sessionId}/photo-window`,
             (message) => {
+              console.log('[TrackingSocket] photo-window 메시지 수신:', message.body);
               try {
                 const payload: PhotoWindowPayload = JSON.parse(message.body);
                 onPhotoWindow?.(payload);

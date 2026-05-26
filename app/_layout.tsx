@@ -42,7 +42,7 @@ export const unstable_settings = {
 export default function RootLayout(): React.JSX.Element | null {
   const { status: authStatus } = useAuthState();
 
-  usePushNotification(!__DEV__ && authStatus === "authenticated");
+  usePushNotification(authStatus === "authenticated");
   const [fontsLoaded] = useFonts({
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
     Lexend_700Bold,
