@@ -1,4 +1,6 @@
 import { api } from '@/lib/api';
+import { getApp } from '@react-native-firebase/app';
+import { getMessaging, getToken } from '@react-native-firebase/messaging';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
@@ -26,10 +28,15 @@ export function usePushNotification(enabled = true): void {
     if (!enabled) return;
     registerFcmToken();
 
-    // 포어그라운드 알림 수신 (필요 시 인앱 UI 처리)
+    // 포어그라운드 알림 수신 — Firebase SDK 충돌로 배너가 안 뜨는 경우 로컬 알림으로 재표시
     const foregroundSub = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        console.log('[Push] 포어그라운드 수신:', notification);
+      async (notification) => {
+        const { title, body } = notification.request.content;
+        if (!title && !body) return;
+        await Notifications.scheduleNotificationAsync({
+          content: { title: title ?? 'SEMOSAN', body: body ?? '' },
+          trigger: null, // 즉시 표시
+        });
       },
     );
 
@@ -109,7 +116,11 @@ async function registerFcmToken() {
   }
 
   try {
-    const { data: token } = await Notifications.getDevicePushTokenAsync();
+    // iOS: Firebase SDK로 FCM 등록 토큰 획득 (APNs 토큰 아님)
+    // Android: FCM 토큰 직접 반환
+    const app = getApp();
+    const fcmMessaging = getMessaging(app);
+    const token = await getToken(fcmMessaging);
 
     await api.post({
       path: '/api/fcm/tokens',
@@ -119,7 +130,7 @@ async function registerFcmToken() {
       },
     });
 
-    console.log('[Push] FCM 토큰 등록 완료');
+    console.log('[Push] FCM 토큰 등록 완료:', token);
   } catch (error) {
     console.error('[Push] FCM 토큰 등록 실패:', error);
   }

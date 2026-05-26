@@ -13,6 +13,7 @@ export const ENDPOINTS = {
   TRACKING_SESSIONS_BY_SESSIONID_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
   TRACKING_SESSIONS_BY_SESSIONID_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
   TRACKING_SESSIONS_BY_SESSIONID_ABANDON: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/abandon`,
+  SEMOFEED: "/api/semofeed",
   OAUTH_KAKAO_LOGIN: "/api/oauth/kakao/login",
   OAUTH_APPLE_LOGIN: "/api/oauth/apple/login",
   MOUNTAINS_BY_MOUNTAINID_LIKE: (mountainId: number | string) => `/api/mountains/${mountainId}/like`,
@@ -29,11 +30,14 @@ export const ENDPOINTS = {
   USERS_NOTIFICATION_SETTINGS_VOICE: "/api/users/notification-settings/voice",
   USERS_NOTIFICATION_SETTINGS_PUSH: "/api/users/notification-settings/push",
   USERS_NOTIFICATION_SETTINGS_LIVE_ACTIVITY: "/api/users/notification-settings/live-activity",
+  SEMOFEED_BY_SEMOFEEDID_PUBLIC: (semoFeedId: number | string) => `/api/semofeed/${semoFeedId}/public`,
   USERS_NOTIFICATION_SETTINGS: "/api/users/notification-settings",
   USERS_NICKNAME: "/api/users/nickname",
   TRACKING_SESSIONS_BY_SESSIONID: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}`,
   TRACKING_SESSIONS_ME_ACTIVE: "/api/tracking/sessions/me/active",
   TRACKING_NEARBY_MOUNTAIN: "/api/tracking/nearby-mountain",
+  TRACKING_LIVE_ACTIVITY_COURSES_BY_COURSEID: (courseId: number | string) => `/api/tracking/live-activity/courses/${courseId}`,
+  SEMOFEED_ME: "/api/semofeed/me",
   MOUNTAINS: "/api/mountains",
   MOUNTAINS_BY_MOUNTAINID: (mountainId: number | string) => `/api/mountains/${mountainId}`,
   MOUNTAINS_SEARCH: "/api/mountains/search",
@@ -45,15 +49,17 @@ export const ENDPOINTS = {
   HIKING_RECORDS_ME_SUMMARY: "/api/hiking-records/me/summary",
   HIKING_RECORDS_ME_MOUNTAINS: "/api/hiking-records/me/mountains",
   HIKING_RECORDS_ME_MOUNTAINS_BY_MOUNTAINID: (mountainId: number | string) => `/api/hiking-records/me/mountains/${mountainId}`,
+  COURSES_BY_COURSEID: (courseId: number | string) => `/api/courses/${courseId}`,
   COMMUNITY_RECORD_POSTS_BY_POSTID: (postId: number | string) => `/api/community/record-posts/${postId}`,
   COMMUNITY_RECORD_POSTS_ME: "/api/community/record-posts/me",
   COMMUNITY_POSTS_BY_POSTID_LIKES_COUNT: (postId: number | string) => `/api/community/posts/${postId}/likes/count`,
   COMMUNITY_FREE_POSTS_BY_POSTID: (postId: number | string) => `/api/community/free-posts/${postId}`,
+  COMMUNITY_FREE_POSTS_SEARCH: "/api/community/free-posts/search",
   COMMUNITY_FREE_POSTS_ME: "/api/community/free-posts/me",
   COMMUNITY_COMMENTS_BY_COMMENTID_REPLIES: (commentId: number | string) => `/api/community/comments/${commentId}/replies`,
+  SEMOFEED_BY_SEMOFEEDID: (semoFeedId: number | string) => `/api/semofeed/${semoFeedId}`,
   COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/community/comments/${commentId}`,
   AUTH_WITHDRAW: "/api/auth/withdraw",
-  COURSES_BY_COURSEID: (courseId: number | string) => `/api/courses/${courseId}`,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -138,6 +144,11 @@ export type TrackingPhotoResponse = {
   lng?: number;
   altitude?: number;
 };
+export type SemoFeedResponse = {
+  id?: number;
+  imageUrl?: string;
+  isPublic?: boolean;
+};
 export type OAuthKakaoLoginRequest = {
   accessToken?: string;
   deviceType: "IOS" | "ANDROID";
@@ -169,7 +180,7 @@ export type ApiResponseRecordPostResponse = {
 };
 export type AuthorResponse = {
   id?: number;
-  name?: string;
+  nickname?: string;
   profileUrl?: string;
   isDeleted?: boolean;
 };
@@ -217,6 +228,7 @@ export type CommentResponse = {
   parentId?: number;
   mentionedUser?: AuthorResponse;
   createdAt?: string;
+  isDeleted?: boolean;
 };
 export type CommentReplyRequest = {
   parentId: number;
@@ -280,6 +292,12 @@ export type UpdateUserProfileRequest = {
 export type UpdateNotificationSettingRequest = {
   enabled: boolean;
 };
+export type ApiResponseBoolean = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: boolean;
+};
 export type ApiResponseGetUserProfileResponse = {
   isSuccess?: boolean;
   code?: string;
@@ -327,17 +345,6 @@ export type CourseInfo = {
   distance?: number;
   duration?: number;
 };
-export type CourseDetailResponse = {
-  id?: number;
-  name?: string;
-  difficulty?: "EASY" | "NORMAL" | "HARD";
-  distance?: number;
-  duration?: number;
-  startName?: string;
-  endName?: string;
-  polyline?: string | object | null;
-  altitudes?: string | object | null;
-};
 export type NearbyMountainInfo = {
   mountainId?: number;
   name?: string;
@@ -350,6 +357,42 @@ export type NearbyMountainInfo = {
 export type NearbyMountainResponse = {
   mountain?: NearbyMountainInfo;
   courses?: CourseInfo[];
+};
+export type ApiResponseLiveActivityCourseResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: LiveActivityCourseResponse;
+};
+export type CoordinateInfo = {
+  latitude?: number;
+  longitude?: number;
+};
+export type LiveActivityCourseResponse = {
+  courseId?: number;
+  coordinates?: CoordinateInfo[];
+  totalDistance?: number;
+  estimatedTime?: number;
+};
+export type ApiResponsePageResponseSemoFeedResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: PageResponseSemoFeedResponse;
+};
+export type PageResponseSemoFeedResponse = {
+  content?: SemoFeedResponse[];
+  page?: number;
+  size?: number;
+  totalElements?: number;
+  totalPages?: number;
+  last?: boolean;
+};
+export type ApiResponseListSemoFeedResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: SemoFeedResponse[];
 };
 export type ApiResponsePageResponseMountainListResponse = {
   isSuccess?: boolean;
@@ -429,27 +472,19 @@ export type TransportationItem = {
   name?: string;
   description?: string;
 };
-export type ApiResponsePageResponseMountainRecommendationResponse = {
+export type ApiResponseListMountainRecommendationResponse = {
   isSuccess?: boolean;
   code?: string;
   message?: string;
-  data?: PageResponseMountainRecommendationResponse;
+  data?: MountainRecommendationResponse[];
 };
 export type MountainRecommendationResponse = {
   mountainId?: number;
   name?: string;
   imageUrl?: string;
-  difficulty?: "EASY" | "NORMAL" | "HARD";
-  altitude?: number;
+  difficultyLabel?: string;
+  mountainHeightM?: number;
   address?: string;
-};
-export type PageResponseMountainRecommendationResponse = {
-  content?: MountainRecommendationResponse[];
-  page?: number;
-  size?: number;
-  totalElements?: number;
-  totalPages?: number;
-  last?: boolean;
 };
 export type ApiResponseMountainMapListResponse = {
   isSuccess?: boolean;
@@ -559,6 +594,23 @@ export type PageResponseGetUserHikingMountainRecordResponse = {
   totalPages?: number;
   last?: boolean;
 };
+export type ApiResponseCourseDetailResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: CourseDetailResponse;
+};
+export type CourseDetailResponse = {
+  id?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+  startName?: string;
+  endName?: string;
+  polyline?: string;
+  altitudes?: string;
+};
 export type ApiResponsePageResponseRecordPostResponse = {
   isSuccess?: boolean;
   code?: string;
@@ -604,8 +656,8 @@ export type FreePostListResponse = {
   author?: AuthorResponse;
   title?: string;
   contentPreview?: string;
-  representativeImageUrl?: string;
-  viewCount?: number;
+  thumbnailUrl?: string;
+  extraImageCount?: number;
   likeCount?: number;
   commentCount?: number;
   createdAt?: string;
@@ -668,6 +720,16 @@ export type AbandonSessionParams = {
   sessionId: number;
 };
 
+// GET /api/semofeed
+export type ListPublicParams = {
+  page?: number;
+  size?: number;
+  sort?: string[];
+};
+
+// POST /api/semofeed
+export type CreateBody = string;
+
 // POST /api/oauth/kakao/login
 export type KakaoLoginBody = OAuthKakaoLoginRequest;
 
@@ -698,7 +760,7 @@ export type GetListParams = {
 };
 
 // POST /api/community/record-posts
-export type CreateBody = RecordPostCreateRequest;
+export type Create1Body = RecordPostCreateRequest;
 
 // POST /api/community/posts/{postId}/likes
 export type ToggleParams = {
@@ -714,10 +776,10 @@ export type GetCommentsParams = {
 };
 
 // POST /api/community/posts/{postId}/comments
-export type Create1Params = {
+export type Create2Params = {
   postId: number;
 };
-export type Create1Body = CommentCreateRequest;
+export type Create2Body = CommentCreateRequest;
 
 // POST /api/community/posts/{postId}/comments/replies
 export type ReplyParams = {
@@ -733,7 +795,7 @@ export type GetList1Params = {
 };
 
 // POST /api/community/free-posts
-export type Create2Body = FreePostCreateRequest;
+export type Create3Body = FreePostCreateRequest;
 
 // POST /api/auth/test/login
 export type LoginBody = LoginRequest;
@@ -750,6 +812,11 @@ export type UpdatePushNotificationSettingBody = UpdateNotificationSettingRequest
 // PATCH /api/users/notification-settings/live-activity
 export type UpdateLiveActivitySettingBody = UpdateNotificationSettingRequest;
 
+// PATCH /api/semofeed/{semoFeedId}/public
+export type TogglePublicParams = {
+  semoFeedId: number;
+};
+
 // GET /api/users/nickname
 export type CheckNicknameParams = {
   nickname: string;
@@ -764,6 +831,11 @@ export type GetSessionParams = {
 export type GetNearbyMountainParams = {
   lat: number;
   lng: number;
+};
+
+// GET /api/tracking/live-activity/courses/{courseId}
+export type GetLiveActivityCourseParams = {
+  courseId: number;
 };
 
 // GET /api/mountains
@@ -790,9 +862,6 @@ export type SearchMountainsParams = {
 export type GetRecommendedMountainsParams = {
   lat: number;
   lng: number;
-  page?: number;
-  size?: number;
-  sort?: string[];
 };
 
 // GET /api/mountains/map
@@ -838,6 +907,11 @@ export type GetUserHikingRecordsByMountainIdParams = {
   sort?: string[];
 };
 
+// GET /api/courses/{courseId}
+export type GetCourseDetailParams = {
+  courseId: number;
+};
+
 // GET /api/community/record-posts/{postId}
 export type GetDetailParams = {
   postId: number;
@@ -870,6 +944,14 @@ export type Delete2Params = {
   postId: number;
 };
 
+// GET /api/community/free-posts/search
+export type SearchParams = {
+  keyword: string;
+  page?: number;
+  size?: number;
+  sort?: string[];
+};
+
 // GET /api/community/free-posts/me
 export type GetMyList1Params = {
   page?: number;
@@ -882,7 +964,12 @@ export type GetRepliesParams = {
   commentId: number;
 };
 
-// DELETE /api/community/comments/{commentId}
+// DELETE /api/semofeed/{semoFeedId}
 export type Delete3Params = {
+  semoFeedId: number;
+};
+
+// DELETE /api/community/comments/{commentId}
+export type Delete4Params = {
   commentId: number;
 };
