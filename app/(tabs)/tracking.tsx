@@ -73,10 +73,11 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
 };
 
 export default function TrackingScreen() {
-  const { collapse: collapseParameter, courseId: courseIdParameter } =
+  const { collapse: collapseParameter, courseId: courseIdParameter, mountainId: mountainIdParameter } =
     useLocalSearchParams<{
       collapse?: string;
       courseId?: string;
+      mountainId?: string;
     }>();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
     courseIdParameter ?? null,
@@ -430,7 +431,8 @@ export default function TrackingScreen() {
       setCountdown(null);
 
       // 트래킹 세션 시작 API 호출
-      const mountainId = nearbyData?.mountain?.mountainId;
+      // mountainId 우선순위: URL 파라미터(코스 상세에서 진입) > nearbyData(현재 위치 기반)
+      const mountainId = mountainIdParameter ? Number(mountainIdParameter) : nearbyData?.mountain?.mountainId;
       if (mountainId != null) {
         startSession(
           {

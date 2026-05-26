@@ -7,6 +7,7 @@ import { ActivityIndicator, Image, Pressable, Text, View } from "react-native";
 
 type CourseCardProps = {
   courseId?: number;
+  mountainId?: number;
   name?: string;
   difficulty?: CourseInfo["difficulty"];
   distance?: number;
@@ -15,6 +16,7 @@ type CourseCardProps = {
 
 function CourseCard({
   courseId,
+  mountainId,
   name,
   difficulty,
   distance,
@@ -26,7 +28,7 @@ function CourseCard({
     <Pressable
       className="flex-row items-center gap-4"
       // TODO : 코스 이미지 생성되면 이미지연동 필요
-      onPress={() => router.push(`/mountains/courses/${courseId}`)}
+      onPress={() => router.push(`/mountains/courses/${courseId}?mountainId=${mountainId}`)}
     >
       <Image
         source={require("@/assets/images/default-image.png")}
@@ -79,6 +81,7 @@ export function CourseTab() {
         <CourseCard
           key={course.courseId}
           courseId={course.courseId}
+          mountainId={Number(id)}
           name={course.name}
           difficulty={course.difficulty}
           distance={course.distance}
