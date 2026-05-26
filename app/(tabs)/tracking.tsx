@@ -639,7 +639,7 @@ export default function TrackingScreen() {
 
         {/* 사진 윈도우 배너 — 지도 위 오버레이 */}
         {isTracking && photoWindow?.status === 'OPEN' && (
-          <View style={{ position: 'absolute', top: TRACKING_COURSE_CARD_TOP + TRACKING_COURSE_CARD_HEIGHT + 8, left: 0, right: 0, zIndex: 10 }}>
+          <View style={{ position: 'absolute', top: 124, left: 0, right: 0, alignItems: 'center', zIndex: 10 }}>
             <PhotoWindowBanner milestoneDistance={photoWindow.milestoneDistance} />
           </View>
         )}
