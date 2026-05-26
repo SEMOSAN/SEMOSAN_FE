@@ -44,8 +44,6 @@ import {
 } from "@/features/tracking/hooks/use-tracking-socket";
 import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
-import { useSaveTrackingPhoto } from "@/features/tracking/hooks/use-save-tracking-photo";
-import { isLiveActivityEnabled } from "@/constants/platform";
 import { LiveActivity, addLiveActivityControlListener } from "@/modules/live-activity";
 import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
 import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
@@ -412,9 +410,6 @@ export default function TrackingScreen() {
       idx++;
     }, 300);
   }, [sessionId, courseCoords, isFreeMode, publishGps]);
-
-  const selectedCourse =
-    MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
 
   const { data: liveActivityCourse } = useLiveActivityCourse(selectedCourseId);
 
