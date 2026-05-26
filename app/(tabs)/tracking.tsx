@@ -123,6 +123,7 @@ export default function TrackingScreen() {
   // 자유기록 실시간 경로 누적 (회색 polyline)
   const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
   const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
+  const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
 
@@ -356,6 +357,43 @@ export default function TrackingScreen() {
       )}
     </>
   ), [courseCoords, isFreeMode, recordedCoords, isTracking, nearbyData]);
+
+  // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
+  const startCoordSimulation = useCallback(() => {
+    if (!sessionId) return;
+    if (simIntervalRef.current) {
+      console.warn('[SIM] 이미 실행 중');
+      return;
+    }
+    const coords = courseCoords;
+    if (coords.length === 0) {
+      console.warn('[SIM] 코스 좌표 없음');
+      return;
+    }
+    let idx = 0;
+    console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
+    simIntervalRef.current = setInterval(() => {
+      if (idx >= coords.length) {
+        clearInterval(simIntervalRef.current!);
+        simIntervalRef.current = null;
+        console.log('[SIM] 완료');
+        return;
+      }
+      const { latitude, longitude } = coords[idx];
+      publishGps(sessionId, {
+        lat: latitude,
+        lng: longitude,
+        altitude: 0,
+        recordedAt: new Date().toISOString(),
+      });
+      setMarkerCoord({ latitude, longitude });
+      if (isFreeMode) {
+        setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
+      }
+      if (idx % 50 === 0) console.log(`[SIM] ${idx + 1}/${coords.length}`);
+      idx++;
+    }, 300);
+  }, [sessionId, courseCoords, isFreeMode, publishGps]);
 
   // polyline 로드되거나 트래킹 시작 시 카메라를 전체 경로가 보이도록 맞춤
   useEffect(() => {
@@ -815,7 +853,26 @@ export default function TrackingScreen() {
         </View>
       )}
 
-
+      {/* [DEV] 좌표 시뮬레이션 버튼 — 개발 빌드 전용 */}
+      {__DEV__ && isTracking && (
+        <TouchableOpacity
+          onPress={startCoordSimulation}
+          style={{
+            position: 'absolute',
+            bottom: trackingSheetHeight + 16,
+            left: 16,
+            backgroundColor: '#FF6B00',
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            borderRadius: 8,
+            zIndex: 99,
+          }}
+        >
+          <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
+            [DEV] 좌표 시뮬
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* 카운트다운 오버레이 */}
       {countdown !== null && countdown > 0 && (
