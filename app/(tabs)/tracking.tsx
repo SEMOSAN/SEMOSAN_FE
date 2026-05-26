@@ -811,6 +811,16 @@ export default function TrackingScreen() {
               : 448 + FLOATING_CARD_GAP,
           ...SHADOW,
         }}
+        onPress={() => {
+          const coord = markerCoord ?? userLocation;
+          if (coord) {
+            mapRef.current?.animateCameraTo({
+              latitude: coord.latitude,
+              longitude: coord.longitude,
+              zoom: 15,
+            });
+          }
+        }}
       >
         <LocationIcon />
       </TouchableOpacity>
