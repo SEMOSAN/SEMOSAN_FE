@@ -267,6 +267,10 @@ export default function TrackingScreen() {
   }, [selectedCourseId_num]);
 
   useEffect(() => {
+    console.log('[NearbyMountain] data:', JSON.stringify(nearbyData?.mountain));
+  }, [nearbyData]);
+
+  useEffect(() => {
     console.log('[Course] courseDetail polyline type:', typeof courseDetail?.polyline, 'courseCoords.length:', courseCoords.length);
     if (courseCoords[0]) {
       console.log('[Course] 첫 좌표:', courseCoords[0].latitude, courseCoords[0].longitude);
@@ -591,6 +595,22 @@ export default function TrackingScreen() {
               </NaverMapMarkerOverlay>
             </>
           )}
+
+          {/* 정상 마커 — 코스 거리의 1/2 지점 */}
+          {courseCoords.length > 0 && (() => {
+            const mid = courseCoords[Math.floor(courseCoords.length / 2)];
+            return (
+              <NaverMapMarkerOverlay
+                latitude={mid.latitude}
+                longitude={mid.longitude}
+                width={34}
+                height={45}
+                anchor={{ x: 0.5, y: 1 }}
+              >
+                <PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />
+              </NaverMapMarkerOverlay>
+            );
+          })()}
 
           {/* 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커 */}
           {isFreeMode && recordedCoords.length > 0 && (
