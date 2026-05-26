@@ -17,8 +17,8 @@ export function calcCourseProgress(
   coordinates: Coord[],
   totalDistance: number
 ): { progress: number; remainingMeters: number } {
-  if (coordinates.length === 0) {
-    return { progress: 0, remainingMeters: totalDistance };
+  if (coordinates.length === 0 || totalDistance <= 0) {
+    return { progress: 0, remainingMeters: Math.max(0, totalDistance) };
   }
 
   let minDist = Infinity;
