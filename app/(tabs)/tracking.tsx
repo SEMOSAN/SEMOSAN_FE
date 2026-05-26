@@ -108,8 +108,6 @@ export default function TrackingScreen() {
     top: number;
     height: number;
   } | null>(null);
-  // 마커 Y 비율: 0.0(바 상단/최고도) ~ 1.0(바 하단/최저도), 추후 실제 고도로 대체
-  const markerRatio = 0.8;
   // 사용자 현재 위치 — useNearbyMountain API용 (실제 GPS에서만 업데이트)
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
@@ -248,6 +246,26 @@ export default function TrackingScreen() {
     () => parseCoursePolyline(courseDetail?.polyline),
     [courseDetail?.polyline],
   );
+
+  // 마커 Y 비율: 0.0(바 상단/정상) ~ 1.0(바 하단/출발)
+  // markerCoord 기준으로 코스에서 가장 가까운 좌표 인덱스를 찾아 정상까지의 진행률 계산
+  const markerRatio = useMemo(() => {
+    if (!markerCoord || courseCoords.length < 2) return 1.0;
+    const summitIdx = Math.floor(courseCoords.length / 2);
+    let closestIdx = 0;
+    let minDist = Infinity;
+    for (let i = 0; i <= summitIdx; i++) {
+      const dLat = courseCoords[i].latitude - markerCoord.latitude;
+      const dLng = courseCoords[i].longitude - markerCoord.longitude;
+      const dist = dLat * dLat + dLng * dLng;
+      if (dist < minDist) {
+        minDist = dist;
+        closestIdx = i;
+      }
+    }
+    const progress = closestIdx / summitIdx; // 0.0(출발) ~ 1.0(정상)
+    return 1.0 - progress; // 0.0(바 상단/정상) ~ 1.0(바 하단/출발)
+  }, [markerCoord, courseCoords]);
 
   const selectedCourse = useMemo((): Course => ({
     id: String(courseDetail?.id ?? ''),
