@@ -8,7 +8,7 @@ import {
   HomeBottomSheetContainer,
   SNAP_COLLAPSED,
   SNAP_DEFAULT,
-  SNAP_EXPANDED,
+  SNAP_EXPANDED_WITH_RECORDS,
 } from '@/components/home-bottom-sheet-container';
 import { BellIcon } from '@/components/icons/bell-icon';
 import { CrosshairIcon } from '@/components/icons/crosshair-icon';
@@ -43,7 +43,7 @@ export default function MountainInfoScreen() {
     bottom: sheetHeight.value + 12,
     opacity: interpolate(
       sheetHeight.value,
-      [SNAP_COLLAPSED, SNAP_DEFAULT, SNAP_EXPANDED],
+      [SNAP_COLLAPSED, SNAP_DEFAULT, SNAP_EXPANDED_WITH_RECORDS],
       [1, 1, 0],
       'clamp'
     ),
@@ -95,6 +95,7 @@ export default function MountainInfoScreen() {
 
       <HomeBottomSheetContainer
         heightSharedValue={sheetHeight}
+        snapExpanded={SNAP_EXPANDED_WITH_RECORDS}
         renderContent={({ scrollEnabled, snapState }) => (
           <View style={styles.sheetContent}>
             {snapState === 'collapsed' ? (

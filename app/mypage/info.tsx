@@ -10,7 +10,7 @@ import { NicknameBottomSheet } from '@/features/mypage/components/nickname-botto
 import { ProfileAvatar } from '@/features/mypage/components/profile-avatar';
 import { GENDER_LABEL, useProfile } from '@/features/mypage/hooks/use-profile';
 import { useUpdateProfile } from '@/features/mypage/hooks/use-update-profile';
-import { uploadImage } from '@/features/mypage/hooks/use-upload-image';
+import { uploadImage } from "@/hooks/use-upload-image";
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';

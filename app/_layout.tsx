@@ -30,7 +30,6 @@ function onAppStateChange(status: AppStateStatus) {
     focusManager.setFocused(status === "active");
   }
 }
-
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2, staleTime: 1000 * 60 * 5 } },
 });
@@ -69,6 +68,20 @@ export default function RootLayout(): React.JSX.Element | null {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="onboarding/hiking"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="onboarding/exercise"
+              options={{ headerShown: false }}
+            />
+
+            <Stack.Screen
+              name="onboarding/exercise-detail"
+              options={{ headerShown: false }}
+            />
             <Stack.Screen name="record/[id]" options={{ headerShown: false }} />
             <Stack.Screen
               name="mountains/search"
@@ -88,6 +101,18 @@ export default function RootLayout(): React.JSX.Element | null {
             />
             <Stack.Screen
               name="community/write"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/free-board/write"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/free-board/[id]"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/free-board/search"
               options={{ headerShown: false }}
             />
             <Stack.Screen

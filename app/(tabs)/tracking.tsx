@@ -224,6 +224,41 @@ export default function TrackingScreen() {
     () => parseCoursePolyline(courseDetail?.polyline),
     [courseDetail?.polyline],
   );
+
+  // [DEV] 코스 polyline 좌표를 순서대로 빠르게 publish → 백엔드 마일스톤 트리거 테스트
+  const startCoordSimulation = useCallback(() => {
+    if (!sessionId) return;
+    if (simIntervalRef.current) {
+      console.warn('[SIM] 이미 실행 중');
+      return;
+    }
+    const coords = courseCoords;
+    console.log('[SIM] isFreeMode:', isFreeMode, 'courseCoords.length:', coords.length, 'sessionId:', sessionId);
+    if (coords.length === 0) {
+      console.warn('[SIM] 코스 좌표 없음 — courseDetail polyline 확인 필요');
+      return;
+    }
+    let idx = 0;
+    console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
+    simIntervalRef.current = setInterval(() => {
+      if (idx >= coords.length) {
+        clearInterval(simIntervalRef.current!);
+        simIntervalRef.current = null;
+        console.log('[SIM] 완료');
+        return;
+      }
+      const { latitude, longitude } = coords[idx];
+      publishGps(sessionId, {
+        lat: latitude,
+        lng: longitude,
+        altitude: 0,
+        recordedAt: new Date().toISOString(),
+      });
+      console.log(`[SIM] ${idx + 1}/${coords.length} (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`);
+      idx++;
+    }, 300); // 0.3초 간격 — 빠른 테스트용 (실제는 3~5초)
+  }, [sessionId, courseCoords, isFreeMode, publishGps]);
+
   const selectedCourse =
     MOCK_COURSES.find((c) => c.id === selectedCourseId) ?? MOCK_COURSES[0];
 

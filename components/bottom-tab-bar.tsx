@@ -12,6 +12,7 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CommunityIcon } from "./icons/community-icon";
 
 const BG_LIGHT = "#ffffff";
 const BG_DARK = "#000000";
@@ -47,11 +48,11 @@ const TAB_ITEMS: TabItem[] = [
     renderIcon: (color) => <NavigationIcon size={24} color={color} />,
     isCenter: true,
   },
-  // {
-  //   name: "community",
-  //   label: "커뮤니티",
-  //   renderIcon: (color) => <CommunityIcon size={24} color={color} />,
-  // },
+  {
+    name: "community",
+    label: "커뮤니티",
+    renderIcon: (color) => <CommunityIcon size={24} color={color} />,
+  },
   {
     name: "mypage",
     label: "MY",
@@ -68,18 +69,38 @@ export function BottomTabBar({
   const { toggleHasRecords, tabProgress } = useHomeStateContext();
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(tabProgress.value, [0, 1], [BG_LIGHT, BG_DARK]),
-    borderTopColor: interpolateColor(tabProgress.value, [0, 1], [BORDER_LIGHT, BORDER_DARK]),
+    backgroundColor: interpolateColor(
+      tabProgress.value,
+      [0, 1],
+      [BG_LIGHT, BG_DARK],
+    ),
+    borderTopColor: interpolateColor(
+      tabProgress.value,
+      [0, 1],
+      [BORDER_LIGHT, BORDER_DARK],
+    ),
   }));
 
-  const lightLayerStyle = useAnimatedStyle(() => ({ opacity: 1 - tabProgress.value }));
-  const darkLayerStyle = useAnimatedStyle(() => ({ opacity: tabProgress.value }));
+  const lightLayerStyle = useAnimatedStyle(() => ({
+    opacity: 1 - tabProgress.value,
+  }));
+  const darkLayerStyle = useAnimatedStyle(() => ({
+    opacity: tabProgress.value,
+  }));
 
   const focusedTextStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(tabProgress.value, [0, 1], [FOCUSED_LIGHT, FOCUSED_DARK]),
+    color: interpolateColor(
+      tabProgress.value,
+      [0, 1],
+      [FOCUSED_LIGHT, FOCUSED_DARK],
+    ),
   }));
   const unfocusedTextStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(tabProgress.value, [0, 1], [UNFOCUSED_LIGHT, UNFOCUSED_DARK]),
+    color: interpolateColor(
+      tabProgress.value,
+      [0, 1],
+      [UNFOCUSED_LIGHT, UNFOCUSED_DARK],
+    ),
   }));
 
   const currentRoute = state.routes[state.index];

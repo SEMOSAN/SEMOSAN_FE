@@ -6,6 +6,14 @@ import { buildQueryParams } from "./buildQueryParams";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+export class ApiError extends Error {
+  statusCode: number;
+  constructor(status: number, statusText: string) {
+    super(`API Error: ${status} ${statusText}`);
+    this.statusCode = status;
+  }
+}
+
 type RequestOptions = {
   path: string;
   params?: Record<string, string | number | boolean>;
@@ -108,14 +116,12 @@ async function request<T>(
 
     const errorMessage = `API Error: ${status ?? "N/A"}`;
 
-    if (
-      !ignoreErrorToast &&
-      (status === 500 || status === 401 || status === 403)
-    ) {
-      toast.show(errorMessage);
+    if (!ignoreErrorToast && status !== undefined && status >= 500) {
+      toast.show("잠시후 다시 시도해주세요.");
+      console.log(errorMessage, statusText);
     }
 
-    throw new Error(`${errorMessage} ${statusText}`);
+    throw new ApiError(status ?? 0, statusText);
   }
 }
 
