@@ -9,7 +9,6 @@ export const ENDPOINTS = {
   USERS_ONBOARDING: "/api/users/onboarding",
   TRACKING_SESSIONS: "/api/tracking/sessions",
   TRACKING_SESSIONS_BY_SESSIONID_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
-  TRACKING_SESSIONS_BY_SESSIONID_PHOTOS: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/photos`,
   TRACKING_SESSIONS_BY_SESSIONID_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
   TRACKING_SESSIONS_BY_SESSIONID_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
   TRACKING_SESSIONS_BY_SESSIONID_ABANDON: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/abandon`,
@@ -53,7 +52,12 @@ export const ENDPOINTS = {
   COMMUNITY_COMMENTS_BY_COMMENTID_REPLIES: (commentId: number | string) => `/api/community/comments/${commentId}/replies`,
   COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/community/comments/${commentId}`,
   AUTH_WITHDRAW: "/api/auth/withdraw",
-  COURSES_BY_COURSEID: (courseId: number | string) => `/api/courses/${courseId}`,
+  TRACKING_NEARBY_MOUNTAIN: "/api/tracking/nearby-mountain",
+  TRACKING_SESSIONS: "/api/tracking/sessions",
+  TRACKING_SESSIONS_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
+  TRACKING_SESSIONS_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
+  TRACKING_SESSIONS_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
+  TRACKING_SESSIONS_ACTIVE: "/api/tracking/sessions/me/active",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,32 +115,6 @@ export type TrackingSessionResponse = {
   pausedAt?: string;
   pausedSecondsTotal?: number;
   hikingRecordId?: number;
-};
-export type TrackingPhotoUploadRequest = {
-  milestoneIndex: number;
-  milestoneDistanceM: number;
-  imageUrl?: string;
-  capturedAt: string;
-  lat: number;
-  lng: number;
-  altitude?: number;
-};
-export type ApiResponseTrackingPhotoResponse = {
-  isSuccess?: boolean;
-  code?: string;
-  message?: string;
-  data?: TrackingPhotoResponse;
-};
-export type TrackingPhotoResponse = {
-  photoId?: number;
-  trackingSessionId?: number;
-  milestoneIndex?: number;
-  milestoneDistanceM?: number;
-  imageUrl?: string;
-  capturedAt?: string;
-  lat?: number;
-  lng?: number;
-  altitude?: number;
 };
 export type OAuthKakaoLoginRequest = {
   accessToken?: string;
@@ -308,12 +286,6 @@ export type GetNotificationSettingResponse = {
   liveActivityEnabled?: boolean;
   voiceEnabled?: boolean;
 };
-export type ApiResponseListTrackingPhotoResponse = {
-  isSuccess?: boolean;
-  code?: string;
-  message?: string;
-  data?: TrackingPhotoResponse[];
-};
 export type ApiResponseNearbyMountainResponse = {
   isSuccess?: boolean;
   code?: string;
@@ -326,30 +298,6 @@ export type CourseInfo = {
   difficulty?: "EASY" | "NORMAL" | "HARD";
   distance?: number;
   duration?: number;
-};
-export type CourseDetailResponse = {
-  id?: number;
-  name?: string;
-  difficulty?: "EASY" | "NORMAL" | "HARD";
-  distance?: number;
-  duration?: number;
-  startName?: string;
-  endName?: string;
-  polyline?: string | object | null;
-  altitudes?: string | object | null;
-};
-export type NearbyMountainInfo = {
-  mountainId?: number;
-  name?: string;
-  address?: string;
-  altitude?: number;
-  latitude?: number;
-  longitude?: number;
-  imageUrls?: string[];
-};
-export type NearbyMountainResponse = {
-  mountain?: NearbyMountainInfo;
-  courses?: CourseInfo[];
 };
 export type ApiResponsePageResponseMountainListResponse = {
   isSuccess?: boolean;
@@ -642,17 +590,6 @@ export type ResumeSessionParams = {
   sessionId: number;
 };
 
-// GET /api/tracking/sessions/{sessionId}/photos
-export type ListParams = {
-  sessionId: number;
-};
-
-// POST /api/tracking/sessions/{sessionId}/photos
-export type UploadParams = {
-  sessionId: number;
-};
-export type UploadBody = TrackingPhotoUploadRequest;
-
 // POST /api/tracking/sessions/{sessionId}/pause
 export type PauseSessionParams = {
   sessionId: number;
@@ -886,3 +823,35 @@ export type GetRepliesParams = {
 export type Delete3Params = {
   commentId: number;
 };
+
+// GET /api/tracking/nearby-mountain
+export type NearbyMountainCourse = {
+  courseId?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+};
+
+export type NearbyMountainInfo = {
+  mountainId?: number;
+  name?: string;
+  address?: string;
+  altitude?: number;
+  latitude?: number;
+  longitude?: number;
+  imageUrls?: string[];
+};
+
+export type NearbyMountainResponse = {
+  mountain?: NearbyMountainInfo;
+  courses?: NearbyMountainCourse[];
+};
+
+// POST /api/tracking/sessions
+export type StartTrackingSessionRequest = {
+  mountainId: number;
+  courseId?: number;
+  isFreeRecording: boolean;
+};
+
