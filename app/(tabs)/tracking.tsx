@@ -1,9 +1,11 @@
 import { LocationIcon } from "@/components/icons/location-icon";
+import { isLiveActivityEnabled } from "@/constants/platform";
 import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
 import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
 import { CourseSelectSheet } from "@/features/tracking/components/course-select-sheet";
 import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
 import { FreeRecordConfirmModal } from "@/features/tracking/components/free-record-confirm-modal";
+import { PhotoWindowBanner } from "@/features/tracking/components/photo-window-banner";
 import { StopConfirmModal } from "@/features/tracking/components/stop-confirm-modal";
 import { SummitSheet } from "@/features/tracking/components/summit-sheet";
 import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
@@ -25,20 +27,22 @@ import {
   TRAIL_BAR_WIDTH,
   TRAIL_MARKER_LEFT,
 } from "@/features/tracking/constants";
-import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
+import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
+import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
-import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
-import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
+import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
-import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
-import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
-import { PhotoWindowPayload, useTrackingSocket } from "@/features/tracking/hooks/use-tracking-socket";
-import { PhotoWindowBanner } from "@/features/tracking/components/photo-window-banner";
-import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
-import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useSaveTrackingPhoto } from "@/features/tracking/hooks/use-save-tracking-photo";
-import { isLiveActivityEnabled } from "@/constants/platform";
+import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
+import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
+import {
+  PhotoWindowPayload,
+  useTrackingSocket,
+} from "@/features/tracking/hooks/use-tracking-socket";
+import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
+import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
+import { useAppState } from "@/hooks/use-app-state";
 import { LiveActivity } from "@/modules/live-activity";
 import {
   NaverMapMarkerOverlay,
@@ -46,13 +50,12 @@ import {
   NaverMapView,
   type NaverMapViewRef,
 } from "@mj-studio/react-native-naver-map";
-import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
 import { Tabs, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAppState } from "@/hooks/use-app-state";
-import { useFocusEffect } from "@react-navigation/native";
 import {
   LayoutChangeEvent,
   StyleSheet,
@@ -88,7 +91,9 @@ export default function TrackingScreen() {
   const [showDifficultyRating, setShowDifficultyRating] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [hasSummited, setHasSummited] = useState(false);
-  const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(null);
+  const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(
+    null,
+  );
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{
@@ -108,7 +113,11 @@ export default function TrackingScreen() {
   const mapRef = useRef<NaverMapViewRef>(null);
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-
+  useEffect(() => {
+    if (courseIdParameter) setSelectedCourseId(courseIdParameter);
+    if (collapseParameter !== undefined)
+      setCollapsed(collapseParameter === "true");
+  }, [courseIdParameter, collapseParameter]);
 
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
@@ -136,15 +145,20 @@ export default function TrackingScreen() {
   });
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
-    console.log('[PhotoWindow] 수신:', JSON.stringify(payload));
-    if (payload.status === 'OPEN') {
+    console.log("[PhotoWindow] 수신:", JSON.stringify(payload));
+    if (payload.status === "OPEN") {
       setPhotoWindow(payload);
     } else {
       setPhotoWindow(null);
     }
   }, []);
 
-  const { connect: connectSocket, disconnect: disconnectSocket, subscribePhotoWindow, publishGps } = useTrackingSocket({
+  const {
+    connect: connectSocket,
+    disconnect: disconnectSocket,
+    subscribePhotoWindow,
+    publishGps,
+  } = useTrackingSocket({
     onPhotoWindow: handlePhotoWindow,
   });
 
@@ -156,7 +170,8 @@ export default function TrackingScreen() {
   const { mutate: resumeSession } = useResumeTrackingSession();
   const { mutate: completeSession } = useCompleteTrackingSession();
   const { mutateAsync: savePhoto } = useSaveTrackingPhoto();
-  const { data: activeSession, refetch: refetchActiveSession } = useActiveTrackingSession();
+  const { data: activeSession, refetch: refetchActiveSession } =
+    useActiveTrackingSession();
 
   // 앱 재진입 시 진행 중인 세션 복원
   useFocusEffect(
@@ -172,15 +187,19 @@ export default function TrackingScreen() {
     if (isTracking) return; // 이미 복원된 경우 무시
 
     const status = activeSession.status;
-    if (status === 'IN_PROGRESS' || status === 'PAUSED') {
+    if (status === "IN_PROGRESS" || status === "PAUSED") {
       setSessionId(activeSession.sessionId);
       setIsTracking(true);
-      setIsPaused(status === 'PAUSED');
+      setIsPaused(status === "PAUSED");
       connectSocket(activeSession.sessionId);
       // GPS watch 재시작
       const sid = activeSession.sessionId;
       Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 3000, distanceInterval: 10 },
+        {
+          accuracy: Location.Accuracy.BestForNavigation,
+          timeInterval: 3000,
+          distanceInterval: 10,
+        },
         (loc) => {
           const { latitude, longitude, altitude } = loc.coords;
           setUserLocation({ latitude, longitude, altitude });
@@ -191,17 +210,25 @@ export default function TrackingScreen() {
             recordedAt: new Date(loc.timestamp).toISOString(),
           });
         },
-      ).then((sub) => {
-        locationWatchRef.current = sub;
-      }).catch((err) => console.warn('[Location] watch 재시작 실패:', err));
+      )
+        .then((sub) => {
+          locationWatchRef.current = sub;
+        })
+        .catch((err) => console.warn("[Location] watch 재시작 실패:", err));
       setElapsedSeconds(0);
     }
   }, [activeSession]);
 
-  const selectedCourseId_num = selectedCourseId ? Number(selectedCourseId) : null;
+  const selectedCourseId_num = selectedCourseId
+    ? Number(selectedCourseId)
+    : null;
   // [DEV] 관악산 polyline 테스트용 임시 하드코딩 — 확인 후 제거
   const DEV_TEST_COURSE_ID = 205;
-  const { data: courseDetail } = useCourseDetail(isFreeMode ? null : (selectedCourseId_num ?? DEV_TEST_COURSE_ID));
+
+  const { data: courseDetail } = useCourseDetail(
+    isFreeMode ? null : (selectedCourseId_num ?? DEV_TEST_COURSE_ID),
+  );
+
   const courseCoords = useMemo(
     () => parseCoursePolyline(courseDetail?.polyline),
     [courseDetail?.polyline],
@@ -211,13 +238,20 @@ export default function TrackingScreen() {
   const startCoordSimulation = useCallback(() => {
     if (!sessionId) return;
     if (simIntervalRef.current) {
-      console.warn('[SIM] 이미 실행 중');
+      console.warn("[SIM] 이미 실행 중");
       return;
     }
     const coords = courseCoords;
-    console.log('[SIM] isFreeMode:', isFreeMode, 'courseCoords.length:', coords.length, 'sessionId:', sessionId);
+    console.log(
+      "[SIM] isFreeMode:",
+      isFreeMode,
+      "courseCoords.length:",
+      coords.length,
+      "sessionId:",
+      sessionId,
+    );
     if (coords.length === 0) {
-      console.warn('[SIM] 코스 좌표 없음 — courseDetail polyline 확인 필요');
+      console.warn("[SIM] 코스 좌표 없음 — courseDetail polyline 확인 필요");
       return;
     }
     let idx = 0;
@@ -226,7 +260,7 @@ export default function TrackingScreen() {
       if (idx >= coords.length) {
         clearInterval(simIntervalRef.current!);
         simIntervalRef.current = null;
-        console.log('[SIM] 완료');
+        console.log("[SIM] 완료");
         return;
       }
       const { latitude, longitude } = coords[idx];
@@ -236,7 +270,9 @@ export default function TrackingScreen() {
         altitude: 0,
         recordedAt: new Date().toISOString(),
       });
-      console.log(`[SIM] ${idx + 1}/${coords.length} (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`);
+      console.log(
+        `[SIM] ${idx + 1}/${coords.length} (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`,
+      );
       idx++;
     }, 300); // 0.3초 간격 — 빠른 테스트용 (실제는 3~5초)
   }, [sessionId, courseCoords, isFreeMode, publishGps]);
@@ -246,13 +282,22 @@ export default function TrackingScreen() {
 
   // [DEV] 선택된 courseId 로그 (1회만)
   useEffect(() => {
-    console.log('[Course] selectedCourseId:', selectedCourseId_num);
+    console.log("[Course] selectedCourseId:", selectedCourseId_num);
   }, [selectedCourseId_num]);
 
   useEffect(() => {
-    console.log('[Course] courseDetail polyline type:', typeof courseDetail?.polyline, 'courseCoords.length:', courseCoords.length);
+    console.log(
+      "[Course] courseDetail polyline type:",
+      typeof courseDetail?.polyline,
+      "courseCoords.length:",
+      courseCoords.length,
+    );
     if (courseCoords[0]) {
-      console.log('[Course] 첫 좌표:', courseCoords[0].latitude, courseCoords[0].longitude);
+      console.log(
+        "[Course] 첫 좌표:",
+        courseCoords[0].latitude,
+        courseCoords[0].longitude,
+      );
     }
   }, [courseCoords.length, isFreeMode, isTracking]);
 
@@ -265,12 +310,13 @@ export default function TrackingScreen() {
     const maxLat = Math.max(...lats);
     const minLng = Math.min(...lngs);
     const maxLng = Math.max(...lngs);
-    const fit = () => mapRef.current?.animateRegionTo({
-      latitude: (minLat + maxLat) / 2,
-      longitude: (minLng + maxLng) / 2,
-      latitudeDelta: (maxLat - minLat) * 1.3,
-      longitudeDelta: (maxLng - minLng) * 1.3,
-    });
+    const fit = () =>
+      mapRef.current?.animateRegionTo({
+        latitude: (minLat + maxLat) / 2,
+        longitude: (minLng + maxLng) / 2,
+        latitudeDelta: (maxLat - minLat) * 1.3,
+        longitudeDelta: (maxLng - minLng) * 1.3,
+      });
     // mapRef가 아직 마운트 전일 수 있으니 약간 지연
     const timer = setTimeout(fit, 300);
     return () => clearTimeout(timer);
@@ -296,7 +342,9 @@ export default function TrackingScreen() {
         startSession(
           {
             mountainId,
-            courseId: isFreeMode ? undefined : (selectedCourseId_num ?? undefined),
+            courseId: isFreeMode
+              ? undefined
+              : (selectedCourseId_num ?? undefined),
             isFreeRecording: isFreeMode,
           },
           {
@@ -323,15 +371,20 @@ export default function TrackingScreen() {
                       recordedAt: new Date(loc.timestamp).toISOString(),
                     });
                   },
-                ).then((sub) => {
-                  locationWatchRef.current = sub;
-                }).catch((err) => {
-                  console.warn('[Location] watch 시작 실패:', err);
-                });
+                )
+                  .then((sub) => {
+                    locationWatchRef.current = sub;
+                  })
+                  .catch((err) => {
+                    console.warn("[Location] watch 시작 실패:", err);
+                  });
               }
             },
             onError: (err: any) => {
-              console.warn('[Tracking] 세션 시작 실패:', err?.response?.data ?? err?.message ?? err);
+              console.warn(
+                "[Tracking] 세션 시작 실패:",
+                err?.response?.data ?? err?.message ?? err,
+              );
             },
           },
         );
@@ -376,16 +429,23 @@ export default function TrackingScreen() {
   }, [isTracking, isPaused]);
 
   // 백그라운드 진입 시 시각 저장, 포어그라운드 복귀 시 차이만큼 누적
-  useAppState(useCallback((state) => {
-    if (!isTracking || isPaused) return;
-    if (state === 'background' || state === 'inactive') {
-      backgroundedAtRef.current = Date.now();
-    } else if (state === 'active' && backgroundedAtRef.current != null) {
-      const diffSeconds = Math.floor((Date.now() - backgroundedAtRef.current) / 1000);
-      setElapsedSeconds((s) => s + diffSeconds);
-      backgroundedAtRef.current = null;
-    }
-  }, [isTracking, isPaused]));
+  useAppState(
+    useCallback(
+      (state) => {
+        if (!isTracking || isPaused) return;
+        if (state === "background" || state === "inactive") {
+          backgroundedAtRef.current = Date.now();
+        } else if (state === "active" && backgroundedAtRef.current != null) {
+          const diffSeconds = Math.floor(
+            (Date.now() - backgroundedAtRef.current) / 1000,
+          );
+          setElapsedSeconds((s) => s + diffSeconds);
+          backgroundedAtRef.current = null;
+        }
+      },
+      [isTracking, isPaused],
+    ),
+  );
 
   // 매 초 Live Activity 업데이트
   useEffect(() => {
@@ -423,7 +483,7 @@ export default function TrackingScreen() {
     if (sessionId != null) {
       pauseSession(sessionId, {
         onError: (err) => {
-          console.warn('[Tracking] 일시정지 실패:', err);
+          console.warn("[Tracking] 일시정지 실패:", err);
           setIsPaused(false); // API 실패 시 UI 되돌리기
         },
       });
@@ -434,7 +494,7 @@ export default function TrackingScreen() {
     if (sessionId != null) {
       resumeSession(sessionId, {
         onError: (err) => {
-          console.warn('[Tracking] 재개 실패:', err);
+          console.warn("[Tracking] 재개 실패:", err);
           setIsPaused(true); // API 실패 시 UI 되돌리기
         },
       });
@@ -445,13 +505,13 @@ export default function TrackingScreen() {
 
   const handleCameraPress = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      console.warn('[Camera] 카메라 권한 거부됨');
+    if (status !== "granted") {
+      console.warn("[Camera] 카메라 권한 거부됨");
       return;
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       quality: 0.8,
       allowsEditing: false,
     });
@@ -459,11 +519,11 @@ export default function TrackingScreen() {
     if (result.canceled || !result.assets?.[0]?.uri) return;
 
     // 사진 윈도우 OPEN 상태일 때 → MinIO 업로드 → 메타 저장
-    if (photoWindow?.status === 'OPEN' && sessionId != null) {
+    if (photoWindow?.status === "OPEN" && sessionId != null) {
       try {
         const capturedAt = new Date().toISOString();
         const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
-        console.log('[Tracking] 인증 사진 업로드 완료:', imageUrl);
+        console.log("[Tracking] 인증 사진 업로드 완료:", imageUrl);
 
         await savePhoto({
           sessionId,
@@ -477,9 +537,9 @@ export default function TrackingScreen() {
             altitude: userLocation?.altitude ?? 0,
           },
         });
-        console.log('[Tracking] 사진 메타 저장 완료');
+        console.log("[Tracking] 사진 메타 저장 완료");
       } catch (err) {
-        console.warn('[Tracking] 인증 사진 처리 실패:', err);
+        console.warn("[Tracking] 인증 사진 처리 실패:", err);
       }
     }
   };
@@ -490,7 +550,7 @@ export default function TrackingScreen() {
     // 기록 종료 시 항상 세션 완료 API 호출 (정상 인증 여부와 무관)
     if (sessionId != null) {
       completeSession(sessionId, {
-        onError: (err) => console.warn('[Tracking] 세션 종료 실패:', err),
+        onError: (err) => console.warn("[Tracking] 세션 종료 실패:", err),
       });
     }
     setShowDifficultyRating(true);
@@ -575,9 +635,19 @@ export default function TrackingScreen() {
         </NaverMapView>
 
         {/* 사진 윈도우 배너 — 지도 위 오버레이 */}
-        {isTracking && photoWindow?.status === 'OPEN' && (
-          <View style={{ position: 'absolute', top: TRACKING_COURSE_CARD_TOP + TRACKING_COURSE_CARD_HEIGHT + 8, left: 0, right: 0, zIndex: 10 }}>
-            <PhotoWindowBanner milestoneDistance={photoWindow.milestoneDistance} />
+        {isTracking && photoWindow?.status === "OPEN" && (
+          <View
+            style={{
+              position: "absolute",
+              top: TRACKING_COURSE_CARD_TOP + TRACKING_COURSE_CARD_HEIGHT + 8,
+              left: 0,
+              right: 0,
+              zIndex: 10,
+            }}
+          >
+            <PhotoWindowBanner
+              milestoneDistance={photoWindow.milestoneDistance}
+            />
           </View>
         )}
 
@@ -642,11 +712,29 @@ export default function TrackingScreen() {
       {!isTracking && !collapsed && (
         <CourseSelectSheet
           // [DEV] 관악산 하드코딩 — 확인 후 제거
-          mountain={{ mountainId: 2, name: '관악산', altitude: 632 }}
+          mountain={{ mountainId: 2, name: "관악산", altitude: 632 }}
           courses={[
-            { courseId: 205, name: '관악산 코스 1', difficulty: 'HARD', distance: 8922.2, duration: 290 },
-            { courseId: 206, name: '관악산 코스 2', difficulty: 'NORMAL', distance: 6782.1, duration: 163 },
-            { courseId: 209, name: '관악산 코스 5', difficulty: 'NORMAL', distance: 6365.4, duration: 169 },
+            {
+              courseId: 205,
+              name: "관악산 코스 1",
+              difficulty: "HARD",
+              distance: 8922.2,
+              duration: 290,
+            },
+            {
+              courseId: 206,
+              name: "관악산 코스 2",
+              difficulty: "NORMAL",
+              distance: 6782.1,
+              duration: 163,
+            },
+            {
+              courseId: 209,
+              name: "관악산 코스 5",
+              difficulty: "NORMAL",
+              distance: 6365.4,
+              duration: 169,
+            },
           ]}
           isLoading={false}
           selectedCourseId={selectedCourseId_num}
@@ -686,7 +774,7 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
-              isPhotoWindowOpen={photoWindow?.status === 'OPEN'}
+              isPhotoWindowOpen={photoWindow?.status === "OPEN"}
               hasSummited={hasSummited}
               timeToTarget="04:00"
               distanceToTarget="500m"
@@ -706,17 +794,17 @@ export default function TrackingScreen() {
         <TouchableOpacity
           onPress={startCoordSimulation}
           style={{
-            position: 'absolute',
+            position: "absolute",
             bottom: trackingSheetHeight + 16,
             left: 16,
-            backgroundColor: '#FF6B00',
+            backgroundColor: "#FF6B00",
             paddingHorizontal: 12,
             paddingVertical: 8,
             borderRadius: 8,
             zIndex: 99,
           }}
         >
-          <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
+          <Text style={{ color: "#fff", fontSize: 12, fontWeight: "bold" }}>
             [DEV] 좌표 시뮬
           </Text>
         </TouchableOpacity>
