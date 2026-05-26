@@ -9,6 +9,7 @@ import { SummitSheet } from "@/features/tracking/components/summit-sheet";
 import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
 import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
 import { TrailAvatarMarker } from "@/features/tracking/components/trail-avatar-marker";
+import { PinMarkerIcon } from "@/components/icons/pin-marker-icon";
 import {
   COLLAPSED_PEEK_HEIGHT,
   FLOATING_CARD_GAP,
@@ -573,13 +574,21 @@ export default function TrackingScreen() {
               <NaverMapMarkerOverlay
                 latitude={courseCoords[0].latitude}
                 longitude={courseCoords[0].longitude}
-                caption={{ text: "출발" }}
-              />
+                width={34}
+                height={45}
+                anchor={{ x: 0.5, y: 1 }}
+              >
+                <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
+              </NaverMapMarkerOverlay>
               <NaverMapMarkerOverlay
                 latitude={courseCoords[courseCoords.length - 1].latitude}
                 longitude={courseCoords[courseCoords.length - 1].longitude}
-                caption={{ text: "도착" }}
-              />
+                width={34}
+                height={45}
+                anchor={{ x: 0.5, y: 1 }}
+              >
+                <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
+              </NaverMapMarkerOverlay>
             </>
           )}
 
@@ -598,13 +607,21 @@ export default function TrackingScreen() {
               <NaverMapMarkerOverlay
                 latitude={recordedCoords[0].latitude}
                 longitude={recordedCoords[0].longitude}
-                caption={{ text: "출발" }}
-              />
+                width={34}
+                height={45}
+                anchor={{ x: 0.5, y: 1 }}
+              >
+                <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
+              </NaverMapMarkerOverlay>
               <NaverMapMarkerOverlay
                 latitude={recordedCoords[recordedCoords.length - 1].latitude}
                 longitude={recordedCoords[recordedCoords.length - 1].longitude}
-                caption={{ text: "도착" }}
-              />
+                width={34}
+                height={45}
+                anchor={{ x: 0.5, y: 1 }}
+              >
+                <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
+              </NaverMapMarkerOverlay>
             </>
           )}
 
