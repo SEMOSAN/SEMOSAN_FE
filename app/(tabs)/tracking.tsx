@@ -98,11 +98,16 @@ export default function TrackingScreen() {
   } | null>(null);
   // 마커 Y 비율: 0.0(바 상단/최고도) ~ 1.0(바 하단/최저도), 추후 실제 고도로 대체
   const markerRatio = 0.8;
-  // 사용자 현재 위치
+  // 사용자 현재 위치 — useNearbyMountain API용 (실제 GPS에서만 업데이트)
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
     altitude: number | null;
+  } | null>(null);
+  // 현재 위치 마커 전용 — 시뮬/GPS 둘 다 업데이트 (잦은 리렌더 격리)
+  const [markerCoord, setMarkerCoord] = useState<{
+    latitude: number;
+    longitude: number;
   } | null>(null);
   // 자유기록 실시간 경로 누적 (회색 polyline)
   const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
@@ -124,6 +129,10 @@ export default function TrackingScreen() {
           latitude: loc.coords.latitude,
           longitude: loc.coords.longitude,
           altitude: loc.coords.altitude,
+        });
+        setMarkerCoord({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
         });
       } catch (error) {
         console.warn("[Location] 현재 위치 조회 실패:", error);
@@ -185,6 +194,7 @@ export default function TrackingScreen() {
         (loc) => {
           const { latitude, longitude, altitude } = loc.coords;
           setUserLocation({ latitude, longitude, altitude });
+          setMarkerCoord({ latitude, longitude });
           setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
           publishGps(sid, {
             lat: latitude,
@@ -251,6 +261,8 @@ export default function TrackingScreen() {
         altitude: 0,
         recordedAt: new Date().toISOString(),
       });
+      // 현재 위치 마커 이동 (시뮬 전용 — userLocation은 API용이므로 건드리지 않음)
+      setMarkerCoord({ latitude, longitude });
       // 자유기록이면 경로도 지도에 표시
       if (isFreeMode) {
         setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
@@ -260,6 +272,100 @@ export default function TrackingScreen() {
       idx++;
     }, 300); // 0.3초 간격 — 빠른 테스트용 (실제는 3~5초)
   }, [sessionId, courseCoords, devCourseCoords, isFreeMode, publishGps]);
+
+  // 정적 맵 오버레이 — markerCoord 변경 시 리렌더 방지
+  const staticMapOverlays = useMemo(() => (
+    <>
+      {/* 코스 경로 — API polyline */}
+      {courseCoords.length > 1 && (
+        <>
+          <NaverMapPathOverlay
+            coords={courseCoords}
+            width={6}
+            color="#ffd40d"
+            outlineWidth={1}
+            outlineColor="#eab308"
+          />
+          <NaverMapMarkerOverlay
+            latitude={courseCoords[0].latitude}
+            longitude={courseCoords[0].longitude}
+            width={34}
+            height={45}
+            anchor={{ x: 0.5, y: 1 }}
+          >
+            <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
+          </NaverMapMarkerOverlay>
+          <NaverMapMarkerOverlay
+            latitude={courseCoords[courseCoords.length - 1].latitude}
+            longitude={courseCoords[courseCoords.length - 1].longitude}
+            width={34}
+            height={45}
+            anchor={{ x: 0.5, y: 1 }}
+          >
+            <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
+          </NaverMapMarkerOverlay>
+          {/* 정상 마커 — 코스 거리의 1/2 지점 */}
+          <NaverMapMarkerOverlay
+            latitude={courseCoords[Math.floor(courseCoords.length / 2)].latitude}
+            longitude={courseCoords[Math.floor(courseCoords.length / 2)].longitude}
+            width={34}
+            height={45}
+            anchor={{ x: 0.5, y: 1 }}
+          >
+            <PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />
+          </NaverMapMarkerOverlay>
+        </>
+      )}
+
+      {/* 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커 */}
+      {isFreeMode && recordedCoords.length > 0 && (
+        <>
+          {recordedCoords.length > 1 && (
+            <NaverMapPathOverlay
+              coords={recordedCoords}
+              width={6}
+              color="#9CA3AF"
+              outlineWidth={1}
+              outlineColor="#6B7280"
+            />
+          )}
+          <NaverMapMarkerOverlay
+            latitude={recordedCoords[0].latitude}
+            longitude={recordedCoords[0].longitude}
+            width={34}
+            height={45}
+            anchor={{ x: 0.5, y: 1 }}
+          >
+            <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
+          </NaverMapMarkerOverlay>
+          {/* 도착 마커 — 트래킹 종료 후에만 표시 */}
+          {!isTracking && recordedCoords.length > 1 && (
+            <NaverMapMarkerOverlay
+              latitude={recordedCoords[recordedCoords.length - 1].latitude}
+              longitude={recordedCoords[recordedCoords.length - 1].longitude}
+              width={34}
+              height={45}
+              anchor={{ x: 0.5, y: 1 }}
+            >
+              <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
+            </NaverMapMarkerOverlay>
+          )}
+          {/* 자유기록 정상 마커 — nearbyData 산 좌표 사용 */}
+          {nearbyData?.mountain?.latitude != null && nearbyData.mountain.longitude != null && (
+            <NaverMapMarkerOverlay
+              latitude={nearbyData.mountain.latitude}
+              longitude={nearbyData.mountain.longitude}
+              width={34}
+              height={45}
+              anchor={{ x: 0.5, y: 1 }}
+            >
+              <PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />
+            </NaverMapMarkerOverlay>
+          )}
+        </>
+      )}
+    </>
+  ), [courseCoords, isFreeMode, recordedCoords, isTracking, nearbyData]);
 
   // [DEV] 선택된 courseId 로그 (1회만)
   useEffect(() => {
@@ -338,6 +444,7 @@ export default function TrackingScreen() {
                   (loc) => {
                     const { latitude, longitude, altitude } = loc.coords;
                     setUserLocation({ latitude, longitude, altitude });
+                    setMarkerCoord({ latitude, longitude });
                     setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
                     publishGps(sid, {
                       lat: latitude,
@@ -567,89 +674,13 @@ export default function TrackingScreen() {
             zoom: 12,
           }}
         >
-          {/* 코스 경로 — API polyline */}
-          {courseCoords.length > 1 && (
-            <>
-              <NaverMapPathOverlay
-                coords={courseCoords}
-                width={6}
-                color="#4ADE80"
-              />
-              <NaverMapMarkerOverlay
-                latitude={courseCoords[0].latitude}
-                longitude={courseCoords[0].longitude}
-                width={34}
-                height={45}
-                anchor={{ x: 0.5, y: 1 }}
-              >
-                <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
-              </NaverMapMarkerOverlay>
-              <NaverMapMarkerOverlay
-                latitude={courseCoords[courseCoords.length - 1].latitude}
-                longitude={courseCoords[courseCoords.length - 1].longitude}
-                width={34}
-                height={45}
-                anchor={{ x: 0.5, y: 1 }}
-              >
-                <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
-              </NaverMapMarkerOverlay>
-            </>
-          )}
+          {staticMapOverlays}
 
-          {/* 정상 마커 — 코스 거리의 1/2 지점 */}
-          {courseCoords.length > 0 && (() => {
-            const mid = courseCoords[Math.floor(courseCoords.length / 2)];
-            return (
-              <NaverMapMarkerOverlay
-                latitude={mid.latitude}
-                longitude={mid.longitude}
-                width={34}
-                height={45}
-                anchor={{ x: 0.5, y: 1 }}
-              >
-                <PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />
-              </NaverMapMarkerOverlay>
-            );
-          })()}
-
-          {/* 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커 */}
-          {isFreeMode && recordedCoords.length > 0 && (
-            <>
-              {recordedCoords.length > 1 && (
-                <NaverMapPathOverlay
-                  coords={recordedCoords}
-                  width={6}
-                  color="#9CA3AF"
-                  outlineWidth={1}
-                  outlineColor="#6B7280"
-                />
-              )}
-              <NaverMapMarkerOverlay
-                latitude={recordedCoords[0].latitude}
-                longitude={recordedCoords[0].longitude}
-                width={34}
-                height={45}
-                anchor={{ x: 0.5, y: 1 }}
-              >
-                <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
-              </NaverMapMarkerOverlay>
-              <NaverMapMarkerOverlay
-                latitude={recordedCoords[recordedCoords.length - 1].latitude}
-                longitude={recordedCoords[recordedCoords.length - 1].longitude}
-                width={34}
-                height={45}
-                anchor={{ x: 0.5, y: 1 }}
-              >
-                <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
-              </NaverMapMarkerOverlay>
-            </>
-          )}
-
-          {/* 현재 사용자 위치 — 초록 원 마커 */}
-          {userLocation && isTracking && (
+          {/* 현재 사용자 위치 — 초록 원 마커 (markerCoord 전용 state로 격리) */}
+          {markerCoord && isTracking && (
             <NaverMapMarkerOverlay
-              latitude={userLocation.latitude}
-              longitude={userLocation.longitude}
+              latitude={markerCoord.latitude}
+              longitude={markerCoord.longitude}
               width={22}
               height={22}
               anchor={{ x: 0.5, y: 0.5 }}
