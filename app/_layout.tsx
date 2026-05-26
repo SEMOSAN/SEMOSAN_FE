@@ -92,6 +92,10 @@ export default function RootLayout(): React.JSX.Element | null {
               options={{ headerShown: false }}
             />
             <Stack.Screen
+              name="mountains/courses/[id]"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
               name="record/photo-report-edit"
               options={{ headerShown: false }}
             />
