@@ -113,6 +113,12 @@ export default function TrackingScreen() {
   const mapRef = useRef<NaverMapViewRef>(null);
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  useEffect(() => {
+    if (courseIdParameter) setSelectedCourseId(courseIdParameter);
+    if (collapseParameter !== undefined)
+      setCollapsed(collapseParameter === "true");
+  }, [courseIdParameter, collapseParameter]);
+
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
     (async () => {

@@ -3,7 +3,7 @@ import { RouteIcon } from "@/components/icons/route-icon";
 import { CourseDetailInfo } from "@/features/mountains-detail/components/course-detail-info";
 import { CourseReviews } from "@/features/mountains-detail/components/course-reviews";
 import { MOCK_REVIEWS } from "@/features/mountains/constants/mountain-detail";
-import { useCourseDetail } from "@/features/mountains/hooks/use-course-detail";
+import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -19,8 +19,21 @@ export default function CourseDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const courseId = Number(id);
+  const isValidId = !isNaN(courseId) && courseId > 0;
 
-  const { data: course, isPending, isError } = useCourseDetail(courseId);
+  const { data: course, isPending, isError } = useCourseDetail(
+    isValidId ? courseId : null,
+  );
+
+  if (!isValidId) {
+    return (
+      <View className="flex-1 items-center justify-center bg-fill-normal">
+        <Text className="text-label-subtle typo-body-2-normal-regular">
+          코스를 찾을 수 없습니다.
+        </Text>
+      </View>
+    );
+  }
 
   if (isPending) {
     return (

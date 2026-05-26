@@ -4,6 +4,15 @@ import { formatDuration } from "@/modules/format-duration";
 import { CourseDetailResponse } from "@/types/api.generated";
 import { Pressable, Text, View } from "react-native";
 
+const DIFFICULTY_LABEL: Record<
+  NonNullable<CourseDetailResponse["difficulty"]>,
+  string
+> = {
+  EASY: "쉬움",
+  NORMAL: "보통",
+  HARD: "어려움",
+};
+
 type CourseDetailInfoProps = {
   course: CourseDetailResponse;
 };
@@ -13,14 +22,21 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
     [
       {
         label: "거리",
-        value: course.distance
-          ? `${(course.distance / 1000).toFixed(1)}km`
-          : "-",
+        value:
+          typeof course.distance === "number"
+            ? `${(course.distance / 1000).toFixed(1)}km`
+            : "-",
       },
-      { label: "난이도", value: course.difficulty ?? "-" },
+      {
+        label: "난이도",
+        value: course.difficulty ? DIFFICULTY_LABEL[course.difficulty] : "-",
+      },
       {
         label: "소요시간",
-        value: course.duration ? formatDuration(course.duration) : "-",
+        value:
+          typeof course.duration === "number"
+            ? formatDuration(course.duration)
+            : "-",
       },
     ],
     [
