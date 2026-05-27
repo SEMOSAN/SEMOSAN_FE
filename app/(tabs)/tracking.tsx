@@ -62,6 +62,7 @@ import { Tabs, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutChangeEvent,
+  Linking,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -656,6 +657,16 @@ export default function TrackingScreen() {
     const sub = addLiveActivityControlListener((action) => {
       if (action === 'pause') pauseTrackingRef.current();
       else resumeTrackingRef.current();
+    });
+    return () => sub.remove();
+  }, [isTracking]);
+
+  // iOS 16 fallback: Button(intent:) 미지원으로 딥링크 방식 처리
+  useEffect(() => {
+    if (!isLiveActivityEnabled || !isTracking) return;
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      if (url === 'semosan://tracking/pause') pauseTrackingRef.current();
+      else if (url === 'semosan://tracking/resume') resumeTrackingRef.current();
     });
     return () => sub.remove();
   }, [isTracking]);
