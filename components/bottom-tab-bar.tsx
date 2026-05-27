@@ -1,3 +1,4 @@
+import { CommunityIcon } from "@/components/icons/community-icon";
 import { HomeIcon } from "@/components/icons/home-icon";
 import { MountainIcon } from "@/components/icons/mountain-icon";
 import { MyIcon } from "@/components/icons/my-icon";
@@ -12,7 +13,6 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CommunityIcon } from "./icons/community-icon";
 
 const BG_LIGHT = "#ffffff";
 const BG_DARK = "#000000";
@@ -26,9 +26,8 @@ const UNFOCUSED_DARK = Colors["global-neutral-700"];
 
 type TabItem = {
   name: string;
-  label: string | null;
+  label: string;
   renderIcon: (color: string) => ReactNode;
-  isCenter?: boolean;
 };
 
 const TAB_ITEMS: TabItem[] = [
@@ -44,9 +43,8 @@ const TAB_ITEMS: TabItem[] = [
   },
   {
     name: "tracking",
-    label: null,
+    label: "트래킹",
     renderIcon: (color) => <NavigationIcon size={24} color={color} />,
-    isCenter: true,
   },
   {
     name: "community",
@@ -55,7 +53,7 @@ const TAB_ITEMS: TabItem[] = [
   },
   {
     name: "mypage",
-    label: "MY",
+    label: "마이페이지",
     renderIcon: (color) => <MyIcon size={24} color={color} />,
   },
 ];
@@ -66,7 +64,7 @@ export function BottomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { toggleHasRecords, tabProgress } = useHomeStateContext();
+  const { tabProgress } = useHomeStateContext();
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
@@ -111,7 +109,7 @@ export function BottomTabBar({
 
   return (
     <Animated.View
-      className="flex-row items-center justify-between border-t px-5"
+      className="flex-row border-t"
       style={[
         animatedContainerStyle,
         { paddingBottom: Math.max(insets.bottom, 4), paddingTop: 4 },
@@ -134,21 +132,6 @@ export function BottomTabBar({
           }
         };
 
-        if (item.isCenter) {
-          return (
-            <Pressable
-              key={route.key}
-              onPress={onPress}
-              onLongPress={toggleHasRecords}
-              delayLongPress={500}
-              className="items-center justify-center rounded-full bg-primary-normal"
-              style={{ width: 68, height: 42 }}
-            >
-              {item.renderIcon(Colors["color-label-normal-inverse"])}
-            </Pressable>
-          );
-        }
-
         const lightColor = isFocused ? FOCUSED_LIGHT : UNFOCUSED_LIGHT;
         const darkColor = isFocused ? FOCUSED_DARK : UNFOCUSED_DARK;
 
@@ -156,8 +139,8 @@ export function BottomTabBar({
           <Pressable
             key={route.key}
             onPress={onPress}
-            className="items-center justify-center gap-0.5 rounded"
-            style={{ width: 48, height: 48 }}
+            className="flex-1 items-center justify-center gap-0.5"
+            style={{ height: 48 }}
           >
             <View style={{ width: 24, height: 24 }}>
               <Animated.View style={lightLayerStyle}>
