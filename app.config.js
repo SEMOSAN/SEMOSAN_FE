@@ -56,6 +56,7 @@ const config = {
   plugins: [
     "expo-router",
     "@react-native-firebase/app",
+    "./plugins/withModularHeaders",
     ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
     [
       "expo-notifications",
