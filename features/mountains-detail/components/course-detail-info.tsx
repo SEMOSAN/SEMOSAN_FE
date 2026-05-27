@@ -1,7 +1,15 @@
+import { DotMarkerIcon } from "@/components/icons/dot-marker-icon";
+import { FlagMarkerIcon } from "@/components/icons/flag-marker-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
 import { CourseBadge } from "@/features/mountains/components/course-badge";
+import { CourseMapOverlays } from "@/features/tracking/components/course-map-overlays";
+import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
 import { formatDuration } from "@/modules/format-duration";
 import { CourseDetailResponse } from "@/types/api.generated";
+import { getCenterCoordinate } from "@/utils/get-center-coordinate";
+import { getZoomForCoords } from "@/utils/get-zoom-for-coords";
+import { NaverMapView } from "@mj-studio/react-native-naver-map";
+import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const DIFFICULTY_LABEL: Record<
@@ -18,6 +26,13 @@ type CourseDetailInfoProps = {
 };
 
 export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
+  const courseCoords = useMemo(
+    () => parseCoursePolyline(course.polyline),
+    [course.polyline],
+  );
+  const center = getCenterCoordinate(courseCoords);
+  const zoom = getZoomForCoords(courseCoords, 1.5);
+
   const statRows = [
     [
       {
@@ -48,8 +63,40 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
 
   return (
     <>
-      {/* Map placeholder */}
-      <View className="mx-5 h-[200px] overflow-hidden rounded-[20px] bg-fill-stronger" />
+      <View className="mx-5 h-[200px] overflow-hidden rounded-[20px]">
+        {center ? (
+          <NaverMapView
+            style={{ flex: 1 }}
+            camera={{
+              latitude: center.latitude,
+              longitude: center.longitude,
+              zoom,
+            }}
+            isShowZoomControls={false}
+            isScrollGesturesEnabled={false}
+            isZoomGesturesEnabled={false}
+            isRotateGesturesEnabled={false}
+            isTiltGesturesEnabled={false}
+          >
+            {courseCoords.length > 1 && (
+              <CourseMapOverlays
+                courseCoords={courseCoords}
+                startMarker={<DotMarkerIcon fill="#507EF4" stroke="#2563EB" />}
+                startMarkerSize={{ width: 12, height: 12 }}
+                startMarkerAnchor={{ x: 0.5, y: 0.73 }}
+                endMarker={<DotMarkerIcon />}
+                endMarkerSize={{ width: 12, height: 12 }}
+                endMarkerAnchor={{ x: 0.5, y: 0.73 }}
+                summitMarker={<FlagMarkerIcon />}
+                summitMarkerSize={{ width: 22, height: 30 }}
+                summitMarkerAnchor={{ x: 0.3, y: 1 }}
+              />
+            )}
+          </NaverMapView>
+        ) : (
+          <View className="flex-1 bg-fill-stronger" />
+        )}
+      </View>
 
       {/* Course info */}
       <View className="gap-[10px] px-5 pt-5">
