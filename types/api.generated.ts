@@ -6,6 +6,7 @@
 // Endpoints
 // ─────────────────────────────────────────────────────────────────────────────
 export const ENDPOINTS = {
+  APP_VERSION: "/api/app-version",
   USERS_ONBOARDING: "/api/users/onboarding",
   TRACKING_SESSIONS: "/api/tracking/sessions",
   TRACKING_SESSIONS_BY_SESSIONID_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
@@ -65,6 +66,45 @@ export const ENDPOINTS = {
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas
 // ─────────────────────────────────────────────────────────────────────────────
+export type PlatformVersionRequest = {
+  latestVersion?: string;
+  minimumVersion?: string;
+  forceUpdate?: boolean;
+  storeUrl?: string;
+  releaseNotes?: string;
+  maintenanceMode?: boolean;
+  maintenanceMessage?: string;
+};
+export type UpdateAppVersionRequest = {
+  ios: PlatformVersionRequest;
+  android: PlatformVersionRequest;
+};
+export type ApiResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: Record<string, unknown>;
+};
+export type ApiResponseAppVersionResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: AppVersionResponse;
+};
+export type AppVersionResponse = {
+  ios?: PlatformVersion;
+  android?: PlatformVersion;
+  updatedAt?: string;
+};
+export type PlatformVersion = {
+  latestVersion?: string;
+  minimumVersion?: string;
+  forceUpdate?: boolean;
+  storeUrl?: string;
+  releaseNotes?: string;
+  maintenanceMode?: boolean;
+  maintenanceMessage?: string;
+};
 export type RegisterOnboardingRequest = {
   nickname?: string;
   profileUrl?: string;
@@ -79,12 +119,6 @@ export type RegisterOnboardingRequest = {
   exerciseType: "GYM" | "HOME_TRAINING" | "PILATES_YOGA" | "WALKING" | "RUNNING" | "HIKING" | "SPORTS" | "CROSSFIT" | "SWIMMING" | "NONE";
   exerciseFrequency?: "DAILY" | "WEEK_3_4" | "WEEK_1_2" | "MONTH_1_2" | "LESS_THAN_MONTH_1";
   exerciseDuration?: "OVER_4H" | "HOUR_2_4" | "HOUR_1_2" | "UNDER_1H";
-};
-export type ApiResponse = {
-  isSuccess?: boolean;
-  code?: string;
-  message?: string;
-  data?: Record<string, unknown>;
 };
 export type ApiResponseVoid = {
   isSuccess?: boolean;
@@ -305,6 +339,7 @@ export type ApiResponseGetUserProfileResponse = {
   data?: GetUserProfileResponse;
 };
 export type GetUserProfileResponse = {
+  userId?: number;
   profileUrl?: string;
   nickname?: string;
   hikingLevel?: "BEGINNER" | "EXPERIENCED" | "HOBBY" | "EXPERT";
@@ -683,6 +718,9 @@ export type FcmTokenDeleteRequest = {
 // ─────────────────────────────────────────────────────────────────────────────
 // Operations (Params / Body / Response)
 // ─────────────────────────────────────────────────────────────────────────────
+// PUT /api/app-version
+export type UpdateAppVersionBody = UpdateAppVersionRequest;
+
 // POST /api/users/onboarding
 export type RegisterUserOnboardingBody = RegisterOnboardingRequest;
 

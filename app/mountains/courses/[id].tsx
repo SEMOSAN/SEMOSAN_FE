@@ -1,8 +1,6 @@
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
 import { RouteIcon } from "@/components/icons/route-icon";
 import { CourseDetailInfo } from "@/features/mountains-detail/components/course-detail-info";
-import { CourseReviews } from "@/features/mountains-detail/components/course-reviews";
-import { MOCK_REVIEWS } from "@/features/mountains/constants/mountain-detail";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -21,9 +19,11 @@ export default function CourseDetailScreen() {
   const courseId = Number(id);
   const isValidId = !isNaN(courseId) && courseId > 0;
 
-  const { data: course, isPending, isError } = useCourseDetail(
-    isValidId ? courseId : null,
-  );
+  const {
+    data: course,
+    isPending,
+    isError,
+  } = useCourseDetail(isValidId ? courseId : null);
 
   if (!isValidId) {
     return (
@@ -69,8 +69,9 @@ export default function CourseDetailScreen() {
           {/* Divider */}
           <View className="mt-6 h-[6px] bg-fill-strong" />
 
+          {/* TODO : 코스상세 내 커뮤니티 리뷰는 api제작 전까지 주석처리 */}
           {/* Reviews */}
-          <CourseReviews reviews={MOCK_REVIEWS} totalCount={54} />
+          {/* <CourseReviews reviews={MOCK_REVIEWS} totalCount={54} /> */}
         </ScrollView>
 
         {/* Header overlay */}
