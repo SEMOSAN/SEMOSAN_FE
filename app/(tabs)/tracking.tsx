@@ -274,25 +274,42 @@ export default function TrackingScreen() {
     return 1.0 - progress; // 0.0(바 상단/정상) ~ 1.0(바 하단/출발)
   }, [markerCoord, courseCoords]);
 
+  // altitudes 문자열에서 최고 고도(m) 파싱
+  const peakAltitudeM = useMemo(() => {
+    const raw = courseDetail?.altitudes;
+    console.log('[Altitudes] raw type:', typeof raw, 'isArray:', Array.isArray(raw), 'value:', raw == null ? 'NULL' : String(raw).slice(0, 50));
+    if (!raw) return null;
+    try {
+      const values: number[] = Array.isArray(raw)
+        ? (raw as number[]).filter((n) => !isNaN(n) && n > 0)
+        : String(raw).replace(/^\[|\]$/g, '').split(',').map(Number).filter((n) => !isNaN(n) && n > 0);
+      console.log('[Altitudes] values.length:', values.length, 'max:', values.length > 0 ? Math.max(...values) : 'N/A');
+      if (values.length > 0) return Math.round(Math.max(...values));
+    } catch (e) {
+      console.warn('[Altitudes] 파싱 실패:', e);
+    }
+    return null;
+  }, [courseDetail?.altitudes]);
+
+  // 정상/하산까지 시간·거리 — 코스 전체의 절반
+  const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
+  const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
+
   const selectedCourse = useMemo((): Course => ({
     id: String(courseDetail?.id ?? ''),
     name: courseDetail?.name ?? '',
     difficulty: DIFFICULTY_KO[courseDetail?.difficulty ?? ''] ?? '중급',
-    altitudeNm: 0,
+    altitudeNm: peakAltitudeM,
     distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
-    ascentM: 0,
-    descentM: 0,
+    summitDistanceM: halfDistanceM,
+    descentDistanceM: halfDistanceM,
     durationHours: Math.floor((courseDetail?.duration ?? 0) / 60),
     durationMinutes: (courseDetail?.duration ?? 0) % 60,
     coordinates: [],
     centerLatitude: 0,
     centerLongitude: 0,
     zoom: 14,
-  }), [courseDetail]);
-
-  // 정상/하산까지 시간·거리 — 코스 전체의 절반
-  const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
-  const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
+  }), [courseDetail, peakAltitudeM, halfDistanceM]);
 
   const timeToTarget = halfDurationMinutes > 0
     ? `${Math.floor(halfDurationMinutes / 60) > 0 ? `${Math.floor(halfDurationMinutes / 60)}h ` : ''}${halfDurationMinutes % 60 > 0 ? `${halfDurationMinutes % 60}m` : ''}`
@@ -520,6 +537,9 @@ export default function TrackingScreen() {
                 "[Tracking] 세션 시작 실패:",
                 err?.response?.data ?? err?.message ?? err,
               );
+              // API 실패 시 트래킹 상태 롤백
+              setIsTracking(false);
+              setIsFreeMode(false);
             },
           },
         );
