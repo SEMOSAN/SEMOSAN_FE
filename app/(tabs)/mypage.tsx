@@ -17,7 +17,6 @@ export default function MyPageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-
   const { data: profile } = useProfile();
   const { mutate: logout } = useLogout();
   const { mutate: withdraw } = useWithdraw();
@@ -27,15 +26,20 @@ export default function MyPageScreen() {
       label: "저장한 산 목록",
       onPress: () => router.push("/mypage/saved-mountains"),
     },
-    { label: "내 게시글", onPress: () => {} },
-    { label: "내 반응", onPress: () => {} },
-    { label: "차단 목록", onPress: () => {} },
+    // { label: "내 게시글", onPress: () => {} },
+    // { label: "내 반응", onPress: () => {} },
+    // { label: "차단 목록", onPress: () => {} },
   ];
 
   const serviceItems = [
     { label: "권한 관리", onPress: () => router.push("/mypage/permissions") },
     { label: "이용약관", onPress: () => router.push("/mypage/terms") },
-    { label: "버전 정보", value: `v ${APP_VERSION}`, onPress: () => {}, hideChevron: true },
+    {
+      label: "버전 정보",
+      value: `v ${APP_VERSION}`,
+      onPress: () => {},
+      hideChevron: true,
+    },
   ];
 
   const accountItems = [
@@ -58,15 +62,19 @@ export default function MyPageScreen() {
       onPress: () =>
         Alert.alert("탈퇴하기", "정말 탈퇴하시겠어요?", [
           { text: "취소", style: "cancel" },
-          { text: "탈퇴", style: "destructive", onPress: () => withdraw(undefined, { onSuccess: () => router.replace("/login") }) },
+          {
+            text: "탈퇴",
+            style: "destructive",
+            onPress: () =>
+              withdraw(undefined, {
+                onSuccess: () => router.replace("/login"),
+              }),
+          },
         ]),
     },
   ];
 
   const nickname = profile?.nickname ?? "-";
-  const grade = profile?.hikingLevel
-    ? HIKING_LEVEL_LABEL[profile.hikingLevel]
-    : "-";
 
   return (
     <View className="flex-1 bg-fill-stronger">
@@ -84,21 +92,24 @@ export default function MyPageScreen() {
         {/* 프로필 카드 */}
         <View className="bg-fill-normal">
           <TouchableOpacity
-            className="flex-row items-center justify-between gap-3 self-stretch px-4 py-5"
+            className="flex-row items-center justify-between px-4 py-5"
             activeOpacity={0.6}
             onPress={() => router.push("/mypage/info")}
           >
-            <ProfileAvatar url={profile?.profileUrl} />
-
-            <View className="flex-1 gap-1">
-              <View className="flex-row items-center gap-2">
-                <Text className="text-label-normal typo-body-1-normal-semi-bold">
-                  {nickname}
-                </Text>
-                <View className="rounded bg-secondary-subtle px-2 py-0.5">
-                  <Text className="text-secondary-strong typo-caption-1-semi-bold">
-                    {grade}
+            <View className="flex-row items-center gap-3">
+              <ProfileAvatar url={profile?.profileUrl} size={60} />
+              <View className="gap-[4px]">
+                <View className="flex-row items-center gap-[4px]">
+                  <Text className="text-label-normal typo-heading-1-semi-bold">
+                    {nickname}
                   </Text>
+                  <View className="items-center justify-center rounded bg-secondary-subtle px-[4px] py-0.5">
+                    {profile?.hikingLevel && (
+                      <Text className="text-secondary-strong typo-caption-1-semi-bold">
+                        {HIKING_LEVEL_LABEL[profile.hikingLevel]}
+                      </Text>
+                    )}
+                  </View>
                 </View>
               </View>
             </View>
@@ -110,10 +121,15 @@ export default function MyPageScreen() {
         {/* 내 활동 */}
         <SectionDivider />
         <View className="bg-fill-normal">
-          <MenuRow
-            label="저장한 산 목록"
-            onPress={() => router.push("/mypage/saved-mountains")}
-          />
+          <Text
+            className="text-label-alternative px-4 pb-2 pt-5 typo-body-2-normal-semi-bold"
+            style={{ letterSpacing: -0.14 }}
+          >
+            내 활동
+          </Text>
+          {activityItems.map((item) => (
+            <MenuRow key={item.label} {...item} />
+          ))}
         </View>
 
         {/* 서비스 */}
