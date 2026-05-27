@@ -11,7 +11,6 @@ import { SummitSheet } from "@/features/tracking/components/summit-sheet";
 import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
 import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
 import { TrailAvatarMarker } from "@/features/tracking/components/trail-avatar-marker";
-import { CourseMapOverlays } from "@/features/tracking/components/course-map-overlays";
 import { PinMarkerIcon } from "@/components/icons/pin-marker-icon";
 import {
   COLLAPSED_PEEK_HEIGHT,
@@ -286,12 +285,43 @@ export default function TrackingScreen() {
     <>
       {/* 코스 경로 — API polyline */}
       {courseCoords.length > 1 && (
-        <CourseMapOverlays
-          courseCoords={courseCoords}
-          startMarker={<PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />}
-          endMarker={<PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />}
-          summitMarker={<PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />}
-        />
+        <>
+          <NaverMapPathOverlay
+            coords={courseCoords}
+            width={6}
+            color="#ffd40d"
+            outlineWidth={1}
+            outlineColor="#eab308"
+          />
+          <NaverMapMarkerOverlay
+            latitude={courseCoords[0].latitude}
+            longitude={courseCoords[0].longitude}
+            width={34}
+            height={45}
+            anchor={{ x: 0.5, y: 1 }}
+          >
+            <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
+          </NaverMapMarkerOverlay>
+          <NaverMapMarkerOverlay
+            latitude={courseCoords[courseCoords.length - 1].latitude}
+            longitude={courseCoords[courseCoords.length - 1].longitude}
+            width={34}
+            height={45}
+            anchor={{ x: 0.5, y: 1 }}
+          >
+            <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
+          </NaverMapMarkerOverlay>
+          {/* 정상 마커 — 코스 거리의 1/2 지점 */}
+          <NaverMapMarkerOverlay
+            latitude={courseCoords[Math.floor(courseCoords.length / 2)].latitude}
+            longitude={courseCoords[Math.floor(courseCoords.length / 2)].longitude}
+            width={34}
+            height={45}
+            anchor={{ x: 0.5, y: 1 }}
+          >
+            <PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />
+          </NaverMapMarkerOverlay>
+        </>
       )}
 
       {/* 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커 */}

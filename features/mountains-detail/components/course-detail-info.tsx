@@ -2,13 +2,16 @@ import { DotMarkerIcon } from "@/components/icons/dot-marker-icon";
 import { FlagMarkerIcon } from "@/components/icons/flag-marker-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
 import { CourseBadge } from "@/features/mountains/components/course-badge";
-import { CourseMapOverlays } from "@/features/tracking/components/course-map-overlays";
 import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
 import { formatDuration } from "@/modules/format-duration";
 import { CourseDetailResponse } from "@/types/api.generated";
 import { getCenterCoordinate } from "@/utils/get-center-coordinate";
 import { getZoomForCoords } from "@/utils/get-zoom-for-coords";
-import { NaverMapView } from "@mj-studio/react-native-naver-map";
+import {
+  NaverMapMarkerOverlay,
+  NaverMapPathOverlay,
+  NaverMapView,
+} from "@mj-studio/react-native-naver-map";
 import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -79,18 +82,43 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
             isTiltGesturesEnabled={false}
           >
             {courseCoords.length > 1 && (
-              <CourseMapOverlays
-                courseCoords={courseCoords}
-                startMarker={<DotMarkerIcon fill="#507EF4" stroke="#2563EB" />}
-                startMarkerSize={{ width: 12, height: 12 }}
-                startMarkerAnchor={{ x: 0.5, y: 0.73 }}
-                endMarker={<DotMarkerIcon />}
-                endMarkerSize={{ width: 12, height: 12 }}
-                endMarkerAnchor={{ x: 0.5, y: 0.73 }}
-                summitMarker={<FlagMarkerIcon />}
-                summitMarkerSize={{ width: 22, height: 30 }}
-                summitMarkerAnchor={{ x: 0.3, y: 1 }}
-              />
+              <>
+                <NaverMapPathOverlay
+                  coords={courseCoords}
+                  width={6}
+                  color="#ffd40d"
+                  outlineWidth={1}
+                  outlineColor="#eab308"
+                />
+                <NaverMapMarkerOverlay
+                  latitude={courseCoords[0].latitude}
+                  longitude={courseCoords[0].longitude}
+                  width={12}
+                  height={12}
+                  anchor={{ x: 0.5, y: 0.73 }}
+                >
+                  <DotMarkerIcon fill="#507EF4" stroke="#2563EB" />
+                </NaverMapMarkerOverlay>
+                <NaverMapMarkerOverlay
+                  latitude={courseCoords[courseCoords.length - 1].latitude}
+                  longitude={courseCoords[courseCoords.length - 1].longitude}
+                  width={12}
+                  height={12}
+                  anchor={{ x: 0.5, y: 0.73 }}
+                >
+                  <DotMarkerIcon />
+                </NaverMapMarkerOverlay>
+                {/* 정상 마커 — 코스 거리의 1/2 지점 */}
+                <NaverMapMarkerOverlay
+                  latitude={courseCoords[Math.floor(courseCoords.length / 2)].latitude}
+                  longitude={courseCoords[Math.floor(courseCoords.length / 2)].longitude}
+                  width={22}
+                  height={30}
+                  anchor={{ x: 0.3, y: 1 }}
+                >
+                  <FlagMarkerIcon />
+                </NaverMapMarkerOverlay>
+              </>
             )}
           </NaverMapView>
         ) : (
