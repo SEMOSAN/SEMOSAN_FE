@@ -30,7 +30,7 @@ const VIEW_WIDTH_KM_AT_ZOOM_11 = 12;
 const VIEW_HEIGHT_KM_AT_ZOOM_11 = 7;
 const KM_PER_LAT_DEG = 111;
 const KM_PER_LNG_DEG = 89; // cos(37°N) × 111
-const TARGET_FILL = 0.60;
+const TARGET_FILL = 0.6;
 
 function getCourseZoom(coords: Coord[]): number {
   if (coords.length < 2) return 14;
@@ -56,12 +56,6 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
     [course.polyline],
   );
 
-  const lats = courseCoords.map((c) => c.latitude);
-  const lngs = courseCoords.map((c) => c.longitude);
-  console.log({
-    latSpan: Math.max(...lats) - Math.min(...lats),
-    lngSpan: Math.max(...lngs) - Math.min(...lngs),
-  });
   const center = getCenterCoordinate(courseCoords);
   const zoom = useMemo(() => getCourseZoom(courseCoords), [courseCoords]);
 
