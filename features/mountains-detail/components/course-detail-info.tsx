@@ -6,7 +6,6 @@ import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-poly
 import { formatDuration } from "@/modules/format-duration";
 import { CourseDetailResponse } from "@/types/api.generated";
 import { getCenterCoordinate } from "@/utils/get-center-coordinate";
-import { getZoomForCoords } from "@/utils/get-zoom-for-coords";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -24,6 +23,29 @@ const DIFFICULTY_LABEL: Record<
   HARD: "어려움",
 };
 
+type Coord = { latitude: number; longitude: number };
+
+// zoom 11 기준: 맵 뷰에 가로 12km, 세로 7km 표시. zoom ±1마다 2배씩 확대/축소.
+const VIEW_WIDTH_KM_AT_ZOOM_11 = 12;
+const VIEW_HEIGHT_KM_AT_ZOOM_11 = 7;
+const KM_PER_LAT_DEG = 111;
+const KM_PER_LNG_DEG = 89; // cos(37°N) × 111
+const TARGET_FILL = 0.60;
+
+function getCourseZoom(coords: Coord[]): number {
+  if (coords.length < 2) return 14;
+  const lats = coords.map((c) => c.latitude);
+  const lngs = coords.map((c) => c.longitude);
+  const latKm = (Math.max(...lats) - Math.min(...lats)) * KM_PER_LAT_DEG;
+  const lngKm = (Math.max(...lngs) - Math.min(...lngs)) * KM_PER_LNG_DEG;
+  const dominantRatio = Math.max(
+    lngKm / VIEW_WIDTH_KM_AT_ZOOM_11,
+    latKm / VIEW_HEIGHT_KM_AT_ZOOM_11,
+  );
+  const zoom = 11 + Math.log2(TARGET_FILL / dominantRatio);
+  return Math.min(Math.max(Math.round(zoom), 6), 18);
+}
+
 type CourseDetailInfoProps = {
   course: CourseDetailResponse;
 };
@@ -33,8 +55,15 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
     () => parseCoursePolyline(course.polyline),
     [course.polyline],
   );
+
+  const lats = courseCoords.map((c) => c.latitude);
+  const lngs = courseCoords.map((c) => c.longitude);
+  console.log({
+    latSpan: Math.max(...lats) - Math.min(...lats),
+    lngSpan: Math.max(...lngs) - Math.min(...lngs),
+  });
   const center = getCenterCoordinate(courseCoords);
-  const zoom = getZoomForCoords(courseCoords, 1.5);
+  const zoom = useMemo(() => getCourseZoom(courseCoords), [courseCoords]);
 
   const statRows = [
     [
@@ -58,9 +87,27 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
       },
     ],
     [
-      { label: "고도", value: "-" },
-      { label: "오르막길", value: "-" },
-      { label: "내리막길", value: "-" },
+      {
+        label: "고도",
+        value:
+          typeof course.maxAltitude === "number"
+            ? `${Math.round(course.maxAltitude)}m`
+            : "-",
+      },
+      {
+        label: "오르막길",
+        value:
+          typeof course.ascent === "number"
+            ? `${Math.round(course.ascent)}m`
+            : "-",
+      },
+      {
+        label: "내리막길",
+        value:
+          typeof course.descent === "number"
+            ? `${Math.round(course.descent)}m`
+            : "-",
+      },
     ],
   ];
 
@@ -110,8 +157,12 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
                 </NaverMapMarkerOverlay>
                 {/* 정상 마커 — 코스 거리의 1/2 지점 */}
                 <NaverMapMarkerOverlay
-                  latitude={courseCoords[Math.floor(courseCoords.length / 2)].latitude}
-                  longitude={courseCoords[Math.floor(courseCoords.length / 2)].longitude}
+                  latitude={
+                    courseCoords[Math.floor(courseCoords.length / 2)].latitude
+                  }
+                  longitude={
+                    courseCoords[Math.floor(courseCoords.length / 2)].longitude
+                  }
                   width={22}
                   height={30}
                   anchor={{ x: 0.3, y: 1 }}
