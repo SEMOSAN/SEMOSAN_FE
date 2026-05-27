@@ -11,7 +11,6 @@ import {
   NaverMapPathOverlay,
   NaverMapView,
 } from "@mj-studio/react-native-naver-map";
-import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const DIFFICULTY_LABEL: Record<
@@ -51,13 +50,9 @@ type CourseDetailInfoProps = {
 };
 
 export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
-  const courseCoords = useMemo(
-    () => parseCoursePolyline(course.polyline),
-    [course.polyline],
-  );
-
+  const courseCoords = parseCoursePolyline(course.polyline);
   const center = getCenterCoordinate(courseCoords);
-  const zoom = useMemo(() => getCourseZoom(courseCoords), [courseCoords]);
+  const zoom = getCourseZoom(courseCoords);
 
   const statRows = [
     [
