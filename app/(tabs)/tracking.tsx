@@ -91,6 +91,7 @@ export default function TrackingScreen() {
   const [isPaused, setIsPaused] = useState(false);
   const [isFreeMode, setIsFreeMode] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [timerStartEpoch, setTimerStartEpoch] = useState<number | null>(null);
   const [showTooltip, setShowTooltip] = useState(true);
   // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
   const [isAtSummit, setIsAtSummit] = useState(false); // 목 값 (GPS 연동 전까지 false)
@@ -226,6 +227,7 @@ export default function TrackingScreen() {
       setSessionId(activeSession.sessionId);
       setIsTracking(true);
       setIsPaused(status === "PAUSED");
+      if (status === "IN_PROGRESS") setTimerStartEpoch(Date.now());
       connectSocket(activeSession.sessionId);
       // GPS watch 재시작
       const sid = activeSession.sessionId;
@@ -458,6 +460,7 @@ export default function TrackingScreen() {
     if (countdown === null) return;
     if (countdown === 0) {
       setIsTracking(true);
+      setTimerStartEpoch(Date.now());
       setCountdown(null);
 
       // 트래킹 세션 시작 API 호출
@@ -586,6 +589,7 @@ export default function TrackingScreen() {
           elapsedSeconds,
           isRunning: !isPaused,
           mode: "free",
+          timerStartEpoch: timerStartEpoch ?? undefined,
         }).catch(() => {});
       } else {
         let progress = 0;
@@ -617,6 +621,7 @@ export default function TrackingScreen() {
           remainingMinutes,
           remainingMeters,
           progress,
+          timerStartEpoch: timerStartEpoch ?? undefined,
         }).catch(() => {});
       }
     }
@@ -624,6 +629,7 @@ export default function TrackingScreen() {
 
   const pauseTracking = () => {
     setIsPaused(true);
+    setTimerStartEpoch(null);
     if (sessionId != null) {
       pauseSession(sessionId, {
         onError: (err) => {
@@ -635,6 +641,7 @@ export default function TrackingScreen() {
   };
   const resumeTracking = () => {
     setIsPaused(false);
+    setTimerStartEpoch(Date.now() - elapsedSeconds * 1000);
     if (sessionId != null) {
       resumeSession(sessionId, {
         onError: (err) => {
@@ -737,6 +744,7 @@ export default function TrackingScreen() {
     setIsPaused(false);
     setIsFreeMode(false);
     setElapsedSeconds(0);
+    setTimerStartEpoch(null);
     setShowTooltip(true);
     setShowSummitSheet(false);
     setHasSummited(false);

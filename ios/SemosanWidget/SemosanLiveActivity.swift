@@ -36,9 +36,15 @@ struct TogglePauseIntent: AppIntent {
             return .result()
         }
         let current = activity.content.state
+        let nowMs = Date().timeIntervalSince1970 * 1000
+        // 재개 시: 가상 시작 시각 계산 (일시정지 시: nil로 초기화)
+        let newTimerStartEpoch: Double? = current.isRunning
+            ? nil
+            : nowMs - Double(current.elapsedSeconds) * 1000
         let newState = SemosanLiveActivityAttributes.ContentState(
             elapsedSeconds: current.elapsedSeconds,
             isRunning: !current.isRunning,
+            timerStartEpoch: newTimerStartEpoch,
             remainingMinutes: current.remainingMinutes,
             remainingMeters: current.remainingMeters,
             progress: current.progress
@@ -55,6 +61,29 @@ struct TogglePauseIntent: AppIntent {
             nil, nil, true
         )
         return .result()
+    }
+}
+
+// MARK: - Native Live Timer View (실행 중: SwiftUI 타이머, 정지 중: 정적 텍스트)
+
+private struct LiveTimerText: View {
+    let state: SemosanLiveActivityAttributes.ContentState
+    var fontSize: CGFloat = 36
+    var kerning: CGFloat = 0.72
+
+    var body: some View {
+        Group {
+            if state.isRunning, let epoch = state.timerStartEpoch {
+                Text(Date(timeIntervalSince1970: epoch / 1000), style: .timer)
+            } else {
+                Text(formatExpanded(state.elapsedSeconds))
+            }
+        }
+        .font(.custom("Lexend-SemiBold", size: fontSize))
+        .kerning(kerning)
+        .foregroundColor(C.timerGreen)
+        .minimumScaleFactor(0.6)
+        .lineLimit(1)
     }
 }
 
@@ -356,12 +385,7 @@ private struct FreeLockScreenView: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(C.labelMuted)
 
-                Text(formatExpanded(state.elapsedSeconds))
-                    .font(.custom("Lexend-SemiBold", size: 36))
-                    .kerning(0.72)
-                    .foregroundColor(C.timerGreen)
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
+                LiveTimerText(state: state)
             }
 
             Spacer()
@@ -387,12 +411,7 @@ private struct CourseLockScreenView: View {
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(C.labelMuted)
 
-                        Text(formatExpanded(state.elapsedSeconds))
-                            .font(.custom("Lexend-SemiBold", size: 36))
-                            .kerning(0.72)
-                            .foregroundColor(C.timerGreen)
-                            .minimumScaleFactor(0.6)
-                            .lineLimit(1)
+                        LiveTimerText(state: state)
                     }
 
                     Spacer()
@@ -462,12 +481,7 @@ struct SemosanLiveActivity: Widget {
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundColor(C.labelMuted)
                                     .lineLimit(1)
-                                Text(formatExpanded(state.elapsedSeconds))
-                                    .font(.custom("Lexend-SemiBold", size: 34))
-                                    .kerning(0.68)
-                                    .foregroundColor(C.timerGreen)
-                                    .minimumScaleFactor(0.5)
-                                    .lineLimit(1)
+                                LiveTimerText(state: state, fontSize: 34, kerning: 0.68)
                             }
                             Spacer()
                             ExpandedPlayPauseBtn(isRunning: state.isRunning, size: 46)

@@ -13,6 +13,7 @@ struct SemosanLiveActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable {
         var elapsedSeconds: Int   // 경과 시간 (초)
         var isRunning: Bool       // 재생/일시정지
+        var timerStartEpoch: Double?  // 타이머 가상 시작 시각 (ms, epoch) — isRunning=true일 때만 유효
         // 코스 따라가기 전용 (free 모드에서는 무시)
         var remainingMinutes: Int
         var remainingMeters: Int
