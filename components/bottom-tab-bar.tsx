@@ -112,7 +112,7 @@ export function BottomTabBar({
       className="flex-row border-t"
       style={[
         animatedContainerStyle,
-        { paddingBottom: insets.bottom },
+        { paddingBottom: Math.max(insets.bottom, 4), paddingTop: 4 },
       ]}
     >
       {state.routes.map((route, index) => {
