@@ -98,7 +98,7 @@ export default function MountainDetailScreen() {
   const { data, isPending, isError } = useMountainDetail(Number(id));
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<TabKey>("교통 정보");
+  const [activeTab, setActiveTab] = useState<TabKey>("코스");
 
   if (isPending)
     return (
