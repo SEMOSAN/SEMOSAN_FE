@@ -9,6 +9,7 @@ import Animated, {
   withDecay,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
+import { FEED_SLIDE_UP_DISTANCE } from "../constants";
 import { CELL_H, CELL_W, FeedCell, MAX_COORD, MIN_COORD } from "./feed-cell";
 import { FeedCellDetail } from "./feed-cell-detail";
 
@@ -137,7 +138,7 @@ export function FeedHomeView() {
             // (0,0) 셀 중심이 화면 중앙에 오도록
             // 셀(0,0) 중심의 그리드 좌표 = CELL_GAP/2 + CELL_CONTENT_W/2 = CELL_W/2
             const initX = width / 2 - CELL_W / 2;
-            const initY = height / 2 - CELL_H / 2 + 80;
+            const initY = height / 2 - CELL_H / 2 + FEED_SLIDE_UP_DISTANCE / 2;
             translateX.value = initX;
             translateY.value = initY;
             savedX.value = initX;
