@@ -108,8 +108,6 @@ export default function MountainDetailScreen() {
     );
   if (isError) return null;
 
-  console.log(data.amenities);
-
   const visibleTabs = TABS.filter((tab) => {
     if (tab === "코스") return !!data.courses?.length;
     if (tab === "교통 정보") {
