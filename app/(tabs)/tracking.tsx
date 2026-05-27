@@ -47,7 +47,6 @@ import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-p
 import { LiveActivity, addLiveActivityControlListener } from "@/modules/live-activity";
 import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
 import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
-import { useAppState } from "@/hooks/use-app-state";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -129,7 +128,6 @@ export default function TrackingScreen() {
   const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
   const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
 
   useEffect(() => {
@@ -534,8 +532,9 @@ export default function TrackingScreen() {
     if (!isTracking) return;
 
     if (isLiveActivityEnabled) {
+      const startEpoch = timerStartEpoch ?? Date.now();
       if (isFreeMode) {
-        LiveActivity.start({ mode: "free" }).catch(() => {});
+        LiveActivity.start({ mode: "free", timerStartEpoch: startEpoch }).catch(() => {});
       } else {
         const totalMeters = liveActivityCourse?.totalDistance
           ?? Math.round(selectedCourse.distanceKm * 1000);
@@ -546,6 +545,7 @@ export default function TrackingScreen() {
           remainingMinutes: totalMinutes,
           remainingMeters: Math.round(totalMeters),
           progress: 0,
+          timerStartEpoch: startEpoch,
         }).catch(() => {});
       }
     }
@@ -553,31 +553,16 @@ export default function TrackingScreen() {
     return () => {};
   }, [isTracking, isFreeMode, selectedCourse]);
 
-  // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
+  // 트래킹 중 경과 시간 카운트업 — timerStartEpoch 기준 계산으로 drift 없음
   useEffect(() => {
-    if (!isTracking || isPaused) return;
-    const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
+    if (!isTracking || isPaused || timerStartEpoch === null) return;
+    const epoch = timerStartEpoch;
+    const interval = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - epoch) / 1000));
+    }, 1000);
     return () => clearInterval(interval);
-  }, [isTracking, isPaused]);
+  }, [isTracking, isPaused, timerStartEpoch]);
 
-  // 백그라운드 진입 시 시각 저장, 포어그라운드 복귀 시 차이만큼 누적
-  useAppState(
-    useCallback(
-      (state) => {
-        if (!isTracking || isPaused) return;
-        if (state === "background" || state === "inactive") {
-          backgroundedAtRef.current = Date.now();
-        } else if (state === "active" && backgroundedAtRef.current != null) {
-          const diffSeconds = Math.floor(
-            (Date.now() - backgroundedAtRef.current) / 1000,
-          );
-          setElapsedSeconds((s) => s + diffSeconds);
-          backgroundedAtRef.current = null;
-        }
-      },
-      [isTracking, isPaused],
-    ),
-  );
 
   // 매 초 Live Activity 업데이트
   useEffect(() => {

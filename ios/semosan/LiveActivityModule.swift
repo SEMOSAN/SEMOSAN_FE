@@ -94,7 +94,7 @@ public class LiveActivityModule: Module {
             let initialState = SemosanLiveActivityAttributes.ContentState(
                 elapsedSeconds: 0,
                 isRunning: true,
-                timerStartEpoch: Date().timeIntervalSince1970 * 1000,
+                timerStartEpoch: params["timerStartEpoch"] as? Double ?? Date().timeIntervalSince1970 * 1000,
                 remainingMinutes: params["remainingMinutes"] as? Int ?? 0,
                 remainingMeters: params["remainingMeters"] as? Int ?? 0,
                 progress: params["progress"] as? Double ?? 0.0

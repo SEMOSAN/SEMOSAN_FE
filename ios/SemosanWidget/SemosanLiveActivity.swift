@@ -37,12 +37,21 @@ struct TogglePauseIntent: AppIntent {
         }
         let current = activity.content.state
         let nowMs = Date().timeIntervalSince1970 * 1000
+
+        // 실제 경과 시간 계산 — isRunning 중이면 timerStartEpoch 기준, 아니면 elapsedSeconds 그대로
+        let actualElapsed: Int
+        if current.isRunning, let epoch = current.timerStartEpoch {
+            actualElapsed = max(current.elapsedSeconds, Int((nowMs - epoch) / 1000))
+        } else {
+            actualElapsed = current.elapsedSeconds
+        }
+
         // 재개 시: 가상 시작 시각 계산 (일시정지 시: nil로 초기화)
         let newTimerStartEpoch: Double? = current.isRunning
             ? nil
-            : nowMs - Double(current.elapsedSeconds) * 1000
+            : nowMs - Double(actualElapsed) * 1000
         let newState = SemosanLiveActivityAttributes.ContentState(
-            elapsedSeconds: current.elapsedSeconds,
+            elapsedSeconds: actualElapsed,
             isRunning: !current.isRunning,
             timerStartEpoch: newTimerStartEpoch,
             remainingMinutes: current.remainingMinutes,
@@ -204,11 +213,11 @@ private struct ExpandedPlayPauseBtn: View {
                 .fill(Color.white.opacity(0.2))
                 .frame(width: size, height: size)
             if isRunning {
-                PlayTriangleShape()
+                PauseBarsShape()
                     .fill(Color.white)
                     .frame(width: size, height: size)
             } else {
-                PauseBarsShape()
+                PlayTriangleShape()
                     .fill(Color.white)
                     .frame(width: size, height: size)
             }
