@@ -44,8 +44,10 @@ import {
 } from "@/features/tracking/hooks/use-tracking-socket";
 import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
+import { LiveActivity, addLiveActivityControlListener } from "@/modules/live-activity";
+import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
+import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
 import { useAppState } from "@/hooks/use-app-state";
-import { LiveActivity } from "@/modules/live-activity";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -157,6 +159,19 @@ export default function TrackingScreen() {
       }
     })();
   }, []);
+
+  // 트래킹 중 위치 지속 업데이트 (코스 진행률 계산용)
+  useEffect(() => {
+    if (!isTracking || isFreeMode) return;
+    let subscription: Location.LocationSubscription | null = null;
+    Location.watchPositionAsync(
+      { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 10 },
+      (loc) => {
+        setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude, altitude: loc.coords.altitude });
+      }
+    ).then((sub) => { subscription = sub; });
+    return () => { subscription?.remove(); };
+  }, [isTracking, isFreeMode]);
 
   const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
     lat: userLocation?.latitude ?? null,
@@ -396,6 +411,20 @@ export default function TrackingScreen() {
     }, 300);
   }, [sessionId, courseCoords, isFreeMode, publishGps]);
 
+  const { data: liveActivityCourse } = useLiveActivityCourse(selectedCourseId);
+
+  // [DEV] 선택된 courseId 로그 (1회만)
+  useEffect(() => {
+    console.log('[Course] selectedCourseId:', selectedCourseId_num);
+  }, [selectedCourseId_num]);
+
+  useEffect(() => {
+    console.log('[Course] courseDetail polyline type:', typeof courseDetail?.polyline, 'courseCoords.length:', courseCoords.length);
+    if (courseCoords[0]) {
+      console.log('[Course] 첫 좌표:', courseCoords[0].latitude, courseCoords[0].longitude);
+    }
+  }, [courseCoords.length, isFreeMode, isTracking]);
+
   // polyline 로드되거나 트래킹 시작 시 카메라를 전체 경로가 보이도록 맞춤
   useEffect(() => {
     if (courseCoords.length < 2) return;
@@ -504,13 +533,14 @@ export default function TrackingScreen() {
       if (isFreeMode) {
         LiveActivity.start({ mode: "free" }).catch(() => {});
       } else {
-        const totalMinutes =
-          selectedCourse.durationHours * 60 + selectedCourse.durationMinutes;
-        const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+        const totalMeters = liveActivityCourse?.totalDistance
+          ?? Math.round(selectedCourse.distanceKm * 1000);
+        const totalMinutes = liveActivityCourse?.estimatedTime
+          ?? (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes);
         LiveActivity.start({
           mode: "course",
           remainingMinutes: totalMinutes,
-          remainingMeters: totalMeters,
+          remainingMeters: Math.round(totalMeters),
           progress: 0,
         }).catch(() => {});
       }
@@ -557,24 +587,39 @@ export default function TrackingScreen() {
           mode: "free",
         }).catch(() => {});
       } else {
-        const totalSeconds =
-          (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) *
-          60;
-        const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
-        const progress =
-          totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
-        const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+        let progress = 0;
+        let remainingMeters = 0;
+        let remainingMinutes = 0;
+
+        if (liveActivityCourse && userLocation) {
+          const result = calcCourseProgress(
+            userLocation,
+            liveActivityCourse.coordinates,
+            liveActivityCourse.totalDistance
+          );
+          progress = result.progress;
+          remainingMeters = Math.round(result.remainingMeters);
+          remainingMinutes = Math.ceil(liveActivityCourse.estimatedTime * (1 - progress));
+        } else {
+          const totalSeconds =
+            (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) * 60;
+          const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
+          progress = totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
+          remainingMinutes = Math.ceil(Math.max(0, totalSeconds - elapsedSeconds) / 60);
+          remainingMeters = Math.round(totalMeters * (1 - progress));
+        }
+
         LiveActivity.update({
           elapsedSeconds,
           isRunning: !isPaused,
           mode: "course",
-          remainingMinutes: Math.ceil(remainingSeconds / 60),
-          remainingMeters: Math.round(totalMeters * (1 - progress)),
+          remainingMinutes,
+          remainingMeters,
           progress,
         }).catch(() => {});
       }
     }
-  }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse]);
+  }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse, liveActivityCourse, userLocation]);
 
   const pauseTracking = () => {
     setIsPaused(true);
@@ -598,6 +643,22 @@ export default function TrackingScreen() {
       });
     }
   };
+
+  // Live Activity 버튼(pause/resume) → 앱 동기화
+  // refs로 항상 최신 함수를 참조 (리스너는 isTracking 변경 시에만 재등록)
+  const pauseTrackingRef = useRef(pauseTracking);
+  pauseTrackingRef.current = pauseTracking;
+  const resumeTrackingRef = useRef(resumeTracking);
+  resumeTrackingRef.current = resumeTracking;
+
+  useEffect(() => {
+    if (!isLiveActivityEnabled || !isTracking) return;
+    const sub = addLiveActivityControlListener((action) => {
+      if (action === 'pause') pauseTrackingRef.current();
+      else resumeTrackingRef.current();
+    });
+    return () => sub.remove();
+  }, [isTracking]);
 
   const requestStop = () => setShowStopModal(true);
 
