@@ -1,0 +1,38 @@
+name: Expo Install Check
+
+on:
+  pull_request:
+
+jobs:
+  expo-install:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check expo package compatibility
+        run: npx expo install --fix
+
+      - name: Fail if package versions were changed
+        run: git diff --exit-code package.json package-lock.json
+
+      - name: Expo prebuild
+        run: echo 'Y' | npx expo prebuild --clean
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install pods
+        run: npx pod-install
