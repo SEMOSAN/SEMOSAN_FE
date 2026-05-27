@@ -1,0 +1,45 @@
+name: iOS Build Check
+
+on:
+  pull_request:
+
+jobs:
+  xcodebuild:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Expo prebuild
+        run: echo 'Y' | npx expo prebuild --clean
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install pods
+        run: npx pod-install
+
+      - name: Build iOS (Simulator)
+        run: |
+          xcodebuild \
+            -workspace ios/semosan.xcworkspace \
+            -scheme semosan \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
