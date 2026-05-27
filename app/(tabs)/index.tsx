@@ -23,6 +23,7 @@ import Animated, {
 export default function HomeScreen() {
   const { setTabBarVariant, tabProgress } = useHomeStateContext();
   const [mapTab, setMapTab] = useState<MapTab>("map");
+
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] =
     useState(false);
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);

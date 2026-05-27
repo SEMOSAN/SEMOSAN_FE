@@ -10,6 +10,7 @@ import { Pressable, View } from "react-native";
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
+  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CommunityIcon } from "./icons/community-icon";
@@ -66,7 +67,7 @@ export function BottomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { toggleHasRecords, tabProgress } = useHomeStateContext();
+  const { toggleHasRecords, tabProgress, setTabBarVariant } = useHomeStateContext();
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
@@ -124,6 +125,10 @@ export function BottomTabBar({
         const isFocused = state.index === index;
 
         const onPress = () => {
+          if (tabProgress.value > 0) {
+            tabProgress.value = withTiming(0);
+            setTabBarVariant("light");
+          }
           const event = navigation.emit({
             type: "tabPress",
             target: route.key,
