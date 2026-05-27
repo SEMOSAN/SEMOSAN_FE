@@ -18,12 +18,15 @@ export const ENDPOINTS = {
   OAUTH_KAKAO_LOGIN: "/api/oauth/kakao/login",
   OAUTH_APPLE_LOGIN: "/api/oauth/apple/login",
   MOUNTAINS_BY_MOUNTAINID_LIKE: (mountainId: number | string) => `/api/mountains/${mountainId}/like`,
+  HIKING_RECORDS_BY_HIKINGRECORDID_DIFFICULTY_FEEDBACK: (hikingRecordId: number | string) => `/api/hiking-records/${hikingRecordId}/difficulty-feedback`,
   FCM_TOKENS: "/api/fcm/tokens",
   COMMUNITY_RECORD_POSTS: "/api/community/record-posts",
   COMMUNITY_POSTS_BY_POSTID_LIKES: (postId: number | string) => `/api/community/posts/${postId}/likes`,
   COMMUNITY_POSTS_BY_POSTID_COMMENTS: (postId: number | string) => `/api/community/posts/${postId}/comments`,
   COMMUNITY_POSTS_BY_POSTID_COMMENTS_REPLIES: (postId: number | string) => `/api/community/posts/${postId}/comments/replies`,
   COMMUNITY_FREE_POSTS: "/api/community/free-posts",
+  COMMUNITY_FREE_POSTS_BY_POSTID_REPORTS: (postId: number | string) => `/api/community/free-posts/${postId}/reports`,
+  COMMUNITY_FREE_POSTS_BY_POSTID_BLOCKS: (postId: number | string) => `/api/community/free-posts/${postId}/blocks`,
   AUTH_TOKEN_REISSUE: "/api/auth/token/reissue",
   AUTH_TEST_LOGIN: "/api/auth/test/login",
   AUTH_LOGOUT: "/api/auth/logout",
@@ -198,6 +201,25 @@ export type OAuthAppleLoginRequest = {
   name?: string;
   deviceType: "IOS" | "ANDROID";
 };
+export type CreateCourseDifficultyFeedbackRequest = {
+  comparison: "SIMILAR" | "EASIER" | "HARDER";
+};
+export type ApiResponseCourseDifficultyFeedbackResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: CourseDifficultyFeedbackResponse;
+};
+export type CourseDifficultyFeedbackResponse = {
+  feedbackId?: number;
+  hikingRecordId?: number;
+  mountainId?: number;
+  mountainName?: string;
+  courseId?: number;
+  courseName?: string;
+  guideDifficulty?: "EASY" | "NORMAL" | "HARD";
+  comparison?: "SIMILAR" | "EASIER" | "HARDER";
+};
 export type FcmTokenRegisterRequest = {
   token?: string;
   deviceType: "IOS" | "ANDROID";
@@ -263,6 +285,7 @@ export type CommentResponse = {
   mentionedUser?: AuthorResponse;
   createdAt?: string;
   isDeleted?: boolean;
+  isBlocked?: boolean;
 };
 export type CommentReplyRequest = {
   parentId: number;
@@ -289,6 +312,7 @@ export type FreePostDetailResponse = {
   images?: PostImageResponse[];
   viewCount?: number;
   likeCount?: number;
+  likedByMe?: boolean;
   commentCount?: number;
   createdAt?: string;
 };
@@ -297,6 +321,9 @@ export type PostImageResponse = {
   imageUrl?: string;
   sortOrder?: number;
   main?: boolean;
+};
+export type FreePostReportRequest = {
+  reason: "SPAM" | "ABUSE" | "OBSCENE" | "FALSE_INFO" | "ETC";
 };
 export type ReissueResponse = {
   accessToken?: string;
@@ -643,6 +670,9 @@ export type CourseDetailResponse = {
   duration?: number;
   startName?: string;
   endName?: string;
+  ascent?: number;
+  descent?: number;
+  maxAltitude?: number;
   polyline?: string;
   altitudes?: string;
 };
@@ -784,6 +814,12 @@ export type UnlikeMountainParams = {
   mountainId: number;
 };
 
+// POST /api/hiking-records/{hikingRecordId}/difficulty-feedback
+export type CreateCourseDifficultyFeedbackParams = {
+  hikingRecordId: number;
+};
+export type CreateCourseDifficultyFeedbackBody = CreateCourseDifficultyFeedbackRequest;
+
 // POST /api/fcm/tokens
 export type RegisterBody = FcmTokenRegisterRequest;
 
@@ -834,6 +870,17 @@ export type GetList1Params = {
 
 // POST /api/community/free-posts
 export type Create3Body = FreePostCreateRequest;
+
+// POST /api/community/free-posts/{postId}/reports
+export type ReportParams = {
+  postId: number;
+};
+export type ReportBody = FreePostReportRequest;
+
+// POST /api/community/free-posts/{postId}/blocks
+export type BlockParams = {
+  postId: number;
+};
 
 // POST /api/auth/test/login
 export type LoginBody = LoginRequest;
