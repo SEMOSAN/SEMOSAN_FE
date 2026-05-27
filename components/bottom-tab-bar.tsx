@@ -4,6 +4,7 @@ import { MountainIcon } from "@/components/icons/mountain-icon";
 import { MyIcon } from "@/components/icons/my-icon";
 import { NavigationIcon } from "@/components/icons/navigation-icon";
 import { useHomeStateContext } from "@/contexts/home-state-context";
+import { HOME_TAB_TRANSITION_DURATION } from "@/features/home/constants";
 import { Colors } from "@/types/colors.generated";
 import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { ReactNode, useEffect } from "react";
@@ -76,7 +77,7 @@ export function BottomTabBar({
 
   useEffect(() => {
     isHome.value = withTiming(state.index === homeTabIndex ? 1 : 0, {
-      duration: 250,
+      duration: HOME_TAB_TRANSITION_DURATION,
     });
   }, [state.index]);
 
