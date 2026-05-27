@@ -1,88 +1,101 @@
-import { Image } from "expo-image";
-import { Platform } from "react-native";
+import { LocationPermissionSheet } from "@/components/location-permission-sheet";
+import { useHomeStateContext } from "@/contexts/home-state-context";
+import { FeedHomeView } from "@/features/home/components/feed-home-view";
+import { HomeHeader, MapTab } from "@/features/home/components/home-header";
+import {
+  MapHomeView,
+  MapHomeViewRef,
+} from "@/features/home/components/map-home-view";
+import { HOME_TAB_TRANSITION_DURATION } from "@/features/home/constants";
+import { setStatusBarStyle } from "expo-status-bar";
+import { useRef, useState } from "react";
+import { View } from "react-native";
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 
-import { HelloWave } from "@/components/hello-wave";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Link } from "expo-router";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          className="absolute bottom-0 left-0 h-[178px] w-[290px]"
-        />
-      }
-    >
-      <ThemedView className="flex-row items-center gap-2">
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView className="mb-2 gap-2">
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
-          to see changes. Press{" "}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: "cmd + d",
-              android: "cmd + m",
-              web: "F12",
-            })}
-          </ThemedText>{" "}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView className="mb-2 gap-2">
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction
-              title="Action"
-              icon="cube"
-              onPress={() => alert("Action pressed")}
-            />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert("Share pressed")}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert("Delete pressed")}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { setTabBarVariant, tabProgress } = useHomeStateContext();
+  const [mapTab, setMapTab] = useState<MapTab>("map");
+  const [isMountainRecordListOpen, setIsMountainRecordListOpen] =
+    useState(false);
+  const [closeSelectedToken, setCloseSelectedToken] = useState(0);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView className="mb-2 gap-2">
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">
-            npm run reset-project
-          </ThemedText>{" "}
-          to get a fresh <ThemedText type="defaultSemiBold">app</ThemedText>{" "}
-          directory. This will move the current{" "}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{" "}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const mapViewRef = useRef<MapHomeViewRef>(null);
+  const mapAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: 1 - tabProgress.value,
+  }));
+  const feedAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: tabProgress.value,
+    transform: [
+      { translateY: interpolate(tabProgress.value, [0, 1], [80, 0]) },
+    ],
+  }));
+  const feedOpacityStyle = useAnimatedStyle(() => ({
+    opacity: tabProgress.value,
+  }));
+
+  function handleMapTabChange(tab: MapTab): void {
+    if (tab === mapTab) return;
+    setMapTab(tab);
+
+    if (tab === "feed") {
+      mapViewRef.current?.collapseSheet();
+      tabProgress.value = withTiming(1, {
+        duration: HOME_TAB_TRANSITION_DURATION,
+        easing: Easing.out(Easing.sin),
+      });
+      setTabBarVariant("dark");
+      setStatusBarStyle("light");
+    } else {
+      mapViewRef.current?.expandSheet();
+      tabProgress.value = withTiming(0, {
+        duration: HOME_TAB_TRANSITION_DURATION,
+        easing: Easing.in(Easing.sin),
+      });
+      setTabBarVariant("light");
+      setStatusBarStyle("dark");
+    }
+  }
+
+  function handleCloseSelected(): void {
+    setCloseSelectedToken((prev) => prev + 1);
+  }
+
+  return (
+    <View className="w-full flex-1">
+      <Animated.View
+        className="absolute inset-0"
+        style={mapAnimatedStyle}
+        pointerEvents={mapTab === "map" ? "auto" : "none"}
+      >
+        <MapHomeView
+          ref={mapViewRef}
+          closeSelectedToken={closeSelectedToken}
+          onMountainRecordListOpenChange={setIsMountainRecordListOpen}
+        />
+      </Animated.View>
+      <Animated.View
+        className="absolute inset-x-0 bottom-0"
+        style={[{ top: -80 }, feedAnimatedStyle]}
+        pointerEvents={mapTab === "feed" ? "auto" : "none"}
+      >
+        <FeedHomeView />
+      </Animated.View>
+
+      <HomeHeader
+        isMountainRecordListOpen={isMountainRecordListOpen}
+        onCloseSelected={handleCloseSelected}
+        mapTab={mapTab}
+        onMapTabChange={handleMapTabChange}
+        mapAnimatedStyle={mapAnimatedStyle}
+        feedAnimatedStyle={feedOpacityStyle}
+      />
+      <LocationPermissionSheet />
+    </View>
   );
 }
