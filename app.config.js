@@ -29,7 +29,6 @@ const config = {
       UIBackgroundModes: ["remote-notification"],
 
       ITSAppUsesNonExemptEncryption: false,
-
     },
   },
   locales: {
@@ -59,7 +58,6 @@ const config = {
     "@react-native-firebase/app",
     "./plugins/withModularHeaders",
 
-
     ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
     [
       "expo-notifications",
@@ -79,7 +77,7 @@ const config = {
     [
       "expo-splash-screen",
       {
-        image: "./assets/images/app-icon.png",
+        image: "./assets/images/splash-app-icon.png",
         imageWidth: 120,
         resizeMode: "contain",
         backgroundColor: "#1a1b1f",

@@ -98,7 +98,7 @@ export default function MountainDetailScreen() {
   const { data, isPending, isError } = useMountainDetail(Number(id));
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<TabKey>("교통 정보");
+  const [activeTab, setActiveTab] = useState<TabKey>("코스");
 
   if (isPending)
     return (
@@ -110,8 +110,14 @@ export default function MountainDetailScreen() {
 
   const visibleTabs = TABS.filter((tab) => {
     if (tab === "코스") return !!data.courses?.length;
-    if (tab === "교통 정보") return !!data.transportations;
-    if (tab === "편의시설") return !!data.amenities;
+    if (tab === "교통 정보") {
+      const { publicTransport, parking } = data.transportations ?? {};
+      return (
+        Object.keys(publicTransport ?? {}).length > 0 ||
+        Object.keys(parking ?? {}).length > 0
+      );
+    }
+    if (tab === "편의시설") return Object.keys(data.amenities ?? {}).length > 0;
     if (tab === "주변 맛집") return !!data.restaurantSections?.length;
     if (tab === "등산 후기") return !!data.reviews?.length;
     return true;
