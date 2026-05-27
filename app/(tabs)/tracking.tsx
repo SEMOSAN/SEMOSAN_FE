@@ -208,6 +208,13 @@ export default function TrackingScreen() {
       setSessionId(activeSession.sessionId);
       setIsTracking(true);
       setIsPaused(status === "PAUSED");
+      // 코스 정보 복원
+      if (activeSession.isFreeRecording) {
+        setIsFreeMode(true);
+      } else if (activeSession.courseId != null) {
+        setSelectedCourseId(String(activeSession.courseId));
+        setIsFreeMode(false);
+      }
       connectSocket(activeSession.sessionId);
       // GPS watch 재시작
       const sid = activeSession.sessionId;
@@ -282,6 +289,17 @@ export default function TrackingScreen() {
     centerLongitude: 0,
     zoom: 14,
   }), [courseDetail]);
+
+  // 정상/하산까지 시간·거리 — 코스 전체의 절반
+  const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
+  const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
+
+  const timeToTarget = halfDurationMinutes > 0
+    ? `${Math.floor(halfDurationMinutes / 60) > 0 ? `${Math.floor(halfDurationMinutes / 60)}h ` : ''}${halfDurationMinutes % 60 > 0 ? `${halfDurationMinutes % 60}m` : ''}`
+    : '-';
+  const distanceToTarget = halfDistanceM >= 1000
+    ? `${(halfDistanceM / 1000).toFixed(1)}km`
+    : halfDistanceM > 0 ? `${halfDistanceM}m` : '-';
 
   // 정적 맵 오버레이 — markerCoord 변경 시 리렌더 방지
   const staticMapOverlays = useMemo(() => (
@@ -385,6 +403,7 @@ export default function TrackingScreen() {
       return;
     }
     const coords = courseCoords;
+    console.log('[SIM] debug — selectedCourseId:', selectedCourseId, 'isFreeMode:', isFreeMode, 'courseDetail?.id:', courseDetail?.id, 'courseCoords.length:', coords.length, 'polyline:', JSON.stringify(courseDetail?.polyline)?.slice(0, 120));
     if (coords.length === 0) {
       console.warn('[SIM] 코스 좌표 없음');
       return;
@@ -412,7 +431,7 @@ export default function TrackingScreen() {
       if (idx % 50 === 0) console.log(`[SIM] ${idx + 1}/${coords.length}`);
       idx++;
     }, 300);
-  }, [sessionId, courseCoords, isFreeMode, publishGps]);
+  }, [sessionId, courseCoords, isFreeMode, publishGps, selectedCourseId, courseDetail]);
 
   // polyline 로드되거나 트래킹 시작 시 카메라를 전체 경로가 보이도록 맞춤
   useEffect(() => {
@@ -870,8 +889,8 @@ export default function TrackingScreen() {
               showTooltip={showTooltip}
               isPhotoWindowOpen={photoWindow?.status === "OPEN"}
               hasSummited={hasSummited}
-              timeToTarget="04:00"
-              distanceToTarget="500m"
+              timeToTarget={timeToTarget}
+              distanceToTarget={distanceToTarget}
               onDismissTooltip={() => setShowTooltip(false)}
               onCameraPress={handleCameraPress}
               onPause={pauseTracking}

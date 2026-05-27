@@ -67,13 +67,18 @@ export function useTrackingFcm({ enabled, onPhotoWindow }: Options) {
       });
 
       // 포어그라운드 시스템 배너 수동 표시 (Firebase SDK가 자동 표시 안 함)
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'SEMOSAN',
-          body: `${distance}m 돌파! 인증 사진을 남겨보세요!`,
-        },
-        trigger: null,
-      });
+      try {
+        const notifId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'SEMOSAN',
+            body: `${distance}m 돌파! 인증 사진을 남겨보세요!`,
+          },
+          trigger: null,
+        });
+        console.log('[TrackingFCM] 로컬 알림 예약 완료 id:', notifId);
+      } catch (err) {
+        console.warn('[TrackingFCM] 로컬 알림 예약 실패:', err);
+      }
     });
 
     // 백그라운드/잠금화면 알림 탭 후 앱 복귀
