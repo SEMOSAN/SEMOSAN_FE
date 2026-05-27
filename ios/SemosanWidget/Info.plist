@@ -6,11 +6,11 @@
 	<dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
-		<key>NSSupportsLiveActivities</key>
-		<true/>
-		<key>NSSupportsLiveActivitiesFrequentUpdates</key>
-		<true/>
 	</dict>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<true/>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
