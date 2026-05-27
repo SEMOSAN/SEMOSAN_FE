@@ -41,7 +41,7 @@ export const unstable_settings = {
 export default function RootLayout(): React.JSX.Element | null {
   const { status: authStatus } = useAuthState();
 
-  usePushNotification(!__DEV__ && authStatus === "authenticated");
+  usePushNotification(authStatus === "authenticated");
   const [fontsLoaded] = useFonts({
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
     Lexend_700Bold,
@@ -92,6 +92,10 @@ export default function RootLayout(): React.JSX.Element | null {
               options={{ headerShown: false }}
             />
             <Stack.Screen
+              name="mountains/courses/[id]"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
               name="record/photo-report-edit"
               options={{ headerShown: false }}
             />
@@ -101,6 +105,18 @@ export default function RootLayout(): React.JSX.Element | null {
             />
             <Stack.Screen
               name="community/write"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/free-board/write"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/free-board/[id]"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="community/free-board/search"
               options={{ headerShown: false }}
             />
             <Stack.Screen

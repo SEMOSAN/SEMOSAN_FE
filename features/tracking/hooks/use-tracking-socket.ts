@@ -22,36 +22,61 @@ export function useTrackingSocket({ onPhotoWindow }: UseTrackingSocketOptions = 
   const [status, setStatus] = useState<SocketStatus>('disconnected');
 
   const connect = useCallback((sessionId?: number) => {
-    if (clientRef.current?.active) return;
+    if (clientRef.current?.active) {
+      console.log('[TrackingSocket] connect 스킵 — 이미 active. sessionId:', sessionId);
+      return;
+    }
 
+    console.log('[TrackingSocket] connect 호출. sessionId:', sessionId);
     setStatus('connecting');
 
     createTrackingStompClient({
       onConnect: () => {
         setStatus('connected');
+        console.log('[TrackingSocket] onConnect 진입. sessionId:', sessionId, 'clientRef.current:', !!clientRef.current);
         // 연결 완료 후 sessionId가 있으면 photo-window 구독
         if (sessionId != null) {
-          const client = clientRef.current;
-          if (!client) return;
-          subscriptionRef.current?.unsubscribe();
-          subscriptionRef.current = client.subscribe(
-            `/topic/tracking/${sessionId}/photo-window`,
-            (message) => {
-              try {
-                const payload: PhotoWindowPayload = JSON.parse(message.body);
-                onPhotoWindow?.(payload);
-              } catch {
-                console.warn('[TrackingSocket] photo-window 파싱 실패:', message.body);
+          // clientRef.current가 아직 세팅 안 됐을 경우를 대비해 짧게 대기
+          const trySubscribe = (attempt = 0) => {
+            const client = clientRef.current;
+            if (!client) {
+              if (attempt < 5) {
+                console.warn(`[TrackingSocket] clientRef null, 재시도 ${attempt + 1}/5`);
+                setTimeout(() => trySubscribe(attempt + 1), 50);
+              } else {
+                console.error('[TrackingSocket] clientRef null — 구독 실패');
               }
-            },
-          );
+              return;
+            }
+            subscriptionRef.current?.unsubscribe();
+            console.log(`[TrackingSocket] 구독 시작: /topic/tracking/${sessionId}/photo-window`);
+            subscriptionRef.current = client.subscribe(
+              `/topic/tracking/${sessionId}/photo-window`,
+              (message) => {
+                console.log('[TrackingSocket] photo-window 메시지 수신:', message.body);
+                try {
+                  const payload: PhotoWindowPayload = JSON.parse(message.body);
+                  onPhotoWindow?.(payload);
+                } catch {
+                  console.warn('[TrackingSocket] photo-window 파싱 실패:', message.body);
+                }
+              },
+            );
+          };
+          trySubscribe();
         }
       },
-      onDisconnect: () => setStatus('disconnected'),
-      onError: () => setStatus('error'),
+      onDisconnect: () => {
+        console.log('[TrackingSocket] 연결 해제됨');
+        setStatus('disconnected');
+      },
+      onError: (e) => {
+        console.warn('[TrackingSocket] 연결 오류:', e);
+        setStatus('error');
+      },
     }).then((client) => {
-      client.activate();
       clientRef.current = client;
+      client.activate();
     });
   }, [onPhotoWindow]);
 
@@ -88,7 +113,10 @@ export function useTrackingSocket({ onPhotoWindow }: UseTrackingSocketOptions = 
     coords: { lat: number; lng: number; altitude: number | null; recordedAt: string },
   ) => {
     const client = clientRef.current;
-    if (!client?.connected) return;
+    if (!client?.connected) {
+      console.warn('[TrackingSocket] publishGps 스킵 — connected:', client?.connected, 'active:', client?.active);
+      return;
+    }
 
     client.publish({
       destination: `/app/tracking/${sessionId}/gps`,

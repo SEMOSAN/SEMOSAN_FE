@@ -9,7 +9,7 @@ const config = {
   slug: "semosan",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/logo.png",
+  icon: "./assets/images/app-icon.png",
   scheme: "semosan",
   userInterfaceStyle: "light",
   newArchEnabled: true,
@@ -18,12 +18,16 @@ const config = {
     bundleIdentifier: "com.tastyhiking.semosanapp",
     appleTeamId: "M8D59WC33R",
     usesAppleSignIn: true,
+    googleServicesFile: "./GoogleService-Info.plist",
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
       NSCameraUsageDescription:
         "프로필 사진 촬영을 위해 카메라 접근이 필요합니다.",
       NSPhotoLibraryUsageDescription:
         "프로필 사진 선택을 위해 사진 라이브러리 접근이 필요합니다.",
+
+      UIBackgroundModes: ["remote-notification"],
+
       ITSAppUsesNonExemptEncryption: false,
     },
   },
@@ -31,6 +35,8 @@ const config = {
     ko: "./locales/ko.json",
   },
   android: {
+    googleServicesFile: "./google-services.json",
+
     adaptiveIcon: {
       backgroundColor: "#E6F4FE",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -44,18 +50,22 @@ const config = {
   },
   web: {
     output: "static",
-    favicon: "./assets/logo.png",
+    favicon: "./assets/images/app-icon.png",
     bundler: "metro",
   },
   plugins: [
     "expo-router",
+    "@react-native-firebase/app",
+    "./plugins/withModularHeaders",
+
     ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
     [
       "expo-notifications",
       {
-        icon: "./assets/logo.png",
+        icon: "./assets/images/app-icon.png",
         color: "#ffffff",
         googleServicesFile: "./google-services.json",
+        enableBackgroundRemoteNotifications: true,
       },
     ],
     [
@@ -67,7 +77,7 @@ const config = {
     [
       "expo-splash-screen",
       {
-        image: "./assets/logo.png",
+        image: "./assets/images/splash-app-icon.png",
         imageWidth: 120,
         resizeMode: "contain",
         backgroundColor: "#1a1b1f",

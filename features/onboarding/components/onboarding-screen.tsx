@@ -2,8 +2,10 @@ import { PlusIcon } from "@/components/icons/plus-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { LongButton } from "@/components/long-button";
 import { TextField } from "@/components/text-field";
-import { uploadImage } from "@/features/mypage/hooks/use-upload-image";
+import { useCheckNickname } from "@/features/onboarding/hooks/use-check-nickname";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
+import { uploadImage } from "@/hooks/use-upload-image";
+import { ApiError } from "@/lib/api";
 import {
   formatBirthDate,
   isAtLeast14YearsOld,
@@ -33,6 +35,8 @@ export function OnboardingScreen() {
   const weightRef = useRef<TextInput>(null);
 
   const setProfile = useOnboardingStore((s) => s.setProfile);
+  const { mutateAsync: checkNickname, isPending: isCheckingNickname } =
+    useCheckNickname();
 
   const [step, setStep] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
@@ -87,26 +91,54 @@ export function OnboardingScreen() {
 
   function handleNicknameChange(text: string): void {
     setNickname(text);
-    if (text.length > 0 && !/^[가-힣a-zA-Z0-9]+$/.test(text)) {
+    if (text.length === 0) {
+      setNicknameError(null);
+      return;
+    }
+    if (/[ㄱ-ㅎㅏ-ㅣ]/.test(text)) {
+      setNicknameError("자음·모음만으로는 사용할 수 없어요");
+    } else if (!/^[가-힣a-zA-Z0-9]+$/.test(text)) {
       setNicknameError("한글, 영문, 숫자만 입력 가능해요");
+    } else if (/^[0-9]+$/.test(text)) {
+      setNicknameError("숫자만으로는 사용할 수 없어요");
     } else {
       setNicknameError(null);
     }
   }
 
-  function handleNicknameEnd(): void {
+  async function handleNicknameEnd(): Promise<void> {
+    if (isCheckingNickname) return;
     const trimmed = nickname.trim();
     if (!trimmed) return;
+    if (/[ㄱ-ㅎㅏ-ㅣ]/.test(trimmed)) {
+      setNicknameError("자음·모음만으로는 사용할 수 없어요");
+      return;
+    }
     if (!/^[가-힣a-zA-Z0-9]+$/.test(trimmed)) {
       setNicknameError("한글, 영문, 숫자만 입력 가능해요");
+      return;
+    }
+    if (/^[0-9]+$/.test(trimmed)) {
+      setNicknameError("숫자만으로는 사용할 수 없어요");
       return;
     }
     if (trimmed.length < 2) {
       setNicknameError("2자 이상 입력해 주세요");
       return;
     }
-    setNicknameError(null);
-    advance(1);
+    try {
+      await checkNickname(trimmed);
+      if (nickname.trim() !== trimmed) return;
+      setNicknameError(null);
+      advance(1);
+    } catch (e) {
+      if (nickname.trim() !== trimmed) return;
+      if (e instanceof ApiError && e.statusCode === 409) {
+        setNicknameError("이미 사용 중인 닉네임이에요");
+      } else {
+        setNicknameError("닉네임 확인 중 오류가 발생했어요");
+      }
+    }
   }
 
   function handleGenderSelect(value: Gender): void {
@@ -317,7 +349,10 @@ export function OnboardingScreen() {
               value={nickname}
               onChangeText={handleNicknameChange}
               placeholder="닉네임을 입력해 주세요"
-              description={nicknameError ?? "2자 이상 10자 이내의 한글, 영문, 숫자만 가능해요"}
+              description={
+                nicknameError ??
+                "2자 이상 10자 이내의 한글, 영문, 숫자만 가능해요"
+              }
               error={!!nicknameError}
               maxLength={10}
               onEndEditing={handleNicknameEnd}
@@ -331,10 +366,10 @@ export function OnboardingScreen() {
           !birthDateError &&
           !heightError &&
           !weightError && (
-          <View className="px-5 pb-4 pt-3">
-            <LongButton label="다음" onPress={handleSubmit} />
-          </View>
-        )}
+            <View className="px-5 pb-4 pt-3">
+              <LongButton label="다음" onPress={handleSubmit} />
+            </View>
+          )}
       </View>
     </>
   );
