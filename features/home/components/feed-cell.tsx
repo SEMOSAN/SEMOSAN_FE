@@ -12,11 +12,6 @@ export const CELL_H = CELL_CONTENT_H + CELL_GAP;
 export const MIN_COORD = -25;
 export const MAX_COORD = 25;
 
-export function cellImageUrl(col: number, row: number): string {
-  const seed = ((col - MIN_COORD) * 51 + (row - MIN_COORD)) % 1000;
-  return `https://picsum.photos/seed/${seed}/320/200`;
-}
-
 type FeedCellProps = {
   col: number;
   row: number;
@@ -30,11 +25,8 @@ export const FeedCell = memo(function FeedCell({
   imageUrl,
   onPress,
 }: FeedCellProps) {
-  const imageUri = imageUrl ?? cellImageUrl(col, row);
-
-  // Gesture.Tap: Pan이 활성화되면 자동 취소됨 (Pressable과 달리 RNGH 취소 시스템 내)
   const tap = Gesture.Tap().onEnd(() => {
-    runOnJS(onPress)(imageUri);
+    if (imageUrl) runOnJS(onPress)(imageUrl);
   });
 
   return (
@@ -50,11 +42,13 @@ export const FeedCell = memo(function FeedCell({
     >
       <GestureDetector gesture={tap}>
         <View style={{ flex: 1 }}>
-          <Image
-            source={{ uri: imageUri }}
-            className="absolute inset-0 h-full w-full"
-            resizeMode="cover"
-          />
+          {imageUrl && (
+            <Image
+              source={{ uri: imageUrl }}
+              className="absolute inset-0 h-full w-full"
+              resizeMode="cover"
+            />
+          )}
         </View>
       </GestureDetector>
       {/* 산 뱃지 */}

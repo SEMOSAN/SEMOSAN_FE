@@ -11,8 +11,27 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { FEED_SLIDE_UP_DISTANCE } from "../constants";
 import { useSemofeed } from "../hooks/use-semofeed";
-import { CELL_H, CELL_W, FeedCell, MAX_COORD, MIN_COORD } from "./feed-cell";
+import { CELL_H, CELL_W, FeedCell } from "./feed-cell";
 import { FeedCellDetail } from "./feed-cell-detail";
+
+// (0,0)을 중심으로 시계방향 나선형 순서의 인덱스를 반환
+// 순서: (0,0)→(0,1)→(1,1)→(1,0)→(1,-1)→(0,-1)→(-1,-1)→(-1,0)→(-1,1)→...
+function getSpiralIndex(col: number, row: number): number {
+  if (col === 0 && row === 0) return 0;
+  const n = Math.max(Math.abs(col), Math.abs(row));
+  const startIndex = 1 + 4 * n * (n - 1);
+  let posInRing: number;
+  if (row === n) {
+    posInRing = col + n - 1;
+  } else if (col === n) {
+    posInRing = 2 * n + (n - 1 - row);
+  } else if (row === -n) {
+    posInRing = 4 * n + (n - 1 - col);
+  } else {
+    posInRing = 7 * n - 1 + row;
+  }
+  return startIndex + posInRing;
+}
 
 const OVERSCAN = 1; // 화면 밖 여유분 (셀 단위)
 
@@ -22,8 +41,10 @@ const OVERSCAN = 1; // 화면 밖 여유분 (셀 단위)
 export function FeedHomeView() {
   const { data: semofeedData } = useSemofeed();
 
-  const feedItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
-  console.log(feedItems);
+  const apiItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
+  const feedItems = apiItems.length > 0 ? apiItems : [
+    { id: 0, imageUrl: "https://picsum.photos/seed/test/320/570", isPublic: true },
+  ];
   // 화면 크기 (onLayout으로 측정)
   const [screen, setScreen] = useState({ w: 0, h: 0 });
 
@@ -113,24 +134,22 @@ export function FeedHomeView() {
     const rowStart = Math.floor(viewTop / CELL_H) - OVERSCAN;
     const rowEnd = Math.ceil((viewTop + screen.h) / CELL_H) + OVERSCAN;
 
-    const GRID_SIZE = MAX_COORD - MIN_COORD + 1;
-    for (let c = colStart; c <= colEnd; c++) {
-      if (c < MIN_COORD || c > MAX_COORD) continue; // 그리드 경계 clamp
-      for (let r = rowStart; r <= rowEnd; r++) {
-        if (r < MIN_COORD || r > MAX_COORD) continue;
-        const imageUrl =
-          feedItems.length > 0
-            ? (feedItems[
-                ((c - MIN_COORD) * GRID_SIZE + (r - MIN_COORD)) %
-                  feedItems.length
-              ]?.imageUrl ?? undefined)
-            : undefined;
+    const maxRing = feedItems.length > 0
+      ? Math.ceil((Math.sqrt(feedItems.length) - 1) / 2)
+      : 0;
+
+    for (let col = colStart; col <= colEnd; col++) {
+      if (Math.abs(col) > maxRing) continue;
+      for (let row = rowStart; row <= rowEnd; row++) {
+        if (Math.abs(row) > maxRing) continue;
+        const spiralIdx = getSpiralIndex(col, row);
+        if (spiralIdx >= feedItems.length) continue;
         cells.push(
           <FeedCell
-            key={`${c},${r}`}
-            col={c}
-            row={r}
-            imageUrl={imageUrl}
+            key={`${col},${row}`}
+            col={col}
+            row={row}
+            imageUrl={feedItems[spiralIdx]?.imageUrl ?? undefined}
             onPress={setSelectedImageUri}
           />,
         );
