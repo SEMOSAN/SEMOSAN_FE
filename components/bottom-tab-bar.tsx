@@ -13,7 +13,6 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CommunityIcon } from "./icons/community-icon";
 
 const BG_LIGHT = "#ffffff";
 const BG_DARK = "#000000";

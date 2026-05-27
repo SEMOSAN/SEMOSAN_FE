@@ -1,10 +1,10 @@
 import { api } from '@/lib/api';
-import { ENDPOINTS } from '@/types/api.generated';
 import {
+  ENDPOINTS,
   TrackingPhotoUploadRequest,
   TrackingPhotoResponse,
-  ENDPOINTS_EXTENSIONS,
-} from '@/types/api.extensions';
+} from '@/types/api.generated';
+import { ENDPOINTS_EXTENSIONS } from '@/types/api.extensions';
 import { useMutation } from '@tanstack/react-query';
 
 export function useSaveTrackingPhoto() {

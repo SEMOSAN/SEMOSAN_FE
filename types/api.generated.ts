@@ -994,34 +994,3 @@ export type Delete4Params = {
   commentId: number;
 };
 
-// GET /api/tracking/nearby-mountain
-export type NearbyMountainCourse = {
-  courseId?: number;
-  name?: string;
-  difficulty?: "EASY" | "NORMAL" | "HARD";
-  distance?: number;
-  duration?: number;
-};
-
-export type NearbyMountainInfo = {
-  mountainId?: number;
-  name?: string;
-  address?: string;
-  altitude?: number;
-  latitude?: number;
-  longitude?: number;
-  imageUrls?: string[];
-};
-
-export type NearbyMountainResponse = {
-  mountain?: NearbyMountainInfo;
-  courses?: NearbyMountainCourse[];
-};
-
-// POST /api/tracking/sessions
-export type StartTrackingSessionRequest = {
-  mountainId: number;
-  courseId?: number;
-  isFreeRecording: boolean;
-};
-
