@@ -10,6 +10,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { FEED_SLIDE_UP_DISTANCE } from "../constants";
+import { useSemofeed } from "../hooks/use-semofeed";
 import { CELL_H, CELL_W, FeedCell, MAX_COORD, MIN_COORD } from "./feed-cell";
 import { FeedCellDetail } from "./feed-cell-detail";
 
@@ -19,6 +20,10 @@ const OVERSCAN = 1; // 화면 밖 여유분 (셀 단위)
 // 메인 그리드
 // ─────────────────────────────────────────────
 export function FeedHomeView() {
+  const { data: semofeedData } = useSemofeed();
+
+  const feedItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
+  console.log(feedItems);
   // 화면 크기 (onLayout으로 측정)
   const [screen, setScreen] = useState({ w: 0, h: 0 });
 
@@ -108,15 +113,24 @@ export function FeedHomeView() {
     const rowStart = Math.floor(viewTop / CELL_H) - OVERSCAN;
     const rowEnd = Math.ceil((viewTop + screen.h) / CELL_H) + OVERSCAN;
 
+    const GRID_SIZE = MAX_COORD - MIN_COORD + 1;
     for (let c = colStart; c <= colEnd; c++) {
       if (c < MIN_COORD || c > MAX_COORD) continue; // 그리드 경계 clamp
       for (let r = rowStart; r <= rowEnd; r++) {
         if (r < MIN_COORD || r > MAX_COORD) continue;
+        const imageUrl =
+          feedItems.length > 0
+            ? (feedItems[
+                ((c - MIN_COORD) * GRID_SIZE + (r - MIN_COORD)) %
+                  feedItems.length
+              ]?.imageUrl ?? undefined)
+            : undefined;
         cells.push(
           <FeedCell
             key={`${c},${r}`}
             col={c}
             row={r}
+            imageUrl={imageUrl}
             onPress={setSelectedImageUri}
           />,
         );

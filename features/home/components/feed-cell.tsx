@@ -20,15 +20,17 @@ export function cellImageUrl(col: number, row: number): string {
 type FeedCellProps = {
   col: number;
   row: number;
+  imageUrl?: string;
   onPress: (imageUri: string) => void;
 };
 
 export const FeedCell = memo(function FeedCell({
   col,
   row,
+  imageUrl,
   onPress,
 }: FeedCellProps) {
-  const imageUri = cellImageUrl(col, row);
+  const imageUri = imageUrl ?? cellImageUrl(col, row);
 
   // Gesture.Tap: Pan이 활성화되면 자동 취소됨 (Pressable과 달리 RNGH 취소 시스템 내)
   const tap = Gesture.Tap().onEnd(() => {
