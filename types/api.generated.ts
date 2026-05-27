@@ -10,6 +10,7 @@ export const ENDPOINTS = {
   USERS_ONBOARDING: "/api/users/onboarding",
   TRACKING_SESSIONS: "/api/tracking/sessions",
   TRACKING_SESSIONS_BY_SESSIONID_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
+  TRACKING_SESSIONS_BY_SESSIONID_PHOTOS: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/photos`,
   TRACKING_SESSIONS_BY_SESSIONID_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
   TRACKING_SESSIONS_BY_SESSIONID_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
   TRACKING_SESSIONS_BY_SESSIONID_ABANDON: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/abandon`,
@@ -359,6 +360,12 @@ export type GetNotificationSettingResponse = {
   pushNotificationEnabled?: boolean;
   liveActivityEnabled?: boolean;
   voiceEnabled?: boolean;
+};
+export type ApiResponseListTrackingPhotoResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: TrackingPhotoResponse[];
 };
 export type ApiResponseNearbyMountainResponse = {
   isSuccess?: boolean;
@@ -725,6 +732,17 @@ export type ResumeSessionParams = {
   sessionId: number;
 };
 
+// GET /api/tracking/sessions/{sessionId}/photos
+export type ListParams = {
+  sessionId: number;
+};
+
+// POST /api/tracking/sessions/{sessionId}/photos
+export type UploadParams = {
+  sessionId: number;
+};
+export type UploadBody = TrackingPhotoUploadRequest;
+
 // POST /api/tracking/sessions/{sessionId}/pause
 export type PauseSessionParams = {
   sessionId: number;
@@ -993,4 +1011,3 @@ export type Delete3Params = {
 export type Delete4Params = {
   commentId: number;
 };
-
