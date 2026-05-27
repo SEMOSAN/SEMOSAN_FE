@@ -1,5 +1,6 @@
 import { api } from '@/lib/api';
-import { CourseDetailResponse, ENDPOINTS } from '@/types/api.generated';
+import { ENDPOINTS } from '@/types/api.generated';
+import { CourseDetailResponse, ENDPOINTS_EXTENSIONS } from '@/types/api.extensions';
 import { useQuery } from '@tanstack/react-query';
 
 export function useCourseDetail(courseId: number | null) {
@@ -7,7 +8,7 @@ export function useCourseDetail(courseId: number | null) {
     queryKey: ['course-detail', courseId],
     queryFn: async (): Promise<CourseDetailResponse> => {
       const res = await api.get<CourseDetailResponse>({
-        path: ENDPOINTS.COURSES_BY_COURSEID(courseId!),
+        path: ENDPOINTS_EXTENSIONS.COURSES_BY_COURSEID(courseId!),
       });
       return res.data;
     },
