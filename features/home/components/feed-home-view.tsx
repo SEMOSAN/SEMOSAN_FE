@@ -42,9 +42,16 @@ export function FeedHomeView() {
   const { data: semofeedData } = useSemofeed();
 
   const apiItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
-  const feedItems = apiItems.length > 0 ? apiItems : [
-    { id: 0, imageUrl: "https://picsum.photos/seed/test/320/570", isPublic: true },
-  ];
+  const feedItems =
+    apiItems.length > 0
+      ? apiItems
+      : [
+          {
+            id: 0,
+            imageUrl: "https://picsum.photos/seed/test/320/570",
+            isPublic: true,
+          },
+        ];
   // 화면 크기 (onLayout으로 측정)
   const [screen, setScreen] = useState({ w: 0, h: 0 });
 
@@ -134,9 +141,10 @@ export function FeedHomeView() {
     const rowStart = Math.floor(viewTop / CELL_H) - OVERSCAN;
     const rowEnd = Math.ceil((viewTop + screen.h) / CELL_H) + OVERSCAN;
 
-    const maxRing = feedItems.length > 0
-      ? Math.ceil((Math.sqrt(feedItems.length) - 1) / 2)
-      : 0;
+    const maxRing =
+      feedItems.length > 0
+        ? Math.ceil((Math.sqrt(feedItems.length) - 1) / 2)
+        : 0;
 
     for (let col = colStart; col <= colEnd; col++) {
       if (Math.abs(col) > maxRing) continue;

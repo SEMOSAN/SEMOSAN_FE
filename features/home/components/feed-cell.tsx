@@ -2,7 +2,7 @@ import { MountainChipIcon } from "@/components/icons/mountain-chip-icon";
 import { memo } from "react";
 import { Image, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { FadeInDown, runOnJS } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 export const CELL_CONTENT_W = 234;
 export const CELL_CONTENT_H = 416;
@@ -26,7 +26,8 @@ export const FeedCell = memo(function FeedCell({
   onPress,
 }: FeedCellProps) {
   const tap = Gesture.Tap().onEnd(() => {
-    if (imageUrl) runOnJS(onPress)(imageUrl);
+    // TODO : 세모피드 상세 API 연동되면 주석해제
+    // if (imageUrl) runOnJS(onPress)(imageUrl);
   });
 
   return (
