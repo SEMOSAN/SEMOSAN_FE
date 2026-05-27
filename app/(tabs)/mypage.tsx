@@ -77,7 +77,7 @@ export default function MyPageScreen() {
   const nickname = profile?.nickname ?? "-";
 
   return (
-    <View className="flex-1 bg-fill-stronger">
+    <View className="flex-1 bg-fill-normal">
       {/* 헤더 */}
       <View
         className="flex-row items-center bg-fill-normal"
@@ -111,6 +111,11 @@ export default function MyPageScreen() {
                     )}
                   </View>
                 </View>
+                {profile?.email && (
+                  <Text className="text-label-subtler typo-body-2-normal-regular">
+                    {profile.email}
+                  </Text>
+                )}
               </View>
             </View>
 
@@ -122,7 +127,7 @@ export default function MyPageScreen() {
         <SectionDivider />
         <View className="bg-fill-normal">
           <Text
-            className="text-label-alternative px-4 pb-2 pt-5 typo-body-2-normal-semi-bold"
+            className="px-4 pb-2 pt-5 text-label-subtler typo-body-2-normal-semi-bold"
             style={{ letterSpacing: -0.14 }}
           >
             내 활동
@@ -136,7 +141,7 @@ export default function MyPageScreen() {
         <SectionDivider />
         <View className="bg-fill-normal">
           <Text
-            className="text-label-alternative px-4 pb-2 pt-5 typo-body-2-normal-semi-bold"
+            className="px-4 pb-2 pt-5 text-label-subtler typo-body-2-normal-semi-bold"
             style={{ letterSpacing: -0.14 }}
           >
             서비스
