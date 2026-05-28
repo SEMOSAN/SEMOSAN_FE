@@ -1,3 +1,4 @@
+import { ArrowsHorizontalIcon } from "@/components/icons/arrows-horizontal-icon";
 import { CourseBadge } from "@/features/mountains/components/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { formatDuration } from "@/modules/format-duration";
@@ -11,6 +12,7 @@ type CourseCardProps = {
   difficulty?: CourseInfo["difficulty"];
   distance?: number;
   duration?: number;
+  isLast?: boolean;
 };
 
 function CourseCard({
@@ -19,13 +21,13 @@ function CourseCard({
   difficulty,
   distance,
   duration,
+  isLast,
 }: CourseCardProps) {
   const router = useRouter();
 
   return (
     <Pressable
-      className="h-[72px] flex-row items-center gap-4"
-      // TODO : 코스 이미지 생성되면 이미지연동 필요
+      className={`border-b border-line-subtle pb-[18px]`}
       onPress={() => router.push(`/mountains/courses/${courseId}`)}
     >
       {/* TODO : 리스트에도 코스컴포넌트 띄워주기에 메모리를 너무 잡아먹으므로 일단 보류 */}
@@ -34,11 +36,20 @@ function CourseCard({
         className="h-[72px] w-16 rounded-[10px]"
         resizeMode="cover"
       /> */}
-      <View className="gap-1.5">
+      <View className="gap-[7px] px-1">
         <View className="flex-row items-center gap-1.5">
           {difficulty && <CourseBadge difficulty={difficulty} />}
           <Text className="text-label-normal typo-body-1-normal-semi-bold">
             {name}
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <Text className="text-label-subtle typo-caption-1-medium">
+            출발지
+          </Text>
+          <ArrowsHorizontalIcon size={14} />
+          <Text className="text-label-subtle typo-caption-1-medium">
+            도착지
           </Text>
         </View>
         <View className="flex-row items-center gap-1.5">
