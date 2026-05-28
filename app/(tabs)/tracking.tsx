@@ -33,6 +33,7 @@ import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-t
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
+import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
 import { useSaveTrackingPhoto } from "@/features/tracking/hooks/use-save-tracking-photo";
@@ -196,6 +197,7 @@ export default function TrackingScreen() {
   const { mutate: saveDifficultyFeedback } = useSaveDifficultyFeedback();
   const { data: activeSession, refetch: refetchActiveSession } =
     useActiveTrackingSession();
+  const { data: profile } = useProfile();
 
   // 앱 재진입 시 진행 중인 세션 복원
   useFocusEffect(
@@ -825,6 +827,7 @@ export default function TrackingScreen() {
               <TrailAvatarMarker
                 left={TRAIL_MARKER_LEFT}
                 centerY={barLayout.top + barLayout.height * markerRatio}
+                imageSource={profile?.profileUrl ? { uri: profile.profileUrl } : undefined}
               />
             )}
           </>
