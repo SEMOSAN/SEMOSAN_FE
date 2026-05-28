@@ -112,7 +112,7 @@ export function TrackingSheet({
               style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: TOOLTIP_BG }}
             >
               <Text className="typo-caption-1-medium text-common-100">
-                {isPhotoWindowOpen ? '사진 기록을 남겨보세요!' : '500m마다 활성화돼요!'}
+                {isPhotoWindowOpen ? '사진 기록을 남겨보세요!' : '1/4 지점마다 카메라가 활성화돼요!'}
               </Text>
               <TouchableOpacity onPress={onDismissTooltip}>
                 <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">

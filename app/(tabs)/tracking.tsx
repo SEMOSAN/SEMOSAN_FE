@@ -61,6 +61,7 @@ import {
   type NaverMapViewRef,
 } from "@mj-studio/react-native-naver-map";
 import { useFocusEffect } from "@react-navigation/native";
+import { Circle, Path, Svg } from "react-native-svg";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
@@ -777,31 +778,31 @@ export default function TrackingScreen() {
         >
           {staticMapOverlays}
 
-          {/* 현재 사용자 위치 — 초록 원 마커 (markerCoord 전용 state로 격리) */}
+          {/* 현재 사용자 위치 마커 — 삼각형(11×9) + 원(28×28), 삼각형이 원 위에 겹침 */}
           {markerCoord && isTracking && (
             <NaverMapMarkerOverlay
               latitude={markerCoord.latitude}
               longitude={markerCoord.longitude}
-              width={22}
-              height={22}
-              anchor={{ x: 0.5, y: 0.5 }}
+              width={28}
+              height={34}
+              anchor={{ x: 0.5, y: 0.47 }}
             >
-              <View
-                collapsable={false}
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 11,
-                  backgroundColor: '#22C55E',
-                  borderWidth: 3,
-                  borderColor: '#FFFFFF',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.25,
-                  shadowRadius: 2,
-                  elevation: 3,
-                }}
-              />
+              {/* 총 높이: 삼각형 9 + 원 28 - 겹침 3 = 34 */}
+              <View collapsable={false} style={{ width: 28, height: 34 }}>
+                {/* 원 SVG — top: 6 (삼각형 9 - 겹침 3) */}
+                <Svg width={28} height={28} viewBox="0 0 28 28" fill="none" style={{ position: 'absolute', top: 6, left: 0 }}>
+                  <Circle cx={14} cy={10} r={7} fill="#00D864" />
+                  <Circle cx={14} cy={10} r={8.5} stroke="white" strokeWidth={3} />
+                </Svg>
+                {/* 삼각형 SVG — top: 0, 가로 중앙 */}
+                <Svg width={11} height={9} viewBox="0 0 11 9" fill="none" style={{ position: 'absolute', top: 0, left: (28 - 11) / 2 }}>
+                  <Path
+                    d="M4.28833 0.918945C4.68715 0.360597 5.51646 0.360596 5.91528 0.918945L9.51685 5.95996L9.5686 6.04004C9.80428 6.44189 9.70042 6.89069 9.48657 7.18262C9.25971 7.49219 8.83304 7.73339 8.34985 7.60645C7.44144 7.36779 6.26488 7.13965 5.10181 7.13965C3.93873 7.13965 2.76217 7.36779 1.85376 7.60645C1.37058 7.73339 0.943901 7.49219 0.717041 7.18262C0.488937 6.87123 0.386039 6.38098 0.686768 5.95996L4.28833 0.918945Z"
+                    fill="#00D864"
+                    stroke="white"
+                  />
+                </Svg>
+              </View>
             </NaverMapMarkerOverlay>
           )}
         </NaverMapView>
