@@ -135,6 +135,8 @@ export default function TrackingScreen() {
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
+  const isMountedRef = useRef(true);
+  useEffect(() => () => { isMountedRef.current = false; }, []);
 
   useEffect(() => {
     if (courseIdParameter) setSelectedCourseId(courseIdParameter);
@@ -514,6 +516,7 @@ export default function TrackingScreen() {
           },
           {
             onSuccess: (data) => {
+              if (!isMountedRef.current) return;
               if (data.sessionId != null) {
                 const sid = data.sessionId;
                 setSessionId(sid);
@@ -538,6 +541,7 @@ export default function TrackingScreen() {
               }
             },
             onError: (err: any) => {
+              if (!isMountedRef.current) return;
               console.warn(
                 "[Tracking] 세션 시작 실패:",
                 err?.response?.data ?? err?.message ?? err,
