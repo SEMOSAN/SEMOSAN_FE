@@ -7,15 +7,6 @@ import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
-// 포어그라운드에서도 알림 표시
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
 
 /**
  * 앱 시작 시 FCM 토큰을 서버에 등록하고
@@ -29,13 +20,16 @@ export function usePushNotification(enabled = true): void {
     registerFcmToken();
 
     // 포어그라운드 알림 수신 — Firebase SDK 충돌로 배너가 안 뜨는 경우 로컬 알림으로 재표시
+    // TRACKING_PHOTO_MILESTONE은 use-tracking-fcm.ts에서 별도 처리하므로 제외 (무한 루프 방지)
     const foregroundSub = Notifications.addNotificationReceivedListener(
       async (notification) => {
+        const data = notification.request.content.data as PushData | null;
+        if (data?.type === 'TRACKING_PHOTO_MILESTONE') return;
         const { title, body } = notification.request.content;
         if (!title && !body) return;
         await Notifications.scheduleNotificationAsync({
           content: { title: title ?? 'SEMOSAN', body: body ?? '' },
-          trigger: null, // 즉시 표시
+          trigger: null,
         });
       },
     );
