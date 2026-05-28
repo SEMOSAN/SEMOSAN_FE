@@ -33,6 +33,7 @@ import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-t
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
+// [DEMO] import { DEMO_NEARBY_DATA } from "@/features/tracking/constants/demo-gwanaksan";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
@@ -163,9 +164,14 @@ export default function TrackingScreen() {
     })();
   }, []);
 
+  // [DEMO] 전시 데모용 관악산 좌표 고정 — 복원 시 아래 DEMO 줄 지우고 주석 해제
+  // const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
+  //   lat: userLocation?.latitude ?? null,
+  //   lng: userLocation?.longitude ?? null,
+  // });
   const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
-    lat: userLocation?.latitude ?? null,
-    lng: userLocation?.longitude ?? null,
+    lat: 37.4449,  // [DEMO] 관악산 정상 위도
+    lng: 126.9636, // [DEMO] 관악산 정상 경도
   });
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
