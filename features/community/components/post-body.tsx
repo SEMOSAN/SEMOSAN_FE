@@ -1,6 +1,6 @@
 import { ChatIcon } from "@/components/icons/chat-icon";
 import { DotsThreeIcon } from "@/components/icons/dots-three-icon";
-import { HeartFilledIcon, HeartIcon } from "@/components/icons/heart-icon";
+import { HeartFilledIcon, HeartOutlineIcon } from "@/components/icons/heart-icon";
 import { SirenIcon } from "@/components/icons/siren-icon";
 import { TrashIcon } from "@/components/icons/trash-icon";
 import { useTogglePostLike } from "@/features/community/hooks/use-post-like";
@@ -34,7 +34,7 @@ export function PostBody({
   onDelete,
 }: PostBodyProps) {
   const { mutate: toggleLike } = useTogglePostLike(post.id!);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(post.likedByMe ?? false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
@@ -147,7 +147,7 @@ export function PostBody({
           }
           hitSlop={8}
         >
-          {liked ? <HeartFilledIcon size={20} /> : <HeartIcon size={20} color="#464a57" />}
+          {liked ? <HeartFilledIcon size={20} /> : <HeartOutlineIcon size={20} />}
           <Text className="text-label-subtle typo-body-1-normal-medium">
             {post.likeCount ?? 0}
           </Text>
