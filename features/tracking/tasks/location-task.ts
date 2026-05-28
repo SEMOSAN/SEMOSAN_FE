@@ -22,7 +22,7 @@ export function setLocationTaskCallback(cb: LocationCallback | null) {
 }
 
 // TaskManager는 앱 최상단(모듈 레벨)에서 정의되어야 함
-TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
   if (error) {
     console.warn('[LocationTask] 에러:', error.message);
     return;
