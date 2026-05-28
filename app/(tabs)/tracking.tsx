@@ -69,7 +69,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutChangeEvent,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -424,11 +423,14 @@ export default function TrackingScreen() {
       return;
     }
     const coords = courseCoords;
-    console.log('[SIM] debug — selectedCourseId:', selectedCourseId, 'isFreeMode:', isFreeMode, 'courseDetail?.id:', courseDetail?.id, 'courseCoords.length:', coords.length, 'polyline:', JSON.stringify(courseDetail?.polyline)?.slice(0, 120));
     if (coords.length === 0) {
       console.warn('[SIM] 코스 좌표 없음');
       return;
     }
+
+    // [DEMO] 즉시 출발지 마커 세팅 (실제 GPS가 덮기 전에)
+    setMarkerCoord({ latitude: coords[0].latitude, longitude: coords[0].longitude });
+
     let idx = 0;
     console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
     simIntervalRef.current = setInterval(() => {
@@ -446,13 +448,19 @@ export default function TrackingScreen() {
         recordedAt: new Date().toISOString(),
       });
       setMarkerCoord({ latitude, longitude });
-      if (isFreeMode) {
-        setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-      }
-      if (idx % 50 === 0) console.log(`[SIM] ${idx + 1}/${coords.length}`);
       idx++;
-    }, 300);
-  }, [sessionId, courseCoords, isFreeMode, publishGps, selectedCourseId, courseDetail]);
+    }, 50);
+  }, [sessionId, courseCoords, publishGps]);
+
+  // [DEMO] 트래킹 시작 + 코스 좌표 준비 시 자동 시뮬레이션 시작 (자유기록 제외)
+  useEffect(() => {
+    if (!isTracking || isFreeMode) return;
+    if (!sessionId || courseCoords.length === 0) return;
+    if (simIntervalRef.current) return; // 이미 실행 중
+    // 실제 GPS 콜백이 시뮬 마커를 덮어쓰지 않도록 먼저 해제
+    setLocationTaskCallback(null);
+    startCoordSimulation();
+  }, [isTracking, isFreeMode, sessionId, courseCoords.length]);
 
   // polyline 로드되거나 트래킹 시작 시 카메라를 전체 경로가 보이도록 맞춤
   useEffect(() => {
@@ -929,27 +937,6 @@ export default function TrackingScreen() {
             />
           )}
         </View>
-      )}
-
-      {/* [DEV] 좌표 시뮬레이션 버튼 — 개발 빌드 전용 */}
-      {__DEV__ && isTracking && (
-        <TouchableOpacity
-          onPress={startCoordSimulation}
-          style={{
-            position: 'absolute',
-            bottom: trackingSheetHeight + 16,
-            left: 16,
-            backgroundColor: '#FF6B00',
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 8,
-            zIndex: 99,
-          }}
-        >
-          <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
-            [DEV] 좌표 시뮬
-          </Text>
-        </TouchableOpacity>
       )}
 
       {/* 카운트다운 오버레이 */}
