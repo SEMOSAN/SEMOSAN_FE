@@ -608,6 +608,7 @@ export type ApiResponsePageResponseGetUserHikingRecordResponse = {
 };
 export type GetUserHikingRecordResponse = {
   hikingRecordId?: number;
+  sessionId?: number;
   mountainId?: number;
   mountainName?: string;
   courseId?: number;

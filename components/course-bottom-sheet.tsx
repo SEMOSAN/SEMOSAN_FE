@@ -1,6 +1,14 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ChevronRightIcon } from './icons/chevron-right-icon';
 
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h === 0) return `${m}분`;
+  if (m === 0) return `${h}시간`;
+  return `${h}시간 ${m}분`;
+}
+
 export type Course = {
   id: string;
   name: string;
@@ -34,10 +42,11 @@ export default function CourseBottomSheet({ courses = MOCK_COURSES, onCoursePres
 function StackedThumbnail({ imageUris = [] }: { imageUris?: string[] }) {
   const W = 64;
   const H = 72;
+  const n = imageUris.length;
 
   const cards = [
-    { isFront: false, imageIdx: 2, rotate: '6deg', translateX: 6.2, translateY: 0, zIndex: 1 },
-    { isFront: true, imageIdx: 0, rotate: '0deg', translateX: 0, translateY: 8, zIndex: 2 },
+    { isFront: false, uri: imageUris[n - 2], rotate: '6deg', translateX: 6.2, translateY: 0, zIndex: 1 },
+    { isFront: true,  uri: imageUris[n - 1], rotate: '0deg', translateX: 0,   translateY: 8, zIndex: 2 },
   ];
 
   return (
@@ -59,9 +68,9 @@ function StackedThumbnail({ imageUris = [] }: { imageUris?: string[] }) {
             ],
           }}
         >
-          {imageUris[card.imageIdx] ? (
+          {card.uri ? (
             <Image
-              source={{ uri: imageUris[card.imageIdx] }}
+              source={{ uri: card.uri }}
               className="w-full h-full"
               resizeMode="cover"
             />
@@ -92,7 +101,7 @@ function CourseItem({ course, onPress }: { course: Course; onPress?: () => void 
             {course.name}
           </Text>
           <Text className="typo-caption-1-medium text-label-subtler">
-            {course.distanceKm}km · {course.durationHours}시간 · {course.date}
+            {(course.distanceKm / 1000).toFixed(1)}km · {formatDuration(course.durationHours)} · {course.date}
           </Text>
         </View>
       </View>

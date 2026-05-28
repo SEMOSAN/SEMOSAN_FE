@@ -1,3 +1,4 @@
+import { useMyMountainRecords } from '@/features/home/hooks/use-my-mountain-records';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
@@ -70,16 +71,18 @@ export default function BottomSheet({
     }
   }, [closeSelectedToken]);
 
-  const selectedCardCourses: Course[] = selectedCard
-    ? Array.from({ length: Math.max(selectedCard.badgeCount, 1) }).map((_, index) => ({
-        id: `${selectedCard.id}-${index + 1}`,
-        name: `${selectedCard.name} ${index + 1}회차`,
-        distanceKm: 10,
-        durationHours: 3,
-        date: '24년 9월 5일',
-        imageUris: selectedCard.imageUri ? [selectedCard.imageUri] : [],
-      }))
-    : [];
+  const { data: mountainRecords = [] } = useMyMountainRecords(
+    selectedCard ? Number(selectedCard.id) : null
+  );
+
+  const selectedCardCourses: Course[] = mountainRecords.map((record) => ({
+    id: String(record.hikingRecordId),
+    name: record.courseName ?? '',
+    distanceKm: record.distance ?? 0,
+    durationHours: record.duration ?? 0,
+    date: formatHikedAt(record.hikedAt),
+    imageUris: record.imageUrls ?? [],
+  }));
 
   if (selectedCard) {
     return (
@@ -91,12 +94,18 @@ export default function BottomSheet({
           <CourseBottomSheet
             courses={selectedCardCourses}
             onCoursePress={(courseId) => {
+              const record = mountainRecords.find(
+                (r) => String(r.hikingRecordId) === courseId
+              );
               router.push({
                 pathname: '/record/[id]',
                 params: {
-                  id: courseId,
+                  id: String(record?.sessionId ?? courseId),
                   name: selectedCard.name,
+                  courseName: record?.courseName ?? '',
                   imageUri: selectedCard.imageUri ?? '',
+                  distance: String(record?.distance ?? ''),
+                  duration: String(record?.duration ?? ''),
                 },
               });
             }}
@@ -193,4 +202,13 @@ function MountainCard({ card, onPress }: { card: MountainCard; onPress: () => vo
       </View>
     </TouchableOpacity>
   );
+}
+
+function formatHikedAt(dateStr?: string): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const yy = String(d.getFullYear()).slice(2);
+  const mm = d.getMonth() + 1;
+  const dd = d.getDate();
+  return `${yy}년 ${mm}월 ${dd}일`;
 }

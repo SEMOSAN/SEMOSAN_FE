@@ -1,5 +1,13 @@
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import Svg, {
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Stop,
+  Mask,
+  Rect as SvgRect,
+  Image as SvgImage,
+} from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image as ExpoImage } from "expo-image";
 import * as MediaLibrary from "expo-media-library";
@@ -13,9 +21,21 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ViewShot from "react-native-view-shot";
 import Clive1Svg from "@/assets/clive1.svg";
-import Clive2Svg from "@/assets/clive2.svg";
-import SemosanLogoSvg from "@/assets/semosan-logo.svg";
+import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
 import { PencilSimpleIcon } from "@/components/icons/pencil-simple-icon";
+const ALTITUDE_LABELS = ["400m", "800m", "1200m", "1600m"];
+const CLIVE_CARD_HEIGHT = 596;
+
+function formatDuration(seconds: number | null): string {
+  if (seconds == null) return "--";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h === 0) return `${m}분`;
+  if (m === 0) return `${h}시간`;
+  return `${h}시간 ${m}분`;
+}
+
+
 const PhotoReportBg = require("@/assets/photo-report-bg.png");
 const OVERLAY_STATS = [
   require("@/assets/overlay-stats-1.png"),
@@ -27,6 +47,7 @@ import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { XIcon } from "@/components/icons/x-icon";
 import { CliveBottomBar } from "@/components/clive-bottom-bar";
 import { getPhotoReportState } from "@/features/photo-report/photo-report-state";
+import { useHikingSummary } from "@/features/mypage/hooks/use-hiking-summary";
 import { uploadImage } from "@/hooks/use-upload-image";
 import { api } from "@/lib/api";
 import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
@@ -34,11 +55,17 @@ import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
 type RecordTab = "클라이브" | "포토 리포트";
 
 export default function RecordScreen() {
-  const { id, name, imageUri } = useLocalSearchParams<{
+  const { id, name, courseName, imageUri, distance, duration } = useLocalSearchParams<{
     id: string;
     name: string;
+    courseName?: string;
     imageUri?: string;
+    distance?: string;
+    duration?: string;
   }>();
+  const sessionId = id ? parseInt(id) : null;
+  const distanceKm = distance ? parseFloat(distance) / 1000 : null;
+  const durationSec = duration ? parseInt(duration) : null;
   const router = useRouter();
   const { top } = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<RecordTab>("클라이브");
@@ -58,6 +85,9 @@ export default function RecordScreen() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const publicTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const privateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { data: clivePhotos = [] } = useClivePhotos(sessionId);
+  const { data: hikingSummary } = useHikingSummary();
+  const displayPhotos = [...clivePhotos].reverse();
   const cliveShotRef = useRef<ViewShot | null>(null);
   const photoReportShotRef = useRef<ViewShot | null>(null);
   const activeTabPublic = isPublicByTab[activeTab];
@@ -99,6 +129,13 @@ export default function RecordScreen() {
       setPhotoReportTemplate(templateIndex);
     }, [])
   );
+
+  // 클라이브 사진 로드 후 포토리포트 기본 사진 = 마지막 사진(정상)
+  useEffect(() => {
+    if (clivePhotos.length > 0 && photoReportSource === null) {
+      setPhotoReportSource({ uri: clivePhotos[clivePhotos.length - 1] });
+    }
+  }, [clivePhotos]);
 
   useEffect(() => {
     return () => {
@@ -187,7 +224,7 @@ export default function RecordScreen() {
             className="typo-body-1-normal-medium text-label-subtle"
             numberOfLines={1}
           >
-            과천향교 출발 코스
+            {courseName ?? ""}
           </Text>
         </View>
       </View>
@@ -198,7 +235,9 @@ export default function RecordScreen() {
           className="flex-row items-end px-5 pt-4 pb-3"
           style={{ gap: 4 }}
         >
-          <Text style={styles.distanceNumber}>6.34</Text>
+          <Text style={styles.distanceNumber}>
+            {distanceKm != null ? distanceKm.toFixed(2) : "--"}
+          </Text>
           <Text style={styles.distanceUnit}>km</Text>
         </View>
 
@@ -219,16 +258,13 @@ export default function RecordScreen() {
         </View>
 
         {/* 통계 */}
-        <View className="flex-row mx-5 mt-4 mb-4">
+        <View style={{ flexDirection: "row", marginHorizontal: 20, marginTop: 16, marginBottom: 16, gap: 4 }}>
           {[
-            { label: "소요시간", value: "2시간 16분" },
-            { label: "고도", value: "15Nm" },
+            { label: "소요시간", value: formatDuration(durationSec) },
+            { label: "고도", value: hikingSummary?.totalAltitude != null ? `${Math.round(hikingSummary.totalAltitude)}Nm` : "--" },
             { label: "칼로리", value: "360kcal" },
-          ].map((stat, i) => (
-            <View
-              key={stat.label}
-              style={[styles.statItem, i < 2 && styles.statDivider]}
-            >
+          ].map((stat) => (
+            <View key={stat.label} style={styles.statItem}>
               <Text style={styles.statLabel}>{stat.label}</Text>
               <Text style={styles.statValue}>{stat.value}</Text>
             </View>
@@ -239,7 +275,7 @@ export default function RecordScreen() {
         <View style={styles.divider} />
 
         {/* 탭 */}
-        <View className="flex-row px-5 pt-5 pb-4 gap-4">
+        <View className="flex-row items-center px-5 pt-5 pb-4 gap-4">
           {(["클라이브", "포토 리포트"] as RecordTab[]).map((tab) => (
             <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
               <Text
@@ -259,6 +295,7 @@ export default function RecordScreen() {
           <View className="pb-10 pt-2">
             <ViewShot ref={cliveShotRef} options={{ format: "jpg", quality: 1 }}>
               <View style={styles.cardWrap}>
+                {/* 왼쪽 그라디언트 바 — 정상 완료: 빨강까지 full */}
                 <LinearGradient
                   colors={["#507EF4", "#4ADE80", "#FFD40D", "#FF5249"]}
                   locations={[0, 0.33, 0.66, 1]}
@@ -266,14 +303,103 @@ export default function RecordScreen() {
                   end={{ x: 0, y: 0 }}
                   style={styles.gradientBar}
                 />
-                {typeof Clive2Svg === "number" ? (
-                  <ExpoImage
-                    source={Clive2Svg}
-                    style={styles.cardImage}
-                    contentFit="cover"
-                  />
-                ) : (
-                  <Clive2Svg width="100%" height="100%" />
+
+                {displayPhotos.length > 0 ? (() => {
+                  const photoHeight = CLIVE_CARD_HEIGHT / displayPhotos.length;
+                  const maskDefs = displayPhotos
+                    .map((_, i) => ({
+                      i,
+                      sectionY: i * photoHeight,
+                      topOp: i > 0 ? "0" : "1",
+                      bottomOp: i < displayPhotos.length - 1 ? "0" : "1",
+                      hasMask: i > 0 || i < displayPhotos.length - 1,
+                    }))
+                    .filter((d) => d.hasMask);
+                  return (
+                    <>
+                      <Svg
+                        width={335}
+                        height={CLIVE_CARD_HEIGHT}
+                        style={StyleSheet.absoluteFill}
+                      >
+                        <Defs>
+                          {maskDefs.flatMap((d) => [
+                            <SvgLinearGradient
+                              key={`grad-${d.i}`}
+                              id={`fade-${d.i}`}
+                              x1="0" y1={d.sectionY}
+                              x2="0" y2={d.sectionY + photoHeight}
+                              gradientUnits="userSpaceOnUse"
+                            >
+                              <Stop offset="0" stopColor="white" stopOpacity={d.topOp} />
+                              <Stop offset="0.1" stopColor="white" stopOpacity="1" />
+                              <Stop offset="0.9" stopColor="white" stopOpacity="1" />
+                              <Stop offset="1" stopColor="white" stopOpacity={d.bottomOp} />
+                            </SvgLinearGradient>,
+                            <Mask
+                              key={`mask-${d.i}`}
+                              id={`mask-${d.i}`}
+                              x={0} y={d.sectionY}
+                              width={335} height={photoHeight}
+                              maskUnits="userSpaceOnUse"
+                            >
+                              <SvgRect
+                                x={0} y={d.sectionY}
+                                width={335} height={photoHeight}
+                                fill={`url(#fade-${d.i})`}
+                              />
+                            </Mask>,
+                          ])}
+                        </Defs>
+                        {displayPhotos.map((url, i) => (
+                          <SvgImage
+                            key={url}
+                            href={{ uri: url }}
+                            x={0}
+                            y={i * photoHeight}
+                            width={335}
+                            height={photoHeight}
+                            preserveAspectRatio="xMidYMid slice"
+                            mask={maskDefs.some((m) => m.i === i) ? `url(#mask-${i})` : undefined}
+                          />
+                        ))}
+                      </Svg>
+
+                      {/* 스탬프 오버레이 */}
+                      {displayPhotos.map((url, displayIndex) => {
+                        const originalIndex = clivePhotos.length - 1 - displayIndex;
+                        const isSummit = originalIndex === clivePhotos.length - 1;
+                        const altitudeLabel = ALTITUDE_LABELS[originalIndex] ?? "";
+                        return (
+                          <View
+                            key={url + "-stamp"}
+                            style={{
+                              position: "absolute",
+                              top: displayIndex * photoHeight,
+                              left: 0,
+                              right: 0,
+                              height: photoHeight,
+                            }}
+                          >
+                            {isSummit ? (
+                              <View style={[StyleSheet.absoluteFill, styles.stampSummitContainer]}>
+                                <View style={styles.summitBadge}>
+                                  <Text style={styles.summitBadgeText}>정상</Text>
+                                </View>
+                                <Text style={styles.altitudeText}>{altitudeLabel}</Text>
+                              </View>
+                            ) : (
+                              <View style={[StyleSheet.absoluteFill, styles.stampCenterContainer]}>
+                                <Text style={styles.altitudeText}>{altitudeLabel}</Text>
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })}
+                    </>
+                  );
+                })() : (
+                  <View style={styles.cardImagePlaceholder} />
                 )}
               </View>
             </ViewShot>
@@ -310,7 +436,7 @@ export default function RecordScreen() {
                 <TouchableOpacity
                   style={styles.editChip}
                   activeOpacity={0.7}
-                  onPress={() => router.push("/record/photo-report-edit")}
+                  onPress={() => router.push({ pathname: "/record/photo-report-edit", params: { sessionId: String(sessionId ?? "") } })}
                 >
                   <PencilSimpleIcon size={16} color="#FFFFFF" />
                   <Text style={styles.editChipText}>편집하기</Text>
@@ -456,11 +582,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingVertical: 8,
-    gap: 4,
-  },
-  statDivider: {
-    borderRightWidth: 1,
-    borderRightColor: "#F0F1F4",
+    gap: 6,
+    borderRadius: 8,
   },
   statLabel: {
     fontSize: 13,
@@ -512,6 +635,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignSelf: "center",
     position: "relative",
+    backgroundColor: "#888888",
   },
   gradientBar: {
     position: "absolute",
@@ -524,5 +648,41 @@ const styles = StyleSheet.create({
   cardImage: {
     width: "100%",
     height: "100%",
+  },
+  cardImagePlaceholder: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#E5E7EB",
+  },
+  stampSummitContainer: {
+    justifyContent: "flex-end",
+    paddingLeft: 24,
+    paddingBottom: 42,
+    gap: 4,
+  },
+  stampCenterContainer: {
+    justifyContent: "center",
+    paddingLeft: 24,
+  },
+  summitBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 11,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  summitBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  altitudeText: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontFamily: "Lexend_700Bold",
+    fontWeight: "700",
+    textShadowColor: "rgba(0,0,0,0.25)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 13,
   },
 });
