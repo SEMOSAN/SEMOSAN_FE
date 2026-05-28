@@ -21,7 +21,7 @@ function getSpiralIndex(col: number, row: number): number {
   const n = Math.max(Math.abs(col), Math.abs(row));
   const startIndex = 1 + 4 * n * (n - 1);
   let posInRing: number;
-  if (row === n) {
+  if (row === n && col > -n) {
     posInRing = col + n - 1;
   } else if (col === n) {
     posInRing = 2 * n + (n - 1 - row);
