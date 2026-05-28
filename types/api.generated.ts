@@ -376,6 +376,7 @@ export type GetUserProfileResponse = {
   weight?: number;
   exerciseType?: "GYM" | "HOME_TRAINING" | "PILATES_YOGA" | "WALKING" | "RUNNING" | "HIKING" | "SPORTS" | "CROSSFIT" | "SWIMMING" | "NONE";
   birthDate?: string;
+  email?: string;
 };
 export type ApiResponseGetNotificationSettingResponse = {
   isSuccess?: boolean;
