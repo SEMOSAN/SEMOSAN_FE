@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image as ExpoImage } from "expo-image";
+import * as MediaLibrary from "expo-media-library";
 import {
   ScrollView,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ViewShot from "react-native-view-shot";
 import Clive1Svg from "@/assets/clive1.svg";
 import Clive2Svg from "@/assets/clive2.svg";
 import SemosanLogoSvg from "@/assets/semosan-logo.svg";
@@ -25,6 +27,9 @@ import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { XIcon } from "@/components/icons/x-icon";
 import { CliveBottomBar } from "@/components/clive-bottom-bar";
 import { getPhotoReportState } from "@/features/photo-report/photo-report-state";
+import { uploadImage } from "@/hooks/use-upload-image";
+import { api } from "@/lib/api";
+import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
 
 type RecordTab = "클라이브" | "포토 리포트";
 
@@ -40,12 +45,52 @@ export default function RecordScreen() {
   const [showSaveToast, setShowSaveToast] = useState(false);
   const [showPublicToast, setShowPublicToast] = useState(false);
   const [showPrivateToast, setShowPrivateToast] = useState(false);
-  const [isPublic, setIsPublic] = useState(false);
+  const [isPublicByTab, setIsPublicByTab] = useState<Record<RecordTab, boolean>>({
+    클라이브: false,
+    "포토 리포트": false,
+  });
+  const [semoFeedIdByTab, setSemoFeedIdByTab] = useState<Record<RecordTab, number | null>>({
+    클라이브: null,
+    "포토 리포트": null,
+  });
   const [photoReportSource, setPhotoReportSource] = useState<number | { uri: string } | null>(null);
   const [photoReportTemplate, setPhotoReportTemplate] = useState(0);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const publicTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const privateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cliveShotRef = useRef<ViewShot>(null);
+  const photoReportShotRef = useRef<ViewShot>(null);
+  const activeTabPublic = isPublicByTab[activeTab];
+
+  const captureCard = async (tab: RecordTab) => {
+    const targetRef = tab === "클라이브" ? cliveShotRef : photoReportShotRef;
+    return targetRef.current?.capture?.();
+  };
+
+  const ensureSemoFeed = async (tab: RecordTab, capturedUri?: string) => {
+    const existingFeedId = semoFeedIdByTab[tab];
+    if (existingFeedId) return existingFeedId;
+
+    const imageUri = capturedUri ?? (await captureCard(tab));
+    if (!imageUri) return null;
+
+    const imageUrl = await uploadImage(
+      imageUri,
+      `semo-feed-${tab}-${Date.now()}.jpg`,
+      "posts"
+    );
+    const res = await api.post<SemoFeedResponse>({
+      path: ENDPOINTS.SEMOFEED,
+      body: imageUrl as unknown as Record<string, unknown>,
+    });
+
+    const createdFeedId = res.data?.id ?? null;
+    if (!createdFeedId) return null;
+
+    setSemoFeedIdByTab((prev) => ({ ...prev, [tab]: createdFeedId }));
+    setIsPublicByTab((prev) => ({ ...prev, [tab]: !!res.data?.isPublic }));
+    return createdFeedId;
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -63,30 +108,58 @@ export default function RecordScreen() {
     };
   }, []);
 
-  const handleSavePress = () => {
+  const handleSavePress = async () => {
+    try {
+      const imageUri = await captureCard(activeTab);
+      if (!imageUri) return;
+
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== "granted") return;
+
+      await MediaLibrary.saveToLibraryAsync(imageUri);
+      await ensureSemoFeed(activeTab, imageUri);
+    } catch (error) {
+      console.error("[Record] save failed", error);
+      return;
+    }
+
     setShowSaveToast(true);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => setShowSaveToast(false), 3000);
   };
 
-  const handleTogglePublic = () => {
-    if (!isPublic) {
-      setIsPublic(true);
-      setShowPublicToast(true);
-      if (publicTimerRef.current) clearTimeout(publicTimerRef.current);
-      publicTimerRef.current = setTimeout(
-        () => setShowPublicToast(false),
-        3000
-      );
-    } else {
-      setIsPublic(false);
-      setShowPrivateToast(true);
-      if (privateTimerRef.current) clearTimeout(privateTimerRef.current);
-      privateTimerRef.current = setTimeout(
-        () => setShowPrivateToast(false),
-        3000
-      );
+  const handleTogglePublic = async () => {
+    try {
+      const semoFeedId = await ensureSemoFeed(activeTab);
+      if (!semoFeedId) return;
+
+      await api.patch<boolean>({
+        path: ENDPOINTS.SEMOFEED_BY_SEMOFEEDID_PUBLIC(semoFeedId),
+      });
+
+      const nextPublic = !activeTabPublic;
+      setIsPublicByTab((prev) => ({ ...prev, [activeTab]: nextPublic }));
+
+      if (nextPublic) {
+        setShowPrivateToast(false);
+        if (privateTimerRef.current) clearTimeout(privateTimerRef.current);
+
+        setShowPublicToast(true);
+        if (publicTimerRef.current) clearTimeout(publicTimerRef.current);
+        publicTimerRef.current = setTimeout(() => setShowPublicToast(false), 3000);
+      } else {
+        setShowPublicToast(false);
+        if (publicTimerRef.current) clearTimeout(publicTimerRef.current);
+
+        setShowPrivateToast(true);
+        if (privateTimerRef.current) clearTimeout(privateTimerRef.current);
+        privateTimerRef.current = setTimeout(() => setShowPrivateToast(false), 3000);
+      }
+    } catch (error) {
+      console.error("[SemoFeed] public toggle failed", error);
+      return;
     }
+
   };
 
   return (
@@ -184,27 +257,29 @@ export default function RecordScreen() {
         {/* 클라이브 */}
         {activeTab === "클라이브" && (
           <View className="pb-10 pt-2">
-            <View style={styles.cardWrap}>
-              <LinearGradient
-                colors={["#507EF4", "#4ADE80", "#FFD40D", "#FF5249"]}
-                locations={[0, 0.33, 0.66, 1]}
-                start={{ x: 0, y: 1 }}
-                end={{ x: 0, y: 0 }}
-                style={styles.gradientBar}
-              />
-              {typeof Clive2Svg === "number" ? (
-                <ExpoImage
-                  source={Clive2Svg}
-                  style={styles.cardImage}
-                  contentFit="cover"
+            <ViewShot ref={cliveShotRef} options={{ format: "jpg", quality: 1 }}>
+              <View style={styles.cardWrap}>
+                <LinearGradient
+                  colors={["#507EF4", "#4ADE80", "#FFD40D", "#FF5249"]}
+                  locations={[0, 0.33, 0.66, 1]}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 0, y: 0 }}
+                  style={styles.gradientBar}
                 />
-              ) : (
-                <Clive2Svg width="100%" height="100%" />
-              )}
-            </View>
+                {typeof Clive2Svg === "number" ? (
+                  <ExpoImage
+                    source={Clive2Svg}
+                    style={styles.cardImage}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <Clive2Svg width="100%" height="100%" />
+                )}
+              </View>
+            </ViewShot>
 
             <CliveBottomBar
-              isPublic={isPublic}
+              isPublic={activeTabPublic}
               onTogglePublic={handleTogglePublic}
               onSave={handleSavePress}
             />
@@ -214,36 +289,37 @@ export default function RecordScreen() {
         {/* 포토 리포트 */}
         {activeTab === "포토 리포트" && (
           <View className="pb-10 pt-2">
-            <View style={styles.cardWrap}>
-              {/* 배경 사진 */}
-              <ExpoImage
-                source={photoReportSource ?? PhotoReportBg}
-                style={StyleSheet.absoluteFill}
-                contentFit="cover"
-              />
+            <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }}>
+              <View style={styles.cardWrap}>
+                {/* 배경 사진 */}
+                <ExpoImage
+                  source={photoReportSource ?? PhotoReportBg}
+                  style={StyleSheet.absoluteFill}
+                  contentFit="cover"
+                />
 
-              {/* 스탯 오버레이 */}
-              <ExpoImage
-                source={OVERLAY_STATS[photoReportTemplate] ?? OVERLAY_STATS[0]}
-                style={StyleSheet.absoluteFill}
-                contentFit="cover"
-                pointerEvents="none"
-              />
+                {/* 스탯 오버레이 */}
+                <ExpoImage
+                  source={OVERLAY_STATS[photoReportTemplate] ?? OVERLAY_STATS[0]}
+                  style={StyleSheet.absoluteFill}
+                  contentFit="cover"
+                  pointerEvents="none"
+                />
 
-              {/* 편집하기 버튼 */}
-              <TouchableOpacity
-                style={styles.editChip}
-                activeOpacity={0.7}
-                onPress={() => router.push("/record/photo-report-edit")}
-              >
-                <PencilSimpleIcon size={16} color="#FFFFFF" />
-                <Text style={styles.editChipText}>편집하기</Text>
-              </TouchableOpacity>
-
-            </View>
+                {/* 편집하기 버튼 */}
+                <TouchableOpacity
+                  style={styles.editChip}
+                  activeOpacity={0.7}
+                  onPress={() => router.push("/record/photo-report-edit")}
+                >
+                  <PencilSimpleIcon size={16} color="#FFFFFF" />
+                  <Text style={styles.editChipText}>편집하기</Text>
+                </TouchableOpacity>
+              </View>
+            </ViewShot>
 
             <CliveBottomBar
-              isPublic={isPublic}
+              isPublic={activeTabPublic}
               onTogglePublic={handleTogglePublic}
               onSave={handleSavePress}
             />
