@@ -45,6 +45,7 @@ export const FeedCell = memo(function FeedCell({
         <View style={{ flex: 1 }}>
           {imageUrl && (
             <Image
+              // TODO: 백엔드에서 URL에 큰따옴표 포함 저장 현상 수정되면 replace 로직 제거
               source={{ uri: imageUrl.replace(/"/g, "") }}
               className="absolute inset-0 h-full w-full"
               resizeMode="cover"
