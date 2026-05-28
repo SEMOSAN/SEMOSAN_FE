@@ -26,7 +26,7 @@ const config = {
       NSPhotoLibraryUsageDescription:
         "프로필 사진 선택을 위해 사진 라이브러리 접근이 필요합니다.",
 
-      UIBackgroundModes: ["remote-notification"],
+      UIBackgroundModes: ["remote-notification", "location"],
 
       ITSAppUsesNonExemptEncryption: false,
 

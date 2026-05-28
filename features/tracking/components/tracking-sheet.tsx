@@ -131,6 +131,8 @@ export function TrackingSheet({
           <TouchableOpacity
             className="w-12 h-12 rounded-full bg-fill-normal border border-line-normal items-center justify-center"
             onPress={onCameraPress}
+            disabled={!isPhotoWindowOpen}
+            style={{ opacity: isPhotoWindowOpen ? 1 : 0.3 }}
           >
             <CameraIcon />
           </TouchableOpacity>

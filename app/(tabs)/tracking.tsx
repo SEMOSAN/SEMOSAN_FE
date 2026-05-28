@@ -37,12 +37,18 @@ import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tra
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
 import { useSaveTrackingPhoto } from "@/features/tracking/hooks/use-save-tracking-photo";
 import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
+import { useSaveDifficultyFeedback } from "@/features/tracking/hooks/use-save-difficulty-feedback";
 import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
 import {
   PhotoWindowPayload,
   useTrackingSocket,
 } from "@/features/tracking/hooks/use-tracking-socket";
 import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
+import {
+  setLocationTaskCallback,
+  startLocationTask,
+  stopLocationTask,
+} from "@/features/tracking/tasks/location-task";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
 import { LiveActivity } from "@/modules/live-activity";
@@ -98,6 +104,7 @@ export default function TrackingScreen() {
   const [showStopModal, setShowStopModal] = useState(false);
   const [showDifficultyRating, setShowDifficultyRating] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const [hikingRecordId, setHikingRecordId] = useState<number | null>(null);
   const [hasSummited, setHasSummited] = useState(false);
   const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(
     null,
@@ -121,7 +128,6 @@ export default function TrackingScreen() {
   } | null>(null);
   // 자유기록 실시간 경로 누적 (회색 polyline)
   const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
-  const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
@@ -187,6 +193,7 @@ export default function TrackingScreen() {
   const { mutate: resumeSession } = useResumeTrackingSession();
   const { mutate: completeSession } = useCompleteTrackingSession();
   const { mutateAsync: savePhoto } = useSaveTrackingPhoto();
+  const { mutate: saveDifficultyFeedback } = useSaveDifficultyFeedback();
   const { data: activeSession, refetch: refetchActiveSession } =
     useActiveTrackingSession();
 
@@ -216,31 +223,20 @@ export default function TrackingScreen() {
         setIsFreeMode(false);
       }
       connectSocket(activeSession.sessionId);
-      // GPS watch 재시작
+      // GPS 추적 재시작 — 백그라운드 포함
       const sid = activeSession.sessionId;
-      Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.BestForNavigation,
-          timeInterval: 3000,
-          distanceInterval: 10,
-        },
-        (loc) => {
-          const { latitude, longitude, altitude } = loc.coords;
-          setUserLocation({ latitude, longitude, altitude });
-          setMarkerCoord({ latitude, longitude });
-          setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-          publishGps(sid, {
-            lat: latitude,
-            lng: longitude,
-            altitude: altitude,
-            recordedAt: new Date(loc.timestamp).toISOString(),
-          });
-        },
-      )
-        .then((sub) => {
-          locationWatchRef.current = sub;
-        })
-        .catch((err) => console.warn("[Location] watch 재시작 실패:", err));
+      setLocationTaskCallback(({ latitude, longitude, altitude, timestamp }) => {
+        setUserLocation({ latitude, longitude, altitude });
+        setMarkerCoord({ latitude, longitude });
+        setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
+        publishGps(sid, {
+          lat: latitude,
+          lng: longitude,
+          altitude,
+          recordedAt: new Date(timestamp).toISOString(),
+        });
+      });
+      startLocationTask().catch((err) => console.warn("[Location] 백그라운드 위치 재시작 실패:", err));
       setElapsedSeconds(0);
     }
   }, [activeSession]);
@@ -503,33 +499,22 @@ export default function TrackingScreen() {
                 setSessionId(sid);
                 // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
                 connectSocket(sid);
-                // GPS watch 시작 — 3초/10m 간격으로 좌표 발행
-                setRecordedCoords([]); // 새 세션 시작 시 경로 초기화
-                Location.watchPositionAsync(
-                  {
-                    accuracy: Location.Accuracy.BestForNavigation,
-                    timeInterval: 3000,
-                    distanceInterval: 10,
-                  },
-                  (loc) => {
-                    const { latitude, longitude, altitude } = loc.coords;
-                    setUserLocation({ latitude, longitude, altitude });
-                    setMarkerCoord({ latitude, longitude });
-                    setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-                    publishGps(sid, {
-                      lat: latitude,
-                      lng: longitude,
-                      altitude: altitude,
-                      recordedAt: new Date(loc.timestamp).toISOString(),
-                    });
-                  },
-                )
-                  .then((sub) => {
-                    locationWatchRef.current = sub;
-                  })
-                  .catch((err) => {
-                    console.warn("[Location] watch 시작 실패:", err);
+                // GPS 추적 시작 — 백그라운드 포함
+                setRecordedCoords([]);
+                setLocationTaskCallback(({ latitude, longitude, altitude, timestamp }) => {
+                  setUserLocation({ latitude, longitude, altitude });
+                  setMarkerCoord({ latitude, longitude });
+                  setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
+                  publishGps(sid, {
+                    lat: latitude,
+                    lng: longitude,
+                    altitude,
+                    recordedAt: new Date(timestamp).toISOString(),
                   });
+                });
+                startLocationTask().catch((err) => {
+                  console.warn("[Location] 백그라운드 위치 시작 실패:", err);
+                });
               }
             },
             onError: (err: any) => {
@@ -705,17 +690,31 @@ export default function TrackingScreen() {
     // 기록 종료 시 항상 세션 완료 API 호출 (정상 인증 여부와 무관)
     if (sessionId != null) {
       completeSession(sessionId, {
+        onSuccess: (data) => {
+          if (data.hikingRecordId != null) setHikingRecordId(data.hikingRecordId);
+        },
         onError: (err) => console.warn("[Tracking] 세션 종료 실패:", err),
       });
     }
     setShowDifficultyRating(true);
   };
 
-  /** 난이도 체감 완료 후 상태 초기화 */
-  const completeTracking = () => {
+  const DIFFICULTY_COMPARISON = {
+    similar: 'SIMILAR',
+    easier: 'EASIER',
+    harder: 'HARDER',
+  } as const;
+
+  /** 난이도 체감 완료 후 피드백 저장 + 상태 초기화 */
+  const completeTracking = (option: 'similar' | 'easier' | 'harder' | null) => {
+    if (hikingRecordId != null && option != null) {
+      saveDifficultyFeedback(
+        { hikingRecordId, comparison: DIFFICULTY_COMPARISON[option] },
+        { onError: (err) => console.warn("[Tracking] 난이도 피드백 저장 실패:", err) },
+      );
+    }
     if (isLiveActivityEnabled) LiveActivity.stop().catch(() => {});
-    locationWatchRef.current?.remove();
-    locationWatchRef.current = null;
+    stopLocationTask().catch(() => {});
     disconnectSocket();
     setShowDifficultyRating(false);
     setIsTracking(false);
@@ -726,6 +725,7 @@ export default function TrackingScreen() {
     setShowSummitSheet(false);
     setHasSummited(false);
     setSessionId(null);
+    setHikingRecordId(null);
     setPhotoWindow(null);
     setCollapsed(false);
     setRecordedCoords([]);
@@ -973,7 +973,7 @@ export default function TrackingScreen() {
         visible={showDifficultyRating}
         course={selectedCourse}
         mountainName={nearbyData?.mountain?.name ?? ""}
-        onClose={completeTracking}
+        onClose={() => completeTracking(null)}
         onComplete={completeTracking}
       />
     </View>
