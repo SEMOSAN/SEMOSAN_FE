@@ -15,8 +15,10 @@ export const ENDPOINTS = {
   TRACKING_SESSIONS_BY_SESSIONID_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
   TRACKING_SESSIONS_BY_SESSIONID_ABANDON: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/abandon`,
   SEMOFEED: "/api/semofeed",
+  SEMOFEED_BY_SEMOFEEDID_EMOJIS: (semoFeedId: number | string) => `/api/semofeed/${semoFeedId}/emojis`,
   OAUTH_KAKAO_LOGIN: "/api/oauth/kakao/login",
   OAUTH_APPLE_LOGIN: "/api/oauth/apple/login",
+  NOTIFICATIONS_TEST: "/api/notifications/test",
   MOUNTAINS_BY_MOUNTAINID_LIKE: (mountainId: number | string) => `/api/mountains/${mountainId}/like`,
   HIKING_RECORDS_BY_HIKINGRECORDID_DIFFICULTY_FEEDBACK: (hikingRecordId: number | string) => `/api/hiking-records/${hikingRecordId}/difficulty-feedback`,
   FCM_TOKENS: "/api/fcm/tokens",
@@ -53,6 +55,7 @@ export const ENDPOINTS = {
   HIKING_RECORDS_ME_SUMMARY: "/api/hiking-records/me/summary",
   HIKING_RECORDS_ME_MOUNTAINS: "/api/hiking-records/me/mountains",
   HIKING_RECORDS_ME_MOUNTAINS_BY_MOUNTAINID: (mountainId: number | string) => `/api/hiking-records/me/mountains/${mountainId}`,
+  DEMO_TRACKING_SESSIONS_BY_SESSIONID_PHOTOS: (sessionId: number | string) => `/api/demo/tracking/sessions/${sessionId}/photos`,
   COURSES_BY_COURSEID: (courseId: number | string) => `/api/courses/${courseId}`,
   COMMUNITY_RECORD_POSTS_BY_POSTID: (postId: number | string) => `/api/community/record-posts/${postId}`,
   COMMUNITY_RECORD_POSTS_ME: "/api/community/record-posts/me",
@@ -183,8 +186,22 @@ export type TrackingPhotoResponse = {
 };
 export type SemoFeedResponse = {
   id?: number;
+  userId?: number;
+  profileUrl?: string;
+  nickname?: string;
   imageUrl?: string;
   isPublic?: boolean;
+  emojiCounts?: Record<string, number>;
+  reactedByMe?: Record<string, boolean>;
+  mine?: boolean;
+};
+export type SemoFeedEmojiRequest = {
+  emojiType: "FIRE" | "HEART" | "CONGRATS" | "LAUGH";
+};
+export type SemoFeedEmojiToggleResponse = {
+  emojiType?: "FIRE" | "HEART" | "CONGRATS" | "LAUGH";
+  reacted?: boolean;
+  count?: number;
 };
 export type OAuthKakaoLoginRequest = {
   accessToken?: string;
@@ -200,6 +217,11 @@ export type OAuthAppleLoginRequest = {
   identityToken?: string;
   name?: string;
   deviceType: "IOS" | "ANDROID";
+};
+export type NotificationTestRequest = {
+  receiverId: number;
+  type: "COMMUNITY_COMMENT" | "COMMUNITY_REPLY" | "COMMUNITY_POST_LIKE" | "SEMOFEED_EMOJI" | "TRACKING_PHOTO_MILESTONE" | "TRACKING_SUMMIT_REACHED";
+  params?: Record<string, Record<string, unknown>>;
 };
 export type CreateCourseDifficultyFeedbackRequest = {
   comparison: "SIMILAR" | "EASIER" | "HARDER";
@@ -401,7 +423,7 @@ export type ApiResponseNearbyMountainResponse = {
   message?: string;
   data?: NearbyMountainResponse;
 };
-export type CourseInfo = {
+export type NearbyMountainCourseInfo = {
   courseId?: number;
   name?: string;
   difficulty?: "EASY" | "NORMAL" | "HARD";
@@ -419,7 +441,7 @@ export type NearbyMountainInfo = {
 };
 export type NearbyMountainResponse = {
   mountain?: NearbyMountainInfo;
-  courses?: CourseInfo[];
+  courses?: NearbyMountainCourseInfo[];
 };
 export type ApiResponseLiveActivityCourseResponse = {
   isSuccess?: boolean;
@@ -488,9 +510,18 @@ export type ApiResponseMountainDetailResponse = {
   message?: string;
   data?: MountainDetailResponse;
 };
+export type MountainDetailCourseInfo = {
+  courseId?: number;
+  name?: string;
+  difficulty?: "EASY" | "NORMAL" | "HARD";
+  distance?: number;
+  duration?: number;
+  startName?: string;
+  endName?: string;
+};
 export type MountainDetailResponse = {
   mountain?: MountainInfo;
-  courses?: CourseInfo[];
+  courses?: MountainDetailCourseInfo[];
   transportations?: TransportationGroup;
   amenities?: Record<string, ("RESTROOM" | "INFORMATION" | "SHELTER" | "PARKING" | "STORE")[]>;
   restaurantSections?: RestaurantSectionInfo[];
@@ -608,6 +639,7 @@ export type ApiResponsePageResponseGetUserHikingRecordResponse = {
 };
 export type GetUserHikingRecordResponse = {
   hikingRecordId?: number;
+  sessionId?: number;
   mountainId?: number;
   mountainName?: string;
   courseId?: number;
@@ -656,6 +688,12 @@ export type PageResponseGetUserHikingMountainRecordResponse = {
   totalElements?: number;
   totalPages?: number;
   last?: boolean;
+};
+export type ApiResponseListString = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: string[];
 };
 export type ApiResponseCourseDetailResponse = {
   isSuccess?: boolean;
@@ -799,11 +837,20 @@ export type ListPublicParams = {
 // POST /api/semofeed
 export type CreateBody = string;
 
+// POST /api/semofeed/{semoFeedId}/emojis
+export type ToggleEmojiParams = {
+  semoFeedId: number;
+};
+export type ToggleEmojiBody = SemoFeedEmojiRequest;
+
 // POST /api/oauth/kakao/login
 export type KakaoLoginBody = OAuthKakaoLoginRequest;
 
 // POST /api/oauth/apple/login
 export type AppleLoginBody = OAuthAppleLoginRequest;
+
+// POST /api/notifications/test
+export type SendBody = NotificationTestRequest;
 
 // POST /api/mountains/{mountainId}/like
 export type LikeMountainParams = {
@@ -991,6 +1038,12 @@ export type GetUserHikingRecordsByMountainIdParams = {
   page?: number;
   size?: number;
   sort?: string[];
+};
+
+// GET /api/demo/tracking/sessions/{sessionId}/photos
+export type GetDemoPhotosParams = {
+  sessionId: number;
+  count?: number;
 };
 
 // GET /api/courses/{courseId}
