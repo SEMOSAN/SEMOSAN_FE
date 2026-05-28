@@ -9,10 +9,13 @@ export type Course = {
   id: string;
   name: string;
   difficulty: Difficulty;
-  altitudeNm: number;
+  /** API altitudes에서 파싱한 최고 고도(m). 데이터 없으면 null */
+  altitudeNm: number | null;
   distanceKm: number;
-  ascentM: number;
-  descentM: number;
+  /** 정상까지 거리(m) — 전체 거리의 절반 */
+  summitDistanceM: number;
+  /** 하산까지 거리(m) — 전체 거리의 절반 */
+  descentDistanceM: number;
   durationHours: number;
   durationMinutes: number;
   /** 코스 경로 좌표 목록 */
@@ -45,10 +48,10 @@ export const MOCK_COURSES: Course[] = [
     id: '1',
     name: '과천향교 출발 코스',
     difficulty: '초급',
-    altitudeNm: 2.43,
+    altitudeNm: null,
     distanceKm: 13.95,
-    ascentM: 1436,
-    descentM: 1354,
+    summitDistanceM: 6975,
+    descentDistanceM: 6975,
     durationHours: 7,
     durationMinutes: 55,
     coordinates: GWANAK_COURSE_COORDS,
@@ -60,10 +63,10 @@ export const MOCK_COURSES: Course[] = [
     id: '2',
     name: '과천향교 출발 코스',
     difficulty: '초급',
-    altitudeNm: 2.43,
+    altitudeNm: null,
     distanceKm: 13.95,
-    ascentM: 1436,
-    descentM: 1354,
+    summitDistanceM: 6975,
+    descentDistanceM: 6975,
     durationHours: 7,
     durationMinutes: 55,
     coordinates: GWANAK_COURSE_COORDS,
@@ -75,10 +78,10 @@ export const MOCK_COURSES: Course[] = [
     id: '3',
     name: '과천향교 출발 코스',
     difficulty: '초급',
-    altitudeNm: 2.43,
+    altitudeNm: null,
     distanceKm: 13.95,
-    ascentM: 1436,
-    descentM: 1354,
+    summitDistanceM: 6975,
+    descentDistanceM: 6975,
     durationHours: 7,
     durationMinutes: 55,
     coordinates: GWANAK_COURSE_COORDS,

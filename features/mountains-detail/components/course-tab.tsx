@@ -7,6 +7,7 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 type CourseCardProps = {
   courseId?: number;
+  mountainId?: number;
   name?: string;
   difficulty?: CourseInfo["difficulty"];
   distance?: number;
@@ -15,6 +16,7 @@ type CourseCardProps = {
 
 function CourseCard({
   courseId,
+  mountainId,
   name,
   difficulty,
   distance,
@@ -26,7 +28,7 @@ function CourseCard({
     <Pressable
       className="h-[72px] flex-row items-center gap-4"
       // TODO : 코스 이미지 생성되면 이미지연동 필요
-      onPress={() => router.push(`/mountains/courses/${courseId}`)}
+      onPress={() => router.push(`/mountains/courses/${courseId}?mountainId=${mountainId}`)}
     >
       {/* TODO : 리스트에도 코스컴포넌트 띄워주기에 메모리를 너무 잡아먹으므로 일단 보류 */}
       {/* <Image
@@ -80,6 +82,7 @@ export function CourseTab() {
         <CourseCard
           key={course.courseId}
           courseId={course.courseId}
+          mountainId={Number(id)}
           name={course.name}
           difficulty={course.difficulty}
           distance={course.distance}

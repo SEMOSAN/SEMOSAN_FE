@@ -13,6 +13,7 @@ import {
   focusManager,
 } from "@tanstack/react-query";
 import { Redirect, Stack } from "expo-router";
+import * as Notifications from "expo-notifications";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
@@ -20,6 +21,18 @@ import { AppStateStatus, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../global.css";
+
+// 포어그라운드에서도 알림 배너 표시
+Notifications.setNotificationHandler({
+  handleNotification: async () => {
+    return {
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    };
+  },
+});
 
 SplashScreen.preventAutoHideAsync();
 if (!__DEV__) initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
