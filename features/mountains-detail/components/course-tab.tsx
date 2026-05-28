@@ -2,17 +2,18 @@ import { ArrowsHorizontalIcon } from "@/components/icons/arrows-horizontal-icon"
 import { CourseBadge } from "@/features/mountains/components/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { formatDuration } from "@/modules/format-duration";
-import { CourseInfo } from "@/types/api.generated";
+import { MountainDetailCourseInfo } from "@/types/api.generated";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 type CourseCardProps = {
   courseId?: number;
   name?: string;
-  difficulty?: CourseInfo["difficulty"];
+  difficulty?: MountainDetailCourseInfo["difficulty"];
   distance?: number;
   duration?: number;
-  isLast?: boolean;
+  startName?: string;
+  endName?: string;
 };
 
 function CourseCard({
@@ -21,7 +22,8 @@ function CourseCard({
   difficulty,
   distance,
   duration,
-  isLast,
+  startName,
+  endName,
 }: CourseCardProps) {
   const router = useRouter();
 
@@ -43,15 +45,17 @@ function CourseCard({
             {name}
           </Text>
         </View>
-        <View className="flex-row items-center gap-1.5">
-          <Text className="text-label-subtle typo-caption-1-medium">
-            출발지
-          </Text>
-          <ArrowsHorizontalIcon size={14} />
-          <Text className="text-label-subtle typo-caption-1-medium">
-            도착지
-          </Text>
-        </View>
+        {(startName || endName) && (
+          <View className="flex-row items-center gap-1.5">
+            <Text className="text-label-subtle typo-caption-1-medium">
+              {startName}
+            </Text>
+            <ArrowsHorizontalIcon size={14} />
+            <Text className="text-label-subtle typo-caption-1-medium">
+              {endName}
+            </Text>
+          </View>
+        )}
         <View className="flex-row items-center gap-1.5">
           {distance && (
             <>
@@ -95,6 +99,8 @@ export function CourseTab() {
           difficulty={course.difficulty}
           distance={course.distance}
           duration={course.duration}
+          startName={course.startName}
+          endName={course.endName}
         />
       ))}
     </View>
