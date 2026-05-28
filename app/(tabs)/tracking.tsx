@@ -255,7 +255,7 @@ export default function TrackingScreen() {
     ? Number(selectedCourseId)
     : null;
   const { data: courseDetail } = useCourseDetail(isFreeMode ? null : selectedCourseId_num);
-  const { data: liveActivityCourse } = useLiveActivityCourse(selectedCourseId_num);
+  const { data: liveActivityCourse } = useLiveActivityCourse(isFreeMode ? null : selectedCourseId);
   const courseCoords = useMemo(
     () => parseCoursePolyline(courseDetail?.polyline),
     [courseDetail?.polyline],
