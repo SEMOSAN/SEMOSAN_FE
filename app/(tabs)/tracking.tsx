@@ -75,11 +75,12 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
 };
 
 export default function TrackingScreen() {
-  const { collapse: collapseParameter, courseId: courseIdParameter, mountainId: mountainIdParameter } =
+  const { collapse: collapseParameter, courseId: courseIdParameter, mountainId: mountainIdParameter, action: actionParameter } =
     useLocalSearchParams<{
       collapse?: string;
       courseId?: string;
       mountainId?: string;
+      action?: string;
     }>();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
     courseIdParameter ?? null,
@@ -653,15 +654,12 @@ export default function TrackingScreen() {
     return () => sub.remove();
   }, [isTracking]);
 
-  // iOS 16 fallback: Button(intent:) 미지원으로 딥링크 방식 처리
+  // 위젯 버튼 딥링크: semosan://tracking?action=pause|resume
   useEffect(() => {
     if (!isLiveActivityEnabled || !isTracking) return;
-    const sub = Linking.addEventListener('url', ({ url }) => {
-      if (url === 'semosan://tracking/pause') pauseTrackingRef.current();
-      else if (url === 'semosan://tracking/resume') resumeTrackingRef.current();
-    });
-    return () => sub.remove();
-  }, [isTracking]);
+    if (actionParameter === 'pause') pauseTrackingRef.current();
+    else if (actionParameter === 'resume') resumeTrackingRef.current();
+  }, [actionParameter, isTracking]);
 
   const requestStop = () => setShowStopModal(true);
 

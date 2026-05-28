@@ -26,13 +26,18 @@ private extension Color {
 
 // MARK: - AppIntent: 일시정지/재개 (앱 열지 않고 제어)
 
-@available(iOS 16.2, *)
 struct TogglePauseIntent: AppIntent {
     static var title: LocalizedStringResource = "일시정지/재개"
     static var isDiscoverable: Bool = false
 
     func perform() async throws -> some IntentResult {
+        print("🔵 TogglePauseIntent.perform() called")
+        guard #available(iOS 16.2, *) else {
+            print("🔴 iOS 16.2 미만 — 종료")
+            return .result()
+        }
         guard let activity = Activity<SemosanLiveActivityAttributes>.activities.first else {
+            print("🔴 활성 Live Activity 없음")
             return .result()
         }
         let current = activity.content.state
@@ -81,18 +86,12 @@ private struct LiveTimerText: View {
     var kerning: CGFloat = 0.72
 
     var body: some View {
-        Group {
-            if state.isRunning, let epoch = state.timerStartEpoch {
-                Text(Date(timeIntervalSince1970: epoch / 1000), style: .timer)
-            } else {
-                Text(formatExpanded(state.elapsedSeconds))
-            }
-        }
-        .font(.custom("Lexend-SemiBold", size: fontSize))
-        .kerning(kerning)
-        .foregroundColor(C.timerGreen)
-        .minimumScaleFactor(0.6)
-        .lineLimit(1)
+        Text(formatExpanded(state.elapsedSeconds))
+            .font(.custom("Lexend-SemiBold", size: fontSize))
+            .kerning(kerning)
+            .foregroundColor(C.timerGreen)
+            .minimumScaleFactor(0.6)
+            .lineLimit(1)
     }
 }
 
@@ -192,19 +191,11 @@ private struct ExpandedPlayPauseBtn: View {
     var size: CGFloat = 52
 
     var body: some View {
-        if #available(iOS 17, *) {
-            Button(intent: TogglePauseIntent()) {
-                btnContent
-            }
-            .buttonStyle(.plain)
-        } else {
-            // iOS 16: AppIntent 미지원 → URL 스킴으로 앱에 위임
-            let url = URL(string: isRunning ? "semosan://tracking/pause" : "semosan://tracking/resume")!
-            Link(destination: url) {
-                btnContent
-            }
-            .buttonStyle(.plain)
+        let url = URL(string: isRunning ? "semosan://tracking?action=pause" : "semosan://tracking?action=resume")!
+        Link(destination: url) {
+            btnContent
         }
+        .buttonStyle(.plain)
     }
 
     private var btnContent: some View {
@@ -511,9 +502,11 @@ struct SemosanLiveActivity: Widget {
                 CompactPlayPauseBtn(isRunning: state.isRunning)
                     .padding(.leading, 4)
             } compactTrailing: {
-                Text(formatCompact(state.elapsedSeconds))
+                Text(formatExpanded(state.elapsedSeconds))
                     .foregroundStyle(C.timerGreenSm)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
                     .padding(.trailing, 4)
             } minimal: {
                 Image(systemName: "figure.hiking")
