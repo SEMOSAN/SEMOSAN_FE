@@ -1,5 +1,4 @@
 import ActivityKit
-import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -21,60 +20,6 @@ private enum C {
 private extension Color {
     init(r: Int, g: Int, b: Int) {
         self.init(.sRGB, red: Double(r)/255, green: Double(g)/255, blue: Double(b)/255)
-    }
-}
-
-// MARK: - AppIntent: 일시정지/재개 (앱 열지 않고 제어)
-
-struct TogglePauseIntent: AppIntent {
-    static var title: LocalizedStringResource = "일시정지/재개"
-    static var isDiscoverable: Bool = false
-
-    func perform() async throws -> some IntentResult {
-        print("🔵 TogglePauseIntent.perform() called")
-        guard #available(iOS 16.2, *) else {
-            print("🔴 iOS 16.2 미만 — 종료")
-            return .result()
-        }
-        guard let activity = Activity<SemosanLiveActivityAttributes>.activities.first else {
-            print("🔴 활성 Live Activity 없음")
-            return .result()
-        }
-        let current = activity.content.state
-        let nowMs = Date().timeIntervalSince1970 * 1000
-
-        // 실제 경과 시간 계산 — isRunning 중이면 timerStartEpoch 기준, 아니면 elapsedSeconds 그대로
-        let actualElapsed: Int
-        if current.isRunning, let epoch = current.timerStartEpoch {
-            actualElapsed = max(current.elapsedSeconds, Int((nowMs - epoch) / 1000))
-        } else {
-            actualElapsed = current.elapsedSeconds
-        }
-
-        // 재개 시: 가상 시작 시각 계산 (일시정지 시: nil로 초기화)
-        let newTimerStartEpoch: Double? = current.isRunning
-            ? nil
-            : nowMs - Double(actualElapsed) * 1000
-        let newState = SemosanLiveActivityAttributes.ContentState(
-            elapsedSeconds: actualElapsed,
-            isRunning: !current.isRunning,
-            timerStartEpoch: newTimerStartEpoch,
-            remainingMinutes: current.remainingMinutes,
-            remainingMeters: current.remainingMeters,
-            progress: current.progress
-        )
-        await activity.update(.init(state: newState, staleDate: nil))
-
-        // Darwin 알림으로 메인 앱에 신호 전달 (App Groups 불필요)
-        let notifName = current.isRunning
-            ? "com.tastyhiking.semosanapp.liveactivity.pause"
-            : "com.tastyhiking.semosanapp.liveactivity.resume"
-        CFNotificationCenterPostNotification(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            CFNotificationName(notifName as CFString),
-            nil, nil, true
-        )
-        return .result()
     }
 }
 
