@@ -107,7 +107,7 @@ export default function RecordScreen() {
     const imageUrl = await uploadImage(
       imageUri,
       `semo-feed-${tab}-${Date.now()}.jpg`,
-      "posts"
+      "semofeed"
     );
     const res = await api.post<SemoFeedResponse>({
       path: ENDPOINTS.SEMOFEED,
