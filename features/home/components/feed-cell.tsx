@@ -45,7 +45,7 @@ export const FeedCell = memo(function FeedCell({
         <View style={{ flex: 1 }}>
           {imageUrl && (
             <Image
-              source={{ uri: imageUrl }}
+              source={{ uri: imageUrl.replace(/"/g, "") }}
               className="absolute inset-0 h-full w-full"
               resizeMode="cover"
             />
