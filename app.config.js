@@ -36,10 +36,6 @@ const config = {
   },
   android: {
     googleServicesFile: "./google-services.json",
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     adaptiveIcon: {
       backgroundColor: "#E6F4FE",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -60,10 +56,6 @@ const config = {
     "expo-router",
     "@react-native-firebase/app",
     "./plugins/withModularHeaders",
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
     [
       "expo-notifications",

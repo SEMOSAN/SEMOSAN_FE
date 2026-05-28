@@ -132,10 +132,6 @@ export default function TrackingScreen() {
   } | null>(null);
   // 자유기록 실시간 경로 누적 (회색 polyline)
   const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
-<<<<<<< HEAD
-=======
-  const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
->>>>>>> main
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
@@ -170,27 +166,11 @@ export default function TrackingScreen() {
     })();
   }, []);
 
-<<<<<<< HEAD
   // [DEMO] 전시 데모용 관악산 좌표 고정 — 복원 시 아래 DEMO 줄 지우고 주석 해제
   // const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
   //   lat: userLocation?.latitude ?? null,
   //   lng: userLocation?.longitude ?? null,
   // });
-=======
-  // 트래킹 중 위치 지속 업데이트 (코스 진행률 계산용)
-  useEffect(() => {
-    if (!isTracking || isFreeMode) return;
-    let subscription: Location.LocationSubscription | null = null;
-    Location.watchPositionAsync(
-      { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 10 },
-      (loc) => {
-        setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude, altitude: loc.coords.altitude });
-      }
-    ).then((sub) => { subscription = sub; });
-    return () => { subscription?.remove(); };
-  }, [isTracking, isFreeMode]);
-
->>>>>>> main
   const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
     lat: 37.4449,  // [DEMO] 관악산 정상 위도
     lng: 126.9636, // [DEMO] 관악산 정상 경도
@@ -280,7 +260,6 @@ export default function TrackingScreen() {
     [courseDetail?.polyline],
   );
 
-<<<<<<< HEAD
   // 마커 Y 비율: 0.0(바 상단/정상) ~ 1.0(바 하단/출발)
   // markerCoord 기준으로 코스에서 가장 가까운 좌표 인덱스를 찾아 정상까지의 진행률 계산
   const markerRatio = useMemo(() => {
@@ -322,30 +301,20 @@ export default function TrackingScreen() {
   const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
   const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
 
-=======
->>>>>>> main
   const selectedCourse = useMemo((): Course => ({
     id: String(courseDetail?.id ?? ''),
     name: courseDetail?.name ?? '',
     difficulty: DIFFICULTY_KO[courseDetail?.difficulty ?? ''] ?? '중급',
-<<<<<<< HEAD
     altitudeNm: peakAltitudeM,
     distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
     summitDistanceM: halfDistanceM,
     descentDistanceM: halfDistanceM,
-=======
-    altitudeNm: 0,
-    distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
-    ascentM: 0,
-    descentM: 0,
->>>>>>> main
     durationHours: Math.floor((courseDetail?.duration ?? 0) / 60),
     durationMinutes: (courseDetail?.duration ?? 0) % 60,
     coordinates: [],
     centerLatitude: 0,
     centerLongitude: 0,
     zoom: 14,
-<<<<<<< HEAD
   }), [courseDetail, peakAltitudeM, halfDistanceM]);
 
   const timeToTarget = halfDurationMinutes > 0
@@ -354,9 +323,6 @@ export default function TrackingScreen() {
   const distanceToTarget = halfDistanceM >= 1000
     ? `${(halfDistanceM / 1000).toFixed(1)}km`
     : halfDistanceM > 0 ? `${halfDistanceM}m` : '-';
-=======
-  }), [courseDetail]);
->>>>>>> main
 
   // 정적 맵 오버레이 — markerCoord 변경 시 리렌더 방지
   const staticMapOverlays = useMemo(() => (
@@ -458,51 +424,6 @@ export default function TrackingScreen() {
     if (simIntervalRef.current) {
       console.warn('[SIM] 이미 실행 중');
       return;
-<<<<<<< HEAD
-=======
-    }
-    const coords = courseCoords;
-    if (coords.length === 0) {
-      console.warn('[SIM] 코스 좌표 없음');
-      return;
-    }
-    let idx = 0;
-    console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
-    simIntervalRef.current = setInterval(() => {
-      if (idx >= coords.length) {
-        clearInterval(simIntervalRef.current!);
-        simIntervalRef.current = null;
-        console.log('[SIM] 완료');
-        return;
-      }
-      const { latitude, longitude } = coords[idx];
-      publishGps(sessionId, {
-        lat: latitude,
-        lng: longitude,
-        altitude: 0,
-        recordedAt: new Date().toISOString(),
-      });
-      setMarkerCoord({ latitude, longitude });
-      if (isFreeMode) {
-        setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-      }
-      if (idx % 50 === 0) console.log(`[SIM] ${idx + 1}/${coords.length}`);
-      idx++;
-    }, 300);
-  }, [sessionId, courseCoords, isFreeMode, publishGps]);
-
-  const { data: liveActivityCourse } = useLiveActivityCourse(selectedCourseId);
-
-  // [DEV] 선택된 courseId 로그 (1회만)
-  useEffect(() => {
-    console.log('[Course] selectedCourseId:', selectedCourseId_num);
-  }, [selectedCourseId_num]);
-
-  useEffect(() => {
-    console.log('[Course] courseDetail polyline type:', typeof courseDetail?.polyline, 'courseCoords.length:', courseCoords.length);
-    if (courseCoords[0]) {
-      console.log('[Course] 첫 좌표:', courseCoords[0].latitude, courseCoords[0].longitude);
->>>>>>> main
     }
     const coords = courseCoords;
     if (coords.length === 0) {
@@ -1053,30 +974,6 @@ export default function TrackingScreen() {
         </View>
       )}
 
-<<<<<<< HEAD
-=======
-      {/* [DEV] 좌표 시뮬레이션 버튼 — 개발 빌드 전용 */}
-      {__DEV__ && isTracking && (
-        <TouchableOpacity
-          onPress={startCoordSimulation}
-          style={{
-            position: 'absolute',
-            bottom: trackingSheetHeight + 16,
-            left: 16,
-            backgroundColor: '#FF6B00',
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 8,
-            zIndex: 99,
-          }}
-        >
-          <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
-            [DEV] 좌표 시뮬
-          </Text>
-        </TouchableOpacity>
-      )}
-
->>>>>>> main
       {/* 카운트다운 오버레이 */}
       {countdown !== null && countdown > 0 && (
         <CountdownOverlay
@@ -1107,11 +1004,7 @@ export default function TrackingScreen() {
         visible={showDifficultyRating}
         course={selectedCourse}
         mountainName={nearbyData?.mountain?.name ?? ""}
-<<<<<<< HEAD
         onClose={() => completeTracking(null)}
-=======
-        onClose={completeTracking}
->>>>>>> main
         onComplete={completeTracking}
       />
     </View>
