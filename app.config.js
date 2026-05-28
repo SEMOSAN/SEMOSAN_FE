@@ -29,7 +29,6 @@ const config = {
       UIBackgroundModes: ["remote-notification", "location"],
 
       ITSAppUsesNonExemptEncryption: false,
-
     },
   },
   locales: {
@@ -37,6 +36,10 @@ const config = {
   },
   android: {
     googleServicesFile: "./google-services.json",
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
     adaptiveIcon: {
       backgroundColor: "#E6F4FE",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -57,6 +60,10 @@ const config = {
     "expo-router",
     "@react-native-firebase/app",
     "./plugins/withModularHeaders",
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
     ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
     [
       "expo-notifications",
@@ -76,7 +83,7 @@ const config = {
     [
       "expo-splash-screen",
       {
-        image: "./assets/images/app-icon.png",
+        image: "./assets/images/splash-app-icon.png",
         imageWidth: 120,
         resizeMode: "contain",
         backgroundColor: "#1a1b1f",

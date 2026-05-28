@@ -3,7 +3,7 @@ import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detai
 import { formatDuration } from "@/modules/format-duration";
 import { CourseInfo } from "@/types/api.generated";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, Image, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 type CourseCardProps = {
   courseId?: number;
@@ -26,15 +26,16 @@ function CourseCard({
 
   return (
     <Pressable
-      className="flex-row items-center gap-4"
+      className="h-[72px] flex-row items-center gap-4"
       // TODO : 코스 이미지 생성되면 이미지연동 필요
       onPress={() => router.push(`/mountains/courses/${courseId}?mountainId=${mountainId}`)}
     >
-      <Image
+      {/* TODO : 리스트에도 코스컴포넌트 띄워주기에 메모리를 너무 잡아먹으므로 일단 보류 */}
+      {/* <Image
         source={require("@/assets/images/default-image.png")}
         className="h-[72px] w-16 rounded-[10px]"
         resizeMode="cover"
-      />
+      /> */}
       <View className="gap-1.5">
         <View className="flex-row items-center gap-1.5">
           {difficulty && <CourseBadge difficulty={difficulty} />}

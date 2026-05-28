@@ -6,7 +6,10 @@ import {
   MapHomeView,
   MapHomeViewRef,
 } from "@/features/home/components/map-home-view";
-import { HOME_TAB_TRANSITION_DURATION } from "@/features/home/constants";
+import {
+  FEED_SLIDE_UP_DISTANCE,
+  HOME_TAB_TRANSITION_DURATION,
+} from "@/features/home/constants";
 import { setStatusBarStyle } from "expo-status-bar";
 import { useRef, useState } from "react";
 import { View } from "react-native";
@@ -17,10 +20,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-
 export default function HomeScreen() {
   const { setTabBarVariant, tabProgress } = useHomeStateContext();
   const [mapTab, setMapTab] = useState<MapTab>("map");
+
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] =
     useState(false);
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
@@ -32,7 +35,13 @@ export default function HomeScreen() {
   const feedAnimatedStyle = useAnimatedStyle(() => ({
     opacity: tabProgress.value,
     transform: [
-      { translateY: interpolate(tabProgress.value, [0, 1], [80, 0]) },
+      {
+        translateY: interpolate(
+          tabProgress.value,
+          [0, 1],
+          [FEED_SLIDE_UP_DISTANCE, 0],
+        ),
+      },
     ],
   }));
   const feedOpacityStyle = useAnimatedStyle(() => ({
@@ -47,7 +56,7 @@ export default function HomeScreen() {
       mapViewRef.current?.collapseSheet();
       tabProgress.value = withTiming(1, {
         duration: HOME_TAB_TRANSITION_DURATION,
-        easing: Easing.out(Easing.sin),
+        easing: Easing.bezier(0.45, 0.05, 0.55, 0.95),
       });
       setTabBarVariant("dark");
       setStatusBarStyle("light");
@@ -81,7 +90,7 @@ export default function HomeScreen() {
       </Animated.View>
       <Animated.View
         className="absolute inset-x-0 bottom-0"
-        style={[{ top: -80 }, feedAnimatedStyle]}
+        style={[{ top: -FEED_SLIDE_UP_DISTANCE }, feedAnimatedStyle]}
         pointerEvents={mapTab === "feed" ? "auto" : "none"}
       >
         <FeedHomeView />

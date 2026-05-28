@@ -1,1 +1,2 @@
 export const HOME_TAB_TRANSITION_DURATION = 600;
+export const FEED_SLIDE_UP_DISTANCE = 200;
