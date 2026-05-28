@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ViewShot from "react-native-view-shot";
+import type { ViewShotRef } from "react-native-view-shot/lib/index";
 import Clive1Svg from "@/assets/clive1.svg";
 import Clive2Svg from "@/assets/clive2.svg";
 import SemosanLogoSvg from "@/assets/semosan-logo.svg";
@@ -58,8 +59,8 @@ export default function RecordScreen() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const publicTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const privateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cliveShotRef = useRef<ViewShot>(null);
-  const photoReportShotRef = useRef<ViewShot>(null);
+  const cliveShotRef = useRef<ViewShotRef | null>(null);
+  const photoReportShotRef = useRef<ViewShotRef | null>(null);
   const activeTabPublic = isPublicByTab[activeTab];
 
   const captureCard = async (tab: RecordTab) => {
