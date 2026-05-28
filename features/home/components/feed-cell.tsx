@@ -33,7 +33,7 @@ export const FeedCell = memo(function FeedCell({
   return (
     <Animated.View
       entering={FadeInDown.duration(300).delay(200)}
-      className="absolute overflow-hidden rounded-xl bg-[#1a1a1a]"
+      className="absolute overflow-hidden rounded-2xl bg-transparent"
       style={{
         left: col * CELL_W + CELL_GAP / 2,
         top: row * CELL_H + CELL_GAP / 2 - (col % 2 !== 0 ? 60 : 0),
