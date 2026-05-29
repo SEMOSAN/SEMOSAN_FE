@@ -1,17 +1,13 @@
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { Image, ScrollView, Text, View } from "react-native";
 
 export function RestaurantTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
 
-  if (isPending)
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
+  if (isPending) return <LoadingSpinner fullScreen />;
   if (isError) return null;
   if (!data?.restaurantSections) return null;
 

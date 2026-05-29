@@ -1,7 +1,7 @@
 import { MountainCard } from "@/features/mountains/components/mountain-card";
 import { useRouter } from "expo-router";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import {
-  ActivityIndicator,
   ScrollView,
   TouchableOpacity,
   View,
@@ -41,13 +41,7 @@ export function MountainList({
     size: MOUNTAIN_LIST_PAGE_SIZE,
   });
 
-  if (isPending) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  if (isPending) return <LoadingSpinner fullScreen />;
   if (isError) return null;
   if (!data?.content) return null;
 

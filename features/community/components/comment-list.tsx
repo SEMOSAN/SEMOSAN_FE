@@ -1,4 +1,5 @@
-import { ActivityIndicator, Text, View } from "react-native";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { Text, View } from "react-native";
 import { usePostComments } from "../hooks/use-post-comments";
 import { CommentItem } from "./comment-item";
 
@@ -15,13 +16,7 @@ export function CommentList({
 }: CommentListProps) {
   const { data, isPending, isError } = usePostComments(postId);
 
-  if (isPending) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  if (isPending) return <LoadingSpinner fullScreen />;
 
   if (isError) {
     return null;

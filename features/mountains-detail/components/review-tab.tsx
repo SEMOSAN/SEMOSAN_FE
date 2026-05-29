@@ -4,18 +4,14 @@ import { UserIcon } from "@/components/icons/user-icon";
 import { CourseBadge } from "@/features/mountains/components/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Image, Text, TouchableOpacity, View } from "react-native";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 export function ReviewTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
 
-  if (isPending)
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
+  if (isPending) return <LoadingSpinner fullScreen />;
   if (isError) return null;
   if (!data?.reviews) return null;
 
