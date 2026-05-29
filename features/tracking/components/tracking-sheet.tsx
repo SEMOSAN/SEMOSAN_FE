@@ -108,7 +108,7 @@ export function TrackingSheet({
 
         {/* 말풍선 툴팁 — absolute로 버튼 위에 오버레이 */}
         {!isPaused && (isPhotoWindowOpen || showTooltip) && (
-          <View style={{ position: 'absolute', bottom: 48 + 12, left: 25, zIndex: 10 }}>
+          <View style={{ position: 'absolute', bottom: insets.bottom + 48 + 4, left: 36, zIndex: 10 }}>
             <View
               className="flex-row items-center justify-center gap-2"
               style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: TOOLTIP_BG }}
