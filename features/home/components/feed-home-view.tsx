@@ -41,17 +41,8 @@ const OVERSCAN = 1; // 화면 밖 여유분 (셀 단위)
 export function FeedHomeView() {
   const { data: semofeedData } = useSemofeed();
 
-  const apiItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
-  const feedItems =
-    apiItems.length > 0
-      ? apiItems
-      : [
-          {
-            id: 0,
-            imageUrl: "https://picsum.photos/seed/test/320/570",
-            isPublic: true,
-          },
-        ];
+  const feedItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
+
   // 화면 크기 (onLayout으로 측정)
   const [screen, setScreen] = useState({ w: 0, h: 0 });
 
