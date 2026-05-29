@@ -162,7 +162,7 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
                   }
                   width={22}
                   height={30}
-                  anchor={{ x: 0.3, y: 1 }}
+                  anchor={{ x: 0.3, y: 0.93 }}
                 >
                   <FlagMarkerIcon />
                 </NaverMapMarkerOverlay>
