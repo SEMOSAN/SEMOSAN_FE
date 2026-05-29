@@ -150,16 +150,20 @@ export default function BottomSheet({
     >
       {activeTab === '내 기록' && (
         <View className="w-full gap-y-4">
-          {Array.from({ length: Math.ceil(cards.length / 2) }).map((_, rowIdx) => (
-            <View key={rowIdx} className="flex-row gap-x-[9px]">
-              {cards.slice(rowIdx * 2, rowIdx * 2 + 2).map((card) => (
-                <MountainCard key={card.id} card={card} onPress={() => {
-                  onCardSelect?.(card.id);
-                  setSelectedCard(card);
-                }} />
-              ))}
-            </View>
-          ))}
+          {Array.from({ length: Math.ceil(cards.length / 2) }).map((_, rowIdx) => {
+            const rowCards = cards.slice(rowIdx * 2, rowIdx * 2 + 2);
+            return (
+              <View key={rowIdx} className="flex-row gap-x-[9px]">
+                {rowCards.map((card) => (
+                  <MountainCard key={card.id} card={card} onPress={() => {
+                    onCardSelect?.(card.id);
+                    setSelectedCard(card);
+                  }} />
+                ))}
+                {rowCards.length === 1 && <View className="flex-1" />}
+              </View>
+            );
+          })}
         </View>
       )}
 

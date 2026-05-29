@@ -19,7 +19,6 @@ type Props = {
 };
 
 export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled = false, lat = 0, lng = 0 }: Props) {
-  const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const bannerWidth = screenWidth - 32;
   const bannerHeight = Math.round(90 * bannerWidth / 343);
@@ -30,12 +29,9 @@ export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled
     <View className="flex-1 w-full">
       {/* 섹션 1: 첫 등산 CTA */}
       <View style={{ marginHorizontal: 16, marginTop: 12 }}>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={() => router.push('/(tabs)/tracking' as never)}
-        >
+        <View>
           <HikingStartBanner width={bannerWidth} height={bannerHeight} />
-        </TouchableOpacity>
+        </View>
       </View>
 
       {/* 섹션 2: 레벨 맞는 산 추천 */}
