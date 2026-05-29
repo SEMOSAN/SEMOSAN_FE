@@ -53,6 +53,13 @@ const config = {
     bundler: "metro",
   },
   plugins: [
+    [
+      "@sentry/react-native/expo",
+      {
+        organization: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+      },
+    ],
     "expo-router",
     "expo-font",
     "@react-native-firebase/app",
