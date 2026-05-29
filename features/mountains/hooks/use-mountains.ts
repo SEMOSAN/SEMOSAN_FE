@@ -20,7 +20,7 @@ export type GetMountainsParams = {
 
 async function getMountains({
   page = 0,
-  size = 10,
+  size,
   sort = "name,ASC",
 }: GetMountainsParams = {}): Promise<PageResponseMountainListResponse> {
   const res = await api.get<PageResponseMountainListResponse>({

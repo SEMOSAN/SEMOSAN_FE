@@ -4,6 +4,8 @@ import Svg, { ClipPath, Defs, G, Image as SvgImage, Path } from 'react-native-sv
 import { MountainIcon } from '@/components/icons/mountain-icon';
 import { MountainMarkerTextBox } from '@/components/map-markers/mountain-marker-textbox';
 
+const FALLBACK_IMAGE = require('@/assets/photo-thumb-1.jpg');
+
 type Props = {
   name: string;
   visitCount: number;
@@ -45,18 +47,14 @@ export function VisitedMarker({ name, visitCount, imageUri, flagColor = '#00D864
               />
 
               <G clipPath={`url(#${clipIdInner})`}>
-                {imageUri ? (
-                  <SvgImage
-                    href={{ uri: imageUri }}
-                    x={0}
-                    y={0}
-                    width={32}
-                    height={29}
-                    preserveAspectRatio="xMidYMid slice"
-                  />
-                ) : (
-                  <Path d="M0 0H32V29H0Z" fill="#FFFFFF" />
-                )}
+                <SvgImage
+                  href={imageUri ? { uri: imageUri } : FALLBACK_IMAGE}
+                  x={0}
+                  y={0}
+                  width={32}
+                  height={29}
+                  preserveAspectRatio="xMidYMid slice"
+                />
               </G>
 
             </Svg>

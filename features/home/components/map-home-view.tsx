@@ -15,6 +15,7 @@ import {
 import {
   VISITED_MARKER_OVERLAY_HEIGHT,
   VISITED_MARKER_OVERLAY_WIDTH,
+  VisitedMarker,
 } from "@/components/map-markers/visited-marker";
 import NoRecordBottomSheet from "@/components/no-record-bottom-sheet";
 import { useMountains } from "@/features/mountains/hooks/use-mountains";
@@ -115,6 +116,10 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
       ),
     }));
 
+    const myMountainImageMap = Object.fromEntries(
+      myMountains.map((m) => [m.mountainId, m.imageUrl])
+    );
+
     const visitedCards = myMountains.map((m) => ({
       id: String(m.mountainId),
       name: m.mountainName ?? "",
@@ -147,7 +152,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
           }}
         >
           {hasRecords
-            ? mapData?.mountains?.map((mountain) => (
+            ? mapData?.mountains?.filter((m) => m.visited).map((mountain) => (
                 <NaverMapMarkerOverlay
                   key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
                   latitude={mountain.latitude}
@@ -169,44 +174,29 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
                 >
                   <View
                     collapsable={false}
-                    // style={{
-                    //   width: mountain.visited
-                    //     ? VISITED_MARKER_OVERLAY_WIDTH
-                    //     : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                    //   height: mountain.visited
-                    //     ? VISITED_MARKER_OVERLAY_HEIGHT
-                    //     : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                    // }}
                     style={{
-                      width: UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                      height: UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
+                      width: mountain.visited
+                        ? VISITED_MARKER_OVERLAY_WIDTH
+                        : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
+                      height: mountain.visited
+                        ? VISITED_MARKER_OVERLAY_HEIGHT
+                        : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
                     }}
                   >
-                    <UnvisitedMountainPillMarker
-                      name={mountain.name ?? ""}
-                      variant={"visited"}
-                      selected={mountain?.id === selectedMountainId}
-                    />
-                    {/* {mountain.visited ? (
-                         <VisitedMarker
-                           name={mountain.name}
-                           visitCount={mountain.visitCount}
-                           imageUri={mountain.imageUrl}
-                           selected={mountain.id === selectedMountainId}
-                         />
-                       ) : (
-                         <UnvisitedMountainPillMarker
-                           name={mountain.name}
-                           variant={
-                             mountain.visited
-                               ? "visited"
-                               : activeTab === "큐레이션"
-                                 ? "curation"
-                                 : "trending"
-                           }
-                           selected={mountain.id === selectedMountainId}
-                         />
-                       )} */}
+                    {mountain.visited ? (
+                      <VisitedMarker
+                        name={mountain.name}
+                        visitCount={mountain.visitCount}
+                        imageUri={myMountainImageMap[mountain.id] ?? mountain.imageUrl}
+                        selected={mountain.id === selectedMountainId}
+                      />
+                    ) : (
+                      <UnvisitedMountainPillMarker
+                        name={mountain.name ?? ""}
+                        variant="trending"
+                        selected={mountain.id === selectedMountainId}
+                      />
+                    )}
                   </View>
                 </NaverMapMarkerOverlay>
               ))
