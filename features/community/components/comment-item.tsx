@@ -17,7 +17,11 @@ type ReplyItemProps = {
   postId: number;
   parentCommentId: number;
   currentUserNickname?: string;
-  onReplyPress: (commentId: number, authorId: number, authorName: string) => void;
+  onReplyPress: (
+    commentId: number,
+    authorId: number,
+    authorName: string,
+  ) => void;
 };
 
 function ReplyItem({
@@ -33,7 +37,7 @@ function ReplyItem({
 
   return (
     <View className="flex-row gap-2 py-3 pl-[38px]">
-      <PostAvatar size="sm" />
+      <PostAvatar size="sm" imageUrl={reply.author?.profileUrl} />
       <View className="flex-1 gap-1">
         <View className="flex-row flex-wrap items-center gap-1">
           <Text className="text-label-normal typo-caption-1-semi-bold">
@@ -50,13 +54,20 @@ function ReplyItem({
           <Pressable
             hitSlop={8}
             onPress={() =>
-              onReplyPress(parentCommentId, reply.author?.id ?? 0, reply.author?.nickname ?? "")
+              onReplyPress(
+                parentCommentId,
+                reply.author?.id ?? 0,
+                reply.author?.nickname ?? "",
+              )
             }
           >
             <Text className="text-neutral-500 typo-label-small">답글 달기</Text>
           </Pressable>
           {isAuthor && (
-            <Pressable hitSlop={8} onPress={() => confirmDelete(() => deleteComment(reply.id!))}>
+            <Pressable
+              hitSlop={8}
+              onPress={() => confirmDelete(() => deleteComment(reply.id!))}
+            >
               <Text className="text-neutral-500 typo-label-small">삭제</Text>
             </Pressable>
           )}
@@ -70,7 +81,11 @@ type CommentItemProps = {
   comment: CommentResponse;
   postId: number;
   currentUserNickname?: string;
-  onReplyPress: (commentId: number, authorId: number, authorName: string) => void;
+  onReplyPress: (
+    commentId: number,
+    authorId: number,
+    authorName: string,
+  ) => void;
 };
 
 export function CommentItem({
@@ -87,7 +102,7 @@ export function CommentItem({
   return (
     <View>
       <View className="flex-row gap-2 py-3">
-        <PostAvatar size="md" />
+        <PostAvatar size="md" imageUrl={comment.author?.profileUrl} />
         <View className="flex-1 gap-1">
           <View className="flex-row flex-wrap items-center gap-1">
             <Text className="text-label-normal typo-caption-1-semi-bold">
@@ -104,7 +119,11 @@ export function CommentItem({
             <Pressable
               hitSlop={8}
               onPress={() =>
-                onReplyPress(comment.id!, comment.author?.id ?? 0, comment.author?.nickname ?? "")
+                onReplyPress(
+                  comment.id!,
+                  comment.author?.id ?? 0,
+                  comment.author?.nickname ?? "",
+                )
               }
             >
               <Text className="text-neutral-500 typo-label-small">
@@ -112,7 +131,10 @@ export function CommentItem({
               </Text>
             </Pressable>
             {isAuthor && (
-              <Pressable hitSlop={8} onPress={() => confirmDelete(() => deleteComment(comment.id!))}>
+              <Pressable
+                hitSlop={8}
+                onPress={() => confirmDelete(() => deleteComment(comment.id!))}
+              >
                 <Text className="text-neutral-500 typo-label-small">삭제</Text>
               </Pressable>
             )}

@@ -2,10 +2,10 @@ import { useDeletePost } from "@/features/community/hooks/use-delete-post";
 import { useFreePostDetail } from "@/features/community/hooks/use-free-post-detail";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CommentInputBar } from "./comment-input-bar";
+import { CommentInputBar, CommentInputBarRef } from "./comment-input-bar";
 import { CommentList } from "./comment-list";
 import { PostBody } from "./post-body";
 import { PostDetailHeader } from "./post-detail-header";
@@ -24,6 +24,7 @@ export function FreeBoardDetailScreen({ postId }: FreeBoardDetailScreenProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+  const inputBarRef = useRef<CommentInputBarRef>(null);
 
   const { data: post } = useFreePostDetail(postId);
   const { data: profile } = useProfile();
@@ -54,6 +55,7 @@ export function FreeBoardDetailScreen({ postId }: FreeBoardDetailScreenProps) {
               post={post}
               currentUserNickname={profile?.nickname}
               onDelete={handleDeletePost}
+              onCommentPress={() => inputBarRef.current?.focus()}
             />
           )}
           <View className="h-[6px] bg-fill-strong" />
@@ -64,6 +66,7 @@ export function FreeBoardDetailScreen({ postId }: FreeBoardDetailScreenProps) {
           />
         </ScrollView>
         <CommentInputBar
+          ref={inputBarRef}
           postId={postId}
           replyTarget={replyTarget}
           onReplyCancel={() => setReplyTarget(null)}

@@ -10,7 +10,6 @@ import {
   FEED_SLIDE_UP_DISTANCE,
   HOME_TAB_TRANSITION_DURATION,
 } from "@/features/home/constants";
-import { setStatusBarStyle } from "expo-status-bar";
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import Animated, {
@@ -59,7 +58,6 @@ export default function HomeScreen() {
         easing: Easing.bezier(0.45, 0.05, 0.55, 0.95),
       });
       setTabBarVariant("dark");
-      setStatusBarStyle("light");
     } else {
       mapViewRef.current?.expandSheet();
       tabProgress.value = withTiming(0, {
@@ -67,7 +65,6 @@ export default function HomeScreen() {
         easing: Easing.in(Easing.sin),
       });
       setTabBarVariant("light");
-      setStatusBarStyle("dark");
     }
   }
 
