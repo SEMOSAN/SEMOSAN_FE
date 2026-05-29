@@ -52,7 +52,7 @@ export function TrackingSheet({
   return (
     <View
       className="w-full bg-fill-normal overflow-hidden"
-      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, minHeight: 220 }}
     >
       {/* 핸들 — 탭하면 펼침/접힘 */}
       <TouchableOpacity
@@ -103,12 +103,12 @@ export function TrackingSheet({
         </View>
       )}
 
-      {/* 버튼 영역 */}
-      <View className="px-4 gap-2" style={{ paddingTop: 12, paddingBottom: insets.bottom }}>
+      {/* 버튼 영역 — 툴팁은 absolute로 위에 띄워서 시트 높이 유지 */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom }}>
 
-        {/* 말풍선 툴팁 — 트래킹 중(비일시정지)에만 표시 */}
+        {/* 말풍선 툴팁 — absolute로 버튼 위에 오버레이 */}
         {!isPaused && (isPhotoWindowOpen || showTooltip) && (
-          <View style={{ alignItems: 'flex-start', marginLeft: 25 }}>
+          <View style={{ position: 'absolute', bottom: 48 + 12, left: 25, zIndex: 10 }}>
             <View
               className="flex-row items-center justify-center gap-2"
               style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: TOOLTIP_BG }}
