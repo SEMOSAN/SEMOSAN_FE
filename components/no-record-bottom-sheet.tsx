@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { Image, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { HikingStartBanner } from '@/components/icons/hiking-start-banner';
 import { InfoIcon } from '@/components/icons/info-icon';

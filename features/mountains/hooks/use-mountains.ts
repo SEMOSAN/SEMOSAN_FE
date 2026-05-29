@@ -25,7 +25,7 @@ async function getMountains({
 }: GetMountainsParams = {}): Promise<PageResponseMountainListResponse> {
   const res = await api.get<PageResponseMountainListResponse>({
     path: ENDPOINTS.MOUNTAINS,
-    params: { page, size, sort },
+    params: { page, ...(size !== undefined && { size }), sort },
   });
   return res.data;
 }
