@@ -293,7 +293,7 @@ export default function RecordScreen() {
         {/* 클라이브 */}
         {activeTab === "클라이브" && (
           <View className="pb-10 pt-2">
-            <ViewShot ref={cliveShotRef} options={{ format: "jpg", quality: 1 }}>
+            <ViewShot ref={cliveShotRef} options={{ format: "jpg", quality: 1 }} style={{ width: 335, alignSelf: "center" }}>
               <View style={styles.cardWrap}>
                 {/* 왼쪽 그라디언트 바 — 정상 완료: 빨강까지 full */}
                 <LinearGradient
@@ -433,7 +433,7 @@ export default function RecordScreen() {
         {/* 포토 리포트 */}
         {activeTab === "포토 리포트" && (
           <View className="pb-10 pt-2">
-            <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }}>
+            <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }} style={{ width: 335, alignSelf: "center" }}>
               <View style={styles.cardWrap}>
                 {/* 배경 사진 */}
                 <ExpoImage
