@@ -18,6 +18,8 @@ jobs:
         run: npm ci
 
       - name: Check expo package compatibility
+        env:
+          EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY: ${{ secrets.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY }}
         run: npx expo install --fix
 
       - name: Fail if package versions were changed
