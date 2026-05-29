@@ -3,6 +3,13 @@ import {
   NearbyMountainInfo,
 } from "@/types/api.generated";
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import {
   ScrollView,
   Text,
@@ -10,6 +17,9 @@ import {
   View,
 } from "react-native";
 import { ApiCourseItem } from "./course-item";
+
+const SHEET_HEIGHT = 448;
+const COLLAPSE_THRESHOLD = 80;
 
 type Props = {
   mountain?: NearbyMountainInfo;
@@ -19,6 +29,7 @@ type Props = {
   onSelectCourse: (id: number) => void;
   onFreeRecord: () => void;
   onStartCountdown: () => void;
+  onCollapse?: () => void;
 };
 
 export function CourseSelectSheet({
@@ -29,16 +40,53 @@ export function CourseSelectSheet({
   onSelectCourse,
   onFreeRecord,
   onStartCountdown,
+  onCollapse,
 }: Props) {
+  const translateY = useSharedValue(0);
+
+  const panGesture = Gesture.Pan()
+    .activeOffsetY(5)
+    .onUpdate((e) => {
+      if (e.translationY > 0) {
+        translateY.value = e.translationY;
+      }
+    })
+    .onEnd((e) => {
+      if (e.translationY > COLLAPSE_THRESHOLD || e.velocityY > 600) {
+        if (onCollapse) runOnJS(onCollapse)();
+        translateY.value = withSpring(0, { damping: 30, stiffness: 300 });
+      } else {
+        translateY.value = withSpring(0, { damping: 30, stiffness: 300 });
+      }
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   return (
-    <View
-      className="w-full overflow-hidden bg-fill-normal"
-      style={{ height: 448, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: SHEET_HEIGHT,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          overflow: "hidden",
+        },
+        animatedStyle,
+      ]}
+      className="bg-fill-normal"
     >
-      {/* 드래그 핸들 */}
-      <View className="items-center pb-2 pt-3">
-        <View className="h-1 w-10 rounded-full bg-fill-neutral" />
-      </View>
+      {/* 드래그 핸들 — 이 영역에만 pan gesture 적용 */}
+      <GestureDetector gesture={panGesture}>
+        <View className="items-center pb-2 pt-3" style={{ paddingHorizontal: 60 }}>
+          <View className="h-1 w-10 rounded-full bg-fill-neutral" />
+        </View>
+      </GestureDetector>
 
       {/* 타이틀 */}
       <View className="gap-1 px-4 pb-4 pt-1">
@@ -99,6 +147,6 @@ export function CourseSelectSheet({
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Animated.View>
   );
 }

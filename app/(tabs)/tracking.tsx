@@ -958,6 +958,7 @@ export default function TrackingScreen() {
           onSelectCourse={(id) => setSelectedCourseId(String(id))}
           onFreeRecord={handleFreeRecord}
           onStartCountdown={startCountdown}
+          onCollapse={() => setCollapsed(true)}
         />
       )}
 
