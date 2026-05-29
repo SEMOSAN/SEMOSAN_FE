@@ -85,14 +85,7 @@ export function PostBody({
     <View className="gap-3 px-5 py-4">
       <View className="flex-row items-center gap-2">
         <View className="flex-1 flex-row items-center gap-2">
-          {post.author?.profileUrl ? (
-            <Image
-              source={{ uri: post.author.profileUrl }}
-              className="size-10 rounded-full"
-            />
-          ) : (
-            <PostAvatar size="lg" />
-          )}
+          <PostAvatar size="lg" imageUrl={post.author?.profileUrl} />
           <View>
             <Text className="text-label-normal typo-body-2-normal-semi-bold">
               {post.author?.nickname ?? ""}
