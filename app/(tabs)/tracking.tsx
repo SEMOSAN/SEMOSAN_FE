@@ -837,6 +837,12 @@ export default function TrackingScreen() {
             longitude: 126.9636,
             zoom: 12,
           }}
+          mapPadding={{
+            bottom: isTracking ? trackingSheetHeight : collapsed ? COLLAPSED_PEEK_HEIGHT : 448,
+            top: 0,
+            left: 0,
+            right: 0,
+          }}
           onCameraChanged={({ reason }) => {
             if (reason === 'Gesture') setIsFollowingUser(false);
           }}
