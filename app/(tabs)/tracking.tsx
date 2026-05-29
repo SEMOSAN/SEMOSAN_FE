@@ -479,12 +479,18 @@ export default function TrackingScreen() {
     const maxLat = Math.max(...lats);
     const minLng = Math.min(...lngs);
     const maxLng = Math.max(...lngs);
+    const padding = 0.15;
     const fit = () =>
-      mapRef.current?.animateRegionTo({
-        latitude: (minLat + maxLat) / 2,
-        longitude: (minLng + maxLng) / 2,
-        latitudeDelta: (maxLat - minLat) * 1.3,
-        longitudeDelta: (maxLng - minLng) * 1.3,
+      mapRef.current?.animateCameraWithTwoCoords({
+        coord1: {
+          latitude: minLat - (maxLat - minLat) * padding,
+          longitude: minLng - (maxLng - minLng) * padding,
+        },
+        coord2: {
+          latitude: maxLat + (maxLat - minLat) * padding,
+          longitude: maxLng + (maxLng - minLng) * padding,
+        },
+        duration: 500,
       });
     // mapRef가 아직 마운트 전일 수 있으니 약간 지연
     const timer = setTimeout(fit, 300);
