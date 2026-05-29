@@ -135,6 +135,7 @@ export default function TrackingScreen() {
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
+  const [isFollowingUser, setIsFollowingUser] = useState(false);
   const isMountedRef = useRef(true);
   useEffect(() => () => { isMountedRef.current = false; }, []);
 
@@ -495,6 +496,22 @@ export default function TrackingScreen() {
     return () => clearTimeout(timer);
   }, [courseDetail?.polyline, isTracking]);
 
+  // 트래킹 시작/종료 시 follow 모드 토글
+  useEffect(() => {
+    setIsFollowingUser(isTracking);
+  }, [isTracking]);
+
+  // 트래킹 중 실시간 위치 마커 카메라 추적 (사용자가 직접 조작하면 follow 해제)
+  useEffect(() => {
+    if (!isFollowingUser || !markerCoord) return;
+    mapRef.current?.animateCameraTo({
+      latitude: markerCoord.latitude,
+      longitude: markerCoord.longitude,
+      zoom: 15,
+      duration: 800,
+    });
+  }, [markerCoord, isFollowingUser]);
+
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
     setCountdown(3);
@@ -820,6 +837,15 @@ export default function TrackingScreen() {
             longitude: 126.9636,
             zoom: 12,
           }}
+          mapPadding={{
+            bottom: isTracking ? trackingSheetHeight : collapsed ? COLLAPSED_PEEK_HEIGHT : 448,
+            top: 0,
+            left: 0,
+            right: 0,
+          }}
+          onCameraChanged={({ reason }) => {
+            if (reason === 'Gesture') setIsFollowingUser(false);
+          }}
         >
           {staticMapOverlays}
 
@@ -831,6 +857,7 @@ export default function TrackingScreen() {
               width={28}
               height={34}
               anchor={{ x: 0.5, y: 0.47 }}
+              onTap={() => setIsFollowingUser(true)}
             >
               {/* 총 높이: 삼각형 9 + 원 28 - 겹침 3 = 34 */}
               <View collapsable={false} style={{ width: 28, height: 34 }}>
@@ -937,6 +964,7 @@ export default function TrackingScreen() {
           onSelectCourse={(id) => setSelectedCourseId(String(id))}
           onFreeRecord={handleFreeRecord}
           onStartCountdown={startCountdown}
+          onCollapse={() => setCollapsed(true)}
         />
       )}
 
@@ -970,7 +998,7 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
-              isPhotoWindowOpen={photoWindow?.status === "OPEN"}
+              isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
               hasSummited={hasSummited}
               timeToTarget={timeToTarget}
               distanceToTarget={distanceToTarget}
