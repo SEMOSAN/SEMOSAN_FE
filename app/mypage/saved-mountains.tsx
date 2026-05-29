@@ -30,11 +30,11 @@ function SavedMountainItem({ mountain }: { mountain: LikedMountainResponse }) {
       {/* 정보 */}
       <View style={{ flex: 1, gap: 6 }}>
         <View className="flex-row items-end" style={{ gap: 8 }}>
-          <Text className="typo-headline-1-semi-bold text-label-normal">
+          <Text className="typo-headline-1-semi-bold text-label-normal shrink-0">
             {mountain.name}
           </Text>
           <Text
-            className="typo-body-3-medium text-label-subtler"
+            className="typo-body-3-medium text-label-subtler shrink"
             style={{ paddingBottom: 2 }}
             numberOfLines={1}
           >
