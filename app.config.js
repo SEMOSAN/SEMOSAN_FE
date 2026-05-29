@@ -54,6 +54,7 @@ const config = {
   },
   plugins: [
     "expo-router",
+    "expo-font",
     "@react-native-firebase/app",
     "./plugins/withModularHeaders",
     ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
