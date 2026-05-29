@@ -10,7 +10,7 @@ export function HikingStatsCard() {
       <Divider />
       <StatItem label="정복한 산" value={`${data?.conqueredMountainCount ?? 0}개`} />
       <Divider />
-      <StatItem label="누적 등산 고도" value={`${data?.totalAltitude ?? 0}m`} />
+      <StatItem label="누적 등산 고도" value={`${Math.round(data?.totalAltitude ?? 0)}Nm`} />
     </View>
   );
 }
