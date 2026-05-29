@@ -1,0 +1,99 @@
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
+require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
+
+require 'json'
+podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
+
+def ccache_enabled?(podfile_properties)
+  # Environment variable takes precedence
+  return ENV['USE_CCACHE'] == '1' if ENV['USE_CCACHE']
+  
+  # Fall back to Podfile properties
+  podfile_properties['apple.ccacheEnabled'] == 'true'
+end
+
+ENV['RCT_NEW_ARCH_ENABLED'] ||= '0' if podfile_properties['newArchEnabled'] == 'false'
+ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] ||= podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
+ENV['RCT_USE_RN_DEP'] ||= '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true' && podfile_properties['newArchEnabled'] != 'false'
+ENV['RCT_USE_PREBUILT_RNCORE'] ||= '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true' && podfile_properties['newArchEnabled'] != 'false'
+platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
+
+  pod 'GoogleUtilities', :modular_headers => true
+
+prepare_react_native_project!
+
+target 'semosan' do
+  use_expo_modules!
+
+  if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
+    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
+  else
+    config_command = [
+      'node',
+      '--no-warnings',
+      '--eval',
+      'require(\'expo/bin/autolinking\')',
+      'expo-modules-autolinking',
+      'react-native-config',
+      '--json',
+      '--platform',
+      'ios'
+    ]
+  end
+
+  config = use_native_modules!(config_command)
+
+  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
+  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
+  )
+
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      :ccache_enabled => ccache_enabled?(podfile_properties),
+    )
+
+    sandbox_root = installer.sandbox.root
+
+    provider_path = File.join(sandbox_root, "Target Support Files/Pods-semosan/ExpoModulesProvider.swift")
+    patch_provider = lambda do |path|
+      return unless File.exist?(path)
+      content = File.read(path)
+      return if content.include?("LiveActivityModule")
+      content = content.sub("return [\n", "return [\n      LiveActivityModule.self,\n")
+      File.write(path, content)
+    end
+    patch_provider.call(provider_path)
+
+    configure_script_path = File.join(sandbox_root, "Target Support Files/Pods-semosan/expo-configure-project.sh")
+    if File.exist?(configure_script_path)
+      script_content = File.read(configure_script_path)
+      unless script_content.include?("LiveActivityModule")
+        patch_sh = <<~'SHELL'
+
+          PROVIDER="${PODS_ROOT}/Target Support Files/Pods-semosan/ExpoModulesProvider.swift"
+          if [ -f "$PROVIDER" ] && ! grep -q "LiveActivityModule.self" "$PROVIDER"; then
+            python3 -c "
+          import sys
+          with open(sys.argv[1], 'r') as f:
+              c = f.read()
+          c = c.replace('return [\n', 'return [\n      LiveActivityModule.self,\n', 1)
+          with open(sys.argv[1], 'w') as f:
+              f.write(c)
+          " "$PROVIDER"
+          fi
+        SHELL
+        File.write(configure_script_path, script_content + patch_sh)
+      end
+    end
+  end
+end
