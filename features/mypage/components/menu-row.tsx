@@ -32,7 +32,7 @@ export function MenuRow({ label, value, onPress, danger, hideChevron }: Props) {
           </Text>
         )}
         {!hideChevron && (
-          <MenuChevronIcon color={danger ? "#ff5249" : "#73798C"} />
+          <MenuChevronIcon color="#73798C" />
         )}
       </View>
     </TouchableOpacity>
