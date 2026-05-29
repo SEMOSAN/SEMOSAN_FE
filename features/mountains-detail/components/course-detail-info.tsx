@@ -95,14 +95,14 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
         label: "오르막길",
         value:
           typeof course.ascent === "number"
-            ? `${Math.round(course.ascent)}m`
+            ? `${(course.ascent / 1000).toFixed(1)}km`
             : "-",
       },
       {
         label: "내리막길",
         value:
           typeof course.descent === "number"
-            ? `${Math.round(course.descent)}m`
+            ? `${(course.descent / 1000).toFixed(1)}km`
             : "-",
       },
     ],
