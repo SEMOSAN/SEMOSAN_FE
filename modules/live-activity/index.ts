@@ -17,7 +17,6 @@ export interface StartLiveActivityParams {
   remainingMinutes?: number;
   remainingMeters?: number;
   progress?: number;
-  timerStartEpoch?: number;
 }
 
 export interface UpdateLiveActivityParams {
@@ -27,7 +26,6 @@ export interface UpdateLiveActivityParams {
   remainingMinutes?: number;
   remainingMeters?: number;
   progress?: number;
-  timerStartEpoch?: number;
 }
 
 export const LiveActivity = {
@@ -38,7 +36,6 @@ export const LiveActivity = {
       remainingMinutes: params.remainingMinutes ?? 0,
       remainingMeters: params.remainingMeters ?? 0,
       progress: params.progress ?? 0,
-      timerStartEpoch: params.timerStartEpoch,
     });
   },
 
@@ -51,7 +48,6 @@ export const LiveActivity = {
       remainingMinutes: params.remainingMinutes ?? 0,
       remainingMeters: params.remainingMeters ?? 0,
       progress: params.progress ?? 0,
-      timerStartEpoch: params.timerStartEpoch,
     });
   },
 
