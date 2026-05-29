@@ -241,8 +241,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
         <Animated.View
           style={[
             styles.locationButton,
-            // locationButtonStyle, // TODO : 하단 바텀시트  (HomeBottomSheetContainer) 가 주석처리가 풀리면 다시 사용하도록 한다.
-            { bottom: 12 }, // TODO : 하단 바텀시트  (HomeBottomSheetContainer) 가 주석처리 풀리면 삭제하도록 한다.
+            locationButtonStyle,
           ]}
         >
           <TouchableOpacity
