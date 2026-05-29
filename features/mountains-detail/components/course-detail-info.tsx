@@ -1,7 +1,11 @@
 import { DotMarkerIcon } from "@/components/icons/dot-marker-icon";
 import { FlagMarkerIcon } from "@/components/icons/flag-marker-icon";
-import { HeartIcon } from "@/components/icons/heart-icon";
+import {
+  HeartFilledIcon,
+  HeartOutlineIcon,
+} from "@/components/icons/heart-icon";
 import { CourseBadge } from "@/features/mountains/components/course-badge";
+import { useToggleCourseLike } from "@/features/tracking/hooks/use-toggle-course-like";
 import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
 import { formatDuration } from "@/modules/format-duration";
 import { CourseDetailResponse } from "@/types/api.generated";
@@ -11,6 +15,7 @@ import {
   NaverMapPathOverlay,
   NaverMapView,
 } from "@mj-studio/react-native-naver-map";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const DIFFICULTY_LABEL: Record<
@@ -50,6 +55,9 @@ type CourseDetailInfoProps = {
 };
 
 export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
+  const [liked, setLiked] = useState(course.likedByMe ?? false);
+  const { mutate: toggleLike } = useToggleCourseLike(course.id!);
+
   const courseCoords = parseCoursePolyline(course.polyline);
   const center = getCenterCoordinate(courseCoords);
   const zoom = getCourseZoom(courseCoords);
@@ -177,8 +185,17 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
               {course.name}
             </Text>
           </View>
-          <Pressable hitSlop={8}>
-            <HeartIcon />
+          <Pressable
+            hitSlop={8}
+            onPress={() =>
+              toggleLike(undefined, { onSuccess: () => setLiked((v) => !v) })
+            }
+          >
+            {liked ? (
+              <HeartFilledIcon size={24} />
+            ) : (
+              <HeartOutlineIcon size={24} />
+            )}
           </Pressable>
         </View>
 

@@ -22,6 +22,7 @@ export const ENDPOINTS = {
   MOUNTAINS_BY_MOUNTAINID_LIKE: (mountainId: number | string) => `/api/mountains/${mountainId}/like`,
   HIKING_RECORDS_BY_HIKINGRECORDID_DIFFICULTY_FEEDBACK: (hikingRecordId: number | string) => `/api/hiking-records/${hikingRecordId}/difficulty-feedback`,
   FCM_TOKENS: "/api/fcm/tokens",
+  COURSES_BY_COURSEID_LIKE: (courseId: number | string) => `/api/courses/${courseId}/like`,
   COMMUNITY_RECORD_POSTS: "/api/community/record-posts",
   COMMUNITY_POSTS_BY_POSTID_LIKES: (postId: number | string) => `/api/community/posts/${postId}/likes`,
   COMMUNITY_POSTS_BY_POSTID_COMMENTS: (postId: number | string) => `/api/community/posts/${postId}/comments`,
@@ -248,6 +249,15 @@ export type CourseDifficultyFeedbackResponse = {
 export type FcmTokenRegisterRequest = {
   token?: string;
   deviceType: "IOS" | "ANDROID";
+};
+export type ApiResponseCourseLikeToggleResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: CourseLikeToggleResponse;
+};
+export type CourseLikeToggleResponse = {
+  liked?: boolean;
 };
 export type RecordPostCreateRequest = {
   hikingRecordId: number;
@@ -706,6 +716,7 @@ export type ApiResponseCourseDetailResponse = {
 };
 export type CourseDetailResponse = {
   id?: number;
+  mountainId?: number;
   name?: string;
   difficulty?: "EASY" | "NORMAL" | "HARD";
   distance?: number;
@@ -715,6 +726,7 @@ export type CourseDetailResponse = {
   ascent?: number;
   descent?: number;
   maxAltitude?: number;
+  likedByMe?: boolean;
   polyline?: string;
   altitudes?: string;
 };
@@ -876,6 +888,11 @@ export type RegisterBody = FcmTokenRegisterRequest;
 
 // DELETE /api/fcm/tokens
 export type DeleteBody = FcmTokenDeleteRequest;
+
+// POST /api/courses/{courseId}/like
+export type ToggleCourseLikeParams = {
+  courseId: number;
+};
 
 // GET /api/community/record-posts
 export type GetListParams = {
