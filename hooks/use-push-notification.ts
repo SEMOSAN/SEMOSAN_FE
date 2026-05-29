@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { api } from '@/lib/api';
 import { getApp } from '@react-native-firebase/app';
 import { getMessaging, getToken } from '@react-native-firebase/messaging';
@@ -127,6 +128,7 @@ async function registerFcmToken() {
     console.log('[Push] FCM 토큰 등록 완료:', token);
   } catch (error) {
     console.error('[Push] FCM 토큰 등록 실패:', error);
+    Sentry.captureException(new Error("FcmTokenRegistrationFailed"));
   }
 }
 

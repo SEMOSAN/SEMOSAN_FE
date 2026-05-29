@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { LocationIcon } from "@/components/icons/location-icon";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
@@ -569,6 +570,7 @@ export default function TrackingScreen() {
                 "[Tracking] 세션 시작 실패:",
                 err?.response?.data ?? err?.message ?? err,
               );
+              Sentry.captureException(new Error("TrackingSessionStartFailed"));
               // API 실패 시 트래킹 상태 롤백
               setIsTracking(false);
               setIsFreeMode(false);
@@ -687,6 +689,7 @@ export default function TrackingScreen() {
       pauseSession(sessionId, {
         onError: (err) => {
           console.warn("[Tracking] 일시정지 실패:", err);
+          Sentry.captureException(new Error("TrackingSessionPauseFailed"));
           setIsPaused(false); // API 실패 시 UI 되돌리기
         },
       });
@@ -698,6 +701,7 @@ export default function TrackingScreen() {
       resumeSession(sessionId, {
         onError: (err) => {
           console.warn("[Tracking] 재개 실패:", err);
+          Sentry.captureException(new Error("TrackingSessionResumeFailed"));
           setIsPaused(true); // API 실패 시 UI 되돌리기
         },
       });
@@ -759,6 +763,7 @@ export default function TrackingScreen() {
         console.log("[Tracking] 사진 메타 저장 완료");
       } catch (err) {
         console.warn("[Tracking] 인증 사진 처리 실패:", err);
+        Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
       }
     }
   };
@@ -772,7 +777,10 @@ export default function TrackingScreen() {
         onSuccess: (data) => {
           if (data.hikingRecordId != null) setHikingRecordId(data.hikingRecordId);
         },
-        onError: (err) => console.warn("[Tracking] 세션 종료 실패:", err),
+        onError: (err) => {
+          console.warn("[Tracking] 세션 종료 실패:", err);
+          Sentry.captureException(new Error("TrackingSessionCompleteFailed"));
+        },
       });
     }
     setShowDifficultyRating(true);

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { AppleIcon } from "@/components/icons/apple-icon";
 import { KakaoIcon } from "@/components/icons/kakao-icon";
 import { SemosanIcon } from "@/components/icons/semosan-icon";
@@ -50,6 +51,7 @@ export default function LoginScreen(): React.JSX.Element {
         return;
       }
       console.error("Apple login error:", e);
+      Sentry.captureException(new Error("AppleLoginFailed"));
     }
   }
 
@@ -66,6 +68,7 @@ export default function LoginScreen(): React.JSX.Element {
       router.replace(result.onboardingCompleted ? "/(tabs)" : "/onboarding");
     } catch (e: unknown) {
       console.error("Kakao login error:", e);
+      Sentry.captureException(new Error("KakaoLoginFailed"));
     }
   }
 

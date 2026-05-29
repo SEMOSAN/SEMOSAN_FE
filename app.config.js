@@ -56,6 +56,8 @@ const config = {
     [
       "@sentry/react-native/expo",
       {
+        url: "https://sentry.io/",
+        note: "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
         organization: process.env.SENTRY_ORG,
         project: process.env.SENTRY_PROJECT,
       },
