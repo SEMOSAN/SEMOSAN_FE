@@ -26,7 +26,7 @@ const config = {
       NSPhotoLibraryUsageDescription:
         "프로필 사진 선택을 위해 사진 라이브러리 접근이 필요합니다.",
 
-      UIBackgroundModes: ["remote-notification"],
+      UIBackgroundModes: ["remote-notification", "location"],
 
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -36,7 +36,6 @@ const config = {
   },
   android: {
     googleServicesFile: "./google-services.json",
-
     adaptiveIcon: {
       backgroundColor: "#E6F4FE",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -55,9 +54,9 @@ const config = {
   },
   plugins: [
     "expo-router",
+    "expo-font",
     "@react-native-firebase/app",
     "./plugins/withModularHeaders",
-
     ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
     [
       "expo-notifications",

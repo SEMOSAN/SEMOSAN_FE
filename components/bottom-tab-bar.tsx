@@ -4,13 +4,17 @@ import { MountainIcon } from "@/components/icons/mountain-icon";
 import { MyIcon } from "@/components/icons/my-icon";
 import { NavigationIcon } from "@/components/icons/navigation-icon";
 import { useHomeStateContext } from "@/contexts/home-state-context";
+import { HOME_TAB_TRANSITION_DURATION } from "@/features/home/constants";
 import { Colors } from "@/types/colors.generated";
 import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Pressable, View } from "react-native";
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -66,36 +70,54 @@ export function BottomTabBar({
   const insets = useSafeAreaInsets();
   const { tabProgress } = useHomeStateContext();
 
+  const homeTabIndex = state.routes.findIndex((r) => r.name === "index");
+
+  // 1 = 홈 탭, 0 = 나머지 탭
+  const isHome = useSharedValue(state.index === homeTabIndex ? 1 : 0);
+
+  useEffect(() => {
+    isHome.value = withTiming(state.index === homeTabIndex ? 1 : 0, {
+      duration: HOME_TAB_TRANSITION_DURATION,
+    });
+  }, [state.index]);
+
+  // 홈이면 tabProgress 적용, 아니면 0으로 자연스럽게 전환
+  const effectiveProgress = useDerivedValue(() => {
+    return tabProgress.value * isHome.value;
+  });
+
   const animatedContainerStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
-      tabProgress.value,
+      effectiveProgress.value,
       [0, 1],
       [BG_LIGHT, BG_DARK],
     ),
     borderTopColor: interpolateColor(
-      tabProgress.value,
+      effectiveProgress.value,
       [0, 1],
       [BORDER_LIGHT, BORDER_DARK],
     ),
   }));
 
   const lightLayerStyle = useAnimatedStyle(() => ({
-    opacity: 1 - tabProgress.value,
+    opacity: 1 - effectiveProgress.value,
   }));
+
   const darkLayerStyle = useAnimatedStyle(() => ({
-    opacity: tabProgress.value,
+    opacity: effectiveProgress.value,
   }));
 
   const focusedTextStyle = useAnimatedStyle(() => ({
     color: interpolateColor(
-      tabProgress.value,
+      effectiveProgress.value,
       [0, 1],
       [FOCUSED_LIGHT, FOCUSED_DARK],
     ),
   }));
+
   const unfocusedTextStyle = useAnimatedStyle(() => ({
     color: interpolateColor(
-      tabProgress.value,
+      effectiveProgress.value,
       [0, 1],
       [UNFOCUSED_LIGHT, UNFOCUSED_DARK],
     ),
@@ -103,6 +125,7 @@ export function BottomTabBar({
 
   const currentRoute = state.routes[state.index];
   const { tabBarStyle } = descriptors[currentRoute.key].options;
+
   if (tabBarStyle && (tabBarStyle as { display?: string }).display === "none") {
     return null;
   }
@@ -127,6 +150,7 @@ export function BottomTabBar({
             target: route.key,
             canPreventDefault: true,
           });
+
           if (!isFocused && !event.defaultPrevented) {
             navigation.navigate(route.name);
           }
@@ -146,6 +170,7 @@ export function BottomTabBar({
               <Animated.View style={lightLayerStyle}>
                 {item.renderIcon(lightColor)}
               </Animated.View>
+
               <Animated.View
                 className="absolute left-0 top-0"
                 style={darkLayerStyle}
@@ -153,6 +178,7 @@ export function BottomTabBar({
                 {item.renderIcon(darkColor)}
               </Animated.View>
             </View>
+
             <Animated.Text
               className="text-center typo-caption-1-medium"
               style={isFocused ? focusedTextStyle : unfocusedTextStyle}

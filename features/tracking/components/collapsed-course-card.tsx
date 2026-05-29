@@ -1,7 +1,5 @@
 import { AltitudeIcon } from '@/components/icons/altitude-icon';
-import { AscentIcon } from '@/components/icons/ascent-icon';
 import { ClockIcon } from '@/components/icons/clock-icon';
-import { DescentIcon } from '@/components/icons/descent-icon';
 import { DistanceIcon } from '@/components/icons/distance-icon';
 import { Text, TouchableOpacity, View } from 'react-native';
 import {
@@ -67,7 +65,9 @@ export function CollapsedCourseCard({ course, onExpand, onStartCountdown }: Prop
           <View className="flex-row gap-4">
             <View className="flex-row items-center gap-1">
               <AltitudeIcon />
-              <Text className="typo-caption-1-medium text-label-subtler">고도 {course.altitudeNm}Nm</Text>
+              <Text className="typo-caption-1-medium text-label-subtler">
+                고도 {course.altitudeNm != null ? `${course.altitudeNm}m` : '-'}
+              </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <DistanceIcon />
@@ -75,15 +75,17 @@ export function CollapsedCourseCard({ course, onExpand, onStartCountdown }: Prop
             </View>
           </View>
 
-          {/* 오르막 + 내리막 + 소요시간 */}
+          {/* 정상까지 거리 + 하산까지 거리 + 소요시간 */}
           <View className="flex-row gap-4">
             <View className="flex-row items-center gap-1">
-              <AscentIcon />
-              <Text className="typo-caption-1-medium text-label-subtler">{course.ascentM}m</Text>
+              <Text className="typo-caption-1-medium text-label-subtler">
+                정상까지 {course.summitDistanceM >= 1000 ? `${(course.summitDistanceM / 1000).toFixed(1)}km` : `${course.summitDistanceM}m`}
+              </Text>
             </View>
             <View className="flex-row items-center gap-1">
-              <DescentIcon />
-              <Text className="typo-caption-1-medium text-label-subtler">{course.descentM}m</Text>
+              <Text className="typo-caption-1-medium text-label-subtler">
+                하산까지 {course.descentDistanceM >= 1000 ? `${(course.descentDistanceM / 1000).toFixed(1)}km` : `${course.descentDistanceM}m`}
+              </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <ClockIcon />

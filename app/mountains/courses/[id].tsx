@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CourseDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, mountainId } = useLocalSearchParams<{ id: string; mountainId?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const courseId = Number(id);
@@ -98,7 +98,7 @@ export default function CourseDetailScreen() {
         >
           <Pressable
             onPress={() =>
-              router.push(`/(tabs)/tracking?collapse=true&courseId=${id}`)
+              router.push(`/(tabs)/tracking?collapse=true&courseId=${id}${mountainId ? `&mountainId=${mountainId}` : ''}`)
             }
             className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3"
           >

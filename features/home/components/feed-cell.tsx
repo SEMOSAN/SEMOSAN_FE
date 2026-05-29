@@ -2,7 +2,7 @@ import { MountainChipIcon } from "@/components/icons/mountain-chip-icon";
 import { memo } from "react";
 import { Image, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { FadeInDown, runOnJS } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 export const CELL_CONTENT_W = 234;
 export const CELL_CONTENT_H = 416;
@@ -12,33 +12,28 @@ export const CELL_H = CELL_CONTENT_H + CELL_GAP;
 export const MIN_COORD = -25;
 export const MAX_COORD = 25;
 
-export function cellImageUrl(col: number, row: number): string {
-  const seed = ((col - MIN_COORD) * 51 + (row - MIN_COORD)) % 1000;
-  return `https://picsum.photos/seed/${seed}/320/200`;
-}
-
 type FeedCellProps = {
   col: number;
   row: number;
+  imageUrl?: string;
   onPress: (imageUri: string) => void;
 };
 
 export const FeedCell = memo(function FeedCell({
   col,
   row,
+  imageUrl,
   onPress,
 }: FeedCellProps) {
-  const imageUri = cellImageUrl(col, row);
-
-  // Gesture.Tap: Pan이 활성화되면 자동 취소됨 (Pressable과 달리 RNGH 취소 시스템 내)
   const tap = Gesture.Tap().onEnd(() => {
-    runOnJS(onPress)(imageUri);
+    // TODO : 세모피드 상세 API 연동되면 주석해제
+    // if (imageUrl) runOnJS(onPress)(imageUrl);
   });
 
   return (
     <Animated.View
       entering={FadeInDown.duration(300).delay(200)}
-      className="absolute overflow-hidden rounded-xl bg-[#1a1a1a]"
+      className="absolute overflow-hidden rounded-2xl bg-transparent"
       style={{
         left: col * CELL_W + CELL_GAP / 2,
         top: row * CELL_H + CELL_GAP / 2 - (col % 2 !== 0 ? 60 : 0),
@@ -48,11 +43,14 @@ export const FeedCell = memo(function FeedCell({
     >
       <GestureDetector gesture={tap}>
         <View style={{ flex: 1 }}>
-          <Image
-            source={{ uri: imageUri }}
-            className="absolute inset-0 h-full w-full"
-            resizeMode="cover"
-          />
+          {imageUrl && (
+            <Image
+              // TODO: 백엔드에서 URL에 큰따옴표 포함 저장 현상 수정되면 replace 로직 제거
+              source={{ uri: imageUrl.replace(/"/g, "") }}
+              className="absolute inset-0 h-full w-full"
+              resizeMode="cover"
+            />
+          )}
         </View>
       </GestureDetector>
       {/* 산 뱃지 */}

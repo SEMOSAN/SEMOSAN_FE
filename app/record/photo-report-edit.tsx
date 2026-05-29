@@ -1,7 +1,8 @@
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
 import { setPhotoReportState } from "@/features/photo-report/photo-report-state";
 import {
   Dimensions,
@@ -49,18 +50,24 @@ const PhotoReportBg = require("@/assets/photo-report-bg.png");
 
 type Photo = { key: string; source: number | { uri: string } };
 
-const INITIAL_PHOTOS: Photo[] = [
-  { key: "thumb-1", source: require("@/assets/photo-thumb-1.jpg") },
-  { key: "thumb-2", source: require("@/assets/photo-thumb-2.png") },
-  { key: "thumb-3", source: require("@/assets/photo-thumb-3.jpg") },
-];
-
 export default function PhotoReportEditScreen() {
   const router = useRouter();
+  const { sessionId } = useLocalSearchParams<{ sessionId?: string }>();
+  const parsedSessionId = sessionId ? parseInt(sessionId) : null;
+  const { data: trackingPhotos = [] } = useClivePhotos(parsedSessionId);
+
   const { top, bottom } = useSafeAreaInsets();
   const [selectedTemplate, setSelectedTemplate] = useState(0);
-  const [photos, setPhotos] = useState<Photo[]>(INITIAL_PHOTOS);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
+
+  // 트래킹 사진을 기본 목록으로 설정 (로드 완료 후 1회)
+  useEffect(() => {
+    if (trackingPhotos.length > 0 && photos.length === 0) {
+      setPhotos(trackingPhotos.map((uri) => ({ key: uri, source: { uri } })));
+      setSelectedPhoto(0);
+    }
+  }, [trackingPhotos]);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 

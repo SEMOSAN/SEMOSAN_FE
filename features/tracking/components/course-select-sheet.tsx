@@ -1,4 +1,7 @@
-import { CourseInfo, NearbyMountainInfo } from "@/types/api.generated";
+import {
+  NearbyMountainCourseInfo,
+  NearbyMountainInfo,
+} from "@/types/api.generated";
 import {
   ActivityIndicator,
   ScrollView,
@@ -10,7 +13,7 @@ import { ApiCourseItem } from "./course-item";
 
 type Props = {
   mountain?: NearbyMountainInfo;
-  courses?: CourseInfo[];
+  courses?: NearbyMountainCourseInfo[];
   isLoading?: boolean;
   selectedCourseId: number | null;
   onSelectCourse: (id: number) => void;

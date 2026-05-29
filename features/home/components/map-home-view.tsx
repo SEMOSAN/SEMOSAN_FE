@@ -18,6 +18,7 @@ import {
 } from "@/components/map-markers/visited-marker";
 import NoRecordBottomSheet from "@/components/no-record-bottom-sheet";
 import { useMountains } from "@/features/mountains/hooks/use-mountains";
+import { useMyMountains } from "@/features/home/hooks/use-my-mountains";
 import {
   BBox,
   useMountainsMap,
@@ -78,6 +79,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     const hasRecords = mapData?.hasHikingRecord ?? false;
     const snapExpanded = hasRecords ? SNAP_EXPANDED_WITH_RECORDS : SNAP_EXPANDED_NO_RECORDS;
     const { data, isPending, isError } = useMountains();
+    const { data: myMountains = [] } = useMyMountains();
 
     const moveToCurrentLocation = async () => {
       const { status } = await requestForegroundPermissionsAsync();
@@ -113,8 +115,14 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
       ),
     }));
 
-    // TODO : visitedCards 구현필요.
-    const visitedCards: any = [];
+    const visitedCards = myMountains.map((m) => ({
+      id: String(m.mountainId),
+      name: m.mountainName ?? "",
+      trailNumber: m.hikingCount ?? 1,
+      daysAgo: getDaysAgo(m.lastHikedAt),
+      badgeCount: m.hikingCount ?? 1,
+      imageUri: m.imageUrl,
+    }));
 
     return (
       <View className="w-full flex-1">
@@ -285,6 +293,12 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     );
   },
 );
+
+function getDaysAgo(dateStr?: string): number {
+  if (!dateStr) return 0;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}
 
 const styles = StyleSheet.create({
   map: { flex: 1 },

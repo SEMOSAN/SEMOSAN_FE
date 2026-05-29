@@ -1,67 +1,83 @@
-import { AltitudeIcon } from '@/components/icons/altitude-icon';
-import { AscentIcon } from '@/components/icons/ascent-icon';
-import { ClockIcon } from '@/components/icons/clock-icon';
-import { DescentIcon } from '@/components/icons/descent-icon';
-import { DistanceIcon } from '@/components/icons/distance-icon';
-import { CourseInfo } from '@/types/api.generated';
-import { Text, TouchableOpacity, View } from 'react-native';
-import { Course, DIFFICULTY_BG, DIFFICULTY_TEXT_COLOR } from '../constants';
+import { AltitudeIcon } from "@/components/icons/altitude-icon";
+import { ClockIcon } from "@/components/icons/clock-icon";
+import { DistanceIcon } from "@/components/icons/distance-icon";
+import { NearbyMountainCourseInfo } from "@/types/api.generated";
+import { Text, TouchableOpacity, View } from "react-native";
+import { Course, DIFFICULTY_BG, DIFFICULTY_TEXT_COLOR } from "../constants";
 
 // API 난이도 → 한글 라벨/스타일 매핑
 const API_DIFFICULTY_LABEL: Record<string, string> = {
-  EASY: '초급',
-  NORMAL: '중급',
-  HARD: '고급',
+  EASY: "초급",
+  NORMAL: "중급",
+  HARD: "고급",
 };
 const API_DIFFICULTY_BG: Record<string, string> = {
-  EASY: 'bg-green-50',
-  NORMAL: 'bg-yellow-50',
-  HARD: 'bg-red-50',
+  EASY: "bg-green-50",
+  NORMAL: "bg-yellow-50",
+  HARD: "bg-red-50",
 };
 const API_DIFFICULTY_TEXT: Record<string, string> = {
-  EASY: 'text-secondary-strong',
-  NORMAL: 'text-yellow-600',
-  HARD: 'text-red-500',
+  EASY: "text-secondary-strong",
+  NORMAL: "text-yellow-600",
+  HARD: "text-red-500",
 };
 
 type ApiCourseItemProps = {
-  course: CourseInfo;
+  course: NearbyMountainCourseInfo;
   selected: boolean;
   onPress: () => void;
 };
 
-export function ApiCourseItem({ course, selected, onPress }: ApiCourseItemProps) {
-  const difficultyLabel = API_DIFFICULTY_LABEL[course.difficulty ?? ''] ?? course.difficulty ?? '-';
-  const bg = API_DIFFICULTY_BG[course.difficulty ?? ''] ?? 'bg-fill-stronger';
-  const textColor = API_DIFFICULTY_TEXT[course.difficulty ?? ''] ?? 'text-label-normal';
-  const distanceKm = course.distance != null ? `${course.distance.toFixed(1)}km` : '-';
-  const durationMin = course.duration != null
-    ? course.duration >= 60
-      ? `${Math.floor(course.duration / 60)}h ${course.duration % 60}m`
-      : `${course.duration}m`
-    : '-';
+export function ApiCourseItem({
+  course,
+  selected,
+  onPress,
+}: ApiCourseItemProps) {
+  const difficultyLabel =
+    API_DIFFICULTY_LABEL[course.difficulty ?? ""] ?? course.difficulty ?? "-";
+  const bg = API_DIFFICULTY_BG[course.difficulty ?? ""] ?? "bg-fill-stronger";
+  const textColor =
+    API_DIFFICULTY_TEXT[course.difficulty ?? ""] ?? "text-label-normal";
+  const distanceKm =
+    course.distance != null ? `${course.distance.toFixed(1)}km` : "-";
+  const durationMin =
+    course.duration != null
+      ? course.duration >= 60
+        ? `${Math.floor(course.duration / 60)}h ${course.duration % 60}m`
+        : `${course.duration}m`
+      : "-";
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`p-3 rounded-xl border gap-3 ${
-        selected ? 'border-primary-normal bg-fill-strong' : 'border-line-subtle bg-fill-normal'
+      className={`gap-3 rounded-xl border p-3 ${
+        selected
+          ? "border-primary-normal bg-fill-strong"
+          : "border-line-subtle bg-fill-normal"
       }`}
     >
       <View className="flex-row items-center gap-2">
         <View className={`rounded px-1 py-0.5 ${bg}`}>
-          <Text className={`typo-caption-1-medium ${textColor}`}>{difficultyLabel}</Text>
+          <Text className={`typo-caption-1-medium ${textColor}`}>
+            {difficultyLabel}
+          </Text>
         </View>
-        <Text className="typo-body-1-normal-semi-bold text-label-normal">{course.name}</Text>
+        <Text className="text-label-normal typo-body-1-normal-semi-bold">
+          {course.name}
+        </Text>
       </View>
       <View className="flex-row gap-4">
         <View className="flex-row items-center gap-1">
           <DistanceIcon />
-          <Text className="typo-caption-1-medium text-label-subtler">거리 {distanceKm}</Text>
+          <Text className="text-label-subtler typo-caption-1-medium">
+            거리 {distanceKm}
+          </Text>
         </View>
         <View className="flex-row items-center gap-1">
           <ClockIcon />
-          <Text className="typo-caption-1-medium text-label-subtler">소요시간 {durationMin}</Text>
+          <Text className="text-label-subtler typo-caption-1-medium">
+            소요시간 {durationMin}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -78,45 +94,65 @@ export function CourseItem({ course, selected, onPress }: Props) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`p-3 rounded-xl border gap-3 ${
-        selected ? 'border-primary-normal bg-fill-strong' : 'border-line-subtle bg-fill-normal'
+      className={`gap-3 rounded-xl border p-3 ${
+        selected
+          ? "border-primary-normal bg-fill-strong"
+          : "border-line-subtle bg-fill-normal"
       }`}
     >
       {/* 이름 + 난이도 뱃지 */}
       <View className="flex-row items-center gap-2">
-        <View className={`rounded px-1 py-0.5 ${DIFFICULTY_BG[course.difficulty]}`}>
-          <Text className={`typo-caption-1-medium ${DIFFICULTY_TEXT_COLOR[course.difficulty]}`}>
+        <View
+          className={`rounded px-1 py-0.5 ${DIFFICULTY_BG[course.difficulty]}`}
+        >
+          <Text
+            className={`typo-caption-1-medium ${DIFFICULTY_TEXT_COLOR[course.difficulty]}`}
+          >
             {course.difficulty}
           </Text>
         </View>
-        <Text className="typo-body-1-normal-semi-bold text-label-normal">{course.name}</Text>
+        <Text className="text-label-normal typo-body-1-normal-semi-bold">
+          {course.name}
+        </Text>
       </View>
 
       {/* 고도 + 거리 */}
       <View className="flex-row gap-4">
         <View className="flex-row items-center gap-1">
           <AltitudeIcon />
-          <Text className="typo-caption-1-medium text-label-subtler">고도 {course.altitudeNm}Nm</Text>
+          <Text className="text-label-subtler typo-caption-1-medium">
+            고도 {course.altitudeNm != null ? `${course.altitudeNm}m` : "-"}
+          </Text>
         </View>
         <View className="flex-row items-center gap-1">
           <DistanceIcon />
-          <Text className="typo-caption-1-medium text-label-subtler">거리 {course.distanceKm}km</Text>
+          <Text className="text-label-subtler typo-caption-1-medium">
+            거리 {course.distanceKm}km
+          </Text>
         </View>
       </View>
 
-      {/* 오르막 + 내리막 + 소요시간 */}
+      {/* 정상까지 거리 + 하산까지 거리 + 소요시간 */}
       <View className="flex-row gap-4">
         <View className="flex-row items-center gap-1">
-          <AscentIcon />
-          <Text className="typo-caption-1-medium text-label-subtler">{course.ascentM}m</Text>
+          <Text className="text-label-subtler typo-caption-1-medium">
+            정상까지{" "}
+            {course.summitDistanceM >= 1000
+              ? `${(course.summitDistanceM / 1000).toFixed(1)}km`
+              : `${course.summitDistanceM}m`}
+          </Text>
         </View>
         <View className="flex-row items-center gap-1">
-          <DescentIcon />
-          <Text className="typo-caption-1-medium text-label-subtler">{course.descentM}m</Text>
+          <Text className="text-label-subtler typo-caption-1-medium">
+            하산까지{" "}
+            {course.descentDistanceM >= 1000
+              ? `${(course.descentDistanceM / 1000).toFixed(1)}km`
+              : `${course.descentDistanceM}m`}
+          </Text>
         </View>
         <View className="flex-row items-center gap-1">
           <ClockIcon />
-          <Text className="typo-caption-1-medium text-label-subtler">
+          <Text className="text-label-subtler typo-caption-1-medium">
             소요시간 {course.durationHours}h{course.durationMinutes}m
           </Text>
         </View>
