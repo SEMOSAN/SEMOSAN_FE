@@ -2,8 +2,8 @@ import {
   NearbyMountainCourseInfo,
   NearbyMountainInfo,
 } from "@/types/api.generated";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -54,9 +54,7 @@ export function CourseSelectSheet({
 
       {/* 코스 리스트 */}
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator />
-        </View>
+        <LoadingSpinner fullScreen />
       ) : (
         <ScrollView
           className="flex-1"

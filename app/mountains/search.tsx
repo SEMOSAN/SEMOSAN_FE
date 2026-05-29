@@ -4,10 +4,10 @@ import { SearchIcon } from "@/components/icons/search-icon";
 import { MountainCard } from "@/features/mountains/components/mountain-card";
 import { useMountainSearch } from "@/features/mountains/hooks/use-mountain-search";
 import { useRecentSearches } from "@/features/mountains/hooks/use-recent-searches";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   Text,
@@ -85,9 +85,7 @@ export default function MountainSearchScreen(): React.JSX.Element {
 
           {/* Results */}
           {isPending ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator />
-            </View>
+            <LoadingSpinner fullScreen />
           ) : (
             <FlatList
               data={mountains}

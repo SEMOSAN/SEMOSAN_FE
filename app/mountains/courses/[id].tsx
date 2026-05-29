@@ -1,10 +1,10 @@
 import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
 import { RouteIcon } from "@/components/icons/route-icon";
 import { CourseDetailInfo } from "@/features/mountains-detail/components/course-detail-info";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   Text,
@@ -35,13 +35,7 @@ export default function CourseDetailScreen() {
     );
   }
 
-  if (isPending) {
-    return (
-      <View className="flex-1 items-center justify-center bg-fill-normal">
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  if (isPending) return <LoadingSpinner fullScreen />;
 
   if (isError || !course) {
     return (

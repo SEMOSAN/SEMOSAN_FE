@@ -10,11 +10,12 @@ import { MountainBookmarkButton } from "@/features/mountains/components/mountain
 import { DIFFICULTY_LABEL } from "@/features/mountains/components/mountain-card";
 import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
-  ActivityIndicator,
+
   Dimensions,
   FlatList,
   Image,
@@ -63,11 +64,15 @@ function ImageCarousel({
         scrollEventThrottle={16}
         style={{ flex: 1 }}
         renderItem={({ item }) => (
-          <Image
-            source={{ uri: item }}
-            style={{ width: SCREEN_WIDTH, height: 284 }}
-            resizeMode="cover"
-          />
+          item ? (
+            <Image
+              source={{ uri: item }}
+              style={{ width: SCREEN_WIDTH, height: 284 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={{ width: SCREEN_WIDTH, height: 284 }} className="bg-fill-stronger" />
+          )
         )}
       />
       {imageUrls.length > 1 && (
@@ -100,12 +105,7 @@ export default function MountainDetailScreen() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabKey>("코스");
 
-  if (isPending)
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
+  if (isPending) return <LoadingSpinner fullScreen />;
   if (isError) return null;
 
   const visibleTabs = TABS.filter((tab) => {

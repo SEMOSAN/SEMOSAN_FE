@@ -3,8 +3,8 @@ import { SearchIcon } from "@/components/icons/search-icon";
 import { useSearchFreePosts } from "@/features/community/hooks/use-search-free-posts";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   Text,
@@ -62,7 +62,7 @@ export function FreeBoardSearchScreen(): React.JSX.Element {
             autoFocus
           />
           {isLoading && submittedKeyword.trim().length > 0 ? (
-            <ActivityIndicator size="small" color="#73798c" />
+            <LoadingSpinner size={24} />
           ) : (
             <SearchIcon />
           )}

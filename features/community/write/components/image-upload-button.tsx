@@ -3,8 +3,8 @@ import { CloseSmallIcon } from "@/components/icons/close-small-icon";
 import { uploadImage } from "@/hooks/use-upload-image";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import {
-  ActivityIndicator,
   Image,
   Pressable,
   ScrollView,
@@ -62,7 +62,7 @@ export function ImageUploadButton({ value, onChange }: ImageUploadButtonProps) {
             className="size-16 items-center justify-center gap-1 rounded-lg border border-line-subtle bg-fill-normal"
           >
             {isUploading ? (
-              <ActivityIndicator size="small" />
+              <LoadingSpinner size={20} />
             ) : (
               <>
                 <CameraIcon color="#73798c" />

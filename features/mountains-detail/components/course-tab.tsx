@@ -4,7 +4,8 @@ import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detai
 import { formatDuration } from "@/modules/format-duration";
 import { MountainDetailCourseInfo } from "@/types/api.generated";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { Pressable, Text, View } from "react-native";
 
 type CourseCardProps = {
   courseId?: number;
@@ -85,12 +86,7 @@ export function CourseTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
 
-  if (isPending)
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
+  if (isPending) return <LoadingSpinner fullScreen />;
   if (isError) return null;
   if (!data?.courses) return null;
 
