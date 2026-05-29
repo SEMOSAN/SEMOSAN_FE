@@ -141,6 +141,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             zoom: region.zoom,
           }}
           isShowLocationButton={false}
+          isShowZoomControls={false}
           onTapMap={() => sheetRef.current?.collapseToMin()}
           onCameraIdle={(e) => {
             const { latitude, longitude, latitudeDelta, longitudeDelta } =
