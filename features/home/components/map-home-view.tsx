@@ -203,15 +203,15 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
                   </View>
                 </NaverMapMarkerOverlay>
               ))
-            : data?.content?.map((mountain) => (
+            : mapData?.mountains?.map((mountain) => (
                 <NaverMapMarkerOverlay
-                  key={`no-record-${mountain.mountainId}`}
-                  latitude={mountain.latitude ?? 0}
-                  longitude={mountain.longitude ?? 0}
+                  key={`no-record-${mountain.id}`}
+                  latitude={mountain.latitude}
+                  longitude={mountain.longitude}
                   width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
                   height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
                   anchor={{ x: 0.5, y: 0.5 }}
-                  onTap={() => router.push(`/mountains/${mountain.mountainId}`)}
+                  onTap={() => router.push(`/mountains/${mountain.id}`)}
                 >
                   <View
                     collapsable={false}
