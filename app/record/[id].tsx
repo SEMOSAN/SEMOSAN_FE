@@ -111,7 +111,7 @@ export default function RecordScreen() {
     );
     const res = await api.post<SemoFeedResponse>({
       path: ENDPOINTS.SEMOFEED,
-      body: imageUrl as unknown as Record<string, unknown>,
+      body: { imageUrl },
     });
 
     const createdFeedId = res.data?.id ?? null;
@@ -306,15 +306,29 @@ export default function RecordScreen() {
 
                 {displayPhotos.length > 0 ? (() => {
                   const photoHeight = CLIVE_CARD_HEIGHT / displayPhotos.length;
-                  const maskDefs = displayPhotos
-                    .map((_, i) => ({
-                      i,
-                      sectionY: i * photoHeight,
-                      topOp: i > 0 ? "0" : "1",
-                      bottomOp: i < displayPhotos.length - 1 ? "0" : "1",
-                      hasMask: i > 0 || i < displayPhotos.length - 1,
-                    }))
-                    .filter((d) => d.hasMask);
+                  const BLEND = 30; // 경계 블렌딩 픽셀
+
+                  const maskDefs = displayPhotos.map((_, i) => {
+                    const hasTop = i > 0;
+                    const hasBottom = i < displayPhotos.length - 1;
+                    const yStart = i * photoHeight - (hasTop ? BLEND : 0);
+                    const totalH = photoHeight + (hasTop ? BLEND : 0) + (hasBottom ? BLEND : 0);
+                    const stops: { offset: string; op: string }[] = [];
+                    if (hasTop) {
+                      stops.push({ offset: "0", op: "0" });
+                      stops.push({ offset: (BLEND / totalH).toFixed(3), op: "1" });
+                    } else {
+                      stops.push({ offset: "0", op: "1" });
+                    }
+                    if (hasBottom) {
+                      stops.push({ offset: ((totalH - BLEND) / totalH).toFixed(3), op: "1" });
+                      stops.push({ offset: "1", op: "0" });
+                    } else {
+                      stops.push({ offset: "1", op: "1" });
+                    }
+                    return { i, yStart, totalH, stops };
+                  });
+
                   return (
                     <>
                       <Svg
@@ -327,42 +341,46 @@ export default function RecordScreen() {
                             <SvgLinearGradient
                               key={`grad-${d.i}`}
                               id={`fade-${d.i}`}
-                              x1="0" y1={d.sectionY}
-                              x2="0" y2={d.sectionY + photoHeight}
+                              x1="0" y1={d.yStart}
+                              x2="0" y2={d.yStart + d.totalH}
                               gradientUnits="userSpaceOnUse"
                             >
-                              <Stop offset="0" stopColor="white" stopOpacity={d.topOp} />
-                              <Stop offset="0.1" stopColor="white" stopOpacity="1" />
-                              <Stop offset="0.9" stopColor="white" stopOpacity="1" />
-                              <Stop offset="1" stopColor="white" stopOpacity={d.bottomOp} />
+                              {d.stops.map((s, j) => (
+                                <Stop key={j} offset={s.offset} stopColor="white" stopOpacity={s.op} />
+                              ))}
                             </SvgLinearGradient>,
                             <Mask
                               key={`mask-${d.i}`}
                               id={`mask-${d.i}`}
-                              x={0} y={d.sectionY}
-                              width={335} height={photoHeight}
+                              x={0} y={d.yStart}
+                              width={335} height={d.totalH}
                               maskUnits="userSpaceOnUse"
                             >
                               <SvgRect
-                                x={0} y={d.sectionY}
-                                width={335} height={photoHeight}
+                                x={0} y={d.yStart}
+                                width={335} height={d.totalH}
                                 fill={`url(#fade-${d.i})`}
                               />
                             </Mask>,
                           ])}
                         </Defs>
-                        {displayPhotos.map((url, i) => (
-                          <SvgImage
-                            key={url}
-                            href={{ uri: url }}
-                            x={0}
-                            y={i * photoHeight}
-                            width={335}
-                            height={photoHeight}
-                            preserveAspectRatio="xMidYMid slice"
-                            mask={maskDefs.some((m) => m.i === i) ? `url(#mask-${i})` : undefined}
-                          />
-                        ))}
+                        {/* 역순 렌더링: 위쪽 사진(summit)이 z-order 최상단 */}
+                        {[...displayPhotos].reverse().map((url, revIdx) => {
+                          const i = displayPhotos.length - 1 - revIdx;
+                          const d = maskDefs[i];
+                          return (
+                            <SvgImage
+                              key={url}
+                              href={{ uri: url }}
+                              x={0}
+                              y={d.yStart}
+                              width={335}
+                              height={d.totalH}
+                              preserveAspectRatio="xMidYMid slice"
+                              mask={`url(#mask-${i})`}
+                            />
+                          );
+                        })}
                       </Svg>
 
                       {/* 스탬프 오버레이 */}
@@ -635,7 +653,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignSelf: "center",
     position: "relative",
-    backgroundColor: "#888888",
+    backgroundColor: "transparent",
   },
   gradientBar: {
     position: "absolute",
