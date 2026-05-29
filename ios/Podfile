@@ -61,39 +61,5 @@ target 'semosan' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
-
-    sandbox_root = installer.sandbox.root
-
-    provider_path = File.join(sandbox_root, "Target Support Files/Pods-semosan/ExpoModulesProvider.swift")
-    patch_provider = lambda do |path|
-      return unless File.exist?(path)
-      content = File.read(path)
-      return if content.include?("LiveActivityModule")
-      content = content.sub("return [\n", "return [\n      LiveActivityModule.self,\n")
-      File.write(path, content)
-    end
-    patch_provider.call(provider_path)
-
-    configure_script_path = File.join(sandbox_root, "Target Support Files/Pods-semosan/expo-configure-project.sh")
-    if File.exist?(configure_script_path)
-      script_content = File.read(configure_script_path)
-      unless script_content.include?("LiveActivityModule")
-        patch_sh = <<~'SHELL'
-
-          PROVIDER="${PODS_ROOT}/Target Support Files/Pods-semosan/ExpoModulesProvider.swift"
-          if [ -f "$PROVIDER" ] && ! grep -q "LiveActivityModule.self" "$PROVIDER"; then
-            python3 -c "
-          import sys
-          with open(sys.argv[1], 'r') as f:
-              c = f.read()
-          c = c.replace('return [\n', 'return [\n      LiveActivityModule.self,\n', 1)
-          with open(sys.argv[1], 'w') as f:
-              f.write(c)
-          " "$PROVIDER"
-          fi
-        SHELL
-        File.write(configure_script_path, script_content + patch_sh)
-      end
-    end
   end
 end
