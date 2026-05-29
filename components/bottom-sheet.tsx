@@ -101,6 +101,7 @@ export default function BottomSheet({
                 pathname: '/record/[id]',
                 params: {
                   id: String(record?.sessionId ?? courseId),
+                  hikingRecordId: String(record?.hikingRecordId ?? ''),
                   name: selectedCard.name,
                   courseName: record?.courseName ?? '',
                   imageUri: selectedCard.imageUri ?? '',
