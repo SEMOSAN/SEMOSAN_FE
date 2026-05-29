@@ -29,7 +29,10 @@ export function useTogglePostLike(postId: number) {
     onSuccess: (res) => {
       queryClient.setQueryData<FreePostDetailResponse>(
         [ENDPOINTS.COMMUNITY_FREE_POSTS_BY_POSTID(postId)],
-        (old) => (old ? { ...old, likeCount: res.data.count } : old),
+        (old) =>
+          old
+            ? { ...old, likeCount: res.data.count, likedByMe: !old.likedByMe }
+            : old,
       );
     },
   });
