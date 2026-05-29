@@ -970,7 +970,7 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
-              isPhotoWindowOpen={photoWindow?.status === "OPEN"}
+              isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
               hasSummited={hasSummited}
               timeToTarget={timeToTarget}
               distanceToTarget={distanceToTarget}
