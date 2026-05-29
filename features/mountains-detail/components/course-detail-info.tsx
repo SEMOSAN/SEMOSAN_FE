@@ -129,7 +129,7 @@ export function CourseDetailInfo({ course }: CourseDetailInfoProps) {
               <>
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={6}
+                  width={4}
                   color="#ffd40d"
                   outlineWidth={1}
                   outlineColor="#eab308"
