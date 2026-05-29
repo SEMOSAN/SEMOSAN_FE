@@ -48,6 +48,7 @@ import { XIcon } from "@/components/icons/x-icon";
 import { CliveBottomBar } from "@/components/clive-bottom-bar";
 import { getPhotoReportState } from "@/features/photo-report/photo-report-state";
 import { useHikingSummary } from "@/features/mypage/hooks/use-hiking-summary";
+import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
 import { uploadImage } from "@/hooks/use-upload-image";
 import { api } from "@/lib/api";
 import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
@@ -55,8 +56,9 @@ import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
 type RecordTab = "클라이브" | "포토 리포트";
 
 export default function RecordScreen() {
-  const { id, name, courseName, imageUri, distance, duration } = useLocalSearchParams<{
+  const { id, hikingRecordId, name, courseName, imageUri, distance, duration } = useLocalSearchParams<{
     id: string;
+    hikingRecordId?: string;
     name: string;
     courseName?: string;
     imageUri?: string;
@@ -64,6 +66,7 @@ export default function RecordScreen() {
     duration?: string;
   }>();
   const sessionId = id ? parseInt(id) : null;
+  const hikingRecordIdNum = hikingRecordId ? parseInt(hikingRecordId) : null;
   const distanceKm = distance ? parseFloat(distance) / 1000 : null;
   const durationSec = duration ? parseInt(duration) : null;
   const router = useRouter();
@@ -87,6 +90,7 @@ export default function RecordScreen() {
   const privateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { data: clivePhotos = [] } = useClivePhotos(sessionId);
   const { data: hikingSummary } = useHikingSummary();
+  const { data: recordDetail } = useHikingRecordDetail(hikingRecordIdNum);
   const displayPhotos = [...clivePhotos].reverse();
   const cliveShotRef = useRef<ViewShot | null>(null);
   const photoReportShotRef = useRef<ViewShot | null>(null);
@@ -260,9 +264,9 @@ export default function RecordScreen() {
         {/* 통계 */}
         <View style={{ flexDirection: "row", marginHorizontal: 20, marginTop: 16, marginBottom: 16, gap: 4 }}>
           {[
-            { label: "소요시간", value: formatDuration(durationSec) },
-            { label: "고도", value: hikingSummary?.totalAltitude != null ? `${Math.round(hikingSummary.totalAltitude)}Nm` : "--" },
-            { label: "칼로리", value: "360kcal" },
+            { label: "소요시간", value: formatDuration(recordDetail?.durationSeconds ?? durationSec) },
+            { label: "고도", value: recordDetail?.ascentMeters != null ? `${Math.round(recordDetail.ascentMeters)}Nm` : "--" },
+            { label: "칼로리", value: recordDetail?.calories != null ? `${recordDetail.calories}kcal` : "--" },
           ].map((stat) => (
             <View key={stat.label} style={styles.statItem}>
               <Text style={styles.statLabel}>{stat.label}</Text>
@@ -293,7 +297,7 @@ export default function RecordScreen() {
         {/* 클라이브 */}
         {activeTab === "클라이브" && (
           <View className="pb-10 pt-2">
-            <ViewShot ref={cliveShotRef} options={{ format: "jpg", quality: 1 }}>
+            <ViewShot ref={cliveShotRef} options={{ format: "jpg", quality: 1 }} style={{ width: 335, alignSelf: "center" }}>
               <View style={styles.cardWrap}>
                 {/* 왼쪽 그라디언트 바 — 정상 완료: 빨강까지 full */}
                 <LinearGradient
@@ -433,7 +437,7 @@ export default function RecordScreen() {
         {/* 포토 리포트 */}
         {activeTab === "포토 리포트" && (
           <View className="pb-10 pt-2">
-            <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }}>
+            <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }} style={{ width: 335, alignSelf: "center" }}>
               <View style={styles.cardWrap}>
                 {/* 배경 사진 */}
                 <ExpoImage

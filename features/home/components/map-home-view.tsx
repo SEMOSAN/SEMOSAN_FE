@@ -52,7 +52,7 @@ type Region = {
 const DEFAULT_REGION: Region = {
   latitude: 37.5665,
   longitude: 126.978,
-  zoom: 10,
+  zoom: 8,
 };
 
 export type MapHomeViewRef = {
@@ -141,6 +141,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             zoom: region.zoom,
           }}
           isShowLocationButton={false}
+          isShowZoomControls={false}
           onTapMap={() => sheetRef.current?.collapseToMin()}
           onCameraIdle={(e) => {
             const { latitude, longitude, latitudeDelta, longitudeDelta } =
