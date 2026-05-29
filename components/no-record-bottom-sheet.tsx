@@ -38,7 +38,7 @@ export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled
       <View className="pt-4">
         <View className="flex-row items-center gap-0.5 px-4 mb-3">
           <Text className="typo-headline-1-semi-bold text-secondary-normal">{userName} </Text>
-          <Text className="typo-headline-1-semi-bold text-label-normal">님의 레벨에 맞는</Text>
+          <Text className="typo-headline-1-semi-bold text-label-normal">님의 레벨에 맞는 산</Text>
           <InfoIcon size={16.25} />
         </View>
 

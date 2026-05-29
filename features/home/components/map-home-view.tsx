@@ -20,6 +20,7 @@ import {
 import NoRecordBottomSheet from "@/components/no-record-bottom-sheet";
 import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import { useMyMountains } from "@/features/home/hooks/use-my-mountains";
+import { useProfile } from "@/features/mypage/hooks/use-profile";
 import {
   BBox,
   useMountainsMap,
@@ -81,6 +82,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     const snapExpanded = hasRecords ? SNAP_EXPANDED_WITH_RECORDS : SNAP_EXPANDED_NO_RECORDS;
     const { data, isPending, isError } = useMountains();
     const { data: myMountains = [] } = useMyMountains();
+    const { data: profile } = useProfile();
 
     const moveToCurrentLocation = async () => {
       const { status } = await requestForegroundPermissionsAsync();
@@ -271,7 +273,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
               />
             ) : (
               <NoRecordBottomSheet
-                userName={"맹쏘"}
+                userName={profile?.nickname ?? ""}
                 scrollEnabled={scrollEnabled}
                 lat={region.latitude}
                 lng={region.longitude}
