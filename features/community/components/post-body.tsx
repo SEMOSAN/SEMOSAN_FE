@@ -1,11 +1,18 @@
 import { ChatIcon } from "@/components/icons/chat-icon";
 import { DotsThreeIcon } from "@/components/icons/dots-three-icon";
-import { HeartFilledIcon, HeartOutlineIcon } from "@/components/icons/heart-icon";
+import {
+  HeartFilledIcon,
+  HeartOutlineIcon,
+} from "@/components/icons/heart-icon";
 import { SirenIcon } from "@/components/icons/siren-icon";
 import { TrashIcon } from "@/components/icons/trash-icon";
 import { useTogglePostLike } from "@/features/community/hooks/use-post-like";
+import { useReportPost } from "@/features/community/hooks/use-report-post";
 import { formatDate } from "@/lib/utils";
-import { FreePostDetailResponse } from "@/types/api.generated";
+import {
+  FreePostDetailResponse,
+  FreePostReportRequest,
+} from "@/types/api.generated";
 import { useRef, useState } from "react";
 import {
   Alert,
@@ -22,18 +29,30 @@ import { PostAvatar } from "./post-avatar";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
+const REASON_MAP: { label: string; value: FreePostReportRequest["reason"] }[] =
+  [
+    { label: "스팸", value: "SPAM" },
+    { label: "욕설/혐오", value: "ABUSE" },
+    { label: "음란/부적절", value: "OBSCENE" },
+    { label: "허위정보", value: "FALSE_INFO" },
+    { label: "기타", value: "ETC" },
+  ];
+
 type PostBodyProps = {
   post: FreePostDetailResponse;
   currentUserNickname?: string;
   onDelete?: () => void;
+  onCommentPress?: () => void;
 };
 
 export function PostBody({
   post,
   currentUserNickname,
   onDelete,
+  onCommentPress,
 }: PostBodyProps) {
   const { mutate: toggleLike } = useTogglePostLike(post.id!);
+  const { mutate: reportPost } = useReportPost(post.id!);
   const [liked, setLiked] = useState(post.likedByMe ?? false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -67,15 +86,19 @@ export function PostBody({
 
   function handleReport(): void {
     setMenuVisible(false);
-    const reasons = ["스팸", "욕설/혐오", "음란/부적절", "허위정보", "기타"];
     Alert.alert("신고 사유 선택", "신고 사유를 선택해주세요.", [
-      ...reasons.map((reason) => ({
-        text: reason,
+      ...REASON_MAP.map(({ label, value }) => ({
+        text: label,
         onPress: () =>
-          Alert.alert(
-            "신고 완료",
-            "정상적으로 신고 접수되었습니다.\n\n신고된 게시글은 커뮤니티 가이드라인에 따라 모니터링 및 조치될 예정입니다.",
-          ),
+          reportPost(value, {
+            onSuccess: () =>
+              Alert.alert(
+                "신고 완료",
+                "정상적으로 신고 접수되었습니다.\n\n신고된 게시글은 커뮤니티 가이드라인에 따라 모니터링 및 조치될 예정입니다.",
+              ),
+            onError: () =>
+              Alert.alert("오류", "신고 처리 중 오류가 발생했습니다."),
+          }),
       })),
       { text: "취소", style: "cancel" as const },
     ]);
@@ -117,7 +140,10 @@ export function PostBody({
             {[...post.images]
               .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
               .map((img) => (
-                <Pressable key={img.id} onPress={() => setSelectedImage(img.imageUrl ?? null)}>
+                <Pressable
+                  key={img.id}
+                  onPress={() => setSelectedImage(img.imageUrl ?? null)}
+                >
                   {img.imageUrl ? (
                     <Image
                       source={{ uri: img.imageUrl }}
@@ -126,7 +152,10 @@ export function PostBody({
                       resizeMode="cover"
                     />
                   ) : (
-                    <View className="rounded-xl bg-fill-stronger" style={{ width: 148, height: 148 }} />
+                    <View
+                      className="rounded-xl bg-fill-stronger"
+                      style={{ width: 148, height: 148 }}
+                    />
                   )}
                 </Pressable>
               ))}
@@ -144,17 +173,21 @@ export function PostBody({
           }
           hitSlop={8}
         >
-          {liked ? <HeartFilledIcon size={20} /> : <HeartOutlineIcon size={20} />}
+          {liked ? (
+            <HeartFilledIcon size={20} />
+          ) : (
+            <HeartOutlineIcon size={20} />
+          )}
           <Text className="text-label-subtle typo-body-1-normal-medium">
             {post.likeCount ?? 0}
           </Text>
         </Pressable>
-        <View className="flex-row items-center gap-1">
+        <Pressable className="flex-row items-center gap-1" onPress={onCommentPress} hitSlop={8}>
           <ChatIcon size={20} color="#464a57" />
           <Text className="text-label-subtle typo-body-1-normal-medium">
             {post.commentCount ?? 0}
           </Text>
-        </View>
+        </Pressable>
       </View>
 
       <Modal
