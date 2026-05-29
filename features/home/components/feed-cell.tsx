@@ -33,7 +33,7 @@ export const FeedCell = memo(function FeedCell({
   return (
     <Animated.View
       entering={FadeInDown.duration(300).delay(200)}
-      className="absolute overflow-hidden rounded-xl bg-[#1a1a1a]"
+      className="absolute overflow-hidden rounded-2xl bg-transparent"
       style={{
         left: col * CELL_W + CELL_GAP / 2,
         top: row * CELL_H + CELL_GAP / 2 - (col % 2 !== 0 ? 60 : 0),
@@ -45,7 +45,8 @@ export const FeedCell = memo(function FeedCell({
         <View style={{ flex: 1 }}>
           {imageUrl && (
             <Image
-              source={{ uri: imageUrl }}
+              // TODO: 백엔드에서 URL에 큰따옴표 포함 저장 현상 수정되면 replace 로직 제거
+              source={{ uri: imageUrl.replace(/"/g, "") }}
               className="absolute inset-0 h-full w-full"
               resizeMode="cover"
             />
