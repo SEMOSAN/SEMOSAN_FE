@@ -184,6 +184,9 @@ export type TrackingPhotoResponse = {
   lng?: number;
   altitude?: number;
 };
+export type SemoFeedCreateRequest = {
+  imageUrl?: string;
+};
 export type SemoFeedResponse = {
   id?: number;
   userId?: number;
@@ -835,7 +838,7 @@ export type ListPublicParams = {
 };
 
 // POST /api/semofeed
-export type CreateBody = string;
+export type CreateBody = SemoFeedCreateRequest;
 
 // POST /api/semofeed/{semoFeedId}/emojis
 export type ToggleEmojiParams = {
