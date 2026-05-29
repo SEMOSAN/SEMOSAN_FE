@@ -37,12 +37,15 @@ function SunriseSunset({
   );
 }
 
-export function WeatherAccordion({ latitude, longitude }: WeatherAccordionProps): React.JSX.Element {
+export function WeatherAccordion({
+  latitude,
+  longitude,
+}: WeatherAccordionProps): React.JSX.Element {
   const [open, setOpen] = useState(false);
   const weatherDays = buildSunTimesDays(latitude, longitude);
 
   return (
-    <View className="mx-5 mt-4 gap-2 rounded-[8px] bg-[#F9FAFB] px-4 py-[10px]">
+    <View className="mx-5 mt-4 gap-[10px] rounded-[8px] bg-[#F9FAFB] px-4 py-[10px]">
       <Pressable
         className="flex-row items-center justify-between"
         onPress={() => setOpen(!open)}
