@@ -50,6 +50,7 @@ import { getPhotoReportState } from "@/features/photo-report/photo-report-state"
 import { useHikingSummary } from "@/features/mypage/hooks/use-hiking-summary";
 import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
 import { uploadImage } from "@/hooks/use-upload-image";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
 
@@ -70,6 +71,7 @@ export default function RecordScreen() {
   const distanceKm = distance ? parseFloat(distance) / 1000 : null;
   const durationSec = duration ? parseInt(duration) : null;
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { top } = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<RecordTab>("클라이브");
   const [showSaveToast, setShowSaveToast] = useState(false);
@@ -180,6 +182,7 @@ export default function RecordScreen() {
 
       const nextPublic = !activeTabPublic;
       setIsPublicByTab((prev) => ({ ...prev, [activeTab]: nextPublic }));
+      queryClient.invalidateQueries({ queryKey: [ENDPOINTS.SEMOFEED] });
 
       if (nextPublic) {
         setShowPrivateToast(false);
