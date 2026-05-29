@@ -1,6 +1,6 @@
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useLocalSearchParams } from "expo-router";
-import { LoadingSpinner } from "@/components/loading-spinner";
 import { Image, ScrollView, Text, View } from "react-native";
 
 export function RestaurantTab() {
@@ -21,7 +21,7 @@ export function RestaurantTab() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
           >
             {section.restaurants?.map((item) => (
               <View key={item.restaurantId} className="gap-2">
