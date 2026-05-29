@@ -22,12 +22,14 @@ export function ImageViewerModal({ uri, onClose }: ImageViewerModalProps): React
         onPress={onClose}
       >
         <Pressable onPress={(e) => e.stopPropagation()} className="w-full">
-          <Image
-            source={{ uri: uri ?? "" }}
-            className="w-full"
-            style={{ aspectRatio: 1 }}
-            resizeMode="contain"
-          />
+          {uri ? (
+            <Image
+              source={{ uri }}
+              className="w-full"
+              style={{ aspectRatio: 1 }}
+              resizeMode="contain"
+            />
+          ) : null}
         </Pressable>
       </Pressable>
       <Pressable

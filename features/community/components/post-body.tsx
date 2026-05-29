@@ -125,12 +125,16 @@ export function PostBody({
               .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
               .map((img) => (
                 <Pressable key={img.id} onPress={() => setSelectedImage(img.imageUrl ?? null)}>
-                  <Image
-                    source={{ uri: img.imageUrl }}
-                    className="rounded-xl"
-                    style={{ width: 148, height: 148 }}
-                    resizeMode="cover"
-                  />
+                  {img.imageUrl ? (
+                    <Image
+                      source={{ uri: img.imageUrl }}
+                      className="rounded-xl"
+                      style={{ width: 148, height: 148 }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View className="rounded-xl bg-fill-stronger" style={{ width: 148, height: 148 }} />
+                  )}
                 </Pressable>
               ))}
           </View>

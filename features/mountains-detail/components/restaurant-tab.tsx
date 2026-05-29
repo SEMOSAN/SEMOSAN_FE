@@ -29,10 +29,14 @@ export function RestaurantTab() {
           >
             {section.restaurants?.map((item) => (
               <View key={item.restaurantId} className="gap-2">
-                <Image
-                  source={{ uri: item.imageUrl }}
-                  className="h-[116px] w-[188px] rounded-[10px] bg-fill-stronger"
-                />
+                {item.imageUrl ? (
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    className="h-[116px] w-[188px] rounded-[10px] bg-fill-stronger"
+                  />
+                ) : (
+                  <View className="h-[116px] w-[188px] rounded-[10px] bg-fill-stronger" />
+                )}
                 <View className="gap-0.5">
                   <Text className="text-label-normal typo-body-1-normal-semi-bold">
                     {item.name}

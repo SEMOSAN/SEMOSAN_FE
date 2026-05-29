@@ -63,11 +63,15 @@ function ImageCarousel({
         scrollEventThrottle={16}
         style={{ flex: 1 }}
         renderItem={({ item }) => (
-          <Image
-            source={{ uri: item }}
-            style={{ width: SCREEN_WIDTH, height: 284 }}
-            resizeMode="cover"
-          />
+          item ? (
+            <Image
+              source={{ uri: item }}
+              style={{ width: SCREEN_WIDTH, height: 284 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={{ width: SCREEN_WIDTH, height: 284 }} className="bg-fill-stronger" />
+          )
         )}
       />
       {imageUrls.length > 1 && (
