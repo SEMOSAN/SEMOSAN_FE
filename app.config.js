@@ -1,7 +1,12 @@
 import "dotenv/config";
+import fs from "node:fs";
 
 const isLiveActivityEnabled =
   process.env.EXPO_PUBLIC_LIVE_ACTIVITY_ENABLED === "true";
+const hasIosGoogleServiceFile = fs.existsSync("./GoogleService-Info.plist");
+const hasAndroidGoogleServiceFile = fs.existsSync("./google-services.json");
+const hasNaverMapClientId = !!process.env.NAVER_MAP_CLIENT_ID;
+const hasKakaoNativeAppKey = !!process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 
 /** @type {import('expo/config').ExpoConfig} */
 const config = {
@@ -18,7 +23,9 @@ const config = {
     bundleIdentifier: "com.tastyhiking.semosanapp",
     appleTeamId: "M8D59WC33R",
     usesAppleSignIn: true,
-    googleServicesFile: "./GoogleService-Info.plist",
+    ...(hasIosGoogleServiceFile
+      ? { googleServicesFile: "./GoogleService-Info.plist" }
+      : {}),
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
       NSCameraUsageDescription:
@@ -35,7 +42,11 @@ const config = {
     ko: "./locales/ko.json",
   },
   android: {
-    googleServicesFile: "./google-services.json",
+    ...(hasAndroidGoogleServiceFile
+      ? { googleServicesFile: "./google-services.json" }
+      : {}),
+
+
     adaptiveIcon: {
       backgroundColor: "#E6F4FE",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -63,16 +74,22 @@ const config = {
       {
         icon: "./assets/images/app-icon.png",
         color: "#ffffff",
-        googleServicesFile: "./google-services.json",
+        ...(hasAndroidGoogleServiceFile
+          ? { googleServicesFile: "./google-services.json" }
+          : {}),
         enableBackgroundRemoteNotifications: true,
       },
     ],
-    [
-      "@mj-studio/react-native-naver-map",
-      {
-        client_id: process.env.NAVER_MAP_CLIENT_ID,
-      },
-    ],
+    ...(hasNaverMapClientId
+      ? [
+          [
+            "@mj-studio/react-native-naver-map",
+            {
+              client_id: process.env.NAVER_MAP_CLIENT_ID,
+            },
+          ],
+        ]
+      : []),
     [
       "expo-splash-screen",
       {
@@ -93,12 +110,16 @@ const config = {
           "사진첩에 접근하여 포토 리포트에 사용할 사진을 가져옵니다.",
       },
     ],
-    [
-      "@react-native-kakao/core",
-      {
-        nativeAppKey: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
-      },
-    ],
+    ...(hasKakaoNativeAppKey
+      ? [
+          [
+            "@react-native-kakao/core",
+            {
+              nativeAppKey: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
+            },
+          ],
+        ]
+      : []),
   ],
   experiments: {
     typedRoutes: true,
