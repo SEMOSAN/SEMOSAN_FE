@@ -109,9 +109,9 @@ export default function TrackingScreen() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [hikingRecordId, setHikingRecordId] = useState<number | null>(null);
   const [hasSummited, setHasSummited] = useState(false);
-  const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(
-    null,
-  );
+  const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(null);
+  // 정상 인증 시점의 photoWindow 저장 — 인증 후 photoWindow가 닫혀도 메타 업로드에 사용
+  const summitPhotoWindowRef = useRef<PhotoWindowPayload | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{
@@ -685,8 +685,11 @@ export default function TrackingScreen() {
 
     if (result.canceled || !result.assets?.[0]?.uri) return;
 
-    // 사진 윈도우 OPEN 상태일 때 → MinIO 업로드 → 메타 저장
-    if (photoWindow?.status === "OPEN" && sessionId != null) {
+    const isWindowOpen = photoWindow?.status === "OPEN";
+    // 정상 인증 후에는 summitPhotoWindowRef에 저장된 photoWindow 사용
+    const activeWindow = isWindowOpen ? photoWindow : (hasSummited ? summitPhotoWindowRef.current : null);
+
+    if (activeWindow != null && sessionId != null) {
       try {
         const capturedAt = new Date().toISOString();
         const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
@@ -695,8 +698,8 @@ export default function TrackingScreen() {
         await savePhoto({
           sessionId,
           body: {
-            milestoneIndex: photoWindow.milestoneIndex,
-            milestoneDistanceM: photoWindow.milestoneDistance,
+            milestoneIndex: activeWindow.milestoneIndex,
+            milestoneDistanceM: activeWindow.milestoneDistance,
             imageUrl,
             capturedAt,
             lat: userLocation?.latitude ?? 0,
@@ -754,6 +757,7 @@ export default function TrackingScreen() {
     setSessionId(null);
     setHikingRecordId(null);
     setPhotoWindow(null);
+    summitPhotoWindowRef.current = null;
     setCollapsed(false);
     setRecordedCoords([]);
   };
@@ -935,7 +939,8 @@ export default function TrackingScreen() {
           {showSummitSheet ? (
             <SummitSheet
               onCertify={() => {
-                // 정상 인증 → 하산 시트로만 전환 (세션 완료는 기록 종료 시)
+                // 정상 인증 → 현재 photoWindow 저장 후 하산 시트로 전환
+                summitPhotoWindowRef.current = photoWindow;
                 setHasSummited(true);
                 setShowSummitSheet(false);
               }}
