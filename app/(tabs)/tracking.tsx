@@ -839,8 +839,8 @@ export default function TrackingScreen() {
           </View>
         )}
 
-        {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 */}
-        {isTracking && (
+        {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 (자유기록 제외) */}
+        {isTracking && !isFreeMode && (
           <>
             <LinearGradient
               colors={TRAIL_BAR_COLORS}
@@ -874,8 +874,8 @@ export default function TrackingScreen() {
         )}
       </View>
 
-      {/* 트래킹 중 — 상단 코스 카드 */}
-      {isTracking && (
+      {/* 트래킹 중 — 상단 코스 카드 (자유기록 제외) */}
+      {isTracking && !isFreeMode && (
         <TrackingCourseCard
           course={selectedCourse}
           style={{ top: TRACKING_COURSE_CARD_TOP }}
