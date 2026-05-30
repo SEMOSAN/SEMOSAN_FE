@@ -260,6 +260,7 @@ export default function TrackingScreen() {
   // 마커 Y 비율: 0.0(바 상단/정상) ~ 1.0(바 하단/출발)
   // markerCoord 기준으로 코스에서 가장 가까운 좌표 인덱스를 찾아 정상까지의 진행률 계산
   const markerRatio = useMemo(() => {
+    if (hasSummited) return 0.0; // 정상 인증 후 바 상단 고정
     if (!markerCoord || courseCoords.length < 2) return 1.0;
     const summitIdx = Math.floor(courseCoords.length / 2);
     let closestIdx = 0;
