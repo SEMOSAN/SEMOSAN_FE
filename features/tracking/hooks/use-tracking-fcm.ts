@@ -10,11 +10,22 @@ type Options = {
   onPhotoWindow: (payload: PhotoWindowPayload) => void;
 };
 
-type FcmData = { type?: string; distance?: string; extras?: string } | null;
+type FcmExtras = {
+  distance?: string | number;
+  milestoneIndex?: string | number;
+  [key: string]: unknown;
+};
+
+type FcmData = {
+  type?: string;
+  distance?: string;
+  milestoneIndex?: string;
+  extras?: string;
+} | null;
 
 /**
  * TRACKING_PHOTO_MILESTONE FCM 수신 처리.
- * - 포어그라운드: addNotificationReceivedListener → 인앱 배너
+ * - 포어그라운드: Firebase onMessage → 인앱 배너 + 로컬 알림
  * - 백그라운드/잠금화면에서 알림 탭: addNotificationResponseReceivedListener → 인앱 배너
  * Firebase SDK 충돌로 content.data가 null인 경우 trigger.payload에서 직접 읽음.
  */
@@ -22,16 +33,36 @@ export function useTrackingFcm({ enabled, onPhotoWindow }: Options) {
   useEffect(() => {
     if (!enabled) return;
 
+    const parseExtras = (data: FcmData): FcmExtras => {
+      if (!data?.extras) return {};
+      try {
+        return JSON.parse(data.extras) as FcmExtras;
+      } catch {
+        return {};
+      }
+    };
+
     const parseDistance = (data: FcmData): number => {
       if (!data) return 0;
-      if (data.extras) {
-        try {
-          const extras = JSON.parse(data.extras);
-          if (extras.distance != null) return Number(extras.distance);
-        } catch {}
-      }
+      const extras = parseExtras(data);
+      if (extras.distance != null) return Number(extras.distance);
       return parseFloat(data.distance ?? '0');
     };
+
+    const parseMilestoneIndex = (data: FcmData): number => {
+      if (!data) return 0;
+      const extras = parseExtras(data);
+      if (extras.milestoneIndex != null) return Number(extras.milestoneIndex);
+      if (data.milestoneIndex != null) return Number(data.milestoneIndex);
+      return 0;
+    };
+
+    const buildPayload = (data: FcmData): PhotoWindowPayload => ({
+      milestoneIndex: parseMilestoneIndex(data),
+      milestoneDistance: parseDistance(data),
+      status: 'OPEN',
+      openedAt: new Date().toISOString(),
+    });
 
     const extractPayload = (notification: Notifications.Notification) => {
       // content.data 우선, Firebase SDK 충돌로 null이면 trigger.payload에서 읽음
@@ -41,12 +72,7 @@ export function useTrackingFcm({ enabled, onPhotoWindow }: Options) {
 
       if (!data || data.type !== 'TRACKING_PHOTO_MILESTONE') return;
 
-      onPhotoWindow({
-        milestoneIndex: 0,
-        milestoneDistance: parseDistance(data),
-        status: 'OPEN',
-        openedAt: new Date().toISOString(),
-      });
+      onPhotoWindow(buildPayload(data));
     };
 
     // 포어그라운드 FCM 수신 — Firebase SDK가 expo-notifications보다 우선하므로 onMessage 사용
@@ -56,26 +82,21 @@ export function useTrackingFcm({ enabled, onPhotoWindow }: Options) {
       const data = remoteMessage.data as FcmData;
       if (!data || data.type !== 'TRACKING_PHOTO_MILESTONE') return;
 
-      const distance = parseDistance(data);
+      const payload = buildPayload(data);
+      console.log('[TrackingFCM] milestoneIndex:', payload.milestoneIndex, 'distance:', payload.milestoneDistance);
 
       // 인앱 PhotoWindowBanner 활성화
-      onPhotoWindow({
-        milestoneIndex: 0,
-        milestoneDistance: distance,
-        status: 'OPEN',
-        openedAt: new Date().toISOString(),
-      });
+      onPhotoWindow(payload);
 
       // 포어그라운드 시스템 배너 수동 표시 (Firebase SDK가 자동 표시 안 함)
       try {
-        const notifId = await Notifications.scheduleNotificationAsync({
+        await Notifications.scheduleNotificationAsync({
           content: {
             title: 'SEMOSAN',
-            body: `${distance}m 돌파! 인증 사진을 남겨보세요!`,
+            body: `${payload.milestoneDistance}m 돌파! 인증 사진을 남겨보세요!`,
           },
           trigger: null,
         });
-        console.log('[TrackingFCM] 로컬 알림 예약 완료 id:', notifId);
       } catch (err) {
         console.warn('[TrackingFCM] 로컬 알림 예약 실패:', err);
       }
