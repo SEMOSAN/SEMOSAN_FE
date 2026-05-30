@@ -33,7 +33,6 @@ import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-t
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
-// [DEMO] import { DEMO_NEARBY_DATA } from "@/features/tracking/constants/demo-gwanaksan";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
@@ -132,7 +131,6 @@ export default function TrackingScreen() {
   } | null>(null);
   // 자유기록 실시간 경로 누적 (회색 polyline)
   const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
-  const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
@@ -169,14 +167,9 @@ export default function TrackingScreen() {
     })();
   }, []);
 
-  // [DEMO] 전시 데모용 관악산 좌표 고정 — 복원 시 아래 DEMO 줄 지우고 주석 해제
-  // const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
-  //   lat: userLocation?.latitude ?? null,
-  //   lng: userLocation?.longitude ?? null,
-  // });
   const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
-    lat: 37.4449,  // [DEMO] 관악산 정상 위도
-    lng: 126.9636, // [DEMO] 관악산 정상 경도
+    lat: userLocation?.latitude ?? null,
+    lng: userLocation?.longitude ?? null,
   });
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
@@ -423,51 +416,6 @@ export default function TrackingScreen() {
   ), [courseCoords, isFreeMode, recordedCoords, isTracking, nearbyData]);
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
-  const startCoordSimulation = useCallback(() => {
-    if (!sessionId) return;
-    if (simIntervalRef.current) {
-      console.warn('[SIM] 이미 실행 중');
-      return;
-    }
-    const coords = courseCoords;
-    if (coords.length === 0) {
-      console.warn('[SIM] 코스 좌표 없음');
-      return;
-    }
-
-    // [DEMO] 즉시 출발지 마커 세팅 (실제 GPS가 덮기 전에)
-    setMarkerCoord({ latitude: coords[0].latitude, longitude: coords[0].longitude });
-
-    let idx = 0;
-    console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
-    simIntervalRef.current = setInterval(() => {
-      if (idx >= coords.length) {
-        clearInterval(simIntervalRef.current!);
-        simIntervalRef.current = null;
-        console.log('[SIM] 완료');
-        return;
-      }
-      const { latitude, longitude } = coords[idx];
-      publishGps(sessionId, {
-        lat: latitude,
-        lng: longitude,
-        altitude: 0,
-        recordedAt: new Date().toISOString(),
-      });
-      setMarkerCoord({ latitude, longitude });
-      idx++;
-    }, 50);
-  }, [sessionId, courseCoords, publishGps]);
-
-  // [DEMO] 트래킹 시작 + 코스 좌표 준비 시 자동 시뮬레이션 시작 (자유기록 제외)
-  useEffect(() => {
-    if (!isTracking || isFreeMode) return;
-    if (!sessionId || courseCoords.length === 0) return;
-    if (simIntervalRef.current) return; // 이미 실행 중
-    // 실제 GPS 콜백이 시뮬 마커를 덮어쓰지 않도록 먼저 해제
-    setLocationTaskCallback(null);
-    startCoordSimulation();
-  }, [isTracking, isFreeMode, sessionId, courseCoords.length]);
 
   // polyline 로드되거나 트래킹 시작 시 카메라를 전체 경로가 보이도록 맞춤
   useEffect(() => {
