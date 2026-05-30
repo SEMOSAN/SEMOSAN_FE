@@ -2,7 +2,6 @@ const {
   withInfoPlist,
   withEntitlementsPlist,
   withXcodeProject,
-  withDangerousMod,
 } = require('@expo/config-plugins');
 const path = require('path');
 const fs = require('fs');
@@ -419,27 +418,49 @@ public class LiveActivityModule: Module {
 `;
 
 const withLiveActivityNativeModule = (config) =>
-  withDangerousMod(config, [
-    'ios',
-    (mod) => {
-      const projectRoot = mod.modRequest.projectRoot;
-      const appName = mod.modRequest.projectName ?? 'semosan';
-      const targetDir = path.join(projectRoot, 'ios', appName);
+  withXcodeProject(config, (mod) => {
+    const xcodeProject = mod.modResults;
+    const projectRoot = mod.modRequest.projectRoot;
+    const appName = mod.modRequest.projectName ?? 'semosan';
+    const targetDir = path.join(projectRoot, 'ios', appName);
 
-      fs.writeFileSync(
-        path.join(targetDir, 'LiveActivityModule.swift'),
-        LIVE_ACTIVITY_MODULE_SWIFT,
-        'utf8'
-      );
-      fs.writeFileSync(
-        path.join(targetDir, 'LiveActivityModule.m'),
-        '// Replaced by Expo Module (LiveActivityModule.swift)\n',
-        'utf8'
-      );
+    // 파일 쓰기
+    fs.writeFileSync(
+      path.join(targetDir, 'LiveActivityModule.swift'),
+      LIVE_ACTIVITY_MODULE_SWIFT,
+      'utf8'
+    );
+    fs.writeFileSync(
+      path.join(targetDir, 'LiveActivityModule.m'),
+      '// Replaced by Expo Module (LiveActivityModule.swift)\n',
+      'utf8'
+    );
 
-      return mod;
-    },
-  ]);
+    // 이미 추가됐으면 스킵
+    const alreadyAdded = Object.values(
+      xcodeProject.hash.project.objects['PBXFileReference'] || {}
+    ).some((ref) => typeof ref === 'object' && ref?.path?.includes('LiveActivityModule.swift'));
+    if (alreadyAdded) return mod;
+
+    // 메인 앱 타겟 UUID 찾기
+    const targets = xcodeProject.pbxNativeTargetSection();
+    let mainTargetUUID = null;
+    for (const [uuid, target] of Object.entries(targets)) {
+      if (uuid.endsWith('_comment') || typeof target !== 'object') continue;
+      if (target.name === appName || target.name === `"${appName}"`) {
+        mainTargetUUID = uuid;
+        break;
+      }
+    }
+    if (!mainTargetUUID) return mod;
+
+    xcodeProject.addSourceFile(
+      path.join(appName, 'LiveActivityModule.swift'),
+      { target: mainTargetUUID },
+    );
+
+    return mod;
+  });
 
 const withLiveActivity = (config) => {
   config = withLiveActivityInfoPlist(config);
