@@ -1,17 +1,13 @@
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
+import { Image, ScrollView, Text, View } from "react-native";
 
 export function RestaurantTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
 
-  if (isPending)
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
+  if (isPending) return <LoadingSpinner fullScreen />;
   if (isError) return null;
   if (!data?.restaurantSections) return null;
 
@@ -25,14 +21,18 @@ export function RestaurantTab() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
           >
             {section.restaurants?.map((item) => (
               <View key={item.restaurantId} className="gap-2">
-                <Image
-                  source={{ uri: item.imageUrl }}
-                  className="h-[116px] w-[188px] rounded-[10px] bg-fill-stronger"
-                />
+                {item.imageUrl ? (
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    className="h-[116px] w-[188px] rounded-[10px] bg-fill-stronger"
+                  />
+                ) : (
+                  <View className="h-[116px] w-[188px] rounded-[10px] bg-fill-stronger" />
+                )}
                 <View className="gap-0.5">
                   <Text className="text-label-normal typo-body-1-normal-semi-bold">
                     {item.name}

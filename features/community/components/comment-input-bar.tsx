@@ -2,7 +2,7 @@ import { CloseSmallIcon } from "@/components/icons/close-small-icon";
 import { PaperPlaneIcon } from "@/components/icons/paper-plane-icon";
 import { useCreateComment } from "@/features/community/hooks/use-create-comment";
 import { useCreateReply } from "@/features/community/hooks/use-create-reply";
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -18,13 +18,21 @@ type CommentInputBarProps = {
   onReplyCancel: () => void;
 };
 
-export function CommentInputBar({
+export type CommentInputBarRef = {
+  focus: () => void;
+};
+
+export const CommentInputBar = forwardRef<CommentInputBarRef, CommentInputBarProps>(function CommentInputBar({
   postId,
   replyTarget,
   onReplyCancel,
-}: CommentInputBarProps) {
+}: CommentInputBarProps, ref) {
   const insets = useSafeAreaInsets();
   const inputRef = useRef<TextInput>(null);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+  }));
   const [text, setText] = useState("");
 
   useEffect(() => {
@@ -89,4 +97,4 @@ export function CommentInputBar({
       </View>
     </View>
   );
-}
+});

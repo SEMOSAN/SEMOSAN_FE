@@ -48,15 +48,18 @@ import { XIcon } from "@/components/icons/x-icon";
 import { CliveBottomBar } from "@/components/clive-bottom-bar";
 import { getPhotoReportState } from "@/features/photo-report/photo-report-state";
 import { useHikingSummary } from "@/features/mypage/hooks/use-hiking-summary";
+import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
 import { uploadImage } from "@/hooks/use-upload-image";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
 
 type RecordTab = "클라이브" | "포토 리포트";
 
 export default function RecordScreen() {
-  const { id, name, courseName, imageUri, distance, duration } = useLocalSearchParams<{
+  const { id, hikingRecordId, name, courseName, imageUri, distance, duration } = useLocalSearchParams<{
     id: string;
+    hikingRecordId?: string;
     name: string;
     courseName?: string;
     imageUri?: string;
@@ -64,9 +67,11 @@ export default function RecordScreen() {
     duration?: string;
   }>();
   const sessionId = id ? parseInt(id) : null;
+  const hikingRecordIdNum = hikingRecordId ? parseInt(hikingRecordId) : null;
   const distanceKm = distance ? parseFloat(distance) / 1000 : null;
   const durationSec = duration ? parseInt(duration) : null;
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { top } = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<RecordTab>("클라이브");
   const [showSaveToast, setShowSaveToast] = useState(false);
@@ -87,6 +92,7 @@ export default function RecordScreen() {
   const privateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { data: clivePhotos = [] } = useClivePhotos(sessionId);
   const { data: hikingSummary } = useHikingSummary();
+  const { data: recordDetail } = useHikingRecordDetail(hikingRecordIdNum);
   const displayPhotos = [...clivePhotos].reverse();
   const cliveShotRef = useRef<ViewShot | null>(null);
   const photoReportShotRef = useRef<ViewShot | null>(null);
@@ -111,7 +117,7 @@ export default function RecordScreen() {
     );
     const res = await api.post<SemoFeedResponse>({
       path: ENDPOINTS.SEMOFEED,
-      body: imageUrl as unknown as Record<string, unknown>,
+      body: { imageUrl },
     });
 
     const createdFeedId = res.data?.id ?? null;
@@ -176,6 +182,7 @@ export default function RecordScreen() {
 
       const nextPublic = !activeTabPublic;
       setIsPublicByTab((prev) => ({ ...prev, [activeTab]: nextPublic }));
+      queryClient.invalidateQueries({ queryKey: [ENDPOINTS.SEMOFEED] });
 
       if (nextPublic) {
         setShowPrivateToast(false);
@@ -260,9 +267,9 @@ export default function RecordScreen() {
         {/* 통계 */}
         <View style={{ flexDirection: "row", marginHorizontal: 20, marginTop: 16, marginBottom: 16, gap: 4 }}>
           {[
-            { label: "소요시간", value: formatDuration(durationSec) },
-            { label: "고도", value: hikingSummary?.totalAltitude != null ? `${Math.round(hikingSummary.totalAltitude)}Nm` : "--" },
-            { label: "칼로리", value: "360kcal" },
+            { label: "소요시간", value: formatDuration(recordDetail?.durationSeconds ?? durationSec) },
+            { label: "고도", value: recordDetail?.ascentMeters != null ? `${Math.round(recordDetail.ascentMeters)}Nm` : "--" },
+            { label: "칼로리", value: recordDetail?.calories != null ? `${recordDetail.calories}kcal` : "--" },
           ].map((stat) => (
             <View key={stat.label} style={styles.statItem}>
               <Text style={styles.statLabel}>{stat.label}</Text>
@@ -293,7 +300,7 @@ export default function RecordScreen() {
         {/* 클라이브 */}
         {activeTab === "클라이브" && (
           <View className="pb-10 pt-2">
-            <ViewShot ref={cliveShotRef} options={{ format: "jpg", quality: 1 }}>
+            <ViewShot ref={cliveShotRef} options={{ format: "jpg", quality: 1 }} style={{ width: 335, alignSelf: "center" }}>
               <View style={styles.cardWrap}>
                 {/* 왼쪽 그라디언트 바 — 정상 완료: 빨강까지 full */}
                 <LinearGradient
@@ -306,15 +313,29 @@ export default function RecordScreen() {
 
                 {displayPhotos.length > 0 ? (() => {
                   const photoHeight = CLIVE_CARD_HEIGHT / displayPhotos.length;
-                  const maskDefs = displayPhotos
-                    .map((_, i) => ({
-                      i,
-                      sectionY: i * photoHeight,
-                      topOp: i > 0 ? "0" : "1",
-                      bottomOp: i < displayPhotos.length - 1 ? "0" : "1",
-                      hasMask: i > 0 || i < displayPhotos.length - 1,
-                    }))
-                    .filter((d) => d.hasMask);
+                  const BLEND = 30; // 경계 블렌딩 픽셀
+
+                  const maskDefs = displayPhotos.map((_, i) => {
+                    const hasTop = i > 0;
+                    const hasBottom = i < displayPhotos.length - 1;
+                    const yStart = i * photoHeight - (hasTop ? BLEND : 0);
+                    const totalH = photoHeight + (hasTop ? BLEND : 0) + (hasBottom ? BLEND : 0);
+                    const stops: { offset: string; op: string }[] = [];
+                    if (hasTop) {
+                      stops.push({ offset: "0", op: "0" });
+                      stops.push({ offset: (BLEND / totalH).toFixed(3), op: "1" });
+                    } else {
+                      stops.push({ offset: "0", op: "1" });
+                    }
+                    if (hasBottom) {
+                      stops.push({ offset: ((totalH - BLEND) / totalH).toFixed(3), op: "1" });
+                      stops.push({ offset: "1", op: "0" });
+                    } else {
+                      stops.push({ offset: "1", op: "1" });
+                    }
+                    return { i, yStart, totalH, stops };
+                  });
+
                   return (
                     <>
                       <Svg
@@ -327,42 +348,46 @@ export default function RecordScreen() {
                             <SvgLinearGradient
                               key={`grad-${d.i}`}
                               id={`fade-${d.i}`}
-                              x1="0" y1={d.sectionY}
-                              x2="0" y2={d.sectionY + photoHeight}
+                              x1="0" y1={d.yStart}
+                              x2="0" y2={d.yStart + d.totalH}
                               gradientUnits="userSpaceOnUse"
                             >
-                              <Stop offset="0" stopColor="white" stopOpacity={d.topOp} />
-                              <Stop offset="0.1" stopColor="white" stopOpacity="1" />
-                              <Stop offset="0.9" stopColor="white" stopOpacity="1" />
-                              <Stop offset="1" stopColor="white" stopOpacity={d.bottomOp} />
+                              {d.stops.map((s, j) => (
+                                <Stop key={j} offset={s.offset} stopColor="white" stopOpacity={s.op} />
+                              ))}
                             </SvgLinearGradient>,
                             <Mask
                               key={`mask-${d.i}`}
                               id={`mask-${d.i}`}
-                              x={0} y={d.sectionY}
-                              width={335} height={photoHeight}
+                              x={0} y={d.yStart}
+                              width={335} height={d.totalH}
                               maskUnits="userSpaceOnUse"
                             >
                               <SvgRect
-                                x={0} y={d.sectionY}
-                                width={335} height={photoHeight}
+                                x={0} y={d.yStart}
+                                width={335} height={d.totalH}
                                 fill={`url(#fade-${d.i})`}
                               />
                             </Mask>,
                           ])}
                         </Defs>
-                        {displayPhotos.map((url, i) => (
-                          <SvgImage
-                            key={url}
-                            href={{ uri: url }}
-                            x={0}
-                            y={i * photoHeight}
-                            width={335}
-                            height={photoHeight}
-                            preserveAspectRatio="xMidYMid slice"
-                            mask={maskDefs.some((m) => m.i === i) ? `url(#mask-${i})` : undefined}
-                          />
-                        ))}
+                        {/* 역순 렌더링: 위쪽 사진(summit)이 z-order 최상단 */}
+                        {[...displayPhotos].reverse().map((url, revIdx) => {
+                          const i = displayPhotos.length - 1 - revIdx;
+                          const d = maskDefs[i];
+                          return (
+                            <SvgImage
+                              key={url}
+                              href={{ uri: url }}
+                              x={0}
+                              y={d.yStart}
+                              width={335}
+                              height={d.totalH}
+                              preserveAspectRatio="xMidYMid slice"
+                              mask={`url(#mask-${i})`}
+                            />
+                          );
+                        })}
                       </Svg>
 
                       {/* 스탬프 오버레이 */}
@@ -415,7 +440,7 @@ export default function RecordScreen() {
         {/* 포토 리포트 */}
         {activeTab === "포토 리포트" && (
           <View className="pb-10 pt-2">
-            <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }}>
+            <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }} style={{ width: 335, alignSelf: "center" }}>
               <View style={styles.cardWrap}>
                 {/* 배경 사진 */}
                 <ExpoImage
@@ -635,7 +660,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignSelf: "center",
     position: "relative",
-    backgroundColor: "#888888",
+    backgroundColor: "transparent",
   },
   gradientBar: {
     position: "absolute",

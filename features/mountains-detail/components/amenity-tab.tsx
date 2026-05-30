@@ -5,7 +5,8 @@ import { StoreIcon } from "@/components/icons/store-icon";
 import { ToiletIcon } from "@/components/icons/toilet-icon";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Text, View } from "react-native";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { Text, View } from "react-native";
 
 import { MountainDetailResponse } from "@/types/api.generated";
 
@@ -27,13 +28,7 @@ export function AmenityTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
 
-  if (isPending) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  if (isPending) return <LoadingSpinner fullScreen />;
   if (isError) return null;
   if (!data?.amenities) return null;
 

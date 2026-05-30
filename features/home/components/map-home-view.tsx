@@ -15,10 +15,12 @@ import {
 import {
   VISITED_MARKER_OVERLAY_HEIGHT,
   VISITED_MARKER_OVERLAY_WIDTH,
+  VisitedMarker,
 } from "@/components/map-markers/visited-marker";
 import NoRecordBottomSheet from "@/components/no-record-bottom-sheet";
 import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import { useMyMountains } from "@/features/home/hooks/use-my-mountains";
+import { useProfile } from "@/features/mypage/hooks/use-profile";
 import {
   BBox,
   useMountainsMap,
@@ -50,7 +52,7 @@ type Region = {
 const DEFAULT_REGION: Region = {
   latitude: 37.5665,
   longitude: 126.978,
-  zoom: 10,
+  zoom: 8,
 };
 
 export type MapHomeViewRef = {
@@ -80,6 +82,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     const snapExpanded = hasRecords ? SNAP_EXPANDED_WITH_RECORDS : SNAP_EXPANDED_NO_RECORDS;
     const { data, isPending, isError } = useMountains();
     const { data: myMountains = [] } = useMyMountains();
+    const { data: profile } = useProfile();
 
     const moveToCurrentLocation = async () => {
       const { status } = await requestForegroundPermissionsAsync();
@@ -115,6 +118,10 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
       ),
     }));
 
+    const myMountainImageMap = Object.fromEntries(
+      myMountains.map((m) => [m.mountainId, m.imageUrl])
+    );
+
     const visitedCards = myMountains.map((m) => ({
       id: String(m.mountainId),
       name: m.mountainName ?? "",
@@ -134,6 +141,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             zoom: region.zoom,
           }}
           isShowLocationButton={false}
+          isShowZoomControls={false}
           onTapMap={() => sheetRef.current?.collapseToMin()}
           onCameraIdle={(e) => {
             const { latitude, longitude, latitudeDelta, longitudeDelta } =
@@ -147,7 +155,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
           }}
         >
           {hasRecords
-            ? mapData?.mountains?.map((mountain) => (
+            ? mapData?.mountains?.filter((m) => m.visited).map((mountain) => (
                 <NaverMapMarkerOverlay
                   key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
                   latitude={mountain.latitude}
@@ -169,56 +177,41 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
                 >
                   <View
                     collapsable={false}
-                    // style={{
-                    //   width: mountain.visited
-                    //     ? VISITED_MARKER_OVERLAY_WIDTH
-                    //     : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                    //   height: mountain.visited
-                    //     ? VISITED_MARKER_OVERLAY_HEIGHT
-                    //     : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                    // }}
                     style={{
-                      width: UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                      height: UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
+                      width: mountain.visited
+                        ? VISITED_MARKER_OVERLAY_WIDTH
+                        : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
+                      height: mountain.visited
+                        ? VISITED_MARKER_OVERLAY_HEIGHT
+                        : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
                     }}
                   >
-                    <UnvisitedMountainPillMarker
-                      name={mountain.name ?? ""}
-                      variant={"visited"}
-                      selected={mountain?.id === selectedMountainId}
-                    />
-                    {/* {mountain.visited ? (
-                         <VisitedMarker
-                           name={mountain.name}
-                           visitCount={mountain.visitCount}
-                           imageUri={mountain.imageUrl}
-                           selected={mountain.id === selectedMountainId}
-                         />
-                       ) : (
-                         <UnvisitedMountainPillMarker
-                           name={mountain.name}
-                           variant={
-                             mountain.visited
-                               ? "visited"
-                               : activeTab === "큐레이션"
-                                 ? "curation"
-                                 : "trending"
-                           }
-                           selected={mountain.id === selectedMountainId}
-                         />
-                       )} */}
+                    {mountain.visited ? (
+                      <VisitedMarker
+                        name={mountain.name}
+                        visitCount={mountain.visitCount}
+                        imageUri={myMountainImageMap[mountain.id] ?? mountain.imageUrl}
+                        selected={mountain.id === selectedMountainId}
+                      />
+                    ) : (
+                      <UnvisitedMountainPillMarker
+                        name={mountain.name ?? ""}
+                        variant="trending"
+                        selected={mountain.id === selectedMountainId}
+                      />
+                    )}
                   </View>
                 </NaverMapMarkerOverlay>
               ))
-            : data?.content?.map((mountain) => (
+            : mapData?.mountains?.map((mountain) => (
                 <NaverMapMarkerOverlay
-                  key={`no-record-${mountain.mountainId}`}
-                  latitude={mountain.latitude ?? 0}
-                  longitude={mountain.longitude ?? 0}
+                  key={`no-record-${mountain.id}`}
+                  latitude={mountain.latitude}
+                  longitude={mountain.longitude}
                   width={UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH}
                   height={UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT}
                   anchor={{ x: 0.5, y: 0.5 }}
-                  onTap={() => router.push(`/mountains/${mountain.mountainId}`)}
+                  onTap={() => router.push(`/mountains/${mountain.id}`)}
                 >
                   <View
                     collapsable={false}
@@ -248,8 +241,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
         <Animated.View
           style={[
             styles.locationButton,
-            // locationButtonStyle, // TODO : 하단 바텀시트  (HomeBottomSheetContainer) 가 주석처리가 풀리면 다시 사용하도록 한다.
-            { bottom: 12 }, // TODO : 하단 바텀시트  (HomeBottomSheetContainer) 가 주석처리 풀리면 삭제하도록 한다.
+            locationButtonStyle,
           ]}
         >
           <TouchableOpacity
@@ -281,7 +273,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
               />
             ) : (
               <NoRecordBottomSheet
-                userName={"맹쏘"}
+                userName={profile?.nickname ?? ""}
                 scrollEnabled={scrollEnabled}
                 lat={region.latitude}
                 lng={region.longitude}

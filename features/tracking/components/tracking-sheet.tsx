@@ -1,6 +1,7 @@
 import { CameraIcon } from '@/components/icons/camera-icon';
 import { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 import { TRACKING_TIMER_STYLE, formatElapsedTime } from '../constants';
 
@@ -43,6 +44,7 @@ export function TrackingSheet({
   onSummit,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const timeLabel = hasSummited ? '하산까지 시간' : '정상까지 시간';
   const distanceLabel = hasSummited ? '하산까지 거리' : '정상까지 거리';
@@ -50,7 +52,7 @@ export function TrackingSheet({
   return (
     <View
       className="w-full bg-fill-normal overflow-hidden"
-      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, minHeight: 220 }}
     >
       {/* 핸들 — 탭하면 펼침/접힘 */}
       <TouchableOpacity
@@ -86,7 +88,7 @@ export function TrackingSheet({
       {/* 펼침 상태 — 정상/하산까지 시간 & 거리 */}
       {isExpanded && (
         <View className="border-t border-line-subtle flex-row">
-          <View className="flex-1 items-center gap-1 py-3">
+          <View className="flex-1 items-center gap-1 py-5">
             <Text className="typo-caption-1-medium text-label-subtler">{timeLabel}</Text>
             <Text className="typo-body-1-normal-semi-bold text-label-normal">{timeToTarget}</Text>
           </View>
@@ -94,19 +96,19 @@ export function TrackingSheet({
           <View className="w-px bg-line-subtle self-stretch" />
 
           {/* 거리 */}
-          <View className="flex-1 items-center gap-1 py-3">
+          <View className="flex-1 items-center gap-1 py-5">
             <Text className="typo-caption-1-medium text-label-subtler">{distanceLabel}</Text>
             <Text className="typo-body-1-normal-semi-bold text-label-normal">{distanceToTarget}</Text>
           </View>
         </View>
       )}
 
-      {/* 버튼 영역 */}
-      <View className="px-4 pb-4 gap-2">
+      {/* 버튼 영역 — 툴팁은 absolute로 위에 띄워서 시트 높이 유지 */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom }}>
 
-        {/* 말풍선 툴팁 — 트래킹 중(비일시정지)에만 표시 */}
+        {/* 말풍선 툴팁 — absolute로 버튼 위에 오버레이 */}
         {!isPaused && (isPhotoWindowOpen || showTooltip) && (
-          <View style={{ alignItems: 'flex-start', marginLeft: 25 }}>
+          <View style={{ position: 'absolute', bottom: insets.bottom + 48 + 4, left: 36, zIndex: 10 }}>
             <View
               className="flex-row items-center justify-center gap-2"
               style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: TOOLTIP_BG }}

@@ -1,14 +1,14 @@
 import { PlusIcon } from "@/components/icons/plus-icon";
 import { useFreePosts } from "@/features/community/hooks/use-free-posts";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { FlatList, Pressable, RefreshControl, View } from "react-native";
 import { PostItem } from "./post-item";
 
 export function FreeBoardScreen() {
   const router = useRouter();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch, isRefetching } =
     useFreePosts();
-
   const posts = data?.pages.flatMap((page) => page.content ?? []) ?? [];
 
   return (
@@ -21,9 +21,14 @@ export function FreeBoardScreen() {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();
         }}
         onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
         ListFooterComponent={
           isFetchingNextPage ? (
-            <ActivityIndicator className="py-4" />
+            <View className="items-center py-4">
+              <LoadingSpinner size={40} />
+            </View>
           ) : null
         }
       />

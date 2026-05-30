@@ -13,11 +13,15 @@ export const DIFFICULTY_LABEL: Record<MountainDifficulty, string> = {
 export function MountainCard({ mountain }: { mountain: MountainListResponse }) {
   return (
     <View className="flex-row items-center gap-4">
-      <Image
-        source={{ uri: mountain.imageUrls?.[0] }}
-        className="h-[72px] w-[86px] rounded-[10px] bg-fill-stronger"
-        resizeMode="cover"
-      />
+      {mountain.imageUrls?.[0] ? (
+        <Image
+          source={{ uri: mountain.imageUrls[0] }}
+          className="h-[72px] w-[86px] rounded-[10px] bg-fill-stronger"
+          resizeMode="cover"
+        />
+      ) : (
+        <View className="h-[72px] w-[86px] rounded-[10px] bg-fill-stronger" />
+      )}
       <View className="flex-1 flex-col gap-1.5">
         <View className="flex-row items-end gap-[9px]">
           <Text className="shrink-0 text-label-normal typo-headline-1-semi-bold">

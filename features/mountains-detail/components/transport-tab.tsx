@@ -4,7 +4,8 @@ import { SubwayIcon } from "@/components/icons/subway-icon";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { TransportationItem } from "@/types/api.generated";
 import { useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Text, View } from "react-native";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { Text, View } from "react-native";
 
 type TransportType = NonNullable<TransportationItem["type"]>;
 type DirectionMap = Record<string, TransportationItem[]>;
@@ -19,12 +20,7 @@ export function TransportTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isPending, isError } = useMountainDetail(Number(id));
 
-  if (isPending)
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
+  if (isPending) return <LoadingSpinner fullScreen />;
   if (isError) return null;
   if (!data.transportations) return null;
 

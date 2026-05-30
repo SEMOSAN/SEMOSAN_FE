@@ -39,7 +39,7 @@ export function ApiCourseItem({
   const textColor =
     API_DIFFICULTY_TEXT[course.difficulty ?? ""] ?? "text-label-normal";
   const distanceKm =
-    course.distance != null ? `${course.distance.toFixed(1)}km` : "-";
+    course.distance != null ? `${(course.distance / 1000).toFixed(1)}km` : "-";
   const durationMin =
     course.duration != null
       ? course.duration >= 60

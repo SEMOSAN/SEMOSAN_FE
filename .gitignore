@@ -40,9 +40,7 @@ yarn-error.*
 app-example
 
 # generated native folders
-/ios/build
-/ios/Pods
-/ios/*.xcworkspace
+/ios
 /android
 .claude/
 *.ipa

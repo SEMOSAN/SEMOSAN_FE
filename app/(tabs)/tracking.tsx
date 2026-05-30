@@ -55,6 +55,7 @@ import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-p
 import { LiveActivity, addLiveActivityControlListener } from "@/modules/live-activity";
 import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
 import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
+import { useAppState } from "@/hooks/use-app-state";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -70,7 +71,6 @@ import { Tabs, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutChangeEvent,
-  Linking,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -83,12 +83,11 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
 };
 
 export default function TrackingScreen() {
-  const { collapse: collapseParameter, courseId: courseIdParameter, mountainId: mountainIdParameter, action: actionParameter } =
+  const { collapse: collapseParameter, courseId: courseIdParameter, mountainId: mountainIdParameter } =
     useLocalSearchParams<{
       collapse?: string;
       courseId?: string;
       mountainId?: string;
-      action?: string;
     }>();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
     courseIdParameter ?? null,
@@ -99,7 +98,6 @@ export default function TrackingScreen() {
   const [isPaused, setIsPaused] = useState(false);
   const [isFreeMode, setIsFreeMode] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [timerStartEpoch, setTimerStartEpoch] = useState<number | null>(null);
   const [showTooltip, setShowTooltip] = useState(true);
   // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
   const [isAtSummit, setIsAtSummit] = useState(false); // 목 값 (GPS 연동 전까지 false)
@@ -135,7 +133,9 @@ export default function TrackingScreen() {
   // 자유기록 실시간 경로 누적 (회색 polyline)
   const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
+  const [isFollowingUser, setIsFollowingUser] = useState(false);
   const isMountedRef = useRef(true);
   useEffect(() => () => { isMountedRef.current = false; }, []);
 
@@ -228,7 +228,6 @@ export default function TrackingScreen() {
       setSessionId(activeSession.sessionId);
       setIsTracking(true);
       setIsPaused(status === "PAUSED");
-      if (status === "IN_PROGRESS") setTimerStartEpoch(Date.now());
       // 코스 정보 복원
       if (activeSession.isFreeRecording) {
         setIsFreeMode(true);
@@ -479,17 +478,39 @@ export default function TrackingScreen() {
     const maxLat = Math.max(...lats);
     const minLng = Math.min(...lngs);
     const maxLng = Math.max(...lngs);
+    const padding = 0.15;
     const fit = () =>
-      mapRef.current?.animateRegionTo({
-        latitude: (minLat + maxLat) / 2,
-        longitude: (minLng + maxLng) / 2,
-        latitudeDelta: (maxLat - minLat) * 1.3,
-        longitudeDelta: (maxLng - minLng) * 1.3,
+      mapRef.current?.animateCameraWithTwoCoords({
+        coord1: {
+          latitude: minLat - (maxLat - minLat) * padding,
+          longitude: minLng - (maxLng - minLng) * padding,
+        },
+        coord2: {
+          latitude: maxLat + (maxLat - minLat) * padding,
+          longitude: maxLng + (maxLng - minLng) * padding,
+        },
+        duration: 500,
       });
     // mapRef가 아직 마운트 전일 수 있으니 약간 지연
     const timer = setTimeout(fit, 300);
     return () => clearTimeout(timer);
   }, [courseDetail?.polyline, isTracking]);
+
+  // 트래킹 시작/종료 시 follow 모드 토글
+  useEffect(() => {
+    setIsFollowingUser(isTracking);
+  }, [isTracking]);
+
+  // 트래킹 중 실시간 위치 마커 카메라 추적 (사용자가 직접 조작하면 follow 해제)
+  useEffect(() => {
+    if (!isFollowingUser || !markerCoord) return;
+    mapRef.current?.animateCameraTo({
+      latitude: markerCoord.latitude,
+      longitude: markerCoord.longitude,
+      zoom: 15,
+      duration: 800,
+    });
+  }, [markerCoord, isFollowingUser]);
 
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
@@ -502,7 +523,6 @@ export default function TrackingScreen() {
     if (countdown === null) return;
     if (countdown === 0) {
       setIsTracking(true);
-      setTimerStartEpoch(Date.now());
       setCountdown(null);
 
       // 트래킹 세션 시작 API 호출
@@ -570,9 +590,8 @@ export default function TrackingScreen() {
     if (!isTracking) return;
 
     if (isLiveActivityEnabled) {
-      const startEpoch = timerStartEpoch ?? Date.now();
       if (isFreeMode) {
-        LiveActivity.start({ mode: "free", timerStartEpoch: startEpoch }).catch(() => {});
+        LiveActivity.start({ mode: "free" }).catch(() => {});
       } else {
         const totalMeters = liveActivityCourse?.totalDistance
           ?? Math.round(selectedCourse.distanceKm * 1000);
@@ -583,7 +602,6 @@ export default function TrackingScreen() {
           remainingMinutes: totalMinutes,
           remainingMeters: Math.round(totalMeters),
           progress: 0,
-          timerStartEpoch: startEpoch,
         }).catch(() => {});
       }
     }
@@ -591,16 +609,31 @@ export default function TrackingScreen() {
     return () => {};
   }, [isTracking, isFreeMode, selectedCourse]);
 
-  // 트래킹 중 경과 시간 카운트업 — timerStartEpoch 기준 계산으로 drift 없음
+  // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
   useEffect(() => {
-    if (!isTracking || isPaused || timerStartEpoch === null) return;
-    const epoch = timerStartEpoch;
-    const interval = setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - epoch) / 1000));
-    }, 1000);
+    if (!isTracking || isPaused) return;
+    const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
     return () => clearInterval(interval);
-  }, [isTracking, isPaused, timerStartEpoch]);
+  }, [isTracking, isPaused]);
 
+  // 백그라운드 진입 시 시각 저장, 포어그라운드 복귀 시 차이만큼 누적
+  useAppState(
+    useCallback(
+      (state) => {
+        if (!isTracking || isPaused) return;
+        if (state === "background" || state === "inactive") {
+          backgroundedAtRef.current = Date.now();
+        } else if (state === "active" && backgroundedAtRef.current != null) {
+          const diffSeconds = Math.floor(
+            (Date.now() - backgroundedAtRef.current) / 1000,
+          );
+          setElapsedSeconds((s) => s + diffSeconds);
+          backgroundedAtRef.current = null;
+        }
+      },
+      [isTracking, isPaused],
+    ),
+  );
 
   // 매 초 Live Activity 업데이트
   useEffect(() => {
@@ -612,7 +645,6 @@ export default function TrackingScreen() {
           elapsedSeconds,
           isRunning: !isPaused,
           mode: "free",
-          timerStartEpoch: timerStartEpoch ?? undefined,
         }).catch(() => {});
       } else {
         let progress = 0;
@@ -644,7 +676,6 @@ export default function TrackingScreen() {
           remainingMinutes,
           remainingMeters,
           progress,
-          timerStartEpoch: timerStartEpoch ?? undefined,
         }).catch(() => {});
       }
     }
@@ -652,7 +683,6 @@ export default function TrackingScreen() {
 
   const pauseTracking = () => {
     setIsPaused(true);
-    setTimerStartEpoch(null);
     if (sessionId != null) {
       pauseSession(sessionId, {
         onError: (err) => {
@@ -664,7 +694,6 @@ export default function TrackingScreen() {
   };
   const resumeTracking = () => {
     setIsPaused(false);
-    setTimerStartEpoch(Date.now() - elapsedSeconds * 1000);
     if (sessionId != null) {
       resumeSession(sessionId, {
         onError: (err) => {
@@ -690,13 +719,6 @@ export default function TrackingScreen() {
     });
     return () => sub.remove();
   }, [isTracking]);
-
-  // 위젯 버튼 딥링크: semosan://tracking?action=pause|resume
-  useEffect(() => {
-    if (!isLiveActivityEnabled || !isTracking) return;
-    if (actionParameter === 'pause') pauseTrackingRef.current();
-    else if (actionParameter === 'resume') resumeTrackingRef.current();
-  }, [actionParameter, isTracking]);
 
   const requestStop = () => setShowStopModal(true);
 
@@ -778,7 +800,6 @@ export default function TrackingScreen() {
     setIsPaused(false);
     setIsFreeMode(false);
     setElapsedSeconds(0);
-    setTimerStartEpoch(null);
     setShowTooltip(true);
     setShowSummitSheet(false);
     setHasSummited(false);
@@ -816,6 +837,15 @@ export default function TrackingScreen() {
             longitude: 126.9636,
             zoom: 12,
           }}
+          mapPadding={{
+            bottom: isTracking ? trackingSheetHeight : collapsed ? COLLAPSED_PEEK_HEIGHT : 448,
+            top: 0,
+            left: 0,
+            right: 0,
+          }}
+          onCameraChanged={({ reason }) => {
+            if (reason === 'Gesture') setIsFollowingUser(false);
+          }}
         >
           {staticMapOverlays}
 
@@ -827,6 +857,7 @@ export default function TrackingScreen() {
               width={28}
               height={34}
               anchor={{ x: 0.5, y: 0.47 }}
+              onTap={() => setIsFollowingUser(true)}
             >
               {/* 총 높이: 삼각형 9 + 원 28 - 겹침 3 = 34 */}
               <View collapsable={false} style={{ width: 28, height: 34 }}>
@@ -933,6 +964,7 @@ export default function TrackingScreen() {
           onSelectCourse={(id) => setSelectedCourseId(String(id))}
           onFreeRecord={handleFreeRecord}
           onStartCountdown={startCountdown}
+          onCollapse={() => setCollapsed(true)}
         />
       )}
 
@@ -966,7 +998,7 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
-              isPhotoWindowOpen={photoWindow?.status === "OPEN"}
+              isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
               hasSummited={hasSummited}
               timeToTarget={timeToTarget}
               distanceToTarget={distanceToTarget}
