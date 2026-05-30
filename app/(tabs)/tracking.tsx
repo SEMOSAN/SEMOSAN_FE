@@ -33,7 +33,6 @@ import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-t
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
-// [DEMO] import { DEMO_NEARBY_DATA } from "@/features/tracking/constants/demo-gwanaksan";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
@@ -110,9 +109,9 @@ export default function TrackingScreen() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [hikingRecordId, setHikingRecordId] = useState<number | null>(null);
   const [hasSummited, setHasSummited] = useState(false);
-  const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(
-    null,
-  );
+  const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(null);
+  // 정상 인증 시점의 photoWindow 저장 — 인증 후 photoWindow가 닫혀도 메타 업로드에 사용
+  const summitPhotoWindowRef = useRef<PhotoWindowPayload | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{
@@ -132,7 +131,6 @@ export default function TrackingScreen() {
   } | null>(null);
   // 자유기록 실시간 경로 누적 (회색 polyline)
   const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
-  const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
@@ -169,14 +167,9 @@ export default function TrackingScreen() {
     })();
   }, []);
 
-  // [DEMO] 전시 데모용 관악산 좌표 고정 — 복원 시 아래 DEMO 줄 지우고 주석 해제
-  // const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
-  //   lat: userLocation?.latitude ?? null,
-  //   lng: userLocation?.longitude ?? null,
-  // });
   const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
-    lat: 37.4449,  // [DEMO] 관악산 정상 위도
-    lng: 126.9636, // [DEMO] 관악산 정상 경도
+    lat: userLocation?.latitude ?? null,
+    lng: userLocation?.longitude ?? null,
   });
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
@@ -264,25 +257,92 @@ export default function TrackingScreen() {
     [courseDetail?.polyline],
   );
 
-  // 마커 Y 비율: 0.0(바 상단/정상) ~ 1.0(바 하단/출발)
-  // markerCoord 기준으로 코스에서 가장 가까운 좌표 인덱스를 찾아 정상까지의 진행률 계산
-  const markerRatio = useMemo(() => {
-    if (!markerCoord || courseCoords.length < 2) return 1.0;
+  // 정상/하산까지 시간·거리 — 코스 전체의 절반 (courseProgressState useMemo보다 먼저 선언)
+  const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
+  const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
+
+  // 코스 진행 상태 — GPS 기반 실시간 (markerRatio + 남은 거리/시간 통합)
+  const courseProgressState = useMemo(() => {
+    // ── 1순위: liveActivityCourse + Haversine 실측 거리 계산 ──────────────
+    if (liveActivityCourse && userLocation && liveActivityCourse.totalDistance > 0) {
+      const result = calcCourseProgress(
+        userLocation,
+        liveActivityCourse.coordinates,
+        liveActivityCourse.totalDistance,
+      );
+      // 분/m 페이스 (전체 코스 기준 일정 속도 가정)
+      const paceMinPerM = liveActivityCourse.estimatedTime / liveActivityCourse.totalDistance;
+      const traveledM = liveActivityCourse.totalDistance - result.remainingMeters;
+
+      if (hasSummited) {
+        // 하산 중: 코스 끝까지 남은 거리/시간
+        return {
+          markerRatio: 0.0,
+          remainingDistanceM: Math.round(result.remainingMeters),
+          remainingDurationMin: Math.round(result.remainingMeters * paceMinPerM),
+        };
+      }
+
+      // 등산 중: 코스 중간(정상)까지 남은 거리/시간
+      const halfDistance = liveActivityCourse.totalDistance / 2;
+      const remainingToSummitM = Math.max(0, halfDistance - traveledM);
+      const ascProgress = Math.min(traveledM / halfDistance, 1); // 0(출발) ~ 1(정상)
+      return {
+        markerRatio: Math.max(0, 1.0 - ascProgress), // 1.0(바 하단/출발) ~ 0.0(바 상단/정상)
+        remainingDistanceM: Math.round(remainingToSummitM),
+        remainingDurationMin: Math.round(remainingToSummitM * paceMinPerM),
+      };
+    }
+
+    // ── 2순위 폴백: 인덱스 기반 선형 보간 (liveActivityCourse 로딩 전) ──
     const summitIdx = Math.floor(courseCoords.length / 2);
+    const totalIdx = courseCoords.length - 1;
+
+    if (hasSummited) {
+      if (!markerCoord || courseCoords.length < 2) {
+        return { markerRatio: 0.0, remainingDistanceM: halfDistanceM, remainingDurationMin: halfDurationMinutes };
+      }
+      let closestIdx = summitIdx;
+      let minDist = Infinity;
+      for (let i = summitIdx; i <= totalIdx; i++) {
+        const dLat = courseCoords[i].latitude - markerCoord.latitude;
+        const dLng = courseCoords[i].longitude - markerCoord.longitude;
+        const dist = dLat * dLat + dLng * dLng;
+        if (dist < minDist) { minDist = dist; closestIdx = i; }
+      }
+      const descentTotal = totalIdx - summitIdx;
+      const ratio = descentTotal > 0
+        ? Math.max(0, Math.min(1, 1 - (closestIdx - summitIdx) / descentTotal))
+        : 0;
+      return {
+        markerRatio: 0.0,
+        remainingDistanceM: Math.round(halfDistanceM * ratio),
+        remainingDurationMin: Math.round(halfDurationMinutes * ratio),
+      };
+    }
+
+    if (!markerCoord || courseCoords.length < 2) {
+      return { markerRatio: 1.0, remainingDistanceM: halfDistanceM, remainingDurationMin: halfDurationMinutes };
+    }
+
     let closestIdx = 0;
     let minDist = Infinity;
     for (let i = 0; i <= summitIdx; i++) {
       const dLat = courseCoords[i].latitude - markerCoord.latitude;
       const dLng = courseCoords[i].longitude - markerCoord.longitude;
       const dist = dLat * dLat + dLng * dLng;
-      if (dist < minDist) {
-        minDist = dist;
-        closestIdx = i;
-      }
+      if (dist < minDist) { minDist = dist; closestIdx = i; }
     }
-    const progress = closestIdx / summitIdx; // 0.0(출발) ~ 1.0(정상)
-    return 1.0 - progress; // 0.0(바 상단/정상) ~ 1.0(바 하단/출발)
-  }, [markerCoord, courseCoords]);
+    const progress = summitIdx > 0 ? closestIdx / summitIdx : 0;
+    const remaining = Math.max(0, 1 - progress);
+    return {
+      markerRatio: 1.0 - progress,
+      remainingDistanceM: Math.round(halfDistanceM * remaining),
+      remainingDurationMin: Math.round(halfDurationMinutes * remaining),
+    };
+  }, [markerCoord, courseCoords, hasSummited, halfDistanceM, halfDurationMinutes, liveActivityCourse, userLocation]);
+
+  const { markerRatio, remainingDistanceM, remainingDurationMin } = courseProgressState;
 
   // altitudes 문자열에서 최고 고도(m) 파싱
   const peakAltitudeM = useMemo(() => {
@@ -301,10 +361,6 @@ export default function TrackingScreen() {
     return null;
   }, [courseDetail?.altitudes]);
 
-  // 정상/하산까지 시간·거리 — 코스 전체의 절반
-  const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
-  const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
-
   const selectedCourse = useMemo((): Course => ({
     id: String(courseDetail?.id ?? ''),
     name: courseDetail?.name ?? '',
@@ -321,12 +377,12 @@ export default function TrackingScreen() {
     zoom: 14,
   }), [courseDetail, peakAltitudeM, halfDistanceM]);
 
-  const timeToTarget = halfDurationMinutes > 0
-    ? `${Math.floor(halfDurationMinutes / 60) > 0 ? `${Math.floor(halfDurationMinutes / 60)}h ` : ''}${halfDurationMinutes % 60 > 0 ? `${halfDurationMinutes % 60}m` : ''}`
+  const timeToTarget = remainingDurationMin > 0
+    ? `${Math.floor(remainingDurationMin / 60) > 0 ? `${Math.floor(remainingDurationMin / 60)}h ` : ''}${remainingDurationMin % 60 > 0 ? `${remainingDurationMin % 60}m` : ''}`
     : '-';
-  const distanceToTarget = halfDistanceM >= 1000
-    ? `${(halfDistanceM / 1000).toFixed(1)}km`
-    : halfDistanceM > 0 ? `${halfDistanceM}m` : '-';
+  const distanceToTarget = remainingDistanceM >= 1000
+    ? `${(remainingDistanceM / 1000).toFixed(1)}km`
+    : remainingDistanceM > 0 ? `${remainingDistanceM}m` : '-';
 
   // 정적 맵 오버레이 — markerCoord 변경 시 리렌더 방지
   const staticMapOverlays = useMemo(() => (
@@ -423,51 +479,6 @@ export default function TrackingScreen() {
   ), [courseCoords, isFreeMode, recordedCoords, isTracking, nearbyData]);
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
-  const startCoordSimulation = useCallback(() => {
-    if (!sessionId) return;
-    if (simIntervalRef.current) {
-      console.warn('[SIM] 이미 실행 중');
-      return;
-    }
-    const coords = courseCoords;
-    if (coords.length === 0) {
-      console.warn('[SIM] 코스 좌표 없음');
-      return;
-    }
-
-    // [DEMO] 즉시 출발지 마커 세팅 (실제 GPS가 덮기 전에)
-    setMarkerCoord({ latitude: coords[0].latitude, longitude: coords[0].longitude });
-
-    let idx = 0;
-    console.log(`[SIM] 시작 — 총 ${coords.length}개 좌표`);
-    simIntervalRef.current = setInterval(() => {
-      if (idx >= coords.length) {
-        clearInterval(simIntervalRef.current!);
-        simIntervalRef.current = null;
-        console.log('[SIM] 완료');
-        return;
-      }
-      const { latitude, longitude } = coords[idx];
-      publishGps(sessionId, {
-        lat: latitude,
-        lng: longitude,
-        altitude: 0,
-        recordedAt: new Date().toISOString(),
-      });
-      setMarkerCoord({ latitude, longitude });
-      idx++;
-    }, 50);
-  }, [sessionId, courseCoords, publishGps]);
-
-  // [DEMO] 트래킹 시작 + 코스 좌표 준비 시 자동 시뮬레이션 시작 (자유기록 제외)
-  useEffect(() => {
-    if (!isTracking || isFreeMode) return;
-    if (!sessionId || courseCoords.length === 0) return;
-    if (simIntervalRef.current) return; // 이미 실행 중
-    // 실제 GPS 콜백이 시뮬 마커를 덮어쓰지 않도록 먼저 해제
-    setLocationTaskCallback(null);
-    startCoordSimulation();
-  }, [isTracking, isFreeMode, sessionId, courseCoords.length]);
 
   // polyline 로드되거나 트래킹 시작 시 카메라를 전체 경로가 보이도록 맞춤
   useEffect(() => {
@@ -737,8 +748,11 @@ export default function TrackingScreen() {
 
     if (result.canceled || !result.assets?.[0]?.uri) return;
 
-    // 사진 윈도우 OPEN 상태일 때 → MinIO 업로드 → 메타 저장
-    if (photoWindow?.status === "OPEN" && sessionId != null) {
+    const isWindowOpen = photoWindow?.status === "OPEN";
+    // 정상 인증 후에는 summitPhotoWindowRef에 저장된 photoWindow 사용
+    const activeWindow = isWindowOpen ? photoWindow : (hasSummited ? summitPhotoWindowRef.current : null);
+
+    if (activeWindow != null && sessionId != null) {
       try {
         const capturedAt = new Date().toISOString();
         const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
@@ -747,8 +761,8 @@ export default function TrackingScreen() {
         await savePhoto({
           sessionId,
           body: {
-            milestoneIndex: photoWindow.milestoneIndex,
-            milestoneDistanceM: photoWindow.milestoneDistance,
+            milestoneIndex: activeWindow.milestoneIndex,
+            milestoneDistanceM: activeWindow.milestoneDistance,
             imageUrl,
             capturedAt,
             lat: userLocation?.latitude ?? 0,
@@ -806,6 +820,7 @@ export default function TrackingScreen() {
     setSessionId(null);
     setHikingRecordId(null);
     setPhotoWindow(null);
+    summitPhotoWindowRef.current = null;
     setCollapsed(false);
     setRecordedCoords([]);
   };
@@ -886,8 +901,8 @@ export default function TrackingScreen() {
           </View>
         )}
 
-        {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 */}
-        {isTracking && (
+        {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 (자유기록 제외) */}
+        {isTracking && !isFreeMode && (
           <>
             <LinearGradient
               colors={TRAIL_BAR_COLORS}
@@ -921,8 +936,8 @@ export default function TrackingScreen() {
         )}
       </View>
 
-      {/* 트래킹 중 — 상단 코스 카드 */}
-      {isTracking && (
+      {/* 트래킹 중 — 상단 코스 카드 (자유기록 제외) */}
+      {isTracking && !isFreeMode && (
         <TrackingCourseCard
           course={selectedCourse}
           style={{ top: TRACKING_COURSE_CARD_TOP }}
@@ -987,7 +1002,8 @@ export default function TrackingScreen() {
           {showSummitSheet ? (
             <SummitSheet
               onCertify={() => {
-                // 정상 인증 → 하산 시트로만 전환 (세션 완료는 기록 종료 시)
+                // 정상 인증 → 현재 photoWindow 저장 후 하산 시트로 전환
+                summitPhotoWindowRef.current = photoWindow;
                 setHasSummited(true);
                 setShowSummitSheet(false);
               }}
@@ -998,6 +1014,7 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
+              isFreeMode={isFreeMode}
               isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
               hasSummited={hasSummited}
               timeToTarget={timeToTarget}
