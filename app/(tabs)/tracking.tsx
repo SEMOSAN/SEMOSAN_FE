@@ -257,26 +257,92 @@ export default function TrackingScreen() {
     [courseDetail?.polyline],
   );
 
-  // 마커 Y 비율: 0.0(바 상단/정상) ~ 1.0(바 하단/출발)
-  // markerCoord 기준으로 코스에서 가장 가까운 좌표 인덱스를 찾아 정상까지의 진행률 계산
-  const markerRatio = useMemo(() => {
-    if (hasSummited) return 0.0; // 정상 인증 후 바 상단 고정
-    if (!markerCoord || courseCoords.length < 2) return 1.0;
+  // 정상/하산까지 시간·거리 — 코스 전체의 절반 (courseProgressState useMemo보다 먼저 선언)
+  const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
+  const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
+
+  // 코스 진행 상태 — GPS 기반 실시간 (markerRatio + 남은 거리/시간 통합)
+  const courseProgressState = useMemo(() => {
+    // ── 1순위: liveActivityCourse + Haversine 실측 거리 계산 ──────────────
+    if (liveActivityCourse && userLocation && liveActivityCourse.totalDistance > 0) {
+      const result = calcCourseProgress(
+        userLocation,
+        liveActivityCourse.coordinates,
+        liveActivityCourse.totalDistance,
+      );
+      // 분/m 페이스 (전체 코스 기준 일정 속도 가정)
+      const paceMinPerM = liveActivityCourse.estimatedTime / liveActivityCourse.totalDistance;
+      const traveledM = liveActivityCourse.totalDistance - result.remainingMeters;
+
+      if (hasSummited) {
+        // 하산 중: 코스 끝까지 남은 거리/시간
+        return {
+          markerRatio: 0.0,
+          remainingDistanceM: Math.round(result.remainingMeters),
+          remainingDurationMin: Math.round(result.remainingMeters * paceMinPerM),
+        };
+      }
+
+      // 등산 중: 코스 중간(정상)까지 남은 거리/시간
+      const halfDistance = liveActivityCourse.totalDistance / 2;
+      const remainingToSummitM = Math.max(0, halfDistance - traveledM);
+      const ascProgress = Math.min(traveledM / halfDistance, 1); // 0(출발) ~ 1(정상)
+      return {
+        markerRatio: Math.max(0, 1.0 - ascProgress), // 1.0(바 하단/출발) ~ 0.0(바 상단/정상)
+        remainingDistanceM: Math.round(remainingToSummitM),
+        remainingDurationMin: Math.round(remainingToSummitM * paceMinPerM),
+      };
+    }
+
+    // ── 2순위 폴백: 인덱스 기반 선형 보간 (liveActivityCourse 로딩 전) ──
     const summitIdx = Math.floor(courseCoords.length / 2);
+    const totalIdx = courseCoords.length - 1;
+
+    if (hasSummited) {
+      if (!markerCoord || courseCoords.length < 2) {
+        return { markerRatio: 0.0, remainingDistanceM: halfDistanceM, remainingDurationMin: halfDurationMinutes };
+      }
+      let closestIdx = summitIdx;
+      let minDist = Infinity;
+      for (let i = summitIdx; i <= totalIdx; i++) {
+        const dLat = courseCoords[i].latitude - markerCoord.latitude;
+        const dLng = courseCoords[i].longitude - markerCoord.longitude;
+        const dist = dLat * dLat + dLng * dLng;
+        if (dist < minDist) { minDist = dist; closestIdx = i; }
+      }
+      const descentTotal = totalIdx - summitIdx;
+      const ratio = descentTotal > 0
+        ? Math.max(0, Math.min(1, 1 - (closestIdx - summitIdx) / descentTotal))
+        : 0;
+      return {
+        markerRatio: 0.0,
+        remainingDistanceM: Math.round(halfDistanceM * ratio),
+        remainingDurationMin: Math.round(halfDurationMinutes * ratio),
+      };
+    }
+
+    if (!markerCoord || courseCoords.length < 2) {
+      return { markerRatio: 1.0, remainingDistanceM: halfDistanceM, remainingDurationMin: halfDurationMinutes };
+    }
+
     let closestIdx = 0;
     let minDist = Infinity;
     for (let i = 0; i <= summitIdx; i++) {
       const dLat = courseCoords[i].latitude - markerCoord.latitude;
       const dLng = courseCoords[i].longitude - markerCoord.longitude;
       const dist = dLat * dLat + dLng * dLng;
-      if (dist < minDist) {
-        minDist = dist;
-        closestIdx = i;
-      }
+      if (dist < minDist) { minDist = dist; closestIdx = i; }
     }
-    const progress = closestIdx / summitIdx; // 0.0(출발) ~ 1.0(정상)
-    return 1.0 - progress; // 0.0(바 상단/정상) ~ 1.0(바 하단/출발)
-  }, [markerCoord, courseCoords]);
+    const progress = summitIdx > 0 ? closestIdx / summitIdx : 0;
+    const remaining = Math.max(0, 1 - progress);
+    return {
+      markerRatio: 1.0 - progress,
+      remainingDistanceM: Math.round(halfDistanceM * remaining),
+      remainingDurationMin: Math.round(halfDurationMinutes * remaining),
+    };
+  }, [markerCoord, courseCoords, hasSummited, halfDistanceM, halfDurationMinutes, liveActivityCourse, userLocation]);
+
+  const { markerRatio, remainingDistanceM, remainingDurationMin } = courseProgressState;
 
   // altitudes 문자열에서 최고 고도(m) 파싱
   const peakAltitudeM = useMemo(() => {
@@ -295,10 +361,6 @@ export default function TrackingScreen() {
     return null;
   }, [courseDetail?.altitudes]);
 
-  // 정상/하산까지 시간·거리 — 코스 전체의 절반
-  const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
-  const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
-
   const selectedCourse = useMemo((): Course => ({
     id: String(courseDetail?.id ?? ''),
     name: courseDetail?.name ?? '',
@@ -315,12 +377,12 @@ export default function TrackingScreen() {
     zoom: 14,
   }), [courseDetail, peakAltitudeM, halfDistanceM]);
 
-  const timeToTarget = halfDurationMinutes > 0
-    ? `${Math.floor(halfDurationMinutes / 60) > 0 ? `${Math.floor(halfDurationMinutes / 60)}h ` : ''}${halfDurationMinutes % 60 > 0 ? `${halfDurationMinutes % 60}m` : ''}`
+  const timeToTarget = remainingDurationMin > 0
+    ? `${Math.floor(remainingDurationMin / 60) > 0 ? `${Math.floor(remainingDurationMin / 60)}h ` : ''}${remainingDurationMin % 60 > 0 ? `${remainingDurationMin % 60}m` : ''}`
     : '-';
-  const distanceToTarget = halfDistanceM >= 1000
-    ? `${(halfDistanceM / 1000).toFixed(1)}km`
-    : halfDistanceM > 0 ? `${halfDistanceM}m` : '-';
+  const distanceToTarget = remainingDistanceM >= 1000
+    ? `${(remainingDistanceM / 1000).toFixed(1)}km`
+    : remainingDistanceM > 0 ? `${remainingDistanceM}m` : '-';
 
   // 정적 맵 오버레이 — markerCoord 변경 시 리렌더 방지
   const staticMapOverlays = useMemo(() => (
@@ -952,6 +1014,7 @@ export default function TrackingScreen() {
               elapsedSeconds={elapsedSeconds}
               isPaused={isPaused}
               showTooltip={showTooltip}
+              isFreeMode={isFreeMode}
               isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
               hasSummited={hasSummited}
               timeToTarget={timeToTarget}
