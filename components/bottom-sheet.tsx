@@ -178,7 +178,10 @@ export default function BottomSheet({
 
 function MountainCardThumbnail({ mountainId }: { mountainId: number }) {
   const { data: records = [] } = useMyMountainRecords(mountainId);
-  const latestSessionId = records[0]?.sessionId ?? null;
+  const sorted = [...records].sort((a, b) =>
+    new Date(b.hikedAt ?? 0).getTime() - new Date(a.hikedAt ?? 0).getTime()
+  );
+  const latestSessionId = sorted[0]?.sessionId ?? null;
   const { data: photos = [] } = useClivePhotos(latestSessionId);
 
   const mainPhoto = photos[photos.length - 1];
