@@ -1,12 +1,14 @@
+import { ResetIcon } from "@/components/icons/reset-icon";
 import { Image } from "expo-image";
 import { useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withDecay,
+  withSpring,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { FEED_SLIDE_UP_DISTANCE } from "../constants";
@@ -39,7 +41,7 @@ const OVERSCAN = 1; // 화면 밖 여유분 (셀 단위)
 // 메인 그리드
 // ─────────────────────────────────────────────
 export function FeedHomeView() {
-  const { data: semofeedData } = useSemofeed();
+  const { data: semofeedData, refetch } = useSemofeed();
 
   const feedItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
 
@@ -59,6 +61,9 @@ export function FeedHomeView() {
   // 제스처 시작 시점의 누적값 (Pan은 매번 0부터 시작하므로)
   const savedX = useSharedValue(0);
   const savedY = useSharedValue(0);
+
+  // 초기 중심 위치 저장 (리셋 버튼용)
+  const initPosRef = useRef({ x: 0, y: 0 });
 
   // rAF 스로틀용
   const rafRef = useRef<number | null>(null);
@@ -171,6 +176,7 @@ export function FeedHomeView() {
             // 셀(0,0) 중심의 그리드 좌표 = CELL_GAP/2 + CELL_CONTENT_W/2 = CELL_W/2
             const initX = width / 2 - CELL_W / 2;
             const initY = height / 2 - CELL_H / 2 + FEED_SLIDE_UP_DISTANCE / 2;
+            initPosRef.current = { x: initX, y: initY };
             translateX.value = initX;
             translateY.value = initY;
             savedX.value = initX;
@@ -190,6 +196,20 @@ export function FeedHomeView() {
           </Animated.View>
         </View>
       </GestureDetector>
+
+      <Pressable
+        className="absolute bottom-3 right-3 items-center justify-center rounded-full bg-label-normal px-4 py-[13px]"
+        style={{ boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.1)" }}
+        hitSlop={8}
+        onPress={() => {
+          refetch();
+          const { x, y } = initPosRef.current;
+          translateX.value = withSpring(x);
+          translateY.value = withSpring(y);
+        }}
+      >
+        <ResetIcon size={24} color="#ffffff" />
+      </Pressable>
 
       {selectedImageUri !== null && (
         <FeedCellDetail
