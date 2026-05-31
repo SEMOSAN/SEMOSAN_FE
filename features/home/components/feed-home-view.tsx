@@ -1,6 +1,8 @@
+import { ResetIcon } from "@/components/icons/reset-icon";
+import { refresh } from "@react-native-community/netinfo";
 import { Image } from "expo-image";
 import { useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedReaction,
@@ -39,7 +41,7 @@ const OVERSCAN = 1; // 화면 밖 여유분 (셀 단위)
 // 메인 그리드
 // ─────────────────────────────────────────────
 export function FeedHomeView() {
-  const { data: semofeedData } = useSemofeed();
+  const { data: semofeedData, refetch } = useSemofeed();
 
   const feedItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
 
@@ -190,6 +192,15 @@ export function FeedHomeView() {
           </Animated.View>
         </View>
       </GestureDetector>
+
+      <Pressable
+        className="absolute bottom-3 right-3 items-center justify-center rounded-full bg-label-normal px-4 py-[13px]"
+        style={{ boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.1)" }}
+        hitSlop={8}
+        onPress={refresh}
+      >
+        <ResetIcon size={24} color="#ffffff" />
+      </Pressable>
 
       {selectedImageUri !== null && (
         <FeedCellDetail
