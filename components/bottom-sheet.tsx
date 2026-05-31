@@ -1,4 +1,5 @@
 import { useMyMountainRecords } from '@/features/home/hooks/use-my-mountain-records';
+import { useClivePhotos } from '@/features/tracking/hooks/use-clive-photos';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
@@ -11,11 +12,11 @@ export type Tab = '내 기록' | '큐레이션';
 
 type MountainCard = {
   id: string;
+  mountainId: number;
   name: string;
   trailNumber: number;
   daysAgo: number;
   badgeCount: number;
-  imageUri?: string;
 };
 
 type Props = {
@@ -34,10 +35,10 @@ type Props = {
 const TABS: Tab[] = ['내 기록', '큐레이션'];
 
 const MOCK_CARDS: MountainCard[] = [
-  { id: '1', name: '산 이름', trailNumber: 1, daysAgo: 1, badgeCount: 1 },
-  { id: '2', name: '산 이름', trailNumber: 1, daysAgo: 1, badgeCount: 1 },
-  { id: '3', name: '산 이름', trailNumber: 1, daysAgo: 1, badgeCount: 1 },
-  { id: '4', name: '산 이름', trailNumber: 1, daysAgo: 1, badgeCount: 1 },
+  { id: '1', mountainId: 1, name: '산 이름', trailNumber: 1, daysAgo: 1, badgeCount: 1 },
+  { id: '2', mountainId: 2, name: '산 이름', trailNumber: 1, daysAgo: 1, badgeCount: 1 },
+  { id: '3', mountainId: 3, name: '산 이름', trailNumber: 1, daysAgo: 1, badgeCount: 1 },
+  { id: '4', mountainId: 4, name: '산 이름', trailNumber: 1, daysAgo: 1, badgeCount: 1 },
 ];
 
 export default function BottomSheet({
@@ -104,7 +105,7 @@ export default function BottomSheet({
                   hikingRecordId: String(record?.hikingRecordId ?? ''),
                   name: selectedCard.name,
                   courseName: record?.courseName ?? '',
-                  imageUri: selectedCard.imageUri ?? '',
+                  imageUri: '',
                   distance: String(record?.distance ?? ''),
                   duration: String(record?.duration ?? ''),
                 },
@@ -175,21 +176,42 @@ export default function BottomSheet({
   );
 }
 
+function MountainCardThumbnail({ mountainId }: { mountainId: number }) {
+  const { data: records = [] } = useMyMountainRecords(mountainId);
+  const latestSessionId = records[0]?.sessionId ?? null;
+  const { data: photos = [] } = useClivePhotos(latestSessionId);
+
+  const mainPhoto = photos[photos.length - 1];
+  const bgPhoto = photos[photos.length - 2];
+
+  return (
+    <>
+      {bgPhoto ? (
+        <Image
+          source={{ uri: bgPhoto }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          resizeMode="cover"
+        />
+      ) : null}
+      {mainPhoto ? (
+        <Image
+          source={{ uri: mainPhoto }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          resizeMode="cover"
+        />
+      ) : (
+        <View className="absolute inset-0 bg-fill-stronger items-center justify-center" />
+      )}
+    </>
+  );
+}
+
 function MountainCard({ card, onPress }: { card: MountainCard; onPress: () => void }) {
   return (
     <TouchableOpacity className="flex-1 gap-1" onPress={onPress}>
       {/* 이미지 */}
       <View className="self-stretch h-[88px] rounded-[10px] overflow-hidden flex-col items-end p-2 gap-2.5">
-        {card.imageUri ? (
-          <Image
-            source={{ uri: card.imageUri }}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="absolute inset-0 bg-fill-stronger items-center justify-center">
-          </View>
-        )}
+        <MountainCardThumbnail mountainId={card.mountainId} />
         {/* 뱃지 */}
         <View className="w-7 h-7 rounded-full bg-label-normal items-center justify-center z-10">
           <Text className="typo-body-3-semi-bold text-common-100 text-center">{card.badgeCount}</Text>

@@ -119,16 +119,16 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     }));
 
     const myMountainImageMap = Object.fromEntries(
-      myMountains.map((m) => [m.mountainId, m.imageUrl])
+      myMountains.map((m) => [m.mountainId, m.imageUrls?.[0]])
     );
 
     const visitedCards = myMountains.map((m) => ({
       id: String(m.mountainId),
+      mountainId: m.mountainId ?? 0,
       name: m.mountainName ?? "",
       trailNumber: m.hikingCount ?? 1,
       daysAgo: getDaysAgo(m.lastHikedAt),
       badgeCount: m.hikingCount ?? 1,
-      imageUri: m.imageUrl,
     }));
 
     return (
