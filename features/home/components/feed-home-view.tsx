@@ -1,5 +1,4 @@
 import { ResetIcon } from "@/components/icons/reset-icon";
-import { refresh } from "@react-native-community/netinfo";
 import { Image } from "expo-image";
 import { useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -9,6 +8,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDecay,
+  withSpring,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { FEED_SLIDE_UP_DISTANCE } from "../constants";
@@ -61,6 +61,9 @@ export function FeedHomeView() {
   // 제스처 시작 시점의 누적값 (Pan은 매번 0부터 시작하므로)
   const savedX = useSharedValue(0);
   const savedY = useSharedValue(0);
+
+  // 초기 중심 위치 저장 (리셋 버튼용)
+  const initPosRef = useRef({ x: 0, y: 0 });
 
   // rAF 스로틀용
   const rafRef = useRef<number | null>(null);
@@ -173,6 +176,7 @@ export function FeedHomeView() {
             // 셀(0,0) 중심의 그리드 좌표 = CELL_GAP/2 + CELL_CONTENT_W/2 = CELL_W/2
             const initX = width / 2 - CELL_W / 2;
             const initY = height / 2 - CELL_H / 2 + FEED_SLIDE_UP_DISTANCE / 2;
+            initPosRef.current = { x: initX, y: initY };
             translateX.value = initX;
             translateY.value = initY;
             savedX.value = initX;
@@ -197,7 +201,12 @@ export function FeedHomeView() {
         className="absolute bottom-3 right-3 items-center justify-center rounded-full bg-label-normal px-4 py-[13px]"
         style={{ boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.1)" }}
         hitSlop={8}
-        onPress={refresh}
+        onPress={() => {
+          refetch();
+          const { x, y } = initPosRef.current;
+          translateX.value = withSpring(x);
+          translateY.value = withSpring(y);
+        }}
       >
         <ResetIcon size={24} color="#ffffff" />
       </Pressable>
