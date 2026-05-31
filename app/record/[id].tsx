@@ -9,7 +9,7 @@ import Svg, {
   Image as SvgImage,
 } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
-import { Image as ExpoImage } from "expo-image";
+import { Image as ExpoImage, Image } from "expo-image";
 import * as MediaLibrary from "expo-media-library";
 import {
   ScrollView,
@@ -138,9 +138,11 @@ export default function RecordScreen() {
     }, [])
   );
 
-  // 클라이브 사진 로드 후 포토리포트 기본 사진 = 마지막 사진(정상)
+  // 클라이브 사진 프리페치 + 포토리포트 기본 사진 = 마지막 사진(정상)
   useEffect(() => {
-    if (clivePhotos.length > 0 && photoReportSource === null) {
+    if (clivePhotos.length === 0) return;
+    clivePhotos.forEach((url) => Image.prefetch(url));
+    if (photoReportSource === null) {
       setPhotoReportSource({ uri: clivePhotos[clivePhotos.length - 1] });
     }
   }, [clivePhotos]);
