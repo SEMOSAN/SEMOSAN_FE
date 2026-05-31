@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { Client } from '@stomp/stompjs';
 import { tokenStorage } from './auth/tokenStorage';
 
@@ -37,10 +38,12 @@ export async function createTrackingStompClient(
     },
     onStompError: (frame) => {
       console.warn('[STOMP] STOMP ERROR:', frame.headers['message'], frame.body);
+      Sentry.captureException(new Error(`TrackingSocketStompError: ${frame.headers['message']}`));
       callbacks?.onError?.(frame);
     },
     onWebSocketError: (e: any) => {
       console.warn('[STOMP] WS ERROR:', e?.message ?? e);
+      Sentry.captureException(new Error(`TrackingSocketWebSocketError: ${e?.message ?? "unknown"}`));
       callbacks?.onError?.(e);
     },
     onWebSocketClose: (e: any) => {

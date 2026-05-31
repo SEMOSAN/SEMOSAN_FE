@@ -7,13 +7,14 @@ import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { Lexend_700Bold, useFonts } from "@expo-google-fonts/lexend";
 import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import * as Sentry from "@sentry/react-native";
 import {
   QueryClient,
   QueryClientProvider,
   focusManager,
 } from "@tanstack/react-query";
-import { Redirect, Stack } from "expo-router";
 import * as Notifications from "expo-notifications";
+import { Redirect, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
@@ -37,6 +38,15 @@ Notifications.setNotificationHandler({
 SplashScreen.preventAutoHideAsync();
 if (!__DEV__) initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
 
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: !__DEV__,
+  tracesSampleRate: 1.0,
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+});
+
 function onAppStateChange(status: AppStateStatus) {
   // React Query already supports in web browser refetch on window focus by default
   if (Platform.OS !== "web") {
@@ -51,7 +61,7 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-export default function RootLayout(): React.JSX.Element | null {
+function RootLayout(): React.JSX.Element | null {
   const { status: authStatus } = useAuthState();
 
   usePushNotification(authStatus === "authenticated");
@@ -162,3 +172,5 @@ export default function RootLayout(): React.JSX.Element | null {
     </QueryClientProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);
