@@ -77,14 +77,14 @@ export default function RecordScreen() {
   const [showSaveToast, setShowSaveToast] = useState(false);
   const [showPublicToast, setShowPublicToast] = useState(false);
   const [showPrivateToast, setShowPrivateToast] = useState(false);
-  const [isPublicByTab, setIsPublicByTab] = useState<Record<RecordTab, boolean>>({
-    클라이브: false,
-    "포토 리포트": false,
-  });
-  const [semoFeedIdByTab, setSemoFeedIdByTab] = useState<Record<RecordTab, number | null>>({
-    클라이브: null,
-    "포토 리포트": null,
-  });
+  const [isPublicByTab, setIsPublicByTab] = useState<Record<RecordTab, boolean>>(() => ({
+    클라이브: queryClient.getQueryData<{ id: number; isPublic: boolean }>(['record-semofeed', sessionId, '클라이브'])?.isPublic ?? false,
+    "포토 리포트": queryClient.getQueryData<{ id: number; isPublic: boolean }>(['record-semofeed', sessionId, '포토 리포트'])?.isPublic ?? false,
+  }));
+  const [semoFeedIdByTab, setSemoFeedIdByTab] = useState<Record<RecordTab, number | null>>(() => ({
+    클라이브: queryClient.getQueryData<{ id: number; isPublic: boolean }>(['record-semofeed', sessionId, '클라이브'])?.id ?? null,
+    "포토 리포트": queryClient.getQueryData<{ id: number; isPublic: boolean }>(['record-semofeed', sessionId, '포토 리포트'])?.id ?? null,
+  }));
   const [photoReportSource, setPhotoReportSource] = useState<number | { uri: string } | null>(null);
   const [photoReportTemplate, setPhotoReportTemplate] = useState(0);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -123,8 +123,10 @@ export default function RecordScreen() {
     const createdFeedId = res.data?.id ?? null;
     if (!createdFeedId) return null;
 
+    const isPublic = !!res.data?.isPublic;
     setSemoFeedIdByTab((prev) => ({ ...prev, [tab]: createdFeedId }));
-    setIsPublicByTab((prev) => ({ ...prev, [tab]: !!res.data?.isPublic }));
+    setIsPublicByTab((prev) => ({ ...prev, [tab]: isPublic }));
+    queryClient.setQueryData(['record-semofeed', sessionId, tab], { id: createdFeedId, isPublic });
     return createdFeedId;
   };
 
@@ -182,6 +184,7 @@ export default function RecordScreen() {
 
       const nextPublic = !activeTabPublic;
       setIsPublicByTab((prev) => ({ ...prev, [activeTab]: nextPublic }));
+      queryClient.setQueryData(['record-semofeed', sessionId, activeTab], { id: semoFeedId, isPublic: nextPublic });
       queryClient.invalidateQueries({ queryKey: [ENDPOINTS.SEMOFEED] });
 
       if (nextPublic) {
@@ -440,34 +443,36 @@ export default function RecordScreen() {
         {/* 포토 리포트 */}
         {activeTab === "포토 리포트" && (
           <View className="pb-10 pt-2">
-            <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }} style={{ width: 335, alignSelf: "center" }}>
-              <View style={styles.cardWrap}>
-                {/* 배경 사진 */}
-                <ExpoImage
-                  source={photoReportSource ?? PhotoReportBg}
-                  style={StyleSheet.absoluteFill}
-                  contentFit="cover"
-                />
+            <View style={{ width: 335, alignSelf: "center" }}>
+              <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }}>
+                <View style={styles.cardWrap}>
+                  {/* 배경 사진 */}
+                  <ExpoImage
+                    source={photoReportSource ?? PhotoReportBg}
+                    style={StyleSheet.absoluteFill}
+                    contentFit="cover"
+                  />
 
-                {/* 스탯 오버레이 */}
-                <ExpoImage
-                  source={OVERLAY_STATS[photoReportTemplate] ?? OVERLAY_STATS[0]}
-                  style={StyleSheet.absoluteFill}
-                  contentFit="cover"
-                  pointerEvents="none"
-                />
+                  {/* 스탯 오버레이 */}
+                  <ExpoImage
+                    source={OVERLAY_STATS[photoReportTemplate] ?? OVERLAY_STATS[0]}
+                    style={StyleSheet.absoluteFill}
+                    contentFit="cover"
+                    pointerEvents="none"
+                  />
+                </View>
+              </ViewShot>
 
-                {/* 편집하기 버튼 */}
-                <TouchableOpacity
-                  style={styles.editChip}
-                  activeOpacity={0.7}
-                  onPress={() => router.push({ pathname: "/record/photo-report-edit", params: { sessionId: String(sessionId ?? "") } })}
-                >
-                  <PencilSimpleIcon size={16} color="#FFFFFF" />
-                  <Text style={styles.editChipText}>편집하기</Text>
-                </TouchableOpacity>
-              </View>
-            </ViewShot>
+              {/* 편집하기 버튼 — ViewShot 밖에 위치해 캡처에서 제외 */}
+              <TouchableOpacity
+                style={[styles.editChip, { position: "absolute", top: 16, right: 16 }]}
+                activeOpacity={0.7}
+                onPress={() => router.push({ pathname: "/record/photo-report-edit", params: { sessionId: String(sessionId ?? "") } })}
+              >
+                <PencilSimpleIcon size={16} color="#FFFFFF" />
+                <Text style={styles.editChipText}>편집하기</Text>
+              </TouchableOpacity>
+            </View>
 
             <CliveBottomBar
               isPublic={activeTabPublic}
@@ -636,9 +641,6 @@ const styles = StyleSheet.create({
   },
   // 포토 리포트 오버레이
   editChip: {
-    position: "absolute",
-    top: 16,
-    right: 16,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1A1B1F",
