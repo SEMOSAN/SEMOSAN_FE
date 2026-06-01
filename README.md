@@ -12,16 +12,54 @@
 
 ## 📱 주요 기능
 
-| 기능 | 설명 |
-|------|------|
-| 🗺️ **실시간 GPS 트래킹** | 백그라운드 위치 추적으로 등산 경로를 실시간 기록 |
-| 🧭 **코스 따라가기** | Naver Map 기반 코스 경로 시각화 및 정상까지 남은 거리·시간 안내 |
-| 📸 **마일스톤 인증 사진** | 코스 1/4 지점마다 FCM 알림 + 인증 사진 업로드 |
-| 🏅 **정상 인증** | 정상 도착 인증 및 하산 트래킹 전환 |
-| 🎙️ **자유 기록** | 코스 없이 자유롭게 등산 경로 기록 |
-| 🏔️ **산 탐색** | 인근 산 조회 및 코스 정보 확인 |
-| 💬 **커뮤니티** | 등산 후기 및 사진 공유 |
-| 📊 **내 기록** | 등산 이력 및 난이도 피드백 관리 |
+### 🏠 홈
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/screenshots/home-feed.png" alt="정복 지도" width="100%" />
+      <br /><b>정복 지도</b>
+      <br /><sub>내가 다녀온 산을 지도 위에서 한눈에</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="assets/screenshots/home-semofeed.png" alt="세모피드" width="100%" />
+      <br /><b>세모피드</b>
+      <br /><sub>등산 커뮤니티의 생생한 후기 피드</sub>
+    </td>
+  </tr>
+</table>
+
+<br />
+
+### 🏔️ 산 탐색
+
+<img src="assets/screenshots/mountains.png" alt="산 목록" width="50%" />
+
+인근 산 조회 및 코스 정보, 난이도·거리·소요시간 확인
+
+<br />
+
+### 🗺️ 실시간 GPS 트래킹
+
+<img src="assets/screenshots/tracking.png" alt="GPS 트래킹" width="50%" />
+
+백그라운드 위치 추적으로 등산 경로 실시간 기록, 코스 따라가기 및 정상까지 남은 거리·시간 안내, 마일스톤 인증 사진 업로드
+
+<br />
+
+### 💬 커뮤니티
+
+<img src="assets/screenshots/community.png" alt="커뮤니티" width="50%" />
+
+등산 후기 및 사진 공유
+
+<br />
+
+### 📊 내 기록
+
+<img src="assets/screenshots/mypage.png" alt="내 기록" width="50%" />
+
+등산 이력 및 난이도 피드백 관리
 
 <br />
 
