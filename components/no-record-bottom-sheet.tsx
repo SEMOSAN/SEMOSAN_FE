@@ -80,7 +80,7 @@ function CuratedCard({
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      className="h-[160px] w-[164px] overflow-hidden rounded-xl bg-neutral-200"
+      className="h-[164px] w-[164px] overflow-hidden rounded-xl bg-neutral-200"
       onPress={() =>
         router.push({
           pathname: "/mountains/[id]",

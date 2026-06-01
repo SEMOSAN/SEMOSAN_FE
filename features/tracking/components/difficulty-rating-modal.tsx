@@ -14,6 +14,7 @@ type DifficultyOption = "similar" | "easier" | "harder";
 type Props = {
   visible: boolean;
   course: Course;
+  mountainId?: number;
   mountainName: string;
   onClose: () => void;
   onComplete: (option: DifficultyOption | null) => void;
@@ -32,6 +33,7 @@ const OPTIONS: {
 export function DifficultyRatingModal({
   visible,
   course,
+  mountainId,
   mountainName,
   onClose,
   onComplete,
@@ -42,6 +44,12 @@ export function DifficultyRatingModal({
 
   const handleComplete = () => {
     queryClient.invalidateQueries({ queryKey: [ENDPOINTS.MOUNTAINS_MAP] });
+    if (mountainId)
+      queryClient.invalidateQueries({
+        queryKey: [
+          ENDPOINTS.HIKING_RECORDS_ME_MOUNTAINS_BY_MOUNTAINID(mountainId),
+        ],
+      });
     onComplete(selected);
     setSelected(null);
   };
