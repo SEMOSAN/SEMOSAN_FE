@@ -1,15 +1,16 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { Image, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { HikingStartBanner } from '@/components/icons/hiking-start-banner';
-import { InfoIcon } from '@/components/icons/info-icon';
-import { type MountainRecommendationItem, useMountainRecommendations } from '@/features/mountains/hooks/use-mountain-recommendations';
-
-const DIFFICULTY_LABEL: Record<MountainRecommendationItem["difficulty"], string> = {
-  EASY: '난이도 하',
-  NORMAL: '난이도 중',
-  HARD: '난이도 상',
-};
+import { HikingStartBanner } from "@/components/icons/hiking-start-banner";
+import { useMountainRecommendations } from "@/features/mountains/hooks/use-mountain-recommendations";
+import { MountainRecommendationResponse } from "@/types/api.generated";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import {
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 type Props = {
   userName?: string;
@@ -18,15 +19,22 @@ type Props = {
   lng?: number;
 };
 
-export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled = false, lat = 0, lng = 0 }: Props) {
+export default function NoRecordBottomSheet({
+  userName = "맹쏘",
+  scrollEnabled = false,
+  lat,
+  lng,
+}: Props) {
   const { width: screenWidth } = useWindowDimensions();
   const bannerWidth = screenWidth - 32;
-  const bannerHeight = Math.round(90 * bannerWidth / 343);
-  const { data } = useMountainRecommendations(lat, lng);
-  const recommendations = data?.content ?? [];
+  const bannerHeight = Math.round((90 * bannerWidth) / 343);
+  const { data, isPending, isError } = useMountainRecommendations(lat, lng);
+
+  if (isPending) return null;
+  if (isError) return null;
 
   return (
-    <View className="flex-1 w-full">
+    <View className="w-full flex-1">
       {/* 섹션 1: 첫 등산 CTA */}
       <View style={{ marginHorizontal: 16, marginTop: 12 }}>
         <View>
@@ -36,10 +44,15 @@ export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled
 
       {/* 섹션 2: 레벨 맞는 산 추천 */}
       <View className="pt-4">
-        <View className="flex-row items-center gap-0.5 px-4 mb-3">
-          <Text className="typo-headline-1-semi-bold text-secondary-normal">{userName} </Text>
-          <Text className="typo-headline-1-semi-bold text-label-normal">님의 레벨에 맞는 산</Text>
-          <InfoIcon size={16.25} />
+        <View className="mb-3 flex-row items-center gap-0.5 px-4">
+          <Text className="text-secondary-normal typo-headline-1-semi-bold">
+            {userName}{" "}
+          </Text>
+          <Text className="text-label-normal typo-headline-1-semi-bold">
+            님의 레벨에 맞는 산
+          </Text>
+          {/* TODO : 인포 클릭 구현되면 추가 */}
+          {/* <InfoIcon size={16.25} /> */}
         </View>
 
         <ScrollView
@@ -48,7 +61,7 @@ export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled
           contentContainerClassName="px-4 gap-2"
           scrollEnabled={scrollEnabled}
         >
-          {recommendations.map((mountain) => (
+          {data.map((mountain) => (
             <CuratedCard key={mountain.mountainId} mountain={mountain} />
           ))}
         </ScrollView>
@@ -57,21 +70,27 @@ export default function NoRecordBottomSheet({ userName = '맹쏘', scrollEnabled
   );
 }
 
-function CuratedCard({ mountain }: { mountain: MountainRecommendationItem }) {
+function CuratedCard({
+  mountain,
+}: {
+  mountain: MountainRecommendationResponse;
+}) {
   const router = useRouter();
 
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      className="w-[164px] h-[160px] rounded-xl overflow-hidden bg-neutral-200"
+      className="h-[160px] w-[164px] overflow-hidden rounded-xl bg-neutral-200"
       onPress={() =>
         router.push({
-          pathname: '/mountain-info',
+          pathname: "/mountains/[id]",
           params: {
-            id: mountain.mountainId,
+            id: mountain.mountainId ?? 0,
             name: mountain.name,
-            difficulty: DIFFICULTY_LABEL[mountain.difficulty],
-            elevation: `${Math.round(mountain.altitude)}m`,
+            difficulty: mountain.difficultyLabel,
+            ...(mountain.mountainHeightM !== undefined && {
+              elevation: `${Math.round(mountain.mountainHeightM)}m`,
+            }),
           },
         })
       }
@@ -79,31 +98,40 @@ function CuratedCard({ mountain }: { mountain: MountainRecommendationItem }) {
       {mountain.imageUrl && (
         <Image
           source={{ uri: mountain.imageUrl }}
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 h-full w-full"
           resizeMode="cover"
         />
       )}
       <LinearGradient
-        colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.75)']}
+        colors={["rgba(0,0,0,0.09)", "rgba(0,0,0,0.90)"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        className="absolute inset-0"
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
       />
-      <View className="flex-1 justify-end p-3 gap-1">
-        <Text className="typo-heading-1-semi-bold text-common-100" numberOfLines={1}>
+      <View className="flex-1 justify-end gap-1 p-4">
+        <Text
+          className="text-common-100 typo-heading-1-semi-bold"
+          numberOfLines={1}
+        >
           {mountain.name}
         </Text>
         <View className="flex-row items-center gap-1.5">
-          <Text className="typo-caption-1-medium text-neutral-400">
-            {DIFFICULTY_LABEL[mountain.difficulty]}
-          </Text>
-          <View className="w-1 h-1 rounded-full bg-neutral-400" />
-          <Text className="typo-caption-1-medium text-neutral-400">
-            {Math.round(mountain.altitude)}m
-          </Text>
+          {mountain.difficultyLabel && (
+            <Text className="text-neutral-400 typo-caption-1-medium">
+              난이도 {mountain.difficultyLabel}
+            </Text>
+          )}
+          {mountain.difficultyLabel &&
+            mountain.mountainHeightM !== undefined && (
+              <View className="h-1 w-1 rounded-full bg-neutral-400" />
+            )}
+          {mountain.mountainHeightM !== undefined && (
+            <Text className="text-neutral-400 typo-caption-1-medium">
+              {Math.round(mountain.mountainHeightM)}m
+            </Text>
+          )}
         </View>
       </View>
     </TouchableOpacity>
   );
 }
-
