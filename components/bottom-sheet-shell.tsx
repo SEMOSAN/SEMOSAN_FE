@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { Text, View } from 'react-native';
 
 type Props = {
   title: string;

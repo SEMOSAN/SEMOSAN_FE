@@ -690,7 +690,7 @@ export type ApiResponsePageResponseGetUserHikingMountainRecordResponse = {
 export type GetUserHikingMountainRecordResponse = {
   mountainId?: number;
   mountainName?: string;
-  imageUrl?: string;
+  imageUrls?: string[];
   hikingCount?: number;
   lastHikedAt?: string;
 };
