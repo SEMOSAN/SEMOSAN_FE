@@ -1,50 +1,106 @@
-# Welcome to your Expo app 👋
+# 🏔️ SEMOSAN — 세모산
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> 세상의 모든 산, 세모산과 함께
 
-## Get started
+등산을 더 스마트하게. 실시간 GPS 트래킹, 코스 가이드, 마일스톤 인증 사진까지 —
+등산의 처음부터 끝까지 함께하는 iOS 등산 앱입니다.
 
-1. Install dependencies
+<br />
 
-   ```bash
-   npm install
-   ```
+## 📱 주요 기능
 
-2. Start the app
+| 기능 | 설명 |
+|------|------|
+| 🗺️ **실시간 GPS 트래킹** | 백그라운드 위치 추적으로 등산 경로를 실시간 기록 |
+| 🧭 **코스 따라가기** | Naver Map 기반 코스 경로 시각화 및 정상까지 남은 거리·시간 안내 |
+| 📸 **마일스톤 인증 사진** | 코스 1/4 지점마다 FCM 알림 + 인증 사진 업로드 |
+| 🏅 **정상 인증** | 정상 도착 인증 및 하산 트래킹 전환 |
+| 🎙️ **자유 기록** | 코스 없이 자유롭게 등산 경로 기록 |
+| 🏔️ **산 탐색** | 인근 산 조회 및 코스 정보 확인 |
+| 💬 **커뮤니티** | 등산 후기 및 사진 공유 |
+| 📊 **내 기록** | 등산 이력 및 난이도 피드백 관리 |
 
-   ```bash
-   npx expo start
-   ```
+<br />
 
-In the output, you'll find options to open the app in a
+## 🛠️ 기술 스택
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Frontend
+- **React Native** + **Expo** (expo-router 파일 기반 라우팅)
+- **NativeWind v4** — Tailwind CSS 유틸리티 클래스
+- **TanStack Query** — 서버 상태 관리 및 캐싱
+- **Zustand** — 클라이언트 상태 관리
+- **React Native Reanimated** + **Gesture Handler** — 애니메이션 및 제스처
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### 지도 & 위치
+- **Naver Map** (`@mj-studio/react-native-naver-map`)
+- **expo-location** — 백그라운드 GPS 추적
+- **expo-task-manager** — 백그라운드 위치 태스크
 
-## Get a fresh project
+### 알림 & 실시간
+- **Firebase FCM** (`@react-native-firebase/messaging`) — 마일스톤 푸시 알림
+- **STOMP WebSocket** (`@stomp/stompjs`) — 실시간 GPS 데이터 전송
 
-When you're ready, run:
+### 인증
+- **카카오 로그인** (`@react-native-kakao`)
+- **Apple 로그인** (`expo-apple-authentication`)
 
-```bash
-npm run reset-project
+### 디자인 시스템
+- **Tokens Studio** (Figma) → **Style Dictionary v5** 빌드 파이프라인
+- 시맨틱 디자인 토큰 기반 컬러·타이포그래피
+
+<br />
+
+## 📁 프로젝트 구조
+
+```
+app/
+  (tabs)/           # 탭 화면 (홈, 탐색, 트래킹, 커뮤니티, 마이페이지)
+  _layout.tsx       # 루트 레이아웃
+features/           # 기능 단위 모듈
+  auth/             # 로그인·인증
+  tracking/         # GPS 트래킹 (핵심 기능)
+  mountains/        # 산 탐색
+  community/        # 커뮤니티
+  mypage/           # 마이페이지
+  home/             # 홈
+components/         # 공통 UI 컴포넌트
+tokens/             # Figma 디자인 토큰 (수정 금지)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+<br />
 
-## Learn more
+## 🚀 시작하기
 
-To learn more about developing your project with Expo, look at the following resources:
+### 요구사항
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Node.js 18+
+- Xcode (iOS 빌드)
+- Expo CLI
 
-## Join the community
+### 설치
 
-Join our community of developers creating universal apps.
+```bash
+git clone https://github.com/SEMOSAN/SEMOSAN_FE.git
+cd SEMOSAN_FE
+npm run expo-install
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### 개발 서버 실행
+
+```bash
+npm start
+```
+
+### 디자인 토큰 재빌드 (Figma 토큰 변경 후)
+
+```bash
+npm run tokens
+```
+
+<br />
+
+## 📐 개발 규칙
+
+- 스타일은 반드시 `className` (NativeWind) 사용 — `StyleSheet` / 인라인 스타일 지양
+- 토큰으로 정의된 값은 Tailwind 클래스로 참조 (hex 하드코딩 금지)
+- `tokens/`, `tokens.cjs`, `css/` 자동 생성 파일 직접 수정 금지
