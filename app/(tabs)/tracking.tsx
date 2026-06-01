@@ -1,6 +1,7 @@
-import * as Sentry from "@sentry/react-native";
 import { LocationIcon } from "@/components/icons/location-icon";
+import { PinMarkerIcon } from "@/components/icons/pin-marker-icon";
 import { isLiveActivityEnabled } from "@/constants/platform";
+import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
 import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
 import { CourseSelectSheet } from "@/features/tracking/components/course-select-sheet";
@@ -12,7 +13,6 @@ import { SummitSheet } from "@/features/tracking/components/summit-sheet";
 import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
 import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
 import { TrailAvatarMarker } from "@/features/tracking/components/trail-avatar-marker";
-import { PinMarkerIcon } from "@/components/icons/pin-marker-icon";
 import {
   COLLAPSED_PEEK_HEIGHT,
   Course,
@@ -33,29 +33,31 @@ import {
 import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
+import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
-import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
+import { useSaveDifficultyFeedback } from "@/features/tracking/hooks/use-save-difficulty-feedback";
 import { useSaveTrackingPhoto } from "@/features/tracking/hooks/use-save-tracking-photo";
 import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
-import { useSaveDifficultyFeedback } from "@/features/tracking/hooks/use-save-difficulty-feedback";
 import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
 import {
   PhotoWindowPayload,
   useTrackingSocket,
 } from "@/features/tracking/hooks/use-tracking-socket";
-import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
+import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
 import {
   setLocationTaskCallback,
   startLocationTask,
   stopLocationTask,
 } from "@/features/tracking/tasks/location-task";
+import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
-import { LiveActivity, addLiveActivityControlListener } from "@/modules/live-activity";
-import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
-import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
 import { useAppState } from "@/hooks/use-app-state";
+import {
+  LiveActivity,
+  addLiveActivityControlListener,
+} from "@/modules/live-activity";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -63,7 +65,7 @@ import {
   type NaverMapViewRef,
 } from "@mj-studio/react-native-naver-map";
 import { useFocusEffect } from "@react-navigation/native";
-import { Circle, Path, Svg } from "react-native-svg";
+import * as Sentry from "@sentry/react-native";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
@@ -75,20 +77,24 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Circle, Path, Svg } from "react-native-svg";
 
 const DIFFICULTY_KO: Record<string, Difficulty> = {
-  EASY: '초급',
-  NORMAL: '중급',
-  HARD: '고급',
+  EASY: "초급",
+  NORMAL: "중급",
+  HARD: "고급",
 };
 
 export default function TrackingScreen() {
-  const { collapse: collapseParameter, courseId: courseIdParameter, mountainId: mountainIdParameter } =
-    useLocalSearchParams<{
-      collapse?: string;
-      courseId?: string;
-      mountainId?: string;
-    }>();
+  const {
+    collapse: collapseParameter,
+    courseId: courseIdParameter,
+    mountainId: mountainIdParameter,
+  } = useLocalSearchParams<{
+    collapse?: string;
+    courseId?: string;
+    mountainId?: string;
+  }>();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
     courseIdParameter ?? null,
   );
@@ -110,7 +116,9 @@ export default function TrackingScreen() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [hikingRecordId, setHikingRecordId] = useState<number | null>(null);
   const [hasSummited, setHasSummited] = useState(false);
-  const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(null);
+  const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(
+    null,
+  );
   // 정상 인증 시점의 photoWindow 저장 — 인증 후 photoWindow가 닫혀도 메타 업로드에 사용
   const summitPhotoWindowRef = useRef<PhotoWindowPayload | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
@@ -131,12 +139,19 @@ export default function TrackingScreen() {
     longitude: number;
   } | null>(null);
   // 자유기록 실시간 경로 누적 (회색 polyline)
-  const [recordedCoords, setRecordedCoords] = useState<{ latitude: number; longitude: number }[]>([]);
+  const [recordedCoords, setRecordedCoords] = useState<
+    { latitude: number; longitude: number }[]
+  >([]);
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
   const isMountedRef = useRef(true);
-  useEffect(() => () => { isMountedRef.current = false; }, []);
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (courseIdParameter) setSelectedCourseId(courseIdParameter);
@@ -232,18 +247,22 @@ export default function TrackingScreen() {
       connectSocket(activeSession.sessionId);
       // GPS 추적 재시작 — 백그라운드 포함
       const sid = activeSession.sessionId;
-      setLocationTaskCallback(({ latitude, longitude, altitude, timestamp }) => {
-        setUserLocation({ latitude, longitude, altitude });
-        setMarkerCoord({ latitude, longitude });
-        setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-        publishGps(sid, {
-          lat: latitude,
-          lng: longitude,
-          altitude,
-          recordedAt: new Date(timestamp).toISOString(),
-        });
-      });
-      startLocationTask().catch((err) => console.warn("[Location] 백그라운드 위치 재시작 실패:", err));
+      setLocationTaskCallback(
+        ({ latitude, longitude, altitude, timestamp }) => {
+          setUserLocation({ latitude, longitude, altitude });
+          setMarkerCoord({ latitude, longitude });
+          setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
+          publishGps(sid, {
+            lat: latitude,
+            lng: longitude,
+            altitude,
+            recordedAt: new Date(timestamp).toISOString(),
+          });
+        },
+      );
+      startLocationTask().catch((err) =>
+        console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
+      );
       setElapsedSeconds(0);
     }
   }, [activeSession]);
@@ -251,8 +270,12 @@ export default function TrackingScreen() {
   const selectedCourseId_num = selectedCourseId
     ? Number(selectedCourseId)
     : null;
-  const { data: courseDetail } = useCourseDetail(isFreeMode ? null : selectedCourseId_num);
-  const { data: liveActivityCourse } = useLiveActivityCourse(isFreeMode ? null : selectedCourseId);
+  const { data: courseDetail } = useCourseDetail(
+    isFreeMode ? null : selectedCourseId_num,
+  );
+  const { data: liveActivityCourse } = useLiveActivityCourse(
+    isFreeMode ? null : selectedCourseId,
+  );
   const courseCoords = useMemo(
     () => parseCoursePolyline(courseDetail?.polyline),
     [courseDetail?.polyline],
@@ -265,22 +288,30 @@ export default function TrackingScreen() {
   // 코스 진행 상태 — GPS 기반 실시간 (markerRatio + 남은 거리/시간 통합)
   const courseProgressState = useMemo(() => {
     // ── 1순위: liveActivityCourse + Haversine 실측 거리 계산 ──────────────
-    if (liveActivityCourse && userLocation && liveActivityCourse.totalDistance > 0) {
+    if (
+      liveActivityCourse &&
+      userLocation &&
+      liveActivityCourse.totalDistance > 0
+    ) {
       const result = calcCourseProgress(
         userLocation,
         liveActivityCourse.coordinates,
         liveActivityCourse.totalDistance,
       );
       // 분/m 페이스 (전체 코스 기준 일정 속도 가정)
-      const paceMinPerM = liveActivityCourse.estimatedTime / liveActivityCourse.totalDistance;
-      const traveledM = liveActivityCourse.totalDistance - result.remainingMeters;
+      const paceMinPerM =
+        liveActivityCourse.estimatedTime / liveActivityCourse.totalDistance;
+      const traveledM =
+        liveActivityCourse.totalDistance - result.remainingMeters;
 
       if (hasSummited) {
         // 하산 중: 코스 끝까지 남은 거리/시간
         return {
           markerRatio: 0.0,
           remainingDistanceM: Math.round(result.remainingMeters),
-          remainingDurationMin: Math.round(result.remainingMeters * paceMinPerM),
+          remainingDurationMin: Math.round(
+            result.remainingMeters * paceMinPerM,
+          ),
         };
       }
 
@@ -301,7 +332,11 @@ export default function TrackingScreen() {
 
     if (hasSummited) {
       if (!markerCoord || courseCoords.length < 2) {
-        return { markerRatio: 0.0, remainingDistanceM: halfDistanceM, remainingDurationMin: halfDurationMinutes };
+        return {
+          markerRatio: 0.0,
+          remainingDistanceM: halfDistanceM,
+          remainingDurationMin: halfDurationMinutes,
+        };
       }
       let closestIdx = summitIdx;
       let minDist = Infinity;
@@ -309,12 +344,19 @@ export default function TrackingScreen() {
         const dLat = courseCoords[i].latitude - markerCoord.latitude;
         const dLng = courseCoords[i].longitude - markerCoord.longitude;
         const dist = dLat * dLat + dLng * dLng;
-        if (dist < minDist) { minDist = dist; closestIdx = i; }
+        if (dist < minDist) {
+          minDist = dist;
+          closestIdx = i;
+        }
       }
       const descentTotal = totalIdx - summitIdx;
-      const ratio = descentTotal > 0
-        ? Math.max(0, Math.min(1, 1 - (closestIdx - summitIdx) / descentTotal))
-        : 0;
+      const ratio =
+        descentTotal > 0
+          ? Math.max(
+              0,
+              Math.min(1, 1 - (closestIdx - summitIdx) / descentTotal),
+            )
+          : 0;
       return {
         markerRatio: 0.0,
         remainingDistanceM: Math.round(halfDistanceM * ratio),
@@ -323,7 +365,11 @@ export default function TrackingScreen() {
     }
 
     if (!markerCoord || courseCoords.length < 2) {
-      return { markerRatio: 1.0, remainingDistanceM: halfDistanceM, remainingDurationMin: halfDurationMinutes };
+      return {
+        markerRatio: 1.0,
+        remainingDistanceM: halfDistanceM,
+        remainingDurationMin: halfDurationMinutes,
+      };
     }
 
     let closestIdx = 0;
@@ -332,7 +378,10 @@ export default function TrackingScreen() {
       const dLat = courseCoords[i].latitude - markerCoord.latitude;
       const dLng = courseCoords[i].longitude - markerCoord.longitude;
       const dist = dLat * dLat + dLng * dLng;
-      if (dist < minDist) { minDist = dist; closestIdx = i; }
+      if (dist < minDist) {
+        minDist = dist;
+        closestIdx = i;
+      }
     }
     const progress = summitIdx > 0 ? closestIdx / summitIdx : 0;
     const remaining = Math.max(0, 1 - progress);
@@ -341,143 +390,183 @@ export default function TrackingScreen() {
       remainingDistanceM: Math.round(halfDistanceM * remaining),
       remainingDurationMin: Math.round(halfDurationMinutes * remaining),
     };
-  }, [markerCoord, courseCoords, hasSummited, halfDistanceM, halfDurationMinutes, liveActivityCourse, userLocation]);
+  }, [
+    markerCoord,
+    courseCoords,
+    hasSummited,
+    halfDistanceM,
+    halfDurationMinutes,
+    liveActivityCourse,
+    userLocation,
+  ]);
 
-  const { markerRatio, remainingDistanceM, remainingDurationMin } = courseProgressState;
+  const { markerRatio, remainingDistanceM, remainingDurationMin } =
+    courseProgressState;
 
   // altitudes 문자열에서 최고 고도(m) 파싱
   const peakAltitudeM = useMemo(() => {
     const raw = courseDetail?.altitudes;
-    console.log('[Altitudes] raw type:', typeof raw, 'isArray:', Array.isArray(raw), 'value:', raw == null ? 'NULL' : String(raw).slice(0, 50));
+    console.log(
+      "[Altitudes] raw type:",
+      typeof raw,
+      "isArray:",
+      Array.isArray(raw),
+      "value:",
+      raw == null ? "NULL" : String(raw).slice(0, 50),
+    );
     if (!raw) return null;
     try {
       const values: number[] = Array.isArray(raw)
         ? (raw as number[]).filter((n) => !isNaN(n) && n > 0)
-        : String(raw).replace(/^\[|\]$/g, '').split(',').map(Number).filter((n) => !isNaN(n) && n > 0);
-      console.log('[Altitudes] values.length:', values.length, 'max:', values.length > 0 ? Math.max(...values) : 'N/A');
+        : String(raw)
+            .replace(/^\[|\]$/g, "")
+            .split(",")
+            .map(Number)
+            .filter((n) => !isNaN(n) && n > 0);
+      console.log(
+        "[Altitudes] values.length:",
+        values.length,
+        "max:",
+        values.length > 0 ? Math.max(...values) : "N/A",
+      );
       if (values.length > 0) return Math.round(Math.max(...values));
     } catch (e) {
-      console.warn('[Altitudes] 파싱 실패:', e);
+      console.warn("[Altitudes] 파싱 실패:", e);
     }
     return null;
   }, [courseDetail?.altitudes]);
 
-  const selectedCourse = useMemo((): Course => ({
-    id: String(courseDetail?.id ?? ''),
-    name: courseDetail?.name ?? '',
-    difficulty: DIFFICULTY_KO[courseDetail?.difficulty ?? ''] ?? '중급',
-    altitudeNm: peakAltitudeM,
-    distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
-    summitDistanceM: halfDistanceM,
-    descentDistanceM: halfDistanceM,
-    durationHours: Math.floor((courseDetail?.duration ?? 0) / 60),
-    durationMinutes: (courseDetail?.duration ?? 0) % 60,
-    coordinates: [],
-    centerLatitude: 0,
-    centerLongitude: 0,
-    zoom: 14,
-  }), [courseDetail, peakAltitudeM, halfDistanceM]);
+  const selectedCourse = useMemo(
+    (): Course => ({
+      id: String(courseDetail?.id ?? ""),
+      name: courseDetail?.name ?? "",
+      difficulty: DIFFICULTY_KO[courseDetail?.difficulty ?? ""] ?? "중급",
+      altitudeNm: peakAltitudeM,
+      distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
+      summitDistanceM: halfDistanceM,
+      descentDistanceM: halfDistanceM,
+      durationHours: Math.floor((courseDetail?.duration ?? 0) / 60),
+      durationMinutes: (courseDetail?.duration ?? 0) % 60,
+      coordinates: [],
+      centerLatitude: 0,
+      centerLongitude: 0,
+      zoom: 14,
+    }),
+    [courseDetail, peakAltitudeM, halfDistanceM],
+  );
 
-  const timeToTarget = remainingDurationMin > 0
-    ? `${Math.floor(remainingDurationMin / 60) > 0 ? `${Math.floor(remainingDurationMin / 60)}h ` : ''}${remainingDurationMin % 60 > 0 ? `${remainingDurationMin % 60}m` : ''}`
-    : '-';
-  const distanceToTarget = remainingDistanceM >= 1000
-    ? `${(remainingDistanceM / 1000).toFixed(1)}km`
-    : remainingDistanceM > 0 ? `${remainingDistanceM}m` : '-';
+  const timeToTarget =
+    remainingDurationMin > 0
+      ? `${Math.floor(remainingDurationMin / 60) > 0 ? `${Math.floor(remainingDurationMin / 60)}h ` : ""}${remainingDurationMin % 60 > 0 ? `${remainingDurationMin % 60}m` : ""}`
+      : "-";
+  const distanceToTarget =
+    remainingDistanceM >= 1000
+      ? `${(remainingDistanceM / 1000).toFixed(1)}km`
+      : remainingDistanceM > 0
+        ? `${remainingDistanceM}m`
+        : "-";
 
   // 정적 맵 오버레이 — markerCoord 변경 시 리렌더 방지
-  const staticMapOverlays = useMemo(() => (
-    <>
-      {/* 코스 경로 — API polyline */}
-      {courseCoords.length > 1 && (
-        <>
-          <NaverMapPathOverlay
-            coords={courseCoords}
-            width={6}
-            color="#ffd40d"
-            outlineWidth={1}
-            outlineColor="#eab308"
-          />
-          <NaverMapMarkerOverlay
-            latitude={courseCoords[0].latitude}
-            longitude={courseCoords[0].longitude}
-            width={34}
-            height={45}
-            anchor={{ x: 0.5, y: 1 }}
-          >
-            <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
-          </NaverMapMarkerOverlay>
-          <NaverMapMarkerOverlay
-            latitude={courseCoords[courseCoords.length - 1].latitude}
-            longitude={courseCoords[courseCoords.length - 1].longitude}
-            width={34}
-            height={45}
-            anchor={{ x: 0.5, y: 1 }}
-          >
-            <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
-          </NaverMapMarkerOverlay>
-          {/* 정상 마커 — 코스 거리의 1/2 지점 */}
-          <NaverMapMarkerOverlay
-            latitude={courseCoords[Math.floor(courseCoords.length / 2)].latitude}
-            longitude={courseCoords[Math.floor(courseCoords.length / 2)].longitude}
-            width={34}
-            height={45}
-            anchor={{ x: 0.5, y: 1 }}
-          >
-            <PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />
-          </NaverMapMarkerOverlay>
-        </>
-      )}
-
-      {/* 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커 */}
-      {isFreeMode && recordedCoords.length > 0 && (
-        <>
-          {recordedCoords.length > 1 && (
+  const staticMapOverlays = useMemo(
+    () => (
+      <>
+        {/* 코스 경로 — API polyline */}
+        {courseCoords.length > 1 && (
+          <>
             <NaverMapPathOverlay
-              coords={recordedCoords}
+              coords={courseCoords}
               width={6}
-              color="#9CA3AF"
+              color="#ffd40d"
               outlineWidth={1}
-              outlineColor="#6B7280"
+              outlineColor="#eab308"
             />
-          )}
-          <NaverMapMarkerOverlay
-            latitude={recordedCoords[0].latitude}
-            longitude={recordedCoords[0].longitude}
-            width={34}
-            height={45}
-            anchor={{ x: 0.5, y: 1 }}
-          >
-            <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
-          </NaverMapMarkerOverlay>
-          {/* 도착 마커 — 트래킹 종료 후에만 표시 */}
-          {!isTracking && recordedCoords.length > 1 && (
             <NaverMapMarkerOverlay
-              latitude={recordedCoords[recordedCoords.length - 1].latitude}
-              longitude={recordedCoords[recordedCoords.length - 1].longitude}
+              latitude={courseCoords[0].latitude}
+              longitude={courseCoords[0].longitude}
+              width={34}
+              height={45}
+              anchor={{ x: 0.5, y: 1 }}
+            >
+              <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
+            </NaverMapMarkerOverlay>
+            <NaverMapMarkerOverlay
+              latitude={courseCoords[courseCoords.length - 1].latitude}
+              longitude={courseCoords[courseCoords.length - 1].longitude}
               width={34}
               height={45}
               anchor={{ x: 0.5, y: 1 }}
             >
               <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
             </NaverMapMarkerOverlay>
-          )}
-          {/* 자유기록 정상 마커 — nearbyData 산 좌표 사용 */}
-          {nearbyData?.mountain?.latitude != null && nearbyData.mountain.longitude != null && (
+            {/* 정상 마커 — 코스 거리의 1/2 지점 */}
             <NaverMapMarkerOverlay
-              latitude={nearbyData.mountain.latitude}
-              longitude={nearbyData.mountain.longitude}
+              latitude={
+                courseCoords[Math.floor(courseCoords.length / 2)].latitude
+              }
+              longitude={
+                courseCoords[Math.floor(courseCoords.length / 2)].longitude
+              }
               width={34}
               height={45}
               anchor={{ x: 0.5, y: 1 }}
             >
               <PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />
             </NaverMapMarkerOverlay>
-          )}
-        </>
-      )}
-    </>
-  ), [courseCoords, isFreeMode, recordedCoords, isTracking, nearbyData]);
+          </>
+        )}
+
+        {/* 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커 */}
+        {isFreeMode && recordedCoords.length > 0 && (
+          <>
+            {recordedCoords.length > 1 && (
+              <NaverMapPathOverlay
+                coords={recordedCoords}
+                width={6}
+                color="#9CA3AF"
+                outlineWidth={1}
+                outlineColor="#6B7280"
+              />
+            )}
+            <NaverMapMarkerOverlay
+              latitude={recordedCoords[0].latitude}
+              longitude={recordedCoords[0].longitude}
+              width={34}
+              height={45}
+              anchor={{ x: 0.5, y: 1 }}
+            >
+              <PinMarkerIcon fill="#507EF4" stroke="#2563EB" label="출발" />
+            </NaverMapMarkerOverlay>
+            {/* 도착 마커 — 트래킹 종료 후에만 표시 */}
+            {!isTracking && recordedCoords.length > 1 && (
+              <NaverMapMarkerOverlay
+                latitude={recordedCoords[recordedCoords.length - 1].latitude}
+                longitude={recordedCoords[recordedCoords.length - 1].longitude}
+                width={34}
+                height={45}
+                anchor={{ x: 0.5, y: 1 }}
+              >
+                <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
+              </NaverMapMarkerOverlay>
+            )}
+            {/* 자유기록 정상 마커 — nearbyData 산 좌표 사용 */}
+            {nearbyData?.mountain?.latitude != null &&
+              nearbyData.mountain.longitude != null && (
+                <NaverMapMarkerOverlay
+                  latitude={nearbyData.mountain.latitude}
+                  longitude={nearbyData.mountain.longitude}
+                  width={34}
+                  height={45}
+                  anchor={{ x: 0.5, y: 1 }}
+                >
+                  <PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />
+                </NaverMapMarkerOverlay>
+              )}
+          </>
+        )}
+      </>
+    ),
+    [courseCoords, isFreeMode, recordedCoords, isTracking, nearbyData],
+  );
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
 
@@ -539,7 +628,9 @@ export default function TrackingScreen() {
 
       // 트래킹 세션 시작 API 호출
       // mountainId 우선순위: URL 파라미터(코스 상세에서 진입) > nearbyData(현재 위치 기반)
-      const mountainId = mountainIdParameter ? Number(mountainIdParameter) : nearbyData?.mountain?.mountainId;
+      const mountainId = mountainIdParameter
+        ? Number(mountainIdParameter)
+        : nearbyData?.mountain?.mountainId;
       if (mountainId != null) {
         startSession(
           {
@@ -559,17 +650,22 @@ export default function TrackingScreen() {
                 connectSocket(sid);
                 // GPS 추적 시작 — 백그라운드 포함
                 setRecordedCoords([]);
-                setLocationTaskCallback(({ latitude, longitude, altitude, timestamp }) => {
-                  setUserLocation({ latitude, longitude, altitude });
-                  setMarkerCoord({ latitude, longitude });
-                  setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-                  publishGps(sid, {
-                    lat: latitude,
-                    lng: longitude,
-                    altitude,
-                    recordedAt: new Date(timestamp).toISOString(),
-                  });
-                });
+                setLocationTaskCallback(
+                  ({ latitude, longitude, altitude, timestamp }) => {
+                    setUserLocation({ latitude, longitude, altitude });
+                    setMarkerCoord({ latitude, longitude });
+                    setRecordedCoords((prev) => [
+                      ...prev,
+                      { latitude, longitude },
+                    ]);
+                    publishGps(sid, {
+                      lat: latitude,
+                      lng: longitude,
+                      altitude,
+                      recordedAt: new Date(timestamp).toISOString(),
+                    });
+                  },
+                );
                 startLocationTask().catch((err) => {
                   console.warn("[Location] 백그라운드 위치 시작 실패:", err);
                 });
@@ -606,10 +702,12 @@ export default function TrackingScreen() {
       if (isFreeMode) {
         LiveActivity.start({ mode: "free" }).catch(() => {});
       } else {
-        const totalMeters = liveActivityCourse?.totalDistance
-          ?? Math.round(selectedCourse.distanceKm * 1000);
-        const totalMinutes = liveActivityCourse?.estimatedTime
-          ?? (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes);
+        const totalMeters =
+          liveActivityCourse?.totalDistance ??
+          Math.round(selectedCourse.distanceKm * 1000);
+        const totalMinutes =
+          liveActivityCourse?.estimatedTime ??
+          selectedCourse.durationHours * 60 + selectedCourse.durationMinutes;
         LiveActivity.start({
           mode: "course",
           remainingMinutes: totalMinutes,
@@ -668,17 +766,24 @@ export default function TrackingScreen() {
           const result = calcCourseProgress(
             userLocation,
             liveActivityCourse.coordinates,
-            liveActivityCourse.totalDistance
+            liveActivityCourse.totalDistance,
           );
           progress = result.progress;
           remainingMeters = Math.round(result.remainingMeters);
-          remainingMinutes = Math.ceil(liveActivityCourse.estimatedTime * (1 - progress));
+          remainingMinutes = Math.ceil(
+            liveActivityCourse.estimatedTime * (1 - progress),
+          );
         } else {
           const totalSeconds =
-            (selectedCourse.durationHours * 60 + selectedCourse.durationMinutes) * 60;
+            (selectedCourse.durationHours * 60 +
+              selectedCourse.durationMinutes) *
+            60;
           const totalMeters = Math.round(selectedCourse.distanceKm * 1000);
-          progress = totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
-          remainingMinutes = Math.ceil(Math.max(0, totalSeconds - elapsedSeconds) / 60);
+          progress =
+            totalSeconds > 0 ? Math.min(elapsedSeconds / totalSeconds, 1) : 0;
+          remainingMinutes = Math.ceil(
+            Math.max(0, totalSeconds - elapsedSeconds) / 60,
+          );
           remainingMeters = Math.round(totalMeters * (1 - progress));
         }
 
@@ -692,7 +797,14 @@ export default function TrackingScreen() {
         }).catch(() => {});
       }
     }
-  }, [elapsedSeconds, isPaused, isFreeMode, selectedCourse, liveActivityCourse, userLocation]);
+  }, [
+    elapsedSeconds,
+    isPaused,
+    isFreeMode,
+    selectedCourse,
+    liveActivityCourse,
+    userLocation,
+  ]);
 
   const pauseTracking = () => {
     setIsPaused(true);
@@ -729,7 +841,7 @@ export default function TrackingScreen() {
   useEffect(() => {
     if (!isLiveActivityEnabled || !isTracking) return;
     const sub = addLiveActivityControlListener((action) => {
-      if (action === 'pause') pauseTrackingRef.current();
+      if (action === "pause") pauseTrackingRef.current();
       else resumeTrackingRef.current();
     });
     return () => sub.remove();
@@ -754,7 +866,11 @@ export default function TrackingScreen() {
 
     const isWindowOpen = photoWindow?.status === "OPEN";
     // 정상 인증 후에는 summitPhotoWindowRef에 저장된 photoWindow 사용
-    const activeWindow = isWindowOpen ? photoWindow : (hasSummited ? summitPhotoWindowRef.current : null);
+    const activeWindow = isWindowOpen
+      ? photoWindow
+      : hasSummited
+        ? summitPhotoWindowRef.current
+        : null;
 
     if (activeWindow != null && sessionId != null) {
       try {
@@ -789,7 +905,8 @@ export default function TrackingScreen() {
     if (sessionId != null) {
       completeSession(sessionId, {
         onSuccess: (data) => {
-          if (data.hikingRecordId != null) setHikingRecordId(data.hikingRecordId);
+          if (data.hikingRecordId != null)
+            setHikingRecordId(data.hikingRecordId);
         },
         onError: (err) => {
           console.warn("[Tracking] 세션 종료 실패:", err);
@@ -801,17 +918,20 @@ export default function TrackingScreen() {
   };
 
   const DIFFICULTY_COMPARISON = {
-    similar: 'SIMILAR',
-    easier: 'EASIER',
-    harder: 'HARDER',
+    similar: "SIMILAR",
+    easier: "EASIER",
+    harder: "HARDER",
   } as const;
 
   /** 난이도 체감 완료 후 피드백 저장 + 상태 초기화 */
-  const completeTracking = (option: 'similar' | 'easier' | 'harder' | null) => {
+  const completeTracking = (option: "similar" | "easier" | "harder" | null) => {
     if (hikingRecordId != null && option != null) {
       saveDifficultyFeedback(
         { hikingRecordId, comparison: DIFFICULTY_COMPARISON[option] },
-        { onError: (err) => console.warn("[Tracking] 난이도 피드백 저장 실패:", err) },
+        {
+          onError: (err) =>
+            console.warn("[Tracking] 난이도 피드백 저장 실패:", err),
+        },
       );
     }
     if (isLiveActivityEnabled) LiveActivity.stop().catch(() => {});
@@ -861,13 +981,17 @@ export default function TrackingScreen() {
             zoom: 12,
           }}
           mapPadding={{
-            bottom: isTracking ? trackingSheetHeight : collapsed ? COLLAPSED_PEEK_HEIGHT : 448,
+            bottom: isTracking
+              ? trackingSheetHeight
+              : collapsed
+                ? COLLAPSED_PEEK_HEIGHT
+                : 448,
             top: 0,
             left: 0,
             right: 0,
           }}
           onCameraChanged={({ reason }) => {
-            if (reason === 'Gesture') setIsFollowingUser(false);
+            if (reason === "Gesture") setIsFollowingUser(false);
           }}
         >
           {staticMapOverlays}
@@ -885,12 +1009,30 @@ export default function TrackingScreen() {
               {/* 총 높이: 삼각형 9 + 원 28 - 겹침 3 = 34 */}
               <View collapsable={false} style={{ width: 28, height: 34 }}>
                 {/* 원 SVG — top: 6 (삼각형 9 - 겹침 3) */}
-                <Svg width={28} height={28} viewBox="0 0 28 28" fill="none" style={{ position: 'absolute', top: 6, left: 0 }}>
+                <Svg
+                  width={28}
+                  height={28}
+                  viewBox="0 0 28 28"
+                  fill="none"
+                  style={{ position: "absolute", top: 6, left: 0 }}
+                >
                   <Circle cx={14} cy={10} r={7} fill="#00D864" />
-                  <Circle cx={14} cy={10} r={8.5} stroke="white" strokeWidth={3} />
+                  <Circle
+                    cx={14}
+                    cy={10}
+                    r={8.5}
+                    stroke="white"
+                    strokeWidth={3}
+                  />
                 </Svg>
                 {/* 삼각형 SVG — top: 0, 가로 중앙 */}
-                <Svg width={11} height={9} viewBox="0 0 11 9" fill="none" style={{ position: 'absolute', top: 0, left: (28 - 11) / 2 }}>
+                <Svg
+                  width={11}
+                  height={9}
+                  viewBox="0 0 11 9"
+                  fill="none"
+                  style={{ position: "absolute", top: 0, left: (28 - 11) / 2 }}
+                >
                   <Path
                     d="M4.28833 0.918945C4.68715 0.360597 5.51646 0.360596 5.91528 0.918945L9.51685 5.95996L9.5686 6.04004C9.80428 6.44189 9.70042 6.89069 9.48657 7.18262C9.25971 7.49219 8.83304 7.73339 8.34985 7.60645C7.44144 7.36779 6.26488 7.13965 5.10181 7.13965C3.93873 7.13965 2.76217 7.36779 1.85376 7.60645C1.37058 7.73339 0.943901 7.49219 0.717041 7.18262C0.488937 6.87123 0.386039 6.38098 0.686768 5.95996L4.28833 0.918945Z"
                     fill="#00D864"
@@ -903,9 +1045,20 @@ export default function TrackingScreen() {
         </NaverMapView>
 
         {/* 사진 윈도우 배너 — 지도 위 오버레이 */}
-        {isTracking && photoWindow?.status === 'OPEN' && (
-          <View style={{ position: 'absolute', top: 124, left: 0, right: 0, alignItems: 'center', zIndex: 10 }}>
-            <PhotoWindowBanner milestoneDistance={photoWindow.milestoneDistance} />
+        {isTracking && photoWindow?.status === "OPEN" && (
+          <View
+            style={{
+              position: "absolute",
+              top: 124,
+              left: 0,
+              right: 0,
+              alignItems: "center",
+              zIndex: 10,
+            }}
+          >
+            <PhotoWindowBanner
+              milestoneDistance={photoWindow.milestoneDistance}
+            />
           </View>
         )}
 
@@ -937,7 +1090,9 @@ export default function TrackingScreen() {
               <TrailAvatarMarker
                 left={TRAIL_MARKER_LEFT}
                 centerY={barLayout.top + barLayout.height * markerRatio}
-                imageSource={profile?.profileUrl ? { uri: profile.profileUrl } : undefined}
+                imageSource={
+                  profile?.profileUrl ? { uri: profile.profileUrl } : undefined
+                }
               />
             )}
           </>
@@ -1065,6 +1220,11 @@ export default function TrackingScreen() {
 
       {/* 난이도 체감 모달 */}
       <DifficultyRatingModal
+        mountainId={
+          mountainIdParameter
+            ? Number(mountainIdParameter)
+            : nearbyData?.mountain?.mountainId
+        }
         visible={showDifficultyRating}
         course={selectedCourse}
         mountainName={nearbyData?.mountain?.name ?? ""}

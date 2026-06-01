@@ -1,5 +1,16 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ChevronRightIcon } from './icons/chevron-right-icon';
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
+import { GetUserHikingRecordResponse } from "@/types/api.generated";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ChevronRightIcon } from "./icons/chevron-right-icon";
+
+function formatHikedAt(dateStr?: string): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  const yy = String(d.getFullYear()).slice(2);
+  const mm = d.getMonth() + 1;
+  const dd = d.getDate();
+  return `${yy}년 ${mm}월 ${dd}일`;
+}
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -19,34 +30,89 @@ export type Course = {
 };
 
 export const MOCK_COURSES: Course[] = [
-  { id: '1', name: '코스이름', distanceKm: 10, durationHours: 3, date: '24년 9월 5일' },
-  { id: '2', name: '코스이름', distanceKm: 10, durationHours: 3, date: '24년 9월 5일' },
-  { id: '3', name: '코스이름', distanceKm: 10, durationHours: 3, date: '24년 9월 5일' },
+  {
+    id: "1",
+    name: "코스이름",
+    distanceKm: 10,
+    durationHours: 3,
+    date: "24년 9월 5일",
+  },
+  {
+    id: "2",
+    name: "코스이름",
+    distanceKm: 10,
+    durationHours: 3,
+    date: "24년 9월 5일",
+  },
+  {
+    id: "3",
+    name: "코스이름",
+    distanceKm: 10,
+    durationHours: 3,
+    date: "24년 9월 5일",
+  },
 ];
 
 type Props = {
-  courses?: Course[];
-  onCoursePress?: (courseId: string) => void;
+  courses: GetUserHikingRecordResponse[];
+  mountainId?: number;
+  onCoursePress?: (courseId?: number) => void;
 };
 
-export default function CourseBottomSheet({ courses = MOCK_COURSES, onCoursePress }: Props) {
+export default function CourseBottomSheet({
+  courses,
+  mountainId,
+  onCoursePress,
+}: Props) {
   return (
     <View className="gap-2.5">
       {courses.map((course) => (
-        <CourseItem key={course.id} course={course} onPress={() => onCoursePress?.(course.id)} />
+        <CourseItem
+          key={course.hikingRecordId}
+          course={course}
+          mountainId={mountainId}
+          onPress={() => onCoursePress?.(course.courseId)}
+        />
       ))}
     </View>
   );
 }
 
-function StackedThumbnail({ imageUris = [] }: { imageUris?: string[] }) {
+function StackedThumbnail({
+  imageUris = [],
+  mountainId,
+}: {
+  imageUris?: string[];
+  mountainId?: number;
+}) {
+  const { data: detail } = useMountainDetail(mountainId ?? 0);
+  const resolvedUris =
+    imageUris.length > 0 ? imageUris : (detail?.mountain?.imageUrls ?? []);
   const W = 64;
   const H = 72;
-  const n = imageUris.length;
+  const n = resolvedUris.length;
 
   const cards = [
-    { isFront: false, uri: imageUris[n - 2], rotate: '6deg', translateX: 6.2, translateY: 0, zIndex: 1 },
-    { isFront: true,  uri: imageUris[n - 1], rotate: '0deg', translateX: 0,   translateY: 8, zIndex: 2 },
+    ...(n >= 2
+      ? [
+          {
+            isFront: false,
+            uri: resolvedUris[n - 2],
+            rotate: "6deg",
+            translateX: 6.2,
+            translateY: 0,
+            zIndex: 1,
+          },
+        ]
+      : []),
+    {
+      isFront: true,
+      uri: resolvedUris[n - 1],
+      rotate: "0deg",
+      translateX: 0,
+      translateY: 8,
+      zIndex: 2,
+    },
   ];
 
   return (
@@ -54,8 +120,8 @@ function StackedThumbnail({ imageUris = [] }: { imageUris?: string[] }) {
       {cards.map((card, i) => (
         <View
           key={i}
-          className={`absolute rounded-[10px] overflow-hidden ${
-            card.isFront ? 'bg-fill-strong' : 'bg-fill-neutral'
+          className={`absolute overflow-hidden rounded-[10px] ${
+            card.isFront ? "bg-fill-strong" : "bg-fill-neutral"
           }`}
           style={{
             width: W,
@@ -71,37 +137,57 @@ function StackedThumbnail({ imageUris = [] }: { imageUris?: string[] }) {
           {card.uri ? (
             <Image
               source={{ uri: card.uri }}
-              className="w-full h-full"
+              className="h-full w-full"
               resizeMode="cover"
             />
           ) : null}
-          {!card.isFront && (
-            <View className="absolute inset-0 bg-black/20" />
-          )}
+          {!card.isFront && <View className="absolute inset-0 bg-black/20" />}
         </View>
       ))}
     </View>
   );
 }
 
-function CourseItem({ course, onPress }: { course: Course; onPress?: () => void }) {
+function CourseItem({
+  course,
+  mountainId,
+  onPress,
+}: {
+  course: GetUserHikingRecordResponse;
+  mountainId?: number;
+  onPress?: () => void;
+}) {
   return (
     <TouchableOpacity
-      className="flex-row items-center justify-between w-full"
+      className="w-full flex-row items-center justify-between"
       onPress={onPress}
       activeOpacity={0.85}
     >
       <View className="flex-row items-center" style={styles.leftGroup}>
         {/* 스택 썸네일 */}
-        <StackedThumbnail imageUris={course.imageUris} />
+        <StackedThumbnail
+          imageUris={course.imageUrls}
+          mountainId={mountainId}
+        />
 
         {/* 텍스트 */}
         <View style={styles.textGroup}>
-          <Text className="typo-body-1-normal-semi-bold text-common-0" numberOfLines={1}>
-            {course.name}
+          <Text
+            className="text-common-0 typo-body-1-normal-semi-bold"
+            numberOfLines={1}
+          >
+            {course.courseName}
           </Text>
-          <Text className="typo-caption-1-medium text-label-subtler">
-            {(course.distanceKm / 1000).toFixed(1)}km · {formatDuration(course.durationHours)} · {course.date}
+          <Text className="text-label-subtler typo-caption-1-medium">
+            {!!course.distance && (
+              <>{(course.distance / 1000).toFixed(1)}km · </>
+            )}
+            {!!course.duration && (
+              <>
+                {formatDuration(course.duration)} ·{" "}
+                {formatHikedAt(course.hikedAt)}
+              </>
+            )}
           </Text>
         </View>
       </View>
@@ -129,8 +215,8 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 999,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
