@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { LoadingSpinner } from "./loading-spinner";
 
 type Props = {
   userName?: string;
@@ -30,7 +31,7 @@ export default function NoRecordBottomSheet({
   const bannerHeight = Math.round((90 * bannerWidth) / 343);
   const { data, isPending, isError } = useMountainRecommendations(lat, lng);
 
-  if (isPending) return null;
+  if (isPending) return <LoadingSpinner fullScreen />;
   if (isError) return null;
 
   return (
