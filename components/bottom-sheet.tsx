@@ -71,6 +71,7 @@ export default function BottomSheet({
       <BottomSheetShell
         title={selectedCard.mountainName}
         titleCount={selectedCard.hikingCount}
+        scrollEnabled
       >
         <View className="pt-2.5">
           <CourseBottomSheet

@@ -19,7 +19,6 @@ import {
 } from "@/components/map-markers/visited-marker";
 import NoRecordBottomSheet from "@/components/no-record-bottom-sheet";
 import { useMyMountains } from "@/features/home/hooks/use-my-mountains";
-import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import {
   BBox,
   useMountainsMap,
@@ -82,7 +81,6 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     const snapExpanded = hasRecords
       ? SNAP_EXPANDED_WITH_RECORDS
       : SNAP_EXPANDED_NO_RECORDS;
-    const { data, isPending, isError } = useMountains();
     const { data: myMountains = [] } = useMyMountains();
     const { data: profile } = useProfile();
 
@@ -276,12 +274,6 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     );
   },
 );
-
-function getDaysAgo(dateStr?: string): number {
-  if (!dateStr) return 0;
-  const diff = Date.now() - new Date(dateStr).getTime();
-  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-}
 
 const styles = StyleSheet.create({
   map: { flex: 1 },
