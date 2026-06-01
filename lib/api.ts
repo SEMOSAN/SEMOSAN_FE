@@ -1,5 +1,6 @@
 import { toast } from "@/store/toast.store";
 import { ENDPOINTS } from "@/types/api.generated";
+import * as Sentry from "@sentry/react-native";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { tokenStorage } from "./auth/tokenStorage";
 import { buildQueryParams } from "./buildQueryParams";
@@ -77,6 +78,7 @@ client.interceptors.response.use(
       } catch (refreshError) {
         await tokenStorage.clearTokens();
         console.error("Token refresh failed:", refreshError);
+        Sentry.captureException(new Error("TokenRefreshFailed"));
         return Promise.reject(refreshError);
       }
     }
@@ -119,6 +121,7 @@ async function request<T>(
     if (!ignoreErrorToast && status !== undefined && status >= 500) {
       toast.show("잠시후 다시 시도해주세요.");
       console.log(errorMessage, statusText);
+      Sentry.captureException(new Error(`ServerError ${status}: ${url}`));
     }
 
     throw new ApiError(status ?? 0, statusText);

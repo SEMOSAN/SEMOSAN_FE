@@ -11,12 +11,9 @@ export function LocationPermissionSheet() {
   }
 
   async function handleConfirm(): Promise<void> {
-    const { status } = await requestForegroundPermissionsAsync();
-    if (status !== "granted") return;
-
+    await requestForegroundPermissionsAsync();
     AsyncStorage.setItem("permission_sheet_shown", "true");
     setVisible(false);
-    requestLocation();
   }
 
   useEffect(() => {

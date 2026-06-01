@@ -43,5 +43,7 @@ app-example
 /ios
 /android
 .claude/
-*.ipavendor/bundle
+*.ipa
+vendor/bundle
 .bundle/
+.env.local

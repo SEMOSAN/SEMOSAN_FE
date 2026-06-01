@@ -1,16 +1,24 @@
-import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import Svg, {
-  Defs,
-  LinearGradient as SvgLinearGradient,
-  Stop,
-  Mask,
-  Rect as SvgRect,
-  Image as SvgImage,
-} from "react-native-svg";
+import Clive1Svg from "@/assets/clive1.svg";
+import { CliveBottomBar } from "@/components/clive-bottom-bar";
+import { CheckCircleIcon } from "@/components/icons/check-circle-icon";
+import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
+import { PencilSimpleIcon } from "@/components/icons/pencil-simple-icon";
+import { XIcon } from "@/components/icons/x-icon";
+import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
+import { useToggleSemofeedPublic } from "@/features/home/hooks/use-toggle-semofeed-public";
+import { useHikingSummary } from "@/features/mypage/hooks/use-hiking-summary";
+import { getPhotoReportState } from "@/features/photo-report/photo-report-state";
+import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
+import { uploadImage } from "@/hooks/use-upload-image";
+import { api } from "@/lib/api";
+import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
+import * as Sentry from "@sentry/react-native";
+import { useQueryClient } from "@tanstack/react-query";
+import { Image as ExpoImage, Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Image as ExpoImage } from "expo-image";
 import * as MediaLibrary from "expo-media-library";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -19,10 +27,15 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, {
+  Defs,
+  Mask,
+  Stop,
+  Image as SvgImage,
+  LinearGradient as SvgLinearGradient,
+  Rect as SvgRect,
+} from "react-native-svg";
 import ViewShot from "react-native-view-shot";
-import Clive1Svg from "@/assets/clive1.svg";
-import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
-import { PencilSimpleIcon } from "@/components/icons/pencil-simple-icon";
 const ALTITUDE_LABELS = ["400m", "800m", "1200m", "1600m"];
 const CLIVE_CARD_HEIGHT = 596;
 
@@ -35,57 +48,73 @@ function formatDuration(seconds: number | null): string {
   return `${h}시간 ${m}분`;
 }
 
-
 const PhotoReportBg = require("@/assets/photo-report-bg.png");
 const OVERLAY_STATS = [
   require("@/assets/overlay-stats-1.png"),
   require("@/assets/overlay-stats-2.png"),
   require("@/assets/overlay-stats-3.png"),
 ];
-import { CheckCircleIcon } from "@/components/icons/check-circle-icon";
-import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
-import { XIcon } from "@/components/icons/x-icon";
-import { CliveBottomBar } from "@/components/clive-bottom-bar";
-import { getPhotoReportState } from "@/features/photo-report/photo-report-state";
-import { useHikingSummary } from "@/features/mypage/hooks/use-hiking-summary";
-import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
-import { uploadImage } from "@/hooks/use-upload-image";
-import { useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
-
 type RecordTab = "클라이브" | "포토 리포트";
 
 export default function RecordScreen() {
-  const { id, hikingRecordId, name, courseName, imageUri, distance, duration } = useLocalSearchParams<{
-    id: string;
-    hikingRecordId?: string;
-    name: string;
-    courseName?: string;
-    imageUri?: string;
-    distance?: string;
-    duration?: string;
-  }>();
+  const { id, hikingRecordId, name, courseName, imageUri, distance, duration } =
+    useLocalSearchParams<{
+      id: string;
+      hikingRecordId?: string;
+      name: string;
+      courseName?: string;
+      imageUri?: string;
+      distance?: string;
+      duration?: string;
+    }>();
   const sessionId = id ? parseInt(id) : null;
   const hikingRecordIdNum = hikingRecordId ? parseInt(hikingRecordId) : null;
   const distanceKm = distance ? parseFloat(distance) / 1000 : null;
   const durationSec = duration ? parseInt(duration) : null;
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { mutateAsync: togglePublicMutateAsync, isPending: isToggling } =
+    useToggleSemofeedPublic();
   const { top } = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<RecordTab>("클라이브");
   const [showSaveToast, setShowSaveToast] = useState(false);
   const [showPublicToast, setShowPublicToast] = useState(false);
   const [showPrivateToast, setShowPrivateToast] = useState(false);
-  const [isPublicByTab, setIsPublicByTab] = useState<Record<RecordTab, boolean>>({
-    클라이브: false,
-    "포토 리포트": false,
-  });
-  const [semoFeedIdByTab, setSemoFeedIdByTab] = useState<Record<RecordTab, number | null>>({
-    클라이브: null,
-    "포토 리포트": null,
-  });
-  const [photoReportSource, setPhotoReportSource] = useState<number | { uri: string } | null>(null);
+  const [isPublicByTab, setIsPublicByTab] = useState<
+    Record<RecordTab, boolean>
+  >(() => ({
+    클라이브:
+      queryClient.getQueryData<{ id: number; isPublic: boolean }>([
+        "record-semofeed",
+        sessionId,
+        "클라이브",
+      ])?.isPublic ?? false,
+    "포토 리포트":
+      queryClient.getQueryData<{ id: number; isPublic: boolean }>([
+        "record-semofeed",
+        sessionId,
+        "포토 리포트",
+      ])?.isPublic ?? false,
+  }));
+  const [semoFeedIdByTab, setSemoFeedIdByTab] = useState<
+    Record<RecordTab, number | null>
+  >(() => ({
+    클라이브:
+      queryClient.getQueryData<{ id: number; isPublic: boolean }>([
+        "record-semofeed",
+        sessionId,
+        "클라이브",
+      ])?.id ?? null,
+    "포토 리포트":
+      queryClient.getQueryData<{ id: number; isPublic: boolean }>([
+        "record-semofeed",
+        sessionId,
+        "포토 리포트",
+      ])?.id ?? null,
+  }));
+  const [photoReportSource, setPhotoReportSource] = useState<
+    number | { uri: string } | null
+  >(null);
   const [photoReportTemplate, setPhotoReportTemplate] = useState(0);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const publicTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -113,7 +142,7 @@ export default function RecordScreen() {
     const imageUrl = await uploadImage(
       imageUri,
       `semo-feed-${tab}-${Date.now()}.jpg`,
-      "semofeed"
+      "semofeed",
     );
     const res = await api.post<SemoFeedResponse>({
       path: ENDPOINTS.SEMOFEED,
@@ -123,8 +152,13 @@ export default function RecordScreen() {
     const createdFeedId = res.data?.id ?? null;
     if (!createdFeedId) return null;
 
+    const isPublic = !!res.data?.isPublic;
     setSemoFeedIdByTab((prev) => ({ ...prev, [tab]: createdFeedId }));
-    setIsPublicByTab((prev) => ({ ...prev, [tab]: !!res.data?.isPublic }));
+    setIsPublicByTab((prev) => ({ ...prev, [tab]: isPublic }));
+    queryClient.setQueryData(["record-semofeed", sessionId, tab], {
+      id: createdFeedId,
+      isPublic,
+    });
     return createdFeedId;
   };
 
@@ -133,12 +167,14 @@ export default function RecordScreen() {
       const { photoSource, templateIndex } = getPhotoReportState();
       if (photoSource !== null) setPhotoReportSource(photoSource);
       setPhotoReportTemplate(templateIndex);
-    }, [])
+    }, []),
   );
 
-  // 클라이브 사진 로드 후 포토리포트 기본 사진 = 마지막 사진(정상)
+  // 클라이브 사진 프리페치 + 포토리포트 기본 사진 = 마지막 사진(정상)
   useEffect(() => {
-    if (clivePhotos.length > 0 && photoReportSource === null) {
+    if (clivePhotos.length === 0) return;
+    clivePhotos.forEach((url) => Image.prefetch(url));
+    if (photoReportSource === null) {
       setPhotoReportSource({ uri: clivePhotos[clivePhotos.length - 1] });
     }
   }, [clivePhotos]);
@@ -176,12 +212,14 @@ export default function RecordScreen() {
       const semoFeedId = await ensureSemoFeed(activeTab);
       if (!semoFeedId) return;
 
-      await api.patch<boolean>({
-        path: ENDPOINTS.SEMOFEED_BY_SEMOFEEDID_PUBLIC(semoFeedId),
-      });
+      await togglePublicMutateAsync(semoFeedId);
 
       const nextPublic = !activeTabPublic;
       setIsPublicByTab((prev) => ({ ...prev, [activeTab]: nextPublic }));
+      queryClient.setQueryData(["record-semofeed", sessionId, activeTab], {
+        id: semoFeedId,
+        isPublic: nextPublic,
+      });
       queryClient.invalidateQueries({ queryKey: [ENDPOINTS.SEMOFEED] });
 
       if (nextPublic) {
@@ -190,27 +228,33 @@ export default function RecordScreen() {
 
         setShowPublicToast(true);
         if (publicTimerRef.current) clearTimeout(publicTimerRef.current);
-        publicTimerRef.current = setTimeout(() => setShowPublicToast(false), 3000);
+        publicTimerRef.current = setTimeout(
+          () => setShowPublicToast(false),
+          3000,
+        );
       } else {
         setShowPublicToast(false);
         if (publicTimerRef.current) clearTimeout(publicTimerRef.current);
 
         setShowPrivateToast(true);
         if (privateTimerRef.current) clearTimeout(privateTimerRef.current);
-        privateTimerRef.current = setTimeout(() => setShowPrivateToast(false), 3000);
+        privateTimerRef.current = setTimeout(
+          () => setShowPrivateToast(false),
+          3000,
+        );
       }
     } catch (error) {
       console.error("[SemoFeed] public toggle failed", error);
+      Sentry.captureException(error);
       return;
     }
-
   };
 
   return (
     <View className="flex-1 bg-fill-normal">
       {/* 헤더 */}
       <View style={{ paddingTop: top }} className="bg-fill-normal">
-        <View className="flex-row items-center justify-between px-5 h-14">
+        <View className="h-14 flex-row items-center justify-between px-5">
           <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
             <ChevronLeftIcon size={24} />
           </TouchableOpacity>
@@ -224,11 +268,11 @@ export default function RecordScreen() {
           <View style={styles.mountainIconCircle}>
             <View style={styles.mountainIconInner} />
           </View>
-          <Text className="typo-body-1-normal-semi-bold text-label-normal">
+          <Text className="text-label-normal typo-body-1-normal-semi-bold">
             {name ?? "관악산"}
           </Text>
           <Text
-            className="typo-body-1-normal-medium text-label-subtle"
+            className="text-label-subtle typo-body-1-normal-medium"
             numberOfLines={1}
           >
             {courseName ?? ""}
@@ -238,10 +282,7 @@ export default function RecordScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* 거리 */}
-        <View
-          className="flex-row items-end px-5 pt-4 pb-3"
-          style={{ gap: 4 }}
-        >
+        <View className="flex-row items-end px-5 pb-3 pt-4" style={{ gap: 4 }}>
           <Text style={styles.distanceNumber}>
             {distanceKm != null ? distanceKm.toFixed(2) : "--"}
           </Text>
@@ -250,7 +291,7 @@ export default function RecordScreen() {
 
         {/* 루트 지도 */}
         <View
-          className="mx-5 rounded-xl overflow-hidden"
+          className="mx-5 overflow-hidden rounded-xl"
           style={styles.mapContainer}
         >
           {typeof Clive1Svg === "number" ? (
@@ -265,11 +306,36 @@ export default function RecordScreen() {
         </View>
 
         {/* 통계 */}
-        <View style={{ flexDirection: "row", marginHorizontal: 20, marginTop: 16, marginBottom: 16, gap: 4 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            marginHorizontal: 20,
+            marginTop: 16,
+            marginBottom: 16,
+            gap: 4,
+          }}
+        >
           {[
-            { label: "소요시간", value: formatDuration(recordDetail?.durationSeconds ?? durationSec) },
-            { label: "고도", value: recordDetail?.ascentMeters != null ? `${Math.round(recordDetail.ascentMeters)}Nm` : "--" },
-            { label: "칼로리", value: recordDetail?.calories != null ? `${recordDetail.calories}kcal` : "--" },
+            {
+              label: "소요시간",
+              value: formatDuration(
+                recordDetail?.durationSeconds ?? durationSec,
+              ),
+            },
+            {
+              label: "고도",
+              value:
+                recordDetail?.ascentMeters != null
+                  ? `${Math.round(recordDetail.ascentMeters)}Nm`
+                  : "--",
+            },
+            {
+              label: "칼로리",
+              value:
+                recordDetail?.calories != null
+                  ? `${recordDetail.calories}kcal`
+                  : "--",
+            },
           ].map((stat) => (
             <View key={stat.label} style={styles.statItem}>
               <Text style={styles.statLabel}>{stat.label}</Text>
@@ -282,7 +348,7 @@ export default function RecordScreen() {
         <View style={styles.divider} />
 
         {/* 탭 */}
-        <View className="flex-row items-center px-5 pt-5 pb-4 gap-4">
+        <View className="flex-row items-center gap-4 px-5 pb-4 pt-5">
           {(["클라이브", "포토 리포트"] as RecordTab[]).map((tab) => (
             <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
               <Text
@@ -300,7 +366,11 @@ export default function RecordScreen() {
         {/* 클라이브 */}
         {activeTab === "클라이브" && (
           <View className="pb-10 pt-2">
-            <ViewShot ref={cliveShotRef} options={{ format: "jpg", quality: 1 }} style={{ width: 335, alignSelf: "center" }}>
+            <ViewShot
+              ref={cliveShotRef}
+              options={{ format: "jpg", quality: 1 }}
+              style={{ width: 335, alignSelf: "center" }}
+            >
               <View style={styles.cardWrap}>
                 {/* 왼쪽 그라디언트 바 — 정상 완료: 빨강까지 full */}
                 <LinearGradient
@@ -311,119 +381,161 @@ export default function RecordScreen() {
                   style={styles.gradientBar}
                 />
 
-                {displayPhotos.length > 0 ? (() => {
-                  const photoHeight = CLIVE_CARD_HEIGHT / displayPhotos.length;
-                  const BLEND = 30; // 경계 블렌딩 픽셀
+                {displayPhotos.length > 0 ? (
+                  (() => {
+                    const photoHeight =
+                      CLIVE_CARD_HEIGHT / displayPhotos.length;
+                    const BLEND = 30; // 경계 블렌딩 픽셀
 
-                  const maskDefs = displayPhotos.map((_, i) => {
-                    const hasTop = i > 0;
-                    const hasBottom = i < displayPhotos.length - 1;
-                    const yStart = i * photoHeight - (hasTop ? BLEND : 0);
-                    const totalH = photoHeight + (hasTop ? BLEND : 0) + (hasBottom ? BLEND : 0);
-                    const stops: { offset: string; op: string }[] = [];
-                    if (hasTop) {
-                      stops.push({ offset: "0", op: "0" });
-                      stops.push({ offset: (BLEND / totalH).toFixed(3), op: "1" });
-                    } else {
-                      stops.push({ offset: "0", op: "1" });
-                    }
-                    if (hasBottom) {
-                      stops.push({ offset: ((totalH - BLEND) / totalH).toFixed(3), op: "1" });
-                      stops.push({ offset: "1", op: "0" });
-                    } else {
-                      stops.push({ offset: "1", op: "1" });
-                    }
-                    return { i, yStart, totalH, stops };
-                  });
+                    const maskDefs = displayPhotos.map((_, i) => {
+                      const hasTop = i > 0;
+                      const hasBottom = i < displayPhotos.length - 1;
+                      const yStart = i * photoHeight - (hasTop ? BLEND : 0);
+                      const totalH =
+                        photoHeight +
+                        (hasTop ? BLEND : 0) +
+                        (hasBottom ? BLEND : 0);
+                      const stops: { offset: string; op: string }[] = [];
+                      if (hasTop) {
+                        stops.push({ offset: "0", op: "0" });
+                        stops.push({
+                          offset: (BLEND / totalH).toFixed(3),
+                          op: "1",
+                        });
+                      } else {
+                        stops.push({ offset: "0", op: "1" });
+                      }
+                      if (hasBottom) {
+                        stops.push({
+                          offset: ((totalH - BLEND) / totalH).toFixed(3),
+                          op: "1",
+                        });
+                        stops.push({ offset: "1", op: "0" });
+                      } else {
+                        stops.push({ offset: "1", op: "1" });
+                      }
+                      return { i, yStart, totalH, stops };
+                    });
 
-                  return (
-                    <>
-                      <Svg
-                        width={335}
-                        height={CLIVE_CARD_HEIGHT}
-                        style={StyleSheet.absoluteFill}
-                      >
-                        <Defs>
-                          {maskDefs.flatMap((d) => [
-                            <SvgLinearGradient
-                              key={`grad-${d.i}`}
-                              id={`fade-${d.i}`}
-                              x1="0" y1={d.yStart}
-                              x2="0" y2={d.yStart + d.totalH}
-                              gradientUnits="userSpaceOnUse"
-                            >
-                              {d.stops.map((s, j) => (
-                                <Stop key={j} offset={s.offset} stopColor="white" stopOpacity={s.op} />
-                              ))}
-                            </SvgLinearGradient>,
-                            <Mask
-                              key={`mask-${d.i}`}
-                              id={`mask-${d.i}`}
-                              x={0} y={d.yStart}
-                              width={335} height={d.totalH}
-                              maskUnits="userSpaceOnUse"
-                            >
-                              <SvgRect
-                                x={0} y={d.yStart}
-                                width={335} height={d.totalH}
-                                fill={`url(#fade-${d.i})`}
+                    return (
+                      <>
+                        <Svg
+                          width={335}
+                          height={CLIVE_CARD_HEIGHT}
+                          style={StyleSheet.absoluteFill}
+                        >
+                          <Defs>
+                            {maskDefs.flatMap((d) => [
+                              <SvgLinearGradient
+                                key={`grad-${d.i}`}
+                                id={`fade-${d.i}`}
+                                x1="0"
+                                y1={d.yStart}
+                                x2="0"
+                                y2={d.yStart + d.totalH}
+                                gradientUnits="userSpaceOnUse"
+                              >
+                                {d.stops.map((s, j) => (
+                                  <Stop
+                                    key={j}
+                                    offset={s.offset}
+                                    stopColor="white"
+                                    stopOpacity={s.op}
+                                  />
+                                ))}
+                              </SvgLinearGradient>,
+                              <Mask
+                                key={`mask-${d.i}`}
+                                id={`mask-${d.i}`}
+                                x={0}
+                                y={d.yStart}
+                                width={335}
+                                height={d.totalH}
+                                maskUnits="userSpaceOnUse"
+                              >
+                                <SvgRect
+                                  x={0}
+                                  y={d.yStart}
+                                  width={335}
+                                  height={d.totalH}
+                                  fill={`url(#fade-${d.i})`}
+                                />
+                              </Mask>,
+                            ])}
+                          </Defs>
+                          {/* 역순 렌더링: 위쪽 사진(summit)이 z-order 최상단 */}
+                          {[...displayPhotos].reverse().map((url, revIdx) => {
+                            const i = displayPhotos.length - 1 - revIdx;
+                            const d = maskDefs[i];
+                            return (
+                              <SvgImage
+                                key={url}
+                                href={{ uri: url }}
+                                x={0}
+                                y={d.yStart}
+                                width={335}
+                                height={d.totalH}
+                                preserveAspectRatio="xMidYMid slice"
+                                mask={`url(#mask-${i})`}
                               />
-                            </Mask>,
-                          ])}
-                        </Defs>
-                        {/* 역순 렌더링: 위쪽 사진(summit)이 z-order 최상단 */}
-                        {[...displayPhotos].reverse().map((url, revIdx) => {
-                          const i = displayPhotos.length - 1 - revIdx;
-                          const d = maskDefs[i];
+                            );
+                          })}
+                        </Svg>
+
+                        {/* 스탬프 오버레이 */}
+                        {displayPhotos.map((url, displayIndex) => {
+                          const originalIndex =
+                            clivePhotos.length - 1 - displayIndex;
+                          const isSummit =
+                            originalIndex === clivePhotos.length - 1;
+                          const altitudeLabel =
+                            ALTITUDE_LABELS[originalIndex] ?? "";
                           return (
-                            <SvgImage
-                              key={url}
-                              href={{ uri: url }}
-                              x={0}
-                              y={d.yStart}
-                              width={335}
-                              height={d.totalH}
-                              preserveAspectRatio="xMidYMid slice"
-                              mask={`url(#mask-${i})`}
-                            />
+                            <View
+                              key={url + "-stamp"}
+                              style={{
+                                position: "absolute",
+                                top: displayIndex * photoHeight,
+                                left: 0,
+                                right: 0,
+                                height: photoHeight,
+                              }}
+                            >
+                              {isSummit ? (
+                                <View
+                                  style={[
+                                    StyleSheet.absoluteFill,
+                                    styles.stampSummitContainer,
+                                  ]}
+                                >
+                                  <View style={styles.summitBadge}>
+                                    <Text style={styles.summitBadgeText}>
+                                      정상
+                                    </Text>
+                                  </View>
+                                  <Text style={styles.altitudeText}>
+                                    {altitudeLabel}
+                                  </Text>
+                                </View>
+                              ) : (
+                                <View
+                                  style={[
+                                    StyleSheet.absoluteFill,
+                                    styles.stampCenterContainer,
+                                  ]}
+                                >
+                                  <Text style={styles.altitudeText}>
+                                    {altitudeLabel}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
                           );
                         })}
-                      </Svg>
-
-                      {/* 스탬프 오버레이 */}
-                      {displayPhotos.map((url, displayIndex) => {
-                        const originalIndex = clivePhotos.length - 1 - displayIndex;
-                        const isSummit = originalIndex === clivePhotos.length - 1;
-                        const altitudeLabel = ALTITUDE_LABELS[originalIndex] ?? "";
-                        return (
-                          <View
-                            key={url + "-stamp"}
-                            style={{
-                              position: "absolute",
-                              top: displayIndex * photoHeight,
-                              left: 0,
-                              right: 0,
-                              height: photoHeight,
-                            }}
-                          >
-                            {isSummit ? (
-                              <View style={[StyleSheet.absoluteFill, styles.stampSummitContainer]}>
-                                <View style={styles.summitBadge}>
-                                  <Text style={styles.summitBadgeText}>정상</Text>
-                                </View>
-                                <Text style={styles.altitudeText}>{altitudeLabel}</Text>
-                              </View>
-                            ) : (
-                              <View style={[StyleSheet.absoluteFill, styles.stampCenterContainer]}>
-                                <Text style={styles.altitudeText}>{altitudeLabel}</Text>
-                              </View>
-                            )}
-                          </View>
-                        );
-                      })}
-                    </>
-                  );
-                })() : (
+                      </>
+                    );
+                  })()
+                ) : (
                   <View style={styles.cardImagePlaceholder} />
                 )}
               </View>
@@ -431,6 +543,7 @@ export default function RecordScreen() {
 
             <CliveBottomBar
               isPublic={activeTabPublic}
+              isToggling={isToggling}
               onTogglePublic={handleTogglePublic}
               onSave={handleSavePress}
             />
@@ -440,37 +553,53 @@ export default function RecordScreen() {
         {/* 포토 리포트 */}
         {activeTab === "포토 리포트" && (
           <View className="pb-10 pt-2">
-            <ViewShot ref={photoReportShotRef} options={{ format: "jpg", quality: 1 }} style={{ width: 335, alignSelf: "center" }}>
-              <View style={styles.cardWrap}>
-                {/* 배경 사진 */}
-                <ExpoImage
-                  source={photoReportSource ?? PhotoReportBg}
-                  style={StyleSheet.absoluteFill}
-                  contentFit="cover"
-                />
+            <View style={{ width: 335, alignSelf: "center" }}>
+              <ViewShot
+                ref={photoReportShotRef}
+                options={{ format: "jpg", quality: 1 }}
+              >
+                <View style={styles.cardWrap}>
+                  {/* 배경 사진 */}
+                  <ExpoImage
+                    source={photoReportSource ?? PhotoReportBg}
+                    style={StyleSheet.absoluteFill}
+                    contentFit="cover"
+                  />
 
-                {/* 스탯 오버레이 */}
-                <ExpoImage
-                  source={OVERLAY_STATS[photoReportTemplate] ?? OVERLAY_STATS[0]}
-                  style={StyleSheet.absoluteFill}
-                  contentFit="cover"
-                  pointerEvents="none"
-                />
+                  {/* 스탯 오버레이 */}
+                  <ExpoImage
+                    source={
+                      OVERLAY_STATS[photoReportTemplate] ?? OVERLAY_STATS[0]
+                    }
+                    style={StyleSheet.absoluteFill}
+                    contentFit="cover"
+                    pointerEvents="none"
+                  />
+                </View>
+              </ViewShot>
 
-                {/* 편집하기 버튼 */}
-                <TouchableOpacity
-                  style={styles.editChip}
-                  activeOpacity={0.7}
-                  onPress={() => router.push({ pathname: "/record/photo-report-edit", params: { sessionId: String(sessionId ?? "") } })}
-                >
-                  <PencilSimpleIcon size={16} color="#FFFFFF" />
-                  <Text style={styles.editChipText}>편집하기</Text>
-                </TouchableOpacity>
-              </View>
-            </ViewShot>
+              {/* 편집하기 버튼 — ViewShot 밖에 위치해 캡처에서 제외 */}
+              <TouchableOpacity
+                style={[
+                  styles.editChip,
+                  { position: "absolute", top: 16, right: 16 },
+                ]}
+                activeOpacity={0.7}
+                onPress={() =>
+                  router.push({
+                    pathname: "/record/photo-report-edit",
+                    params: { sessionId: String(sessionId ?? "") },
+                  })
+                }
+              >
+                <PencilSimpleIcon size={16} color="#FFFFFF" />
+                <Text style={styles.editChipText}>편집하기</Text>
+              </TouchableOpacity>
+            </View>
 
             <CliveBottomBar
               isPublic={activeTabPublic}
+              isToggling={isToggling}
               onTogglePublic={handleTogglePublic}
               onSave={handleSavePress}
             />
@@ -636,9 +765,6 @@ const styles = StyleSheet.create({
   },
   // 포토 리포트 오버레이
   editChip: {
-    position: "absolute",
-    top: 16,
-    right: 16,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1A1B1F",

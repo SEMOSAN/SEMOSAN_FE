@@ -12,6 +12,8 @@ type Props = {
   elapsedSeconds: number;
   isPaused: boolean;
   showTooltip: boolean;
+  /** 자유기록 모드 — true이면 토글 화살표·펼침 섹션 숨김 */
+  isFreeMode?: boolean;
   /** 사진 윈도우 열림 여부 — 열리면 툴팁 문구가 "사진 기록을 남겨보세요!"로 전환 */
   isPhotoWindowOpen: boolean;
   /** 정상 인증 후 true → 라벨이 "하산까지"로 전환 */
@@ -32,6 +34,7 @@ export function TrackingSheet({
   elapsedSeconds,
   isPaused,
   showTooltip,
+  isFreeMode = false,
   isPhotoWindowOpen,
   hasSummited,
   timeToTarget,
@@ -54,28 +57,32 @@ export function TrackingSheet({
       className="w-full bg-fill-normal overflow-hidden"
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, minHeight: 220 }}
     >
-      {/* 핸들 — 탭하면 펼침/접힘 */}
-      <TouchableOpacity
-        className="items-center pt-3 pb-1"
-        onPress={() => setIsExpanded((v) => !v)}
-        activeOpacity={0.7}
-      >
-        <Svg
-          width={23}
-          height={9}
-          viewBox="0 0 23 9"
-          fill="none"
-          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
+      {/* 핸들 — 자유기록이 아닐 때만 표시 (탭하면 펼침/접힘) */}
+      {!isFreeMode ? (
+        <TouchableOpacity
+          className="items-center pt-3 pb-1"
+          onPress={() => setIsExpanded((v) => !v)}
+          activeOpacity={0.7}
         >
-          <Path
-            d="M21.5 1.49988L11.4972 7.50195L1.5 1.49988"
-            stroke="#D1D5DB"
-            strokeWidth={3}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </Svg>
-      </TouchableOpacity>
+          <Svg
+            width={23}
+            height={9}
+            viewBox="0 0 23 9"
+            fill="none"
+            style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
+          >
+            <Path
+              d="M21.5 1.49988L11.4972 7.50195L1.5 1.49988"
+              stroke="#D1D5DB"
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        </TouchableOpacity>
+      ) : (
+        <View className="pt-3 pb-1" />
+      )}
 
       {/* 등산 시간 + 타이머 */}
       <View className="items-center py-3">
@@ -85,8 +92,8 @@ export function TrackingSheet({
         </Text>
       </View>
 
-      {/* 펼침 상태 — 정상/하산까지 시간 & 거리 */}
-      {isExpanded && (
+      {/* 펼침 상태 — 정상/하산까지 시간 & 거리 (자유기록 제외) */}
+      {!isFreeMode && isExpanded && (
         <View className="border-t border-line-subtle flex-row">
           <View className="flex-1 items-center gap-1 py-5">
             <Text className="typo-caption-1-medium text-label-subtler">{timeLabel}</Text>

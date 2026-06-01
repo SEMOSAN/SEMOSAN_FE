@@ -27,7 +27,7 @@ const SNAP_TIMING_EXPAND = {
 };
 
 function snapNearest(projected: number, snapExpanded: number): number {
-  'worklet';
+  "worklet";
   const snaps = [SNAP_COLLAPSED, SNAP_DEFAULT, snapExpanded];
   return snaps.reduce((a, b) =>
     Math.abs(a - projected) < Math.abs(b - projected) ? a : b,
@@ -51,7 +51,10 @@ type Props = {
 };
 
 export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
-  function HomeBottomSheetContainer({ renderContent, heightSharedValue, snapExpanded }, ref) {
+  function HomeBottomSheetContainer(
+    { renderContent, heightSharedValue, snapExpanded },
+    ref,
+  ) {
     const internalHeight = useSharedValue(SNAP_DEFAULT);
     const height = heightSharedValue ?? internalHeight;
     const startH = useSharedValue(SNAP_DEFAULT);
@@ -80,16 +83,28 @@ export const HomeBottomSheetContainer = forwardRef<HomeBottomSheetRef, Props>(
         .onUpdate((e) => {
           height.value = Math.max(
             SNAP_COLLAPSED,
-            Math.min(snapExpanded, startH.value - e.translationY)
+            Math.min(snapExpanded, startH.value - e.translationY),
           );
         })
         .onEnd((e) => {
-          const target = snapNearest(height.value - e.velocityY * 0.15, snapExpanded);
-          height.value = withTiming(target, target === SNAP_COLLAPSED ? SNAP_TIMING_COLLAPSE : SNAP_TIMING_EXPAND);
+          const target = snapNearest(
+            height.value - e.velocityY * 0.15,
+            snapExpanded,
+          );
+          height.value = withTiming(
+            target,
+            target === SNAP_COLLAPSED
+              ? SNAP_TIMING_COLLAPSE
+              : SNAP_TIMING_EXPAND,
+          );
           // 기본 높이(디폴트)에서는 스크롤 비활성, 최대 높이에서만 스크롤 활성
           runOnJS(setScrollEnabled)(target === snapExpanded);
           runOnJS(setSnapState)(
-            target === SNAP_COLLAPSED ? 'collapsed' : target === snapExpanded ? 'expanded' : 'default'
+            target === SNAP_COLLAPSED
+              ? "collapsed"
+              : target === snapExpanded
+                ? "expanded"
+                : "default",
           );
         });
 

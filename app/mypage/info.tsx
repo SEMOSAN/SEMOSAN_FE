@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { ChevronLeftIcon } from '@/components/icons/chevron-left-icon';
 import { MenuChevronIcon } from '@/features/mypage/components/menu-chevron-icon';
 import { MenuRow } from '@/features/mypage/components/menu-row';
@@ -106,6 +107,7 @@ export default function MyPageInfoScreen() {
       updateProfile({ profileUrl: imageUrl });
     } catch (e) {
       console.error('[Upload] 실패:', e);
+      Sentry.captureException(new Error("ProfileImageUploadFailed"));
     } finally {
       setImageUploading(false);
     }

@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { ENDPOINTS } from "@/types/api.generated";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 export type BBox = {
@@ -25,10 +26,15 @@ type MountainMapData = {
 
 async function getMountainsMap(bbox: BBox): Promise<MountainMapData> {
   const params: Record<string, number> = bbox
-    ? { swLat: bbox.swLat, swLng: bbox.swLng, neLat: bbox.neLat, neLng: bbox.neLng }
+    ? {
+        swLat: bbox.swLat,
+        swLng: bbox.swLng,
+        neLat: bbox.neLat,
+        neLng: bbox.neLng,
+      }
     : {};
   const res = await api.get<MountainMapData>({
-    path: "/api/mountains/map",
+    path: ENDPOINTS.MOUNTAINS_MAP,
     params,
   });
   return res.data;
@@ -36,7 +42,7 @@ async function getMountainsMap(bbox: BBox): Promise<MountainMapData> {
 
 export function useMountainsMap(bbox: BBox) {
   return useQuery({
-    queryKey: ["mountains/map", bbox],
+    queryKey: [ENDPOINTS.MOUNTAINS_MAP, bbox],
     queryFn: () => getMountainsMap(bbox),
     placeholderData: keepPreviousData,
   });

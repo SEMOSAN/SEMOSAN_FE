@@ -64,6 +64,15 @@ const config = {
     bundler: "metro",
   },
   plugins: [
+    [
+      "@sentry/react-native/expo",
+      {
+        url: "https://sentry.io/",
+        note: "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
+        organization: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+      },
+    ],
     "expo-router",
     "expo-font",
     "@react-native-firebase/app",
