@@ -6,6 +6,19 @@ const {
 const path = require('path');
 const fs = require('fs');
 
+function copyDirSync(src, dst) {
+  if (!fs.existsSync(dst)) fs.mkdirSync(dst, { recursive: true });
+  for (const entry of fs.readdirSync(src)) {
+    const srcPath = path.join(src, entry);
+    const dstPath = path.join(dst, entry);
+    if (fs.statSync(srcPath).isDirectory()) {
+      copyDirSync(srcPath, dstPath);
+    } else {
+      fs.copyFileSync(srcPath, dstPath);
+    }
+  }
+}
+
 const WIDGET_TARGET = 'SemosanWidget';
 const WIDGET_SOURCE_DIR = 'SemosanWidget';
 const SWIFT_FILES = [
@@ -51,11 +64,10 @@ const withWidgetExtensionTarget = (config) =>
     const srcDir = path.join(projectRoot, 'ios', WIDGET_SOURCE_DIR);
     if (!fs.existsSync(srcDir)) fs.mkdirSync(srcDir, { recursive: true });
 
-    // 폰트 파일 복사 (assets/fonts → ios/SemosanWidget)
-    const fontSrc = path.join(projectRoot, 'assets', 'fonts', 'Lexend-SemiBold.ttf');
-    const fontDst = path.join(srcDir, 'Lexend-SemiBold.ttf');
-    if (fs.existsSync(fontSrc) && !fs.existsSync(fontDst)) {
-      fs.copyFileSync(fontSrc, fontDst);
+    // ios-native/SemosanWidget → ios/SemosanWidget 통째로 복사
+    const nativeSrcDir = path.join(projectRoot, 'ios-native', WIDGET_SOURCE_DIR);
+    if (fs.existsSync(nativeSrcDir)) {
+      copyDirSync(nativeSrcDir, srcDir);
     }
 
     const target = xcodeProject.addTarget(
