@@ -10,28 +10,28 @@
 
 <br />
 
-## 📱 주요 기능
+## 주요 기능
 
 <table>
   <tr>
     <td align="center" width="33%">
       <img src="assets/screenshots/home-feed.png" alt="정복 지도" width="220" />
       <br /><br />
-      <b>🗺️ 정복 지도</b>
+      <b>정복 지도</b>
       <br />
       <sub>내가 다녀온 산을 지도 위에서 한눈에</sub>
     </td>
     <td align="center" width="33%">
       <img src="assets/screenshots/semofeed.png" alt="세모피드" width="220" />
       <br /><br />
-      <b>📰 세모피드</b>
+      <b>세모피드</b>
       <br />
       <sub>등산 커뮤니티의 생생한 후기 피드</sub>
     </td>
     <td align="center" width="33%">
       <img src="assets/screenshots/mountains.png" alt="산 탐색" width="220" />
       <br /><br />
-      <b>🏔️ 산 목록</b>
+      <b>산 목록</b>
       <br />
       <sub>인근 산 조회 및 코스 정보 확인</sub>
     </td>
@@ -40,21 +40,21 @@
     <td align="center" width="33%">
       <img src="assets/screenshots/tracking.png" alt="GPS 트래킹" width="220" />
       <br /><br />
-      <b>📍 실시간 GPS 트래킹</b>
+      <b>실시간 GPS 트래킹</b>
       <br />
       <sub>코스 안내·마일스톤 인증 사진·정상 기록</sub>
     </td>
     <td align="center" width="33%">
       <img src="assets/screenshots/community.png" alt="커뮤니티" width="220" />
       <br /><br />
-      <b>💬 커뮤니티</b>
+      <b>커뮤니티</b>
       <br />
       <sub>등산 후기 및 사진 공유</sub>
     </td>
     <td align="center" width="33%">
       <img src="assets/screenshots/mypage.png" alt="내 기록" width="220" />
       <br /><br />
-      <b>📊 마이페이지</b>
+      <b>마이페이지</b>
       <br />
       <sub>등산 이력 및 난이도 피드백 관리</sub>
     </td>
@@ -63,7 +63,7 @@
 
 <br />
 
-## 🛠️ 기술 스택
+## 기술 스택
 
 ### Frontend
 - **React Native** + **Expo** (expo-router 파일 기반 라우팅)
@@ -91,7 +91,7 @@
 
 <br />
 
-## 📁 프로젝트 구조
+## 프로젝트 구조
 
 ```
 app/
@@ -110,7 +110,7 @@ tokens/             # Figma 디자인 토큰 (수정 금지)
 
 <br />
 
-## 🚀 시작하기
+## 시작하기
 
 ### 요구사항
 
@@ -140,7 +140,7 @@ npm run tokens
 
 <br />
 
-## 📐 개발 규칙
+## 개발 규칙
 
 - 스타일은 반드시 `className` (NativeWind) 사용 — `StyleSheet` / 인라인 스타일 지양
 - 토큰으로 정의된 값은 Tailwind 클래스로 참조 (hex 하드코딩 금지)
