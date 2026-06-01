@@ -7,12 +7,18 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "env": {
+        "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      },
       "ios": {
         "image": "macos-sonoma-14.6-xcode-16.1"
       }
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      },
       "ios": {
         "image": "macos-sonoma-14.6-xcode-16.1"
       }
