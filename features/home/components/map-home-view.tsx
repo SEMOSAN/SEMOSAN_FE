@@ -124,15 +124,6 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
       myMountains.map((m) => [m.mountainId, m.imageUrls?.[0]]),
     );
 
-    const visitedCards = myMountains.map((m) => ({
-      id: String(m.mountainId),
-      mountainId: m.mountainId ?? 0,
-      name: m.mountainName ?? "",
-      trailNumber: m.hikingCount ?? 1,
-      daysAgo: getDaysAgo(m.lastHikedAt),
-      badgeCount: m.hikingCount ?? 1,
-    }));
-
     return (
       <View className="w-full flex-1">
         <NaverMapView
@@ -264,8 +255,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             hasRecords ? (
               <BottomSheet
                 title="다녀온 산"
-                titleCount={visitedCards.length}
-                cards={visitedCards}
+                titleCount={myMountains.length}
+                cards={myMountains}
                 showTabs={false}
                 scrollEnabled={scrollEnabled}
                 onCardSelect={(id) => setSelectedMountainId(Number(id))}

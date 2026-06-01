@@ -1,9 +1,9 @@
-import { ReactNode } from 'react';
-import { ScrollView } from 'react-native-gesture-handler';
-import { Text, View } from 'react-native';
+import { ReactNode } from "react";
+import { Text, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 
 type Props = {
-  title: string;
+  title?: string;
   titleCount?: number;
   titleSuffix?: ReactNode;
   header?: ReactNode;
@@ -12,14 +12,22 @@ type Props = {
   scrollEnabled?: boolean;
 };
 
-export default function BottomSheetShell({ title, titleCount, titleSuffix, header, aboveTitle, children, scrollEnabled = false }: Props) {
+export default function BottomSheetShell({
+  title,
+  titleCount,
+  titleSuffix,
+  header,
+  aboveTitle,
+  children,
+  scrollEnabled = false,
+}: Props) {
   return (
-    <View className="flex-1 w-full">
+    <View className="w-full flex-1">
       {/* 탭바 등 헤더 슬롯 */}
       {header && <View className="w-full">{header}</View>}
 
       <ScrollView
-        className="flex-1 w-full"
+        className="w-full flex-1"
         contentContainerClassName="w-full px-4 pt-3 flex-grow"
         showsVerticalScrollIndicator={false}
         scrollEnabled={scrollEnabled}
@@ -30,9 +38,13 @@ export default function BottomSheetShell({ title, titleCount, titleSuffix, heade
 
           {/* 섹션 타이틀 */}
           <View className="flex-row items-center gap-1">
-            <Text className="typo-headline-1-semi-bold text-label-normal">{title}</Text>
+            <Text className="text-label-normal typo-headline-1-semi-bold">
+              {title}
+            </Text>
             {titleCount !== undefined && (
-              <Text className="typo-headline-1-semi-bold text-secondary-normal">{titleCount}</Text>
+              <Text className="text-secondary-normal typo-headline-1-semi-bold">
+                {titleCount}
+              </Text>
             )}
             {titleSuffix}
           </View>
