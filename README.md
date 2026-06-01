@@ -31,7 +31,7 @@
     <td align="center" width="33%">
       <img src="assets/screenshots/mountains.png" alt="산 탐색" width="220" />
       <br /><br />
-      <b>🏔️ 산 탐색</b>
+      <b>🏔️ 산 목록</b>
       <br />
       <sub>인근 산 조회 및 코스 정보 확인</sub>
     </td>
@@ -54,7 +54,7 @@
     <td align="center" width="33%">
       <img src="assets/screenshots/mypage.png" alt="내 기록" width="220" />
       <br /><br />
-      <b>📊 내 기록</b>
+      <b>📊 마이페이지</b>
       <br />
       <sub>등산 이력 및 난이도 피드백 관리</sub>
     </td>
