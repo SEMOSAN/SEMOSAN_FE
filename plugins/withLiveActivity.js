@@ -51,6 +51,13 @@ const withWidgetExtensionTarget = (config) =>
     const srcDir = path.join(projectRoot, 'ios', WIDGET_SOURCE_DIR);
     if (!fs.existsSync(srcDir)) fs.mkdirSync(srcDir, { recursive: true });
 
+    // 폰트 파일 복사 (assets/fonts → ios/SemosanWidget)
+    const fontSrc = path.join(projectRoot, 'assets', 'fonts', 'Lexend-SemiBold.ttf');
+    const fontDst = path.join(srcDir, 'Lexend-SemiBold.ttf');
+    if (fs.existsSync(fontSrc) && !fs.existsSync(fontDst)) {
+      fs.copyFileSync(fontSrc, fontDst);
+    }
+
     const target = xcodeProject.addTarget(
       WIDGET_TARGET,
       'app_extension',
