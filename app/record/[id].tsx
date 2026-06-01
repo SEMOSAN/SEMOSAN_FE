@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/react-native";
 import Clive1Svg from "@/assets/clive1.svg";
 import { CliveBottomBar } from "@/components/clive-bottom-bar";
 import { CheckCircleIcon } from "@/components/icons/check-circle-icon";
@@ -13,6 +12,7 @@ import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
 import { uploadImage } from "@/hooks/use-upload-image";
 import { api } from "@/lib/api";
 import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
+import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { Image as ExpoImage, Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -212,7 +212,7 @@ export default function RecordScreen() {
       const semoFeedId = await ensureSemoFeed(activeTab);
       if (!semoFeedId) return;
 
-      togglePublicMutateAsync(semoFeedId);
+      await togglePublicMutateAsync(semoFeedId);
 
       const nextPublic = !activeTabPublic;
       setIsPublicByTab((prev) => ({ ...prev, [activeTab]: nextPublic }));
