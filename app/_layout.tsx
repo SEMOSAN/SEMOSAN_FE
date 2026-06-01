@@ -1,4 +1,5 @@
 import Toast from "@/components/toast/toast";
+import { isExpoGo } from "@/constants/platform";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { useAppState } from "@/hooks/use-app-state";
 import { useOnlineManager } from "@/hooks/use-online-manager";
@@ -36,7 +37,8 @@ Notifications.setNotificationHandler({
 });
 
 SplashScreen.preventAutoHideAsync();
-if (!__DEV__) initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
+if (!isExpoGo)
+  initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY!);
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
