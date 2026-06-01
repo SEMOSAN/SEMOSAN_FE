@@ -22,7 +22,7 @@
       <sub>내가 다녀온 산을 지도 위에서 한눈에</sub>
     </td>
     <td align="center" width="33%">
-      <img src="assets/screenshots/home-semofeed.png" alt="세모피드" width="220" />
+      <img src="assets/screenshots/semofeed.png" alt="세모피드" width="220" />
       <br /><br />
       <b>📰 세모피드</b>
       <br />
