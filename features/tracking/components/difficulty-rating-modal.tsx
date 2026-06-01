@@ -44,6 +44,9 @@ export function DifficultyRatingModal({
 
   const handleComplete = () => {
     queryClient.invalidateQueries({ queryKey: [ENDPOINTS.MOUNTAINS_MAP] });
+    queryClient.invalidateQueries({
+      queryKey: [ENDPOINTS.HIKING_RECORDS_ME_MOUNTAINS],
+    });
     if (mountainId)
       queryClient.invalidateQueries({
         queryKey: [
