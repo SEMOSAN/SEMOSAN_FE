@@ -245,7 +245,6 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
           </TouchableOpacity>
         </Animated.View>
 
-        {/* TODO : API 나오면 연동 */}
         {/* 바텀시트 - 절대 위치, 애니메이션 높이 */}
         <HomeBottomSheetContainer
           ref={sheetRef}

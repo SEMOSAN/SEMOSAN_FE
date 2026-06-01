@@ -1,9 +1,10 @@
 import { useMyMountainRecords } from "@/features/home/hooks/use-my-mountain-records";
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { GetUserHikingMountainRecordResponse } from "@/types/api.generated";
 import { getDaysAgo } from "@/utils/get-days-ago";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, Pressable, Text, TouchableOpacity, View } from "react-native";
 import BottomSheetShell from "./bottom-sheet-shell";
 import CourseBottomSheet from "./course-bottom-sheet";
 import { HikingStatsCard } from "./hiking-stats-card";
@@ -74,6 +75,7 @@ export default function BottomSheet({
         <View className="pt-2.5">
           <CourseBottomSheet
             courses={mountainRecords}
+            mountainId={selectedCard.mountainId}
             onCoursePress={(courseId) => {
               const record = mountainRecords.find(
                 (r) => r.hikingRecordId === courseId,
@@ -168,29 +170,26 @@ export default function BottomSheet({
   );
 }
 
-function MountainCardThumbnail({ imageUrls }: { imageUrls?: string[] }) {
-  const mainPhoto = imageUrls?.[0];
-  const bgPhoto = imageUrls?.[1];
+function MountainCardThumbnail({
+  mountainId,
+  imageUrls,
+}: {
+  mountainId?: number;
+  imageUrls?: string[];
+}) {
+  const { data: detail } = useMountainDetail(mountainId ?? 0);
+  const resolvedUrls =
+    imageUrls && imageUrls.length > 0 ? imageUrls : detail?.mountain?.imageUrls;
+  const photo = resolvedUrls?.[0];
 
-  return (
-    <>
-      {bgPhoto ? (
-        <Image
-          source={{ uri: bgPhoto }}
-          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
-          resizeMode="cover"
-        />
-      ) : null}
-      {mainPhoto ? (
-        <Image
-          source={{ uri: mainPhoto }}
-          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
-          resizeMode="cover"
-        />
-      ) : (
-        <View className="absolute inset-0 items-center justify-center bg-fill-stronger" />
-      )}
-    </>
+  return photo ? (
+    <Image
+      source={{ uri: photo }}
+      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+      resizeMode="cover"
+    />
+  ) : (
+    <View className="absolute inset-0 items-center justify-center bg-fill-stronger" />
   );
 }
 
@@ -202,10 +201,13 @@ function MountainCard({
   onPress: () => void;
 }) {
   return (
-    <TouchableOpacity className="flex-1 gap-1" onPress={onPress}>
+    <Pressable className="flex-1 gap-1" onPress={onPress}>
       {/* 이미지 */}
       <View className="h-[88px] flex-col items-end gap-2.5 self-stretch overflow-hidden rounded-[10px] p-2">
-        <MountainCardThumbnail imageUrls={card.imageUrls} />
+        <MountainCardThumbnail
+          mountainId={card.mountainId}
+          imageUrls={card.imageUrls}
+        />
         {/* 뱃지 */}
         <View className="z-10 h-7 w-7 items-center justify-center rounded-full bg-label-normal">
           <Text className="text-center text-common-100 typo-body-3-semi-bold">
@@ -229,6 +231,6 @@ function MountainCard({
             : `${getDaysAgo(card.lastHikedAt)}일 전`}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }

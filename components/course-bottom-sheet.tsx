@@ -1,3 +1,4 @@
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { GetUserHikingRecordResponse } from "@/types/api.generated";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ChevronRightIcon } from "./icons/chevron-right-icon";
@@ -54,16 +55,22 @@ export const MOCK_COURSES: Course[] = [
 
 type Props = {
   courses: GetUserHikingRecordResponse[];
+  mountainId?: number;
   onCoursePress?: (courseId?: number) => void;
 };
 
-export default function CourseBottomSheet({ courses, onCoursePress }: Props) {
+export default function CourseBottomSheet({
+  courses,
+  mountainId,
+  onCoursePress,
+}: Props) {
   return (
     <View className="gap-2.5">
       {courses.map((course) => (
         <CourseItem
-          key={course.courseId}
+          key={course.hikingRecordId}
           course={course}
+          mountainId={mountainId}
           onPress={() => onCoursePress?.(course.courseId)}
         />
       ))}
@@ -71,23 +78,36 @@ export default function CourseBottomSheet({ courses, onCoursePress }: Props) {
   );
 }
 
-function StackedThumbnail({ imageUris = [] }: { imageUris?: string[] }) {
+function StackedThumbnail({
+  imageUris = [],
+  mountainId,
+}: {
+  imageUris?: string[];
+  mountainId?: number;
+}) {
+  const { data: detail } = useMountainDetail(mountainId ?? 0);
+  const resolvedUris =
+    imageUris.length > 0 ? imageUris : (detail?.mountain?.imageUrls ?? []);
   const W = 64;
   const H = 72;
-  const n = imageUris.length;
+  const n = resolvedUris.length;
 
   const cards = [
-    {
-      isFront: false,
-      uri: imageUris[n - 2],
-      rotate: "6deg",
-      translateX: 6.2,
-      translateY: 0,
-      zIndex: 1,
-    },
+    ...(n >= 2
+      ? [
+          {
+            isFront: false,
+            uri: resolvedUris[n - 2],
+            rotate: "6deg",
+            translateX: 6.2,
+            translateY: 0,
+            zIndex: 1,
+          },
+        ]
+      : []),
     {
       isFront: true,
-      uri: imageUris[n - 1],
+      uri: resolvedUris[n - 1],
       rotate: "0deg",
       translateX: 0,
       translateY: 8,
@@ -130,9 +150,11 @@ function StackedThumbnail({ imageUris = [] }: { imageUris?: string[] }) {
 
 function CourseItem({
   course,
+  mountainId,
   onPress,
 }: {
   course: GetUserHikingRecordResponse;
+  mountainId?: number;
   onPress?: () => void;
 }) {
   return (
@@ -143,7 +165,7 @@ function CourseItem({
     >
       <View className="flex-row items-center" style={styles.leftGroup}>
         {/* 스택 썸네일 */}
-        <StackedThumbnail imageUris={course.imageUrls} />
+        <StackedThumbnail imageUris={course.imageUrls} mountainId={mountainId} />
 
         {/* 텍스트 */}
         <View style={styles.textGroup}>
