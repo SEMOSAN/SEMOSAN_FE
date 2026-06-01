@@ -46,7 +46,7 @@ export default function NoRecordBottomSheet({
       <View className="pt-4">
         <View className="mb-3 flex-row items-center gap-0.5 px-4">
           <Text className="text-secondary-normal typo-headline-1-semi-bold">
-            {userName}{" "}
+            {userName}
           </Text>
           <Text className="text-label-normal typo-headline-1-semi-bold">
             님의 레벨에 맞는 산
