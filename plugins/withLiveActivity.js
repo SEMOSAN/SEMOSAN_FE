@@ -454,10 +454,43 @@ const withLiveActivityNativeModule = (config) =>
     }
     if (!mainTargetUUID) return mod;
 
-    xcodeProject.addSourceFile(
-      path.join(appName, 'LiveActivityModule.swift'),
-      { target: mainTargetUUID },
-    );
+    // PBX 섹션 직접 조작으로 파일 등록
+    const pbxFileRefSection = xcodeProject.hash.project.objects['PBXFileReference'] || {};
+    const pbxBuildFileSection = xcodeProject.hash.project.objects['PBXBuildFile'] || {};
+    const pbxSourcesSection = xcodeProject.hash.project.objects['PBXSourcesBuildPhase'] || {};
+
+    const fileRefUUID = generateUUID();
+    const buildFileUUID = generateUUID();
+    const filePath = `${appName}/LiveActivityModule.swift`;
+
+    pbxFileRefSection[fileRefUUID] = {
+      isa: 'PBXFileReference',
+      lastKnownFileType: 'sourcecode.swift',
+      name: '"LiveActivityModule.swift"',
+      path: `"${filePath}"`,
+      sourceTree: '"<group>"',
+    };
+    pbxFileRefSection[`${fileRefUUID}_comment`] = 'LiveActivityModule.swift';
+
+    pbxBuildFileSection[buildFileUUID] = {
+      isa: 'PBXBuildFile',
+      fileRef: fileRefUUID,
+      fileRef_comment: 'LiveActivityModule.swift',
+    };
+    pbxBuildFileSection[`${buildFileUUID}_comment`] = 'LiveActivityModule.swift in Sources';
+
+    // 메인 타겟의 Sources 빌드 페이즈에 추가
+    for (const [phaseUUID, phase] of Object.entries(pbxSourcesSection)) {
+      if (phaseUUID.endsWith('_comment') || typeof phase !== 'object') continue;
+      const target = xcodeProject.pbxNativeTargetSection()[mainTargetUUID];
+      const isMainPhase = (target?.buildPhases || []).some(
+        (ref) => (typeof ref === 'string' ? ref : ref.value) === phaseUUID
+      );
+      if (!isMainPhase) continue;
+      phase.files = phase.files || [];
+      phase.files.push({ value: buildFileUUID, comment: 'LiveActivityModule.swift in Sources' });
+      break;
+    }
 
     return mod;
   });
