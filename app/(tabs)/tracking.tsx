@@ -1221,7 +1221,9 @@ export default function TrackingScreen() {
       {/* 난이도 체감 모달 */}
       <DifficultyRatingModal
         mountainId={
-          mountainIdParameter ? Number(mountainIdParameter) : undefined
+          mountainIdParameter
+            ? Number(mountainIdParameter)
+            : nearbyData?.mountain?.mountainId
         }
         visible={showDifficultyRating}
         course={selectedCourse}

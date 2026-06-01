@@ -165,7 +165,10 @@ function CourseItem({
     >
       <View className="flex-row items-center" style={styles.leftGroup}>
         {/* 스택 썸네일 */}
-        <StackedThumbnail imageUris={course.imageUrls} mountainId={mountainId} />
+        <StackedThumbnail
+          imageUris={course.imageUrls}
+          mountainId={mountainId}
+        />
 
         {/* 텍스트 */}
         <View style={styles.textGroup}>
@@ -176,8 +179,10 @@ function CourseItem({
             {course.courseName}
           </Text>
           <Text className="text-label-subtler typo-caption-1-medium">
-            {course.distance && <>{(course.distance / 1000).toFixed(1)}km · </>}
-            {course.duration && (
+            {!!course.distance && (
+              <>{(course.distance / 1000).toFixed(1)}km · </>
+            )}
+            {!!course.duration && (
               <>
                 {formatDuration(course.duration)} ·{" "}
                 {formatHikedAt(course.hikedAt)}

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import Clive1Svg from "@/assets/clive1.svg";
 import { CliveBottomBar } from "@/components/clive-bottom-bar";
 import { CheckCircleIcon } from "@/components/icons/check-circle-icon";
@@ -72,7 +73,7 @@ export default function RecordScreen() {
   const durationSec = duration ? parseInt(duration) : null;
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { mutate: togglePublicMutate, isPending: isToggling } =
+  const { mutateAsync: togglePublicMutateAsync, isPending: isToggling } =
     useToggleSemofeedPublic();
   const { top } = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<RecordTab>("클라이브");
@@ -211,7 +212,7 @@ export default function RecordScreen() {
       const semoFeedId = await ensureSemoFeed(activeTab);
       if (!semoFeedId) return;
 
-      togglePublicMutate(semoFeedId);
+      togglePublicMutateAsync(semoFeedId);
 
       const nextPublic = !activeTabPublic;
       setIsPublicByTab((prev) => ({ ...prev, [activeTab]: nextPublic }));
@@ -244,6 +245,7 @@ export default function RecordScreen() {
       }
     } catch (error) {
       console.error("[SemoFeed] public toggle failed", error);
+      Sentry.captureException(error);
       return;
     }
   };
