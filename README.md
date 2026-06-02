@@ -19,14 +19,14 @@
       <br /><br />
       <b>정복 지도</b>
       <br />
-      <sub>내가 다녀온 산을 지도 위에서 한눈에</sub>
+      <sub>사용자의 등산 기록과 정복한 산 데이터 제공</sub>
     </td>
     <td align="center" width="33%">
       <img src="assets/screenshots/semofeed.png" alt="세모피드" width="220" />
       <br /><br />
       <b>세모피드</b>
       <br />
-      <sub>등산 커뮤니티의 생생한 후기 피드</sub>
+      <sub>등산 후기 피드</sub>
     </td>
     <td align="center" width="33%">
       <img src="assets/screenshots/mountains.png" alt="산 탐색" width="220" />
@@ -49,14 +49,14 @@
       <br /><br />
       <b>커뮤니티</b>
       <br />
-      <sub>등산 후기 및 사진 공유</sub>
+      <sub>게시글, 댓글, 좋아요, 신고, 차단 기능 제공</sub>
     </td>
     <td align="center" width="33%">
       <img src="assets/screenshots/mypage.png" alt="내 기록" width="220" />
       <br /><br />
       <b>마이페이지</b>
       <br />
-      <sub>등산 이력 및 난이도 피드백 관리</sub>
+      <sub>회원 정보, 등산 이력, 난이도 피드백 관리</sub>
     </td>
   </tr>
 </table>
