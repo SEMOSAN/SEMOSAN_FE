@@ -481,7 +481,7 @@
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				EA1B2C3D4E5F6A7B8C9D0E1F /* AppExpoModulesProvider.swift in Sources */,
 				E96AAB96C8831C8A6EE4F320 /* LiveActivityModule.swift in Sources */,
-				39B9CAD9746724B612139B00 /* ExpoModulesProvider.swift in Sources */,
+				F74C6CD0CB6E2925414F6D09 /* SemosanLiveActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
