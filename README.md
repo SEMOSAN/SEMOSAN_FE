@@ -33,7 +33,7 @@
       <br /><br />
       <b>산 목록</b>
       <br />
-      <sub>인근 산 조회 및 코스 정보 확인</sub>
+      <sub>산/코스 조회, 거리, 고도, 소요 시간 데이터 제공</sub>
     </td>
   </tr>
   <tr>
@@ -42,7 +42,7 @@
       <br /><br />
       <b>실시간 GPS 트래킹</b>
       <br />
-      <sub>코스 안내·마일스톤 인증 사진·정상 기록</sub>
+      <sub>WebSocket 기반 위치 수집 및 트래킹 세션 관리</sub>
     </td>
     <td align="center" width="33%">
       <img src="assets/screenshots/community.png" alt="커뮤니티" width="220" />
