@@ -613,7 +613,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.tastyhiking.semosanapp.SemosanWidget;
 				PRODUCT_NAME = SemosanWidget;
-				PROVISIONING_PROFILE_SPECIFIER = "SemosanWidget AdHoc";
+				PROVISIONING_PROFILE_SPECIFIER = "SemosanWidget AppStore";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
