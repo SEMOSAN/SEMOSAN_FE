@@ -29,7 +29,6 @@ private func _darwinResumeCallback(
 // MARK: - Module
 
 public class LiveActivityModule: Module {
-    // Widget 버튼 탭 후 JS의 1초 타이머가 isRunning을 덮어쓰는 race condition 방지용 override
     private var widgetIsRunningOverride: Bool? = nil
     private var widgetOverrideExpiry: Date = .distantPast
 
@@ -39,7 +38,6 @@ public class LiveActivityModule: Module {
         Events("onLiveActivityControl")
 
         OnCreate {
-            // Darwin 알림 → RN 이벤트 브릿지 설정
             _pauseHandler = { [weak self] in
                 self?.widgetIsRunningOverride = false
                 self?.widgetOverrideExpiry = Date().addingTimeInterval(3.0)
@@ -117,11 +115,9 @@ public class LiveActivityModule: Module {
             let jsIsRunning = params["isRunning"] as? Bool ?? true
             var actualIsRunning = jsIsRunning
 
-            // Widget 버튼 탭으로 인한 override가 활성 상태이면 JS 값 무시
             if let override = self.widgetIsRunningOverride, Date() < self.widgetOverrideExpiry {
                 actualIsRunning = override
                 if jsIsRunning == override {
-                    // JS가 따라잡았으면 override 해제
                     self.widgetIsRunningOverride = nil
                 }
             } else {

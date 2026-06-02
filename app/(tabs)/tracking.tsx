@@ -700,7 +700,9 @@ export default function TrackingScreen() {
 
     if (isLiveActivityEnabled) {
       if (isFreeMode) {
-        LiveActivity.start({ mode: "free" }).catch(() => {});
+        LiveActivity.start({ mode: "free" }).catch((e: unknown) => {
+          console.warn("[LiveActivity] start(free) 실패:", e);
+        });
       } else {
         const totalMeters =
           liveActivityCourse?.totalDistance ??
@@ -713,12 +715,17 @@ export default function TrackingScreen() {
           remainingMinutes: totalMinutes,
           remainingMeters: Math.round(totalMeters),
           progress: 0,
-        }).catch(() => {});
+        }).catch((e: unknown) => {
+          console.warn("[LiveActivity] start(course) 실패:", e);
+        });
       }
+    } else {
+      console.warn("[LiveActivity] isLiveActivityEnabled=false — 환경변수 확인 필요");
     }
 
     return () => {};
-  }, [isTracking, isFreeMode, selectedCourse]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTracking, isFreeMode]);
 
   // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
   useEffect(() => {
@@ -934,7 +941,9 @@ export default function TrackingScreen() {
         },
       );
     }
-    if (isLiveActivityEnabled) LiveActivity.stop().catch(() => {});
+    if (isLiveActivityEnabled) LiveActivity.stop().catch((e: unknown) => {
+      console.warn("[LiveActivity] stop() 실패:", e);
+    });
     stopLocationTask().catch(() => {});
     disconnectSocket();
     setShowDifficultyRating(false);
