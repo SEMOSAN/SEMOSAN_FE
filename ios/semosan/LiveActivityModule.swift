@@ -62,7 +62,7 @@ public class LiveActivityModule: Module {
                 "com.tastyhiking.semosanapp.liveactivity.resume" as CFString,
                 nil, .deliverImmediately
             )
-
+            /*
             if #available(iOS 16.2, *) {
                 Task {
                     for activity in Activity<SemosanLiveActivityAttributes>.activities {
@@ -70,6 +70,7 @@ public class LiveActivityModule: Module {
                     }
                 }
             }
+            */
         }
 
         AsyncFunction("startActivity") { (params: [String: Any]) async throws -> String in

@@ -1,8 +1,6 @@
 import "dotenv/config";
 import fs from "node:fs";
 
-const isLiveActivityEnabled =
-  process.env.EXPO_PUBLIC_LIVE_ACTIVITY_ENABLED === "true";
 const hasIosGoogleServiceFile = fs.existsSync("./GoogleService-Info.plist");
 const hasAndroidGoogleServiceFile = fs.existsSync("./google-services.json");
 const hasNaverMapClientId = !!process.env.NAVER_MAP_CLIENT_ID;
@@ -77,7 +75,7 @@ const config = {
     "expo-font",
     "@react-native-firebase/app",
     "./plugins/withModularHeaders",
-    ...(isLiveActivityEnabled ? ["./plugins/withLiveActivity"] : []),
+    "./plugins/withLiveActivity",
     [
       "expo-notifications",
       {

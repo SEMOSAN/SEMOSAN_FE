@@ -73,6 +73,7 @@ import { Tabs, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutChangeEvent,
+  Linking,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -851,6 +852,30 @@ export default function TrackingScreen() {
       if (action === "pause") pauseTrackingRef.current();
       else resumeTrackingRef.current();
     });
+    return () => sub.remove();
+  }, [isTracking]);
+
+  useEffect(() => {
+    if (!isLiveActivityEnabled || !isTracking) return;
+    const handleURL = ({ url }: { url: string }) => {
+      try {
+        const action = new URL(url).searchParams.get("action");
+        if (action === "pause") {
+          // AppState보다 먼저 발화할 경우 백그라운드 추적 시간을 직접 누적 후 ref 초기화
+          if (backgroundedAtRef.current != null) {
+            const diff = Math.floor((Date.now() - backgroundedAtRef.current) / 1000);
+            backgroundedAtRef.current = null;
+            setElapsedSeconds((s) => s + diff);
+          }
+          pauseTrackingRef.current();
+        } else if (action === "resume") {
+          // 일시정지 중 쌓인 stale 값이 AppState에서 더해지지 않도록 초기화
+          backgroundedAtRef.current = null;
+          resumeTrackingRef.current();
+        }
+      } catch {}
+    };
+    const sub = Linking.addEventListener("url", handleURL);
     return () => sub.remove();
   }, [isTracking]);
 

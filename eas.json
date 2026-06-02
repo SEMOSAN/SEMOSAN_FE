@@ -26,6 +26,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_LIVE_ACTIVITY_ENABLED": "true"
+      },
       "ios": {
         "image": "macos-sequoia-15.6-xcode-26.2"
       }

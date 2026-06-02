@@ -293,6 +293,7 @@ import ExpoModulesCore
 
 // MARK: - Darwin notification bridge (file-level globals for C callback access)
 
+
 private var _pauseHandler: (() -> Void)?
 private var _resumeHandler: (() -> Void)?
 
@@ -353,14 +354,16 @@ public class LiveActivityModule: Module {
                 nil, .deliverImmediately
             )
 
-            if #available(iOS 16.2, *) {
+
+            /* if #available(iOS 16.2, *) {
                 Task {
                     for activity in Activity<SemosanLiveActivityAttributes>.activities {
                         await activity.end(.none, dismissalPolicy: .immediate)
                     }
                 }
             }
-        }
+            */
+        } 
 
         AsyncFunction("startActivity") { (params: [String: Any]) async throws -> String in
             guard #available(iOS 16.2, *) else {
