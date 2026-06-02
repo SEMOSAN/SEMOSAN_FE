@@ -10,12 +10,12 @@
 		032B5A433A1E446384D535C8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F341212E0DE04567B06BBCE7 /* GoogleService-Info.plist */; };
 		10BE4E2D651B7E442D3322E6 /* libPods-semosan.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6AEEBEE1FB64461746792160 /* libPods-semosan.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		39B9CAD9746724B612139B00 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F468FC7347BE3E9C49C0391 /* ExpoModulesProvider.swift */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		58E4E904FF7A4F8E91FFD44A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0915453EF2B7459C92BFD452 /* SwiftUI.framework */; };
 		5924807866955ACF8228BF7A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = ED0FDB9639E5FC65402DB80F /* PrivacyInfo.xcprivacy */; };
 		62AA5F0527CE7EF046B086D9 /* SemosanWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DB1C917F4FFF3242AA9628 /* SemosanWidgetBundle.swift */; };
 		693D45F803EE4908BCAFAFA8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 43040695C0354B4EA32E7480 /* InfoPlist.strings */; };
+		A1B2C3D4E5F6A7B8C9D0E1F3 /* SemosanLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D6279DA4FA6101E8B8853A /* SemosanLiveActivityAttributes.swift */; };
 		B15883B685E09F4ACB7111FB /* SemosanLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F062AF6F8F169DC8CB336099 /* SemosanLiveActivity.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		C298E030585F4A9093B384FB /* SemosanWidget.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = A8A28D9327D64115B3E69FC8 /* SemosanWidget.appex */; };
@@ -481,7 +481,7 @@
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				EA1B2C3D4E5F6A7B8C9D0E1F /* AppExpoModulesProvider.swift in Sources */,
 				E96AAB96C8831C8A6EE4F320 /* LiveActivityModule.swift in Sources */,
-				F74C6CD0CB6E2925414F6D09 /* SemosanLiveActivityAttributes.swift in Sources */,
+				A1B2C3D4E5F6A7B8C9D0E1F3 /* SemosanLiveActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
