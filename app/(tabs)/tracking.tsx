@@ -485,10 +485,12 @@ export default function TrackingScreen() {
     [courseDetail, peakAltitudeM, halfDistanceM],
   );
 
-  const timeToTarget =
-    remainingDurationMin > 0
-      ? `${Math.floor(remainingDurationMin / 60) > 0 ? `${Math.floor(remainingDurationMin / 60)}h ` : ""}${remainingDurationMin % 60 > 0 ? `${remainingDurationMin % 60}m` : ""}`
-      : "-";
+  const timeToTarget = (() => {
+    if (remainingDurationMin <= 0) return '-';
+    const h = Math.floor(remainingDurationMin / 60);
+    const m = remainingDurationMin % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  })();
   const distanceToTarget =
     remainingDistanceM >= 1000
       ? `${(remainingDistanceM / 1000).toFixed(1)}km`
@@ -615,19 +617,6 @@ export default function TrackingScreen() {
                 <PinMarkerIcon fill="#FF5249" stroke="#DC2626" label="도착" />
               </NaverMapMarkerOverlay>
             )}
-            {/* 자유기록 정상 마커 — nearbyData 산 좌표 사용 */}
-            {nearbyData?.mountain?.latitude != null &&
-              nearbyData.mountain.longitude != null && (
-                <NaverMapMarkerOverlay
-                  latitude={nearbyData.mountain.latitude}
-                  longitude={nearbyData.mountain.longitude}
-                  width={34}
-                  height={45}
-                  anchor={{ x: 0.5, y: 1 }}
-                >
-                  <PinMarkerIcon fill="#00D864" stroke="#16A34A" label="정상" />
-                </NaverMapMarkerOverlay>
-              )}
           </>
         )}
       </>
@@ -1011,6 +1000,11 @@ export default function TrackingScreen() {
           Sentry.captureException(new Error("TrackingSessionCompleteFailed"));
         },
       });
+    }
+    // 자유기록은 난이도 평가 없이 바로 종료
+    if (isFreeMode) {
+      completeTracking(null);
+      return;
     }
     setShowDifficultyRating(true);
   };
