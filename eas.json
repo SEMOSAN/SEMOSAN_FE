@@ -1,18 +1,37 @@
 {
   "cli": {
     "version": ">= 18.12.3",
-    "appVersionSource": "remote"
+    "appVersionSource": "remote",
+    "requireCommit": true
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "cache": {
+        "disabled": true
+      },
+      "ios": {
+        "image": "macos-sonoma-14.6-xcode-16.1"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "cache": {
+        "disabled": true
+      },
+      "ios": {
+        "image": "macos-sonoma-14.6-xcode-16.1"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_LIVE_ACTIVITY_ENABLED": "true"
+      },
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.2"
+      }
     }
   },
   "submit": {

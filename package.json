@@ -12,7 +12,9 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "tokens": "node scripts/tokens-build-script.mjs --verbose",
-    "typegen": "node scripts/generate-api-types.mjs"
+    "typegen": "node scripts/generate-api-types.mjs",
+    "eas-build-pre-install": "BUNDLER_VER=$(grep -A1 'BUNDLED WITH' ios/Gemfile.lock | tail -1 | tr -d ' ') && gem install bundler -v \"$BUNDLER_VER\" --no-document 2>/dev/null || true",
+    "eas-build-post-install": "PROFILES_DIR=\"$HOME/Library/MobileDevice/Provisioning Profiles\"; mkdir -p \"$PROFILES_DIR\"; if [ \"$EAS_BUILD_PROFILE\" = \"production\" ] && [ -n \"$SEMOSAN_WIDGET_PROFILE_PROD\" ]; then echo \"$SEMOSAN_WIDGET_PROFILE_PROD\" | base64 -d > \"$PROFILES_DIR/SemosanWidget.mobileprovision\"; echo 'Widget AppStore profile installed.'; elif [ -n \"$SEMOSAN_WIDGET_PROFILE\" ]; then echo \"$SEMOSAN_WIDGET_PROFILE\" | base64 -d > \"$PROFILES_DIR/SemosanWidget.mobileprovision\"; echo 'Widget AdHoc profile installed.'; fi"
   },
   "dependencies": {
     "@dev-plugins/react-query": "^0.4.0",
