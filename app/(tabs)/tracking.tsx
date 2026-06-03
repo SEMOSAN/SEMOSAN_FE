@@ -89,6 +89,17 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
 const { colors } = require("../../tokens.cjs") as { colors: Record<string, Record<string, string>> };
 const COLOR_WHITE = colors.common["100"]; // #ffffff
 
+// ── 데모 모드 ─────────────────────────────────────────────────────────────────
+// 시연/촬영용. 배포 시 false로 변경
+const DEMO_MODE = true;
+// 관악산 좌표 — nearbyMountain API 대신 이 위치로 고정
+const DEMO_LAT = 37.4449;
+const DEMO_LNG = 126.9636;
+// 시뮬레이션 속도: N ms마다 STEP개 좌표씩 이동
+const DEMO_SIM_INTERVAL_MS = 800;
+const DEMO_SIM_STEP = 5;
+// ──────────────────────────────────────────────────────────────────────────────
+
 // 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)
 const SEGMENT_COLORS: Record<string, { color: string }> = {
   STEEP_DOWN: { color: "#2563EB" },
@@ -173,7 +184,13 @@ export default function TrackingScreen() {
   }, [courseIdParameter, collapseParameter]);
 
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
+  // DEMO_MODE: 관악산 좌표로 고정 (nearbyMountain API가 관악산 반환)
   useEffect(() => {
+    if (DEMO_MODE) {
+      setUserLocation({ latitude: DEMO_LAT, longitude: DEMO_LNG, altitude: null });
+      setMarkerCoord({ latitude: DEMO_LAT, longitude: DEMO_LNG });
+      return;
+    }
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -662,6 +679,37 @@ export default function TrackingScreen() {
       duration: 800,
     });
   }, [markerCoord, isFollowingUser]);
+
+  // ── 데모 좌표 시뮬레이션 ────────────────────────────────────────────────────
+  const simIdxRef = useRef(0);
+  useEffect(() => {
+    if (!DEMO_MODE || !isTracking || isPaused || courseCoords.length < 2) return;
+
+    simIdxRef.current = 0; // 트래킹 시작 시 처음부터
+
+    const interval = setInterval(() => {
+      const idx = simIdxRef.current;
+      if (idx >= courseCoords.length) {
+        clearInterval(interval);
+        return;
+      }
+      const { latitude, longitude } = courseCoords[idx];
+      setMarkerCoord({ latitude, longitude });
+      setUserLocation({ latitude, longitude, altitude: null });
+      if (sessionId != null) {
+        publishGps(sessionId, {
+          lat: latitude,
+          lng: longitude,
+          altitude: null,
+          recordedAt: new Date().toISOString(),
+        });
+      }
+      simIdxRef.current += DEMO_SIM_STEP;
+    }, DEMO_SIM_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [isTracking, isPaused, courseCoords, sessionId]);
+  // ──────────────────────────────────────────────────────────────────────────────
 
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
