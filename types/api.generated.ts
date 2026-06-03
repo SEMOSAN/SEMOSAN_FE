@@ -714,6 +714,19 @@ export type ApiResponseCourseDetailResponse = {
   message?: string;
   data?: CourseDetailResponse;
 };
+export type CourseSegmentGrade =
+  | "STEEP_DOWN"
+  | "MILD_DOWN"
+  | "FLAT"
+  | "MILD_UP"
+  | "STEEP_UP";
+
+export type CourseSegment = {
+  startIdx: number;
+  endIdx: number;
+  grade: CourseSegmentGrade;
+};
+
 export type CourseDetailResponse = {
   id?: number;
   mountainId?: number;
@@ -729,6 +742,7 @@ export type CourseDetailResponse = {
   likedByMe?: boolean;
   polyline?: string;
   altitudes?: string;
+  segments?: CourseSegment[];
 };
 export type ApiResponsePageResponseRecordPostResponse = {
   isSuccess?: boolean;

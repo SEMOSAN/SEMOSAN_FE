@@ -85,6 +85,19 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
   HARD: "고급",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { colors } = require("../../tokens.cjs") as { colors: Record<string, Record<string, string>> };
+const COLOR_WHITE = colors.common["100"]; // #ffffff
+
+// 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)
+const SEGMENT_COLORS: Record<string, { color: string }> = {
+  STEEP_DOWN: { color: "#2563EB" },
+  MILD_DOWN:  { color: "#93C5FD" },
+  FLAT:       { color: "#FFD40D" },
+  MILD_UP:    { color: "#FF8C49" },
+  STEEP_UP:   { color: "#DC2626" },
+};
+
 export default function TrackingScreen() {
   const {
     collapse: collapseParameter,
@@ -470,16 +483,53 @@ export default function TrackingScreen() {
   const staticMapOverlays = useMemo(
     () => (
       <>
-        {/* 코스 경로 — API polyline */}
+        {/* 코스 경로 — segments 경사 등급별 색상 / 없으면 단일 노란 polyline */}
         {courseCoords.length > 1 && (
           <>
-            <NaverMapPathOverlay
-              coords={courseCoords}
-              width={6}
-              color="#ffd40d"
-              outlineWidth={1}
-              outlineColor="#eab308"
-            />
+            {courseDetail?.segments?.length ? (
+              <>
+                {/* 흰색 베이스 — 가장자리 border 역할 */}
+                <NaverMapPathOverlay
+                  coords={courseCoords}
+                  width={16}
+                  color={COLOR_WHITE}
+                  outlineWidth={1}
+                  outlineColor={COLOR_WHITE}
+                />
+                {/* 컬러 segments — 베이스 위에 얹어서 가장자리만 흰색으로 보임 */}
+                {courseDetail.segments.map((seg, i) => {
+                  const coords = courseCoords.slice(seg.startIdx, seg.endIdx + 1);
+                  if (coords.length < 2) return null;
+                  const { color } = SEGMENT_COLORS[seg.grade] ?? SEGMENT_COLORS.FLAT;
+                  return (
+                    <NaverMapPathOverlay
+                      key={i}
+                      coords={coords}
+                      width={12}
+                      color={color}
+                      outlineWidth={1}
+                      outlineColor={color}
+                    />
+                  );
+                })}
+              </>
+            ) : (
+              <>
+                <NaverMapPathOverlay
+                  coords={courseCoords}
+                  width={10}
+                  color={COLOR_WHITE}
+                  outlineWidth={0}
+                />
+                <NaverMapPathOverlay
+                  coords={courseCoords}
+                  width={12}
+                  color="#FFD40D"
+                  outlineWidth={1}
+                  outlineColor="#FFD40D"
+                />
+              </>
+            )}
             <NaverMapMarkerOverlay
               latitude={courseCoords[0].latitude}
               longitude={courseCoords[0].longitude}
@@ -565,7 +615,7 @@ export default function TrackingScreen() {
         )}
       </>
     ),
-    [courseCoords, isFreeMode, recordedCoords, isTracking, nearbyData],
+    [courseCoords, courseDetail?.segments, isFreeMode, recordedCoords, isTracking, nearbyData],
   );
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
@@ -1062,41 +1112,6 @@ export default function TrackingScreen() {
           </View>
         )}
 
-        {/* 트래킹 중 — 고도 그라데이션 바 + 아바타 마커 (자유기록 제외) */}
-        {isTracking && !isFreeMode && (
-          <>
-            <LinearGradient
-              colors={TRAIL_BAR_COLORS}
-              locations={TRAIL_BAR_LOCATIONS}
-              start={{ x: 0, y: 1 }}
-              end={{ x: 0, y: 0 }}
-              onLayout={(e) => {
-                const { y, height } = e.nativeEvent.layout;
-                setBarLayout({ top: y, height });
-              }}
-              style={{
-                position: "absolute",
-                left: TRAIL_BAR_LEFT,
-                top:
-                  TRACKING_COURSE_CARD_TOP +
-                  TRACKING_COURSE_CARD_HEIGHT +
-                  TRAIL_BAR_GAP,
-                bottom: TRAIL_BAR_GAP,
-                width: TRAIL_BAR_WIDTH,
-                borderRadius: 999,
-              }}
-            />
-            {barLayout && (
-              <TrailAvatarMarker
-                left={TRAIL_MARKER_LEFT}
-                centerY={barLayout.top + barLayout.height * markerRatio}
-                imageSource={
-                  profile?.profileUrl ? { uri: profile.profileUrl } : undefined
-                }
-              />
-            )}
-          </>
-        )}
       </View>
 
       {/* 트래킹 중 — 상단 코스 카드 (자유기록 제외) */}

@@ -27,6 +27,7 @@ const DIFFICULTY_LABEL: Record<
   HARD: "어려움",
 };
 
+
 type Coord = { latitude: number; longitude: number };
 
 // zoom 11 기준: 맵 뷰에 가로 12km, 세로 7km 표시. zoom ±1마다 2배씩 확대/축소.
