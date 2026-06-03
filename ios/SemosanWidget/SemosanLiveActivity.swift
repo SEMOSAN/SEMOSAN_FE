@@ -31,12 +31,21 @@ private struct LiveTimerText: View {
     var kerning: CGFloat = 0.72
 
     var body: some View {
-        Text(formatExpanded(state.elapsedSeconds))
-            .font(.custom("Lexend-SemiBold", size: fontSize))
-            .kerning(kerning)
-            .foregroundColor(C.timerGreen)
-            .minimumScaleFactor(0.6)
-            .lineLimit(1)
+        Group {
+            if state.isRunning, let epoch = state.timerStartEpoch {
+                // 실행 중: 시스템 클록 기반 네이티브 타이머 (JS 업데이트 불필요)
+                Text(Date(timeIntervalSince1970: epoch / 1000), style: .timer)
+                    .monospacedDigit()
+            } else {
+                // 일시정지: JS에서 받은 정적 값 표시
+                Text(formatExpanded(state.elapsedSeconds))
+            }
+        }
+        .font(.custom("Lexend-SemiBold", size: fontSize))
+        .kerning(kerning)
+        .foregroundColor(C.timerGreen)
+        .minimumScaleFactor(0.6)
+        .lineLimit(1)
     }
 }
 

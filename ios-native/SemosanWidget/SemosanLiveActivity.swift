@@ -31,12 +31,19 @@ private struct LiveTimerText: View {
     var kerning: CGFloat = 0.72
 
     var body: some View {
-        Text(formatExpanded(state.elapsedSeconds))
-            .font(.custom("Lexend-SemiBold", size: fontSize))
-            .kerning(kerning)
-            .foregroundColor(C.timerGreen)
-            .minimumScaleFactor(0.6)
-            .lineLimit(1)
+        Group {
+            if state.isRunning, let epoch = state.timerStartEpoch {
+                Text(Date(timeIntervalSince1970: epoch / 1000), style: .timer)
+                    .monospacedDigit()
+            } else {
+                Text(formatExpanded(state.elapsedSeconds))
+            }
+        }
+        .font(.custom("Lexend-SemiBold", size: fontSize))
+        .kerning(kerning)
+        .foregroundColor(C.timerGreen)
+        .minimumScaleFactor(0.6)
+        .lineLimit(1)
     }
 }
 

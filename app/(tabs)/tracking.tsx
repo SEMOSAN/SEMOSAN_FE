@@ -759,11 +759,17 @@ export default function TrackingScreen() {
     if (!isTracking) return;
 
     if (isLiveActivityEnabled) {
+      // 실행 중일 때 가상 시작 시각 계산 (위젯 네이티브 타이머용)
+      const timerStartEpoch = !isPaused
+        ? Date.now() - elapsedSeconds * 1000
+        : undefined;
+
       if (isFreeMode) {
         LiveActivity.update({
           elapsedSeconds,
           isRunning: !isPaused,
           mode: "free",
+          timerStartEpoch,
         }).catch(() => {});
       } else {
         let progress = 0;
@@ -799,6 +805,7 @@ export default function TrackingScreen() {
           elapsedSeconds,
           isRunning: !isPaused,
           mode: "course",
+          timerStartEpoch,
           remainingMinutes,
           remainingMeters,
           progress,
