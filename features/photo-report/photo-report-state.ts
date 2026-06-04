@@ -1,9 +1,11 @@
 type PhotoReportState = {
+  sessionId: number | null;
   photoSource: number | { uri: string } | null;
   templateIndex: number;
 };
 
 let state: PhotoReportState = {
+  sessionId: null,
   photoSource: null,
   templateIndex: 0,
 };
