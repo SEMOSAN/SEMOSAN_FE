@@ -1,26 +1,59 @@
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
-import { MountainChipIcon } from "@/components/icons/mountain-chip-icon";
 import { XIcon } from "@/components/icons/x-icon";
-import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { SemoFeedEmojiRequest, SemoFeedResponse } from "@/types/api.generated";
+import { useState } from "react";
+import { Image, Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useToggleSemofeedEmoji } from "../hooks/use-toggle-semofeed-emoji";
 
-const EMOJIS = [
-  { emoji: "1", count: 14 },
-  { emoji: "2", count: 14 },
-  { emoji: "3", count: 14 },
-  { emoji: "4", count: 14 },
-] as const;
+const EMOJI_ORDER: { key: SemoFeedEmojiRequest["emojiType"]; char: string }[] =
+  [
+    { key: "FIRE", char: "🔥" },
+    { key: "HEART", char: "❤️" },
+    { key: "CONGRATS", char: "🎉" },
+    { key: "LAUGH", char: "😂" },
+  ];
 
 type FeedCellDetailProps = {
-  imageUri: string;
+  item: SemoFeedResponse;
   onClose: () => void;
 };
 
 export function FeedCellDetail({
-  imageUri,
+  item,
   onClose,
 }: FeedCellDetailProps): React.ReactElement {
   const { top, bottom } = useSafeAreaInsets();
+  const imageUrl = item.imageUrl?.replace(/"/g, "");
+
+  const [counts, setCounts] = useState<Record<string, number>>(
+    item.emojiCounts ?? {},
+  );
+  const [reacted, setReacted] = useState<Record<string, boolean>>(
+    item.reactedByMe ?? {},
+  );
+
+  const { mutate: toggleEmoji } = useToggleSemofeedEmoji();
+
+  const handleEmojiPress = (
+    emojiKey: SemoFeedEmojiRequest["emojiType"],
+  ): void => {
+    if (item.id == null) return;
+    toggleEmoji(
+      {
+        semoFeedId: item.id,
+        emojiType: emojiKey,
+      },
+      {
+        onSuccess: (res) => {
+          const { emojiType, reacted: newReacted, count } = res.data ?? {};
+          if (emojiType == null || newReacted == null || count == null) return;
+          setCounts((prev) => ({ ...prev, [emojiType]: count }));
+          setReacted((prev) => ({ ...prev, [emojiType]: newReacted }));
+        },
+      },
+    );
+  };
 
   return (
     <Modal
@@ -38,79 +71,76 @@ export function FeedCellDetail({
           <Pressable
             onPress={onClose}
             className="h-12 w-12 items-center justify-center rounded-full bg-[#1a1b1f]"
-            style={styles.buttonShadow}
+            style={{ boxShadow: "0px 2px 2px rgba(0,0,0,0.1)" }}
           >
             <ChevronLeftIcon size={24} color="#ffffff" />
           </Pressable>
           <Pressable
             onPress={onClose}
             className="h-12 w-12 items-center justify-center rounded-full bg-[#1a1b1f]"
-            style={styles.buttonShadow}
+            style={{ boxShadow: "0px 2px 2px rgba(0,0,0,0.1)" }}
           >
             <XIcon size={24} color="#ffffff" />
           </Pressable>
         </View>
+
         <View className="w-full items-center">
-          {/* 이미지 + 프로필: 헤더 아래 20px에서 시작 */}
+          {/* 이미지 + 프로필 */}
           <Pressable
             className="items-center"
             style={{ paddingTop: top + 76 }}
             onPress={() => {}}
           >
-            {/* 이미지·프로필을 같은 너비로 묶어 프로필이 이미지 왼쪽 기준 정렬 */}
             <View className="w-[288px] items-start">
               <View className="h-[512px] w-full overflow-hidden rounded-[20px]">
-                <Image
-                  source={{ uri: imageUri }}
-                  className="h-full w-full"
-                  resizeMode="cover"
-                />
-                {/* 산 칩 */}
-                <View className="absolute right-4 top-4 flex-row items-center gap-1 rounded-full bg-[rgba(26,27,31,0.6)] py-[5px] pl-[5px] pr-[10px]">
-                  <MountainChipIcon size={18} />
-                  <Text className="text-label-normal-inverse typo-caption-1-semi-bold">
-                    관악산
-                  </Text>
-                </View>
+                {imageUrl ? (
+                  <Image
+                    source={{ uri: imageUrl }}
+                    className="h-full w-full"
+                    resizeMode="cover"
+                  />
+                ) : null}
               </View>
 
               {/* 프로필 */}
               <View className="mb-5 mt-5 flex-row items-center gap-2 px-1">
-                <View className="h-8 w-8 items-center justify-center rounded-full bg-fill-normal" />
+                <View className="h-8 w-8 overflow-hidden rounded-full bg-fill-normal">
+                  {item.profileUrl ? (
+                    <Image
+                      source={{ uri: item.profileUrl }}
+                      className="h-full w-full"
+                      resizeMode="cover"
+                    />
+                  ) : null}
+                </View>
                 <Text className="text-label-normal-inverse typo-body-2-normal-semi-bold">
-                  나는야엄홍길
+                  {item.nickname ?? ""}
                 </Text>
               </View>
             </View>
           </Pressable>
 
           {/* 이모지 반응 */}
-          <Pressable
+          <View
             className="flex-row justify-center gap-2"
             style={{ paddingBottom: bottom + 24 }}
-            onPress={() => {}}
           >
-            {EMOJIS.map(({ emoji, count }) => (
+            {EMOJI_ORDER.map(({ key, char }) => (
               <Pressable
-                key={emoji}
-                className="h-10 w-[70px] flex-row items-center justify-center gap-1 rounded-full bg-white/10"
+                key={key}
+                onPress={() => handleEmojiPress(key)}
+                className={`h-10 w-[70px] flex-row items-center justify-center gap-1 rounded-full ${reacted[key] ? "bg-white/25" : "bg-white/10"}`}
               >
-                <Text style={{ fontSize: 20 }}>{emoji}</Text>
+                <Text style={{ fontSize: 20 }}>{char}</Text>
                 <Text className="text-label-normal-inverse typo-body-2-normal-semi-bold">
-                  {count}
+                  {counts[key] ?? 0}
                 </Text>
               </Pressable>
             ))}
-          </Pressable>
+          </View>
         </View>
       </Pressable>
     </Modal>
   );
 }
 
-const styles = StyleSheet.create({
-  buttonShadow: {
-    boxShadow: "0px 2px 2px rgba(0,0,0,0.1)",
-    elevation: 2,
-  },
-});
