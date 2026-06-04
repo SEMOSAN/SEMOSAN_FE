@@ -627,17 +627,31 @@ export default function TrackingScreen() {
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
 
-  // polyline 로드되거나 트래킹 시작 시 카메라를 전체 경로가 보이도록 맞춤
+  // polyline 로드되거나 트래킹 시작 시 카메라 설정
+  // 데모 모드 + 트래킹 중: 출발 좌표로 줌 (follow 모드와 충돌 방지)
+  // 그 외: 전체 경로가 보이도록 맞춤
   useEffect(() => {
     if (courseCoords.length < 2) return;
-    const lats = courseCoords.map((c) => c.latitude);
-    const lngs = courseCoords.map((c) => c.longitude);
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs);
-    const maxLng = Math.max(...lngs);
-    const padding = 0.15;
-    const fit = () =>
+
+    const timer = setTimeout(() => {
+      if (DEMO_MODE && isTracking) {
+        // 데모 모드 트래킹 중 — 출발 좌표(첫 번째 포인트)로 줌
+        mapRef.current?.animateCameraTo({
+          latitude: courseCoords[0].latitude,
+          longitude: courseCoords[0].longitude,
+          zoom: 15,
+          duration: 500,
+        });
+        return;
+      }
+
+      const lats = courseCoords.map((c) => c.latitude);
+      const lngs = courseCoords.map((c) => c.longitude);
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLng = Math.min(...lngs);
+      const maxLng = Math.max(...lngs);
+      const padding = 0.15;
       mapRef.current?.animateCameraWithTwoCoords({
         coord1: {
           latitude: minLat - (maxLat - minLat) * padding,
@@ -649,8 +663,7 @@ export default function TrackingScreen() {
         },
         duration: 500,
       });
-    // mapRef가 아직 마운트 전일 수 있으니 약간 지연
-    const timer = setTimeout(fit, 300);
+    }, 300);
     return () => clearTimeout(timer);
   }, [courseDetail?.polyline, isTracking]);
 
