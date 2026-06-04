@@ -1,30 +1,46 @@
-import { useLocalSearchParams } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Image as ExpoImage } from 'expo-image';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   HomeBottomSheetContainer,
   SNAP_COLLAPSED,
   SNAP_DEFAULT,
   SNAP_EXPANDED_WITH_RECORDS,
-} from '@/components/home-bottom-sheet-container';
-import { BellIcon } from '@/components/icons/bell-icon';
-import { CrosshairIcon } from '@/components/icons/crosshair-icon';
-import { ImagePlaceholderIcon } from '@/components/icons/image-placeholder-icon';
-import { SemosanLogo } from '@/components/icons/semosan-logo';
-import { UnvisitedMountainPillMarker } from '@/components/map-markers/unvisited-mountain-pill-marker';
+} from "@/components/home-bottom-sheet-container";
+import { BellIcon } from "@/components/icons/bell-icon";
+import { CrosshairIcon } from "@/components/icons/crosshair-icon";
+import { ImagePlaceholderIcon } from "@/components/icons/image-placeholder-icon";
+import { SemosanLogo } from "@/components/icons/semosan-logo";
+import { UnvisitedMountainPillMarker } from "@/components/map-markers/unvisited-mountain-pill-marker";
+import { Image as ExpoImage } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const TABS = ['코스', '교통 정보', '편의시설', '주변 맛집', '등산 후기'] as const;
+const TABS = [
+  "코스",
+  "교통 정보",
+  "편의시설",
+  "주변 맛집",
+  "등산 후기",
+] as const;
 const MAP_BG_URI =
-  'https://www.figma.com/api/mcp/asset/290712df-c28e-4d6b-b1b7-48d12eb7313f';
+  "https://www.figma.com/api/mcp/asset/290712df-c28e-4d6b-b1b7-48d12eb7313f";
 const COURSES = [
-  { level: '초급', levelType: 'green', title: '타이틀' },
-  { level: '중급', levelType: 'blue', title: '타이틀' },
-  { level: '상급', levelType: 'red', title: '타이틀' },
-  { level: '상급', levelType: 'red', title: '타이틀' },
-  { level: '초급', levelType: 'green', title: '타이틀' },
+  { level: "초급", levelType: "green", title: "타이틀" },
+  { level: "중급", levelType: "blue", title: "타이틀" },
+  { level: "상급", levelType: "red", title: "타이틀" },
+  { level: "상급", levelType: "red", title: "타이틀" },
+  { level: "초급", levelType: "green", title: "타이틀" },
 ] as const;
 
 export default function MountainInfoScreen() {
@@ -36,16 +52,16 @@ export default function MountainInfoScreen() {
     elevation?: string;
   }>();
 
-  const title = name ?? '관악산';
-  const levelText = difficulty ?? '난이도 상';
-  const elevationText = elevation ?? '632m';
+  const title = name ?? "관악산";
+  const levelText = difficulty ?? "난이도 상";
+  const elevationText = elevation ?? "632m";
   const locationButtonStyle = useAnimatedStyle(() => ({
     bottom: sheetHeight.value + 12,
     opacity: interpolate(
       sheetHeight.value,
       [SNAP_COLLAPSED, SNAP_DEFAULT, SNAP_EXPANDED_WITH_RECORDS],
       [1, 1, 0],
-      'clamp'
+      "clamp",
     ),
   }));
 
@@ -58,17 +74,17 @@ export default function MountainInfoScreen() {
           contentFit="cover"
         />
         <LinearGradient
-          colors={['rgba(255,255,255,1)', 'rgba(255,255,255,0)']}
+          colors={["rgba(255,255,255,1)", "rgba(255,255,255,0)"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={styles.mapTopGradient}
         />
 
         <View style={[styles.overlay, { paddingTop: top }]}>
-          <View className="flex-row items-center justify-between px-5 h-14">
+          <View className="h-14 flex-row items-center justify-between px-5">
             <SemosanLogo />
             <TouchableOpacity
-              className="w-12 h-12 rounded-full bg-fill-normal items-center justify-center"
+              className="h-12 w-12 items-center justify-center rounded-full bg-fill-normal"
               style={styles.shadowBtn}
               hitSlop={8}
             >
@@ -78,14 +94,17 @@ export default function MountainInfoScreen() {
         </View>
 
         <View style={styles.markerWrap}>
-          <UnvisitedMountainPillMarker name={title} variant="visited" selected />
+          <UnvisitedMountainPillMarker
+            name={title}
+            variant="visited"
+            selected
+          />
         </View>
-
       </View>
 
       <Animated.View style={[styles.locationButton, locationButtonStyle]}>
         <TouchableOpacity
-          className="w-12 h-12 rounded-full bg-fill-normal items-center justify-center"
+          className="h-12 w-12 items-center justify-center rounded-full bg-fill-normal"
           style={styles.crosshairBtn}
           hitSlop={8}
         >
@@ -98,76 +117,122 @@ export default function MountainInfoScreen() {
         snapExpanded={SNAP_EXPANDED_WITH_RECORDS}
         renderContent={({ scrollEnabled, snapState }) => (
           <View style={styles.sheetContent}>
-            {snapState === 'collapsed' ? (
+            {snapState === "collapsed" ? (
               <View style={styles.collapsedHeaderRow}>
                 <View className="flex-row items-end gap-3">
-                  <Text className="typo-title-2-bold text-label-strong">{title}</Text>
-                  <Text className="typo-body-2-normal-regular text-label-subtler">경기 과천시 중앙동</Text>
+                  <Text className="text-label-strong typo-title-2-bold">
+                    {title}
+                  </Text>
+                  <Text className="text-label-subtler typo-body-2-normal-regular">
+                    경기 과천시 중앙동
+                  </Text>
                 </View>
                 <Text className="text-[24px] text-label-subtle">♡</Text>
               </View>
             ) : (
               <>
-            <View style={[styles.sheetHeader, snapState === 'expanded' && styles.sheetHeaderExpanded]}>
-              <View className="flex-row items-end justify-between">
-                <View className="flex-row items-end gap-3">
-                  <Text className="typo-title-2-bold text-label-strong">{title}</Text>
-                  <Text className="typo-body-2-normal-regular text-label-subtler">경기 과천시 중앙동</Text>
-                </View>
-                <Text className="text-[24px] text-label-subtle">♡</Text>
-              </View>
-
-              <View className="flex-row items-center gap-2 mt-1">
-                <Text className="typo-body-2-normal-medium text-label-subtle">고도 {elevationText}</Text>
-                <View className="w-0.5 h-0.5 rounded-full bg-label-subtler" />
-                <Text className="typo-body-2-normal-semi-bold text-status-negative-normal">{levelText}</Text>
-              </View>
-            </View>
-
-            <View style={[styles.sunCard, snapState === 'expanded' && styles.sunCardExpanded]}>
-              <Text className="typo-body-3-medium text-label-subtle">오늘</Text>
-              <View className="flex-row items-center gap-3">
-                <Text className="typo-body-3-medium text-label-subtle">☼ 일출 05:01</Text>
-                <Text className="typo-body-3-medium text-label-subtle">☼ 일몰 19:01</Text>
-              </View>
-              <Text style={styles.caretDown}>⌄</Text>
-            </View>
-
-            <View style={[styles.tabsSection, snapState === 'expanded' && styles.tabsSectionExpanded]}>
-              <ScrollView
-                style={styles.tabsScroll}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.tabsWrap}
-              >
-                {TABS.map((tab, index) => (
-                  <View key={tab} style={[styles.tabItem, index === 0 && styles.tabActive]}>
-                    <Text style={[styles.tabText, index === 0 && styles.tabTextActive]}>{tab}</Text>
+                <View
+                  style={[
+                    styles.sheetHeader,
+                    snapState === "expanded" && styles.sheetHeaderExpanded,
+                  ]}
+                >
+                  <View className="flex-row items-end justify-between">
+                    <View className="flex-row items-end gap-3">
+                      <Text className="text-label-strong typo-title-2-bold">
+                        {title}
+                      </Text>
+                      <Text className="text-label-subtler typo-body-2-normal-regular">
+                        경기 과천시 중앙동
+                      </Text>
+                    </View>
+                    <Text className="text-[24px] text-label-subtle">♡</Text>
                   </View>
-                ))}
-              </ScrollView>
-            </View>
 
-            {snapState === 'expanded' ? (
-              <ScrollView
-                style={styles.courseList}
-                contentContainerStyle={styles.courseListContentExpanded}
-                showsVerticalScrollIndicator={false}
-                scrollEnabled={scrollEnabled}
-              >
-                {COURSES.map((item, idx) => (
-                  <CourseRow key={`${item.level}-${idx}`} item={item} />
-                ))}
-              </ScrollView>
-            ) : (
-              <View style={styles.courseListDefaultPanel}>
-                <View style={styles.courseListDefault}>
-                  {COURSES.map((item, idx) => (
-                    <CourseRow key={`${item.level}-${idx}`} item={item} />
-                  ))}
+                  <View className="mt-1 flex-row items-center gap-2">
+                    <Text className="text-label-subtle typo-body-2-normal-medium">
+                      고도 {elevationText}
+                    </Text>
+                    <View className="h-0.5 w-0.5 rounded-full bg-label-subtler" />
+                    <Text className="text-status-negative-normal typo-body-2-normal-semi-bold">
+                      난이도 {levelText}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            )}
+
+                <View
+                  style={[
+                    styles.sunCard,
+                    snapState === "expanded" && styles.sunCardExpanded,
+                  ]}
+                >
+                  <Text className="text-label-subtle typo-body-3-medium">
+                    오늘
+                  </Text>
+                  <View className="flex-row items-center gap-3">
+                    <Text className="text-label-subtle typo-body-3-medium">
+                      ☼ 일출 05:01
+                    </Text>
+                    <Text className="text-label-subtle typo-body-3-medium">
+                      ☼ 일몰 19:01
+                    </Text>
+                  </View>
+                  <Text style={styles.caretDown}>⌄</Text>
+                </View>
+
+                <View
+                  style={[
+                    styles.tabsSection,
+                    snapState === "expanded" && styles.tabsSectionExpanded,
+                  ]}
+                >
+                  <ScrollView
+                    style={styles.tabsScroll}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.tabsWrap}
+                  >
+                    {TABS.map((tab, index) => (
+                      <View
+                        key={tab}
+                        style={[
+                          styles.tabItem,
+                          index === 0 && styles.tabActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.tabText,
+                            index === 0 && styles.tabTextActive,
+                          ]}
+                        >
+                          {tab}
+                        </Text>
+                      </View>
+                    ))}
+                  </ScrollView>
+                </View>
+
+                {snapState === "expanded" ? (
+                  <ScrollView
+                    style={styles.courseList}
+                    contentContainerStyle={styles.courseListContentExpanded}
+                    showsVerticalScrollIndicator={false}
+                    scrollEnabled={scrollEnabled}
+                  >
+                    {COURSES.map((item, idx) => (
+                      <CourseRow key={`${item.level}-${idx}`} item={item} />
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <View style={styles.courseListDefaultPanel}>
+                    <View style={styles.courseListDefault}>
+                      {COURSES.map((item, idx) => (
+                        <CourseRow key={`${item.level}-${idx}`} item={item} />
+                      ))}
+                    </View>
+                  </View>
+                )}
               </>
             )}
           </View>
@@ -180,56 +245,56 @@ export default function MountainInfoScreen() {
 const styles = StyleSheet.create({
   mapArea: {
     flex: 1,
-    backgroundColor: '#EEF2E8',
-    position: 'relative',
-    overflow: 'hidden',
+    backgroundColor: "#EEF2E8",
+    position: "relative",
+    overflow: "hidden",
   },
   mapBackground: {
     ...StyleSheet.absoluteFillObject,
   },
   mapTopGradient: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     top: 0,
     height: 154,
   },
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
   },
   markerWrap: {
-    position: 'absolute',
+    position: "absolute",
     top: 238,
     left: 154,
   },
   shadowBtn: {
-    boxShadow: '0px 2px 2px 0px rgba(0, 0, 0, 0.1)',
+    boxShadow: "0px 2px 2px 0px rgba(0, 0, 0, 0.1)",
   },
   crosshairBtn: {
     width: 48,
     height: 48,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    boxShadow: '0px 2px 4px 0px rgba(0, 0, 0, 0.15)',
+    borderColor: "#D1D5DB",
+    boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.15)",
   },
   locationButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 20,
   },
   sheetContent: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   collapsedHeaderRow: {
     height: 44,
     paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   sheetHeader: {
     paddingHorizontal: 20,
@@ -245,16 +310,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#F9FAFB',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: "#F9FAFB",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   sunCardExpanded: {
     marginTop: 16,
   },
   caretDown: {
-    color: '#A4ABC0',
+    color: "#A4ABC0",
     fontSize: 18,
     lineHeight: 18,
     marginTop: -2,
@@ -262,7 +327,7 @@ const styles = StyleSheet.create({
   tabsSection: {
     marginTop: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: "#E5E7EB",
   },
   tabsSectionExpanded: {
     marginTop: 20,
@@ -280,27 +345,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    borderBottomColor: "transparent",
   },
   tabActive: {
-    borderBottomColor: '#1A1B1F',
+    borderBottomColor: "#1A1B1F",
   },
   tabText: {
-    fontFamily: 'Pretendard',
+    fontFamily: "Pretendard",
     fontSize: 16,
-    fontWeight: '500',
-    color: '#73798C',
+    fontWeight: "500",
+    color: "#73798C",
   },
   tabTextActive: {
-    fontWeight: '600',
-    color: '#1A1B1F',
+    fontWeight: "600",
+    color: "#1A1B1F",
   },
   courseList: {
     flex: 1,
   },
   courseListDefaultPanel: {
     height: 245,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   courseListDefault: {
     paddingHorizontal: 20,
@@ -314,19 +379,19 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   courseRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
   },
   courseThumb: {
     width: 64,
     height: 72,
     borderRadius: 10,
-    backgroundColor: '#F5F6F8',
+    backgroundColor: "#F5F6F8",
     borderWidth: 1,
-    borderColor: '#ECEEF2',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#ECEEF2",
+    alignItems: "center",
+    justifyContent: "center",
   },
   courseInfo: {
     flex: 1,
@@ -337,23 +402,23 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   levelBadgeText: {
-    fontFamily: 'Pretendard',
+    fontFamily: "Pretendard",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     lineHeight: 21,
   },
-  levelGreenBg: { backgroundColor: '#DCFCE7' },
-  levelGreenText: { color: '#16A34A' },
-  levelBlueBg: { backgroundColor: '#EFF6FF' },
-  levelBlueText: { color: '#507EF4' },
-  levelRedBg: { backgroundColor: '#FEF2F2' },
-  levelRedText: { color: '#FF5249' },
+  levelGreenBg: { backgroundColor: "#DCFCE7" },
+  levelGreenText: { color: "#16A34A" },
+  levelBlueBg: { backgroundColor: "#EFF6FF" },
+  levelBlueText: { color: "#507EF4" },
+  levelRedBg: { backgroundColor: "#FEF2F2" },
+  levelRedText: { color: "#FF5249" },
 });
 
 function CourseRow({
   item,
 }: {
-  item: { level: string; levelType: 'green' | 'blue' | 'red'; title: string };
+  item: { level: string; levelType: "green" | "blue" | "red"; title: string };
 }) {
   return (
     <View style={styles.courseRow}>
@@ -365,9 +430,9 @@ function CourseRow({
           <View
             style={[
               styles.levelBadge,
-              item.levelType === 'green'
+              item.levelType === "green"
                 ? styles.levelGreenBg
-                : item.levelType === 'blue'
+                : item.levelType === "blue"
                   ? styles.levelBlueBg
                   : styles.levelRedBg,
             ]}
@@ -375,9 +440,9 @@ function CourseRow({
             <Text
               style={[
                 styles.levelBadgeText,
-                item.levelType === 'green'
+                item.levelType === "green"
                   ? styles.levelGreenText
-                  : item.levelType === 'blue'
+                  : item.levelType === "blue"
                     ? styles.levelBlueText
                     : styles.levelRedText,
               ]}
@@ -385,9 +450,13 @@ function CourseRow({
               {item.level}
             </Text>
           </View>
-          <Text className="typo-body-1-normal-semi-bold text-label-strong">{item.title}</Text>
+          <Text className="text-label-strong typo-body-1-normal-semi-bold">
+            {item.title}
+          </Text>
         </View>
-        <Text className="typo-caption-1-medium text-label-subtler">10km · 3시간</Text>
+        <Text className="text-label-subtler typo-caption-1-medium">
+          10km · 3시간
+        </Text>
       </View>
     </View>
   );

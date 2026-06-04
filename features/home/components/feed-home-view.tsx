@@ -1,12 +1,15 @@
+import { ResetIcon } from "@/components/icons/reset-icon";
+import { SemoFeedResponse } from "@/types/api.generated";
 import { Image } from "expo-image";
 import { useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withDecay,
+  withSpring,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { FEED_SLIDE_UP_DISTANCE } from "../constants";
@@ -39,7 +42,7 @@ const OVERSCAN = 1; // 화면 밖 여유분 (셀 단위)
 // 메인 그리드
 // ─────────────────────────────────────────────
 export function FeedHomeView() {
-  const { data: semofeedData } = useSemofeed();
+  const { data: semofeedData, refetch } = useSemofeed();
 
   const feedItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
 
@@ -49,8 +52,7 @@ export function FeedHomeView() {
   // JS 스레드 state: 가상화 계산용
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
-  // TODO : API연동되면 imageUri 아니라 id가 와야할듯.
-  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<SemoFeedResponse | null>(null);
 
   // UI 스레드 shared value: transform 갱신용
   const translateX = useSharedValue(0);
@@ -59,6 +61,9 @@ export function FeedHomeView() {
   // 제스처 시작 시점의 누적값 (Pan은 매번 0부터 시작하므로)
   const savedX = useSharedValue(0);
   const savedY = useSharedValue(0);
+
+  // 초기 중심 위치 저장 (리셋 버튼용)
+  const initPosRef = useRef({ x: 0, y: 0 });
 
   // rAF 스로틀용
   const rafRef = useRef<number | null>(null);
@@ -86,7 +91,7 @@ export function FeedHomeView() {
   // Pan 제스처 (디테일 열려있으면 비활성)
   // ─────────────────────────────────────────────
   const pan = Gesture.Pan()
-    .enabled(selectedImageUri === null)
+    .enabled(selectedItem === null)
     // 8px 이상 움직여야 Pan 활성화 → 그 전엔 Tap이 우선
     .activeOffsetX([-8, 8])
     .activeOffsetY([-8, 8])
@@ -148,8 +153,8 @@ export function FeedHomeView() {
             key={`${col},${row}`}
             col={col}
             row={row}
-            imageUrl={feedItems[spiralIdx]?.imageUrl ?? undefined}
-            onPress={setSelectedImageUri}
+            item={feedItems[spiralIdx]}
+            onPress={setSelectedItem}
           />,
         );
       }
@@ -171,6 +176,7 @@ export function FeedHomeView() {
             // 셀(0,0) 중심의 그리드 좌표 = CELL_GAP/2 + CELL_CONTENT_W/2 = CELL_W/2
             const initX = width / 2 - CELL_W / 2;
             const initY = height / 2 - CELL_H / 2 + FEED_SLIDE_UP_DISTANCE / 2;
+            initPosRef.current = { x: initX, y: initY };
             translateX.value = initX;
             translateY.value = initY;
             savedX.value = initX;
@@ -191,10 +197,24 @@ export function FeedHomeView() {
         </View>
       </GestureDetector>
 
-      {selectedImageUri !== null && (
+      <Pressable
+        className="absolute bottom-3 right-3 items-center justify-center rounded-full bg-label-normal px-4 py-[13px]"
+        style={{ boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.1)" }}
+        hitSlop={8}
+        onPress={() => {
+          refetch();
+          const { x, y } = initPosRef.current;
+          translateX.value = withSpring(x);
+          translateY.value = withSpring(y);
+        }}
+      >
+        <ResetIcon size={24} color="#ffffff" />
+      </Pressable>
+
+      {selectedItem !== null && (
         <FeedCellDetail
-          imageUri={selectedImageUri}
-          onClose={() => setSelectedImageUri(null)}
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
         />
       )}
     </>

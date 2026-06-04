@@ -1,5 +1,6 @@
 import { CloseIcon } from "@/components/icons/close-icon";
-import { Image, Modal, Pressable, View } from "react-native";
+import { Image } from "expo-image";
+import { Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ImageViewerModalProps = {
@@ -25,9 +26,8 @@ export function ImageViewerModal({ uri, onClose }: ImageViewerModalProps): React
           {uri ? (
             <Image
               source={{ uri }}
-              className="w-full"
-              style={{ aspectRatio: 1 }}
-              resizeMode="contain"
+              style={{ width: "100%", aspectRatio: 1 }}
+              contentFit="contain"
             />
           ) : null}
         </Pressable>

@@ -1,10 +1,10 @@
-import BottomSheet, { type Tab } from "@/components/bottom-sheet";
+import BottomSheet from "@/components/bottom-sheet";
 import {
   HomeBottomSheetContainer,
   HomeBottomSheetRef,
   SNAP_DEFAULT,
-  SNAP_EXPANDED_WITH_RECORDS,
   SNAP_EXPANDED_NO_RECORDS,
+  SNAP_EXPANDED_WITH_RECORDS,
 } from "@/components/home-bottom-sheet-container";
 import { CrosshairIcon } from "@/components/icons/crosshair-icon";
 import {
@@ -18,13 +18,13 @@ import {
   VisitedMarker,
 } from "@/components/map-markers/visited-marker";
 import NoRecordBottomSheet from "@/components/no-record-bottom-sheet";
-import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import { useMyMountains } from "@/features/home/hooks/use-my-mountains";
-import { useProfile } from "@/features/mypage/hooks/use-profile";
 import {
   BBox,
+  MountainMapItem,
   useMountainsMap,
 } from "@/features/mountains/hooks/use-mountains-map";
+import { useProfile } from "@/features/mypage/hooks/use-profile";
 import {
   NaverMapMarkerOverlay,
   NaverMapView,
@@ -35,7 +35,13 @@ import {
   requestForegroundPermissionsAsync,
 } from "expo-location";
 import { router } from "expo-router";
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import {
+  forwardRef,
+  memo,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
   interpolate,
@@ -55,6 +61,48 @@ const DEFAULT_REGION: Region = {
   zoom: 8,
 };
 
+type VisitedMarkerOverlayProps = {
+  mountain: MountainMapItem;
+  selected: boolean;
+  imageUri?: string;
+};
+
+const VisitedMarkerOverlay = memo(function VisitedMarkerOverlay({
+  mountain,
+  selected,
+  imageUri,
+}: VisitedMarkerOverlayProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <NaverMapMarkerOverlay
+      latitude={mountain.latitude}
+      longitude={mountain.longitude}
+      width={VISITED_MARKER_OVERLAY_WIDTH}
+      height={VISITED_MARKER_OVERLAY_HEIGHT}
+      anchor={{ x: 0.2, y: 1 }}
+      onTap={() => router.push(`/mountains/${mountain.id}`)}
+    >
+      <View
+        key={`${selected} ${isLoaded}`}
+        collapsable={false}
+        style={{
+          width: VISITED_MARKER_OVERLAY_WIDTH,
+          height: VISITED_MARKER_OVERLAY_HEIGHT,
+        }}
+      >
+        <VisitedMarker
+          name={mountain.name}
+          visitCount={mountain.visitCount}
+          imageUri={imageUri}
+          selected={selected}
+          onImageLoad={() => setIsLoaded(true)}
+        />
+      </View>
+    </NaverMapMarkerOverlay>
+  );
+});
+
 export type MapHomeViewRef = {
   collapseSheet: () => void;
   expandSheet: () => void;
@@ -73,14 +121,14 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     const sheetRef = useRef<HomeBottomSheetRef>(null);
     const [region, setRegion] = useState<Region>(DEFAULT_REGION);
     const [bbox, setBbox] = useState<BBox>(null);
-    const [activeTab, setActiveTab] = useState<Tab>("내 기록");
-    const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
+const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
       null,
     );
     const { data: mapData } = useMountainsMap(bbox);
     const hasRecords = mapData?.hasHikingRecord ?? false;
-    const snapExpanded = hasRecords ? SNAP_EXPANDED_WITH_RECORDS : SNAP_EXPANDED_NO_RECORDS;
-    const { data, isPending, isError } = useMountains();
+    const snapExpanded = hasRecords
+      ? SNAP_EXPANDED_WITH_RECORDS
+      : SNAP_EXPANDED_NO_RECORDS;
     const { data: myMountains = [] } = useMyMountains();
     const { data: profile } = useProfile();
 
@@ -119,17 +167,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     }));
 
     const myMountainImageMap = Object.fromEntries(
-      myMountains.map((m) => [m.mountainId, m.imageUrls?.[0]])
+      myMountains.map((m) => [m.mountainId, m.imageUrls?.[0]]),
     );
-
-    const visitedCards = myMountains.map((m) => ({
-      id: String(m.mountainId),
-      mountainId: m.mountainId ?? 0,
-      name: m.mountainName ?? "",
-      trailNumber: m.hikingCount ?? 1,
-      daysAgo: getDaysAgo(m.lastHikedAt),
-      badgeCount: m.hikingCount ?? 1,
-    }));
 
     return (
       <View className="w-full flex-1">
@@ -155,54 +194,18 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
           }}
         >
           {hasRecords
-            ? mapData?.mountains?.filter((m) => m.visited).map((mountain) => (
-                <NaverMapMarkerOverlay
-                  key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
-                  latitude={mountain.latitude}
-                  longitude={mountain.longitude}
-                  width={
-                    mountain.visited
-                      ? VISITED_MARKER_OVERLAY_WIDTH
-                      : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
-                  }
-                  height={
-                    mountain.visited
-                      ? VISITED_MARKER_OVERLAY_HEIGHT
-                      : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
-                  }
-                  anchor={
-                    mountain.visited ? { x: 0.2, y: 1 } : { x: 0.5, y: 0.5 }
-                  }
-                  onTap={() => router.push(`/mountains/${mountain.id}`)}
-                >
-                  <View
-                    collapsable={false}
-                    style={{
-                      width: mountain.visited
-                        ? VISITED_MARKER_OVERLAY_WIDTH
-                        : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                      height: mountain.visited
-                        ? VISITED_MARKER_OVERLAY_HEIGHT
-                        : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                    }}
-                  >
-                    {mountain.visited ? (
-                      <VisitedMarker
-                        name={mountain.name}
-                        visitCount={mountain.visitCount}
-                        imageUri={myMountainImageMap[mountain.id] ?? mountain.imageUrl}
-                        selected={mountain.id === selectedMountainId}
-                      />
-                    ) : (
-                      <UnvisitedMountainPillMarker
-                        name={mountain.name ?? ""}
-                        variant="trending"
-                        selected={mountain.id === selectedMountainId}
-                      />
-                    )}
-                  </View>
-                </NaverMapMarkerOverlay>
-              ))
+            ? mapData?.mountains
+                ?.filter((m) => m.visited)
+                .map((mountain) => (
+                  <VisitedMarkerOverlay
+                    key={mountain.id}
+                    mountain={mountain}
+                    selected={mountain.id === selectedMountainId}
+                    imageUri={
+                      myMountainImageMap[mountain.id] ?? mountain.imageUrl
+                    }
+                  />
+                ))
             : mapData?.mountains?.map((mountain) => (
                 <NaverMapMarkerOverlay
                   key={`no-record-${mountain.id}`}
@@ -238,12 +241,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
         />
 
         {/* 현위치 버튼 - 바텀시트 높이에 따라 이동 */}
-        <Animated.View
-          style={[
-            styles.locationButton,
-            locationButtonStyle,
-          ]}
-        >
+        <Animated.View style={[styles.locationButton, locationButtonStyle]}>
           <TouchableOpacity
             style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
             onPress={moveToCurrentLocation}
@@ -253,7 +251,6 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
           </TouchableOpacity>
         </Animated.View>
 
-        {/* TODO : API 나오면 연동 */}
         {/* 바텀시트 - 절대 위치, 애니메이션 높이 */}
         <HomeBottomSheetContainer
           ref={sheetRef}
@@ -263,8 +260,8 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             hasRecords ? (
               <BottomSheet
                 title="다녀온 산"
-                titleCount={visitedCards.length}
-                cards={visitedCards}
+                titleCount={myMountains.length}
+                cards={myMountains}
                 showTabs={false}
                 scrollEnabled={scrollEnabled}
                 onCardSelect={(id) => setSelectedMountainId(Number(id))}
@@ -285,12 +282,6 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     );
   },
 );
-
-function getDaysAgo(dateStr?: string): number {
-  if (!dateStr) return 0;
-  const diff = Date.now() - new Date(dateStr).getTime();
-  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-}
 
 const styles = StyleSheet.create({
   map: { flex: 1 },

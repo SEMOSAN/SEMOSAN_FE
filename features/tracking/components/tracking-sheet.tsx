@@ -97,15 +97,14 @@ export function TrackingSheet({
         <View className="border-t border-line-subtle flex-row">
           <View className="flex-1 items-center gap-1 py-5">
             <Text className="typo-caption-1-medium text-label-subtler">{timeLabel}</Text>
-            <Text className="typo-body-1-normal-semi-bold text-label-normal">{timeToTarget}</Text>
+            <Text className="typo-heading-1-semi-bold text-label-normal text-center">{timeToTarget}</Text>
           </View>
 
           <View className="w-px bg-line-subtle self-stretch" />
 
-          {/* 거리 */}
           <View className="flex-1 items-center gap-1 py-5">
             <Text className="typo-caption-1-medium text-label-subtler">{distanceLabel}</Text>
-            <Text className="typo-body-1-normal-semi-bold text-label-normal">{distanceToTarget}</Text>
+            <Text className="typo-heading-1-semi-bold text-label-normal text-center">{distanceToTarget}</Text>
           </View>
         </View>
       )}
