@@ -86,20 +86,8 @@ export function useTrackingFcm({ enabled, onPhotoWindow }: Options) {
       console.log('[TrackingFCM] milestoneIndex:', payload.milestoneIndex, 'distance:', payload.milestoneDistance);
 
       // 인앱 PhotoWindowBanner 활성화
+      // notification 필드가 포함된 FCM 페이로드로 변경되어 iOS가 자동으로 시스템 배너 표시
       onPhotoWindow(payload);
-
-      // 포어그라운드 시스템 배너 수동 표시 (Firebase SDK가 자동 표시 안 함)
-      try {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'SEMOSAN',
-            body: `${payload.milestoneDistance}m 돌파! 인증 사진을 남겨보세요!`,
-          },
-          trigger: null,
-        });
-      } catch (err) {
-        console.warn('[TrackingFCM] 로컬 알림 예약 실패:', err);
-      }
     });
 
     // 백그라운드/잠금화면 알림 탭 후 앱 복귀

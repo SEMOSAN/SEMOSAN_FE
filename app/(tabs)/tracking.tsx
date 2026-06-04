@@ -434,6 +434,9 @@ export default function TrackingScreen() {
   const { markerRatio, remainingDistanceM, remainingDurationMin } =
     courseProgressState;
 
+  // 줌 레벨에 따른 폴리라인 두께 — 줌아웃 시 얇게, 줌인 시 두껍게
+  const polylineWidth = { colored: 7, base: 11 };
+
   // altitudes 문자열에서 최고 고도(m) 파싱
   const peakAltitudeM = useMemo(() => {
     const raw = courseDetail?.altitudes;
@@ -511,7 +514,7 @@ export default function TrackingScreen() {
                 {/* 흰색 베이스 — 가장자리 border 역할 */}
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={16}
+                  width={polylineWidth.base}
                   color={COLOR_WHITE}
                   outlineWidth={1}
                   outlineColor={COLOR_WHITE}
@@ -525,7 +528,7 @@ export default function TrackingScreen() {
                     <NaverMapPathOverlay
                       key={i}
                       coords={coords}
-                      width={12}
+                      width={polylineWidth.colored}
                       color={color}
                       outlineWidth={1}
                       outlineColor={color}
@@ -537,13 +540,14 @@ export default function TrackingScreen() {
               <>
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={10}
+                  width={polylineWidth.base}
                   color={COLOR_WHITE}
-                  outlineWidth={0}
+                  outlineWidth={1}
+                  outlineColor={COLOR_WHITE}
                 />
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={12}
+                  width={polylineWidth.colored}
                   color="#FFD40D"
                   outlineWidth={1}
                   outlineColor="#FFD40D"
@@ -627,17 +631,31 @@ export default function TrackingScreen() {
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
 
-  // polyline 로드되거나 트래킹 시작 시 카메라를 전체 경로가 보이도록 맞춤
+  // polyline 로드되거나 트래킹 시작 시 카메라 설정
+  // 데모 모드 + 트래킹 중: 출발 좌표로 줌 (follow 모드와 충돌 방지)
+  // 그 외: 전체 경로가 보이도록 맞춤
   useEffect(() => {
     if (courseCoords.length < 2) return;
-    const lats = courseCoords.map((c) => c.latitude);
-    const lngs = courseCoords.map((c) => c.longitude);
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs);
-    const maxLng = Math.max(...lngs);
-    const padding = 0.15;
-    const fit = () =>
+
+    const timer = setTimeout(() => {
+      if (DEMO_MODE && isTracking) {
+        // 데모 모드 트래킹 중 — 출발 좌표(첫 번째 포인트)로 줌
+        mapRef.current?.animateCameraTo({
+          latitude: courseCoords[0].latitude,
+          longitude: courseCoords[0].longitude,
+          zoom: 15,
+          duration: 500,
+        });
+        return;
+      }
+
+      const lats = courseCoords.map((c) => c.latitude);
+      const lngs = courseCoords.map((c) => c.longitude);
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLng = Math.min(...lngs);
+      const maxLng = Math.max(...lngs);
+      const padding = 0.15;
       mapRef.current?.animateCameraWithTwoCoords({
         coord1: {
           latitude: minLat - (maxLat - minLat) * padding,
@@ -649,8 +667,7 @@ export default function TrackingScreen() {
         },
         duration: 500,
       });
-    // mapRef가 아직 마운트 전일 수 있으니 약간 지연
-    const timer = setTimeout(fit, 300);
+    }, 300);
     return () => clearTimeout(timer);
   }, [courseDetail?.polyline, isTracking]);
 
@@ -660,7 +677,9 @@ export default function TrackingScreen() {
   }, [isTracking]);
 
   // 트래킹 중 실시간 위치 마커 카메라 추적 (사용자가 직접 조작하면 follow 해제)
+  // 데모 모드에서는 카메라 follow 비활성 — 출발 좌표로 고정 (시뮬 마커가 카메라 흔들기 방지)
   useEffect(() => {
+    if (DEMO_MODE) return;
     if (!isFollowingUser || !markerCoord) return;
     mapRef.current?.animateCameraTo({
       latitude: markerCoord.latitude,
