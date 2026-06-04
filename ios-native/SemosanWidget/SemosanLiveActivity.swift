@@ -33,17 +33,25 @@ private struct LiveTimerText: View {
     var body: some View {
         Group {
             if state.isRunning, let epoch = state.timerStartEpoch {
-                Text(Date(timeIntervalSince1970: epoch / 1000), style: .timer)
-                    .monospacedDigit()
+                let startDate = Date(timeIntervalSince1970: epoch / 1000)
+                TimelineView(.periodic(from: .now, by: 1.0)) { tl in
+                    let elapsed = max(0, Int(tl.date.timeIntervalSince(startDate)))
+                    Text(formatExpanded(elapsed))
+                        .font(.custom("Lexend-SemiBold", size: fontSize))
+                        .kerning(kerning)
+                        .foregroundColor(C.timerGreen)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+                }
             } else {
                 Text(formatExpanded(state.elapsedSeconds))
+                    .font(.custom("Lexend-SemiBold", size: fontSize))
+                    .kerning(kerning)
+                    .foregroundColor(C.timerGreen)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
             }
         }
-        .font(.custom("Lexend-SemiBold", size: fontSize))
-        .kerning(kerning)
-        .foregroundColor(C.timerGreen)
-        .minimumScaleFactor(0.6)
-        .lineLimit(1)
     }
 }
 
