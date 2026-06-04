@@ -66,11 +66,12 @@ export default function PhotoReportEditScreen() {
 
   const { top, bottom } = useSafeAreaInsets();
 
-  // 이전 화면에서 저장한 사진/템플릿 상태로 초기화
+  // 이전 화면에서 저장한 사진/템플릿 상태로 초기화 (같은 세션일 때만 복원)
   const savedState = getPhotoReportState();
-  const [selectedTemplate, setSelectedTemplate] = useState(savedState.templateIndex ?? 0);
+  const isSameSession = savedState.sessionId === parsedSessionId;
+  const [selectedTemplate, setSelectedTemplate] = useState(isSameSession ? (savedState.templateIndex ?? 0) : 0);
   const [photos, setPhotos] = useState<Photo[]>(() => {
-    const src = savedState.photoSource;
+    const src = isSameSession ? savedState.photoSource : null;
     if (src != null) {
       const key = typeof src === "number" ? String(src) : src.uri;
       return [{ key, source: src }];
@@ -78,15 +79,24 @@ export default function PhotoReportEditScreen() {
     return [];
   });
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(
-    savedState.photoSource != null ? 0 : null,
+    isSameSession && savedState.photoSource != null ? 0 : null,
   );
   const [showExitDialog, setShowExitDialog] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    if (trackingPhotos.length > 0 && photos.length === 0) {
-      setPhotos(trackingPhotos.map((uri) => ({ key: uri, source: { uri } })));
-      setSelectedPhoto(0);
+    if (trackingPhotos.length > 0) {
+      setPhotos((prev) => {
+        const existingKeys = new Set(prev.map((p) => p.key));
+        const newPhotos = trackingPhotos
+          .filter((uri) => !existingKeys.has(uri))
+          .map((uri) => ({ key: uri, source: { uri } }));
+        const merged = [...prev, ...newPhotos];
+        if (selectedPhoto === null && merged.length > 0) {
+          setSelectedPhoto(0);
+        }
+        return merged;
+      });
     }
   }, [trackingPhotos]);
 
