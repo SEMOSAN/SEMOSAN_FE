@@ -682,7 +682,9 @@ export default function TrackingScreen() {
   }, [isTracking]);
 
   // 트래킹 중 실시간 위치 마커 카메라 추적 (사용자가 직접 조작하면 follow 해제)
+  // 데모 모드에서는 카메라 follow 비활성 — 출발 좌표로 고정 (시뮬 마커가 카메라 흔들기 방지)
   useEffect(() => {
+    if (DEMO_MODE) return;
     if (!isFollowingUser || !markerCoord) return;
     mapRef.current?.animateCameraTo({
       latitude: markerCoord.latitude,
