@@ -386,8 +386,7 @@ export default function RecordScreen() {
               >
                 {mapCoords.length > 1 && (
                   <>
-                    <NaverMapPathOverlay coords={mapCoords} width={16} color="#FFFFFF" outlineWidth={0} />
-                    <NaverMapPathOverlay coords={mapCoords} width={12} color="#FFD40D" outlineWidth={1} outlineColor="#FFD40D" />
+                    <NaverMapPathOverlay coords={mapCoords} width={4} color="#FFD40D" outlineWidth={1} outlineColor="#eab308" />
                     <NaverMapMarkerOverlay
                       latitude={mapCoords[0].latitude}
                       longitude={mapCoords[0].longitude}
