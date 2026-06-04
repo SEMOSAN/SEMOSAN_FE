@@ -170,6 +170,7 @@ export default function TrackingScreen() {
   const backgroundedAtRef = useRef<number | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
+  const [mapZoom, setMapZoom] = useState(12);
   const isMountedRef = useRef(true);
   useEffect(
     () => () => {
@@ -434,6 +435,13 @@ export default function TrackingScreen() {
   const { markerRatio, remainingDistanceM, remainingDurationMin } =
     courseProgressState;
 
+  // 줌 레벨에 따른 폴리라인 두께 — 줌아웃 시 얇게, 줌인 시 두껍게
+  const polylineWidth = useMemo(() => {
+    const colored = Math.max(2, Math.round((mapZoom - 9) * 1.2));
+    const base = colored + 4;
+    return { colored, base };
+  }, [mapZoom]);
+
   // altitudes 문자열에서 최고 고도(m) 파싱
   const peakAltitudeM = useMemo(() => {
     const raw = courseDetail?.altitudes;
@@ -511,7 +519,7 @@ export default function TrackingScreen() {
                 {/* 흰색 베이스 — 가장자리 border 역할 */}
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={16}
+                  width={polylineWidth.base}
                   color={COLOR_WHITE}
                   outlineWidth={1}
                   outlineColor={COLOR_WHITE}
@@ -525,7 +533,7 @@ export default function TrackingScreen() {
                     <NaverMapPathOverlay
                       key={i}
                       coords={coords}
-                      width={12}
+                      width={polylineWidth.colored}
                       color={color}
                       outlineWidth={1}
                       outlineColor={color}
@@ -537,13 +545,14 @@ export default function TrackingScreen() {
               <>
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={10}
+                  width={polylineWidth.base}
                   color={COLOR_WHITE}
-                  outlineWidth={0}
+                  outlineWidth={1}
+                  outlineColor={COLOR_WHITE}
                 />
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={12}
+                  width={polylineWidth.colored}
                   color="#FFD40D"
                   outlineWidth={1}
                   outlineColor="#FFD40D"
@@ -622,7 +631,7 @@ export default function TrackingScreen() {
         )}
       </>
     ),
-    [courseCoords, courseDetail?.segments, isFreeMode, recordedCoords, isTracking, nearbyData],
+    [courseCoords, courseDetail?.segments, isFreeMode, recordedCoords, isTracking, nearbyData, polylineWidth],
   );
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
@@ -1136,8 +1145,9 @@ export default function TrackingScreen() {
             left: 0,
             right: 0,
           }}
-          onCameraChanged={({ reason }) => {
+          onCameraChanged={({ reason, zoom }) => {
             if (reason === "Gesture") setIsFollowingUser(false);
+            if (zoom != null) setMapZoom(zoom);
           }}
         >
           {staticMapOverlays}
