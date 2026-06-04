@@ -34,9 +34,9 @@ Notifications.setNotificationHandler({
     // mixed payload 로 백엔드가 notification + data 둘 다 보내므로 중복 방지
     if (type === 'TRACKING_PHOTO_MILESTONE' || type === 'TRACKING_SUMMIT_REACHED') {
       return {
-        shouldShowBanner: false,
-        shouldShowList: false,
-        shouldPlaySound: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
         shouldSetBadge: true,
       };
     }
