@@ -1,4 +1,4 @@
-import BottomSheet, { type Tab } from "@/components/bottom-sheet";
+import BottomSheet from "@/components/bottom-sheet";
 import {
   HomeBottomSheetContainer,
   HomeBottomSheetRef,
@@ -21,6 +21,7 @@ import NoRecordBottomSheet from "@/components/no-record-bottom-sheet";
 import { useMyMountains } from "@/features/home/hooks/use-my-mountains";
 import {
   BBox,
+  MountainMapItem,
   useMountainsMap,
 } from "@/features/mountains/hooks/use-mountains-map";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
@@ -36,7 +37,7 @@ import {
 import { router } from "expo-router";
 import {
   forwardRef,
-  useCallback,
+  memo,
   useImperativeHandle,
   useRef,
   useState,
@@ -60,6 +61,48 @@ const DEFAULT_REGION: Region = {
   zoom: 8,
 };
 
+type VisitedMarkerOverlayProps = {
+  mountain: MountainMapItem;
+  selected: boolean;
+  imageUri?: string;
+};
+
+const VisitedMarkerOverlay = memo(function VisitedMarkerOverlay({
+  mountain,
+  selected,
+  imageUri,
+}: VisitedMarkerOverlayProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <NaverMapMarkerOverlay
+      latitude={mountain.latitude}
+      longitude={mountain.longitude}
+      width={VISITED_MARKER_OVERLAY_WIDTH}
+      height={VISITED_MARKER_OVERLAY_HEIGHT}
+      anchor={{ x: 0.2, y: 1 }}
+      onTap={() => router.push(`/mountains/${mountain.id}`)}
+    >
+      <View
+        key={`${selected} ${isLoaded}`}
+        collapsable={false}
+        style={{
+          width: VISITED_MARKER_OVERLAY_WIDTH,
+          height: VISITED_MARKER_OVERLAY_HEIGHT,
+        }}
+      >
+        <VisitedMarker
+          name={mountain.name}
+          visitCount={mountain.visitCount}
+          imageUri={imageUri}
+          selected={selected}
+          onImageLoad={() => setIsLoaded(true)}
+        />
+      </View>
+    </NaverMapMarkerOverlay>
+  );
+});
+
 export type MapHomeViewRef = {
   collapseSheet: () => void;
   expandSheet: () => void;
@@ -78,16 +121,9 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     const sheetRef = useRef<HomeBottomSheetRef>(null);
     const [region, setRegion] = useState<Region>(DEFAULT_REGION);
     const [bbox, setBbox] = useState<BBox>(null);
-    const [activeTab, setActiveTab] = useState<Tab>("내 기록");
-    const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
+const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
       null,
     );
-    const [loadedMarkerImageIds, setLoadedMarkerImageIds] = useState<
-      Set<number>
-    >(new Set());
-    const handleMarkerImageLoad = useCallback((id: number): void => {
-      setLoadedMarkerImageIds((prev) => new Set([...prev, id]));
-    }, []);
     const { data: mapData } = useMountainsMap(bbox);
     const hasRecords = mapData?.hasHikingRecord ?? false;
     const snapExpanded = hasRecords
@@ -161,56 +197,14 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
             ? mapData?.mountains
                 ?.filter((m) => m.visited)
                 .map((mountain) => (
-                  <NaverMapMarkerOverlay
-                    key={`${mountain.id}-${activeTab}-${selectedMountainId}`}
-                    latitude={mountain.latitude}
-                    longitude={mountain.longitude}
-                    width={
-                      mountain.visited
-                        ? VISITED_MARKER_OVERLAY_WIDTH
-                        : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH
+                  <VisitedMarkerOverlay
+                    key={mountain.id}
+                    mountain={mountain}
+                    selected={mountain.id === selectedMountainId}
+                    imageUri={
+                      myMountainImageMap[mountain.id] ?? mountain.imageUrl
                     }
-                    height={
-                      mountain.visited
-                        ? VISITED_MARKER_OVERLAY_HEIGHT
-                        : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT
-                    }
-                    anchor={
-                      mountain.visited ? { x: 0.2, y: 1 } : { x: 0.5, y: 0.5 }
-                    }
-                    onTap={() => router.push(`/mountains/${mountain.id}`)}
-                  >
-                    <View
-                      key={`${mountain.visited} ${mountain.id === selectedMountainId} ${loadedMarkerImageIds.has(mountain.id)}`}
-                      collapsable={false}
-                      style={{
-                        width: mountain.visited
-                          ? VISITED_MARKER_OVERLAY_WIDTH
-                          : UNVISITED_MOUNTAIN_PILL_MARKER_WIDTH,
-                        height: mountain.visited
-                          ? VISITED_MARKER_OVERLAY_HEIGHT
-                          : UNVISITED_MOUNTAIN_PILL_MARKER_HEIGHT,
-                      }}
-                    >
-                      {mountain.visited ? (
-                        <VisitedMarker
-                          name={mountain.name}
-                          visitCount={mountain.visitCount}
-                          imageUri={
-                            myMountainImageMap[mountain.id] ?? mountain.imageUrl
-                          }
-                          selected={mountain.id === selectedMountainId}
-                          onImageLoad={() => handleMarkerImageLoad(mountain.id)}
-                        />
-                      ) : (
-                        <UnvisitedMountainPillMarker
-                          name={mountain.name ?? ""}
-                          variant="trending"
-                          selected={mountain.id === selectedMountainId}
-                        />
-                      )}
-                    </View>
-                  </NaverMapMarkerOverlay>
+                  />
                 ))
             : mapData?.mountains?.map((mountain) => (
                 <NaverMapMarkerOverlay
