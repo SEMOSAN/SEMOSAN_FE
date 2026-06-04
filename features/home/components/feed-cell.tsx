@@ -1,6 +1,7 @@
 import { SemoFeedResponse } from "@/types/api.generated";
+import { Image } from "expo-image";
 import { memo } from "react";
-import { Image, View } from "react-native";
+import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { runOnJS } from "react-native-worklets";
@@ -49,8 +50,8 @@ export const FeedCell = memo(function FeedCell({
             <Image
               // TODO: 백엔드에서 URL에 큰따옴표 포함 저장 현상 수정되면 replace 로직 제거
               source={{ uri: imageUrl.replace(/"/g, "") }}
-              className="absolute inset-0 h-full w-full"
-              resizeMode="cover"
+              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+              contentFit="cover"
             />
           )}
         </View>

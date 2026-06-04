@@ -2,7 +2,8 @@ import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { XIcon } from "@/components/icons/x-icon";
 import { SemoFeedEmojiRequest, SemoFeedResponse } from "@/types/api.generated";
 import { useState } from "react";
-import { Image, Modal, Pressable, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useToggleSemofeedEmoji } from "../hooks/use-toggle-semofeed-emoji";
 
@@ -33,12 +34,17 @@ export function FeedCellDetail({
     item.reactedByMe ?? {},
   );
 
+  const [pendingEmoji, setPendingEmoji] = useState<
+    SemoFeedEmojiRequest["emojiType"] | null
+  >(null);
+
   const { mutate: toggleEmoji } = useToggleSemofeedEmoji();
 
   const handleEmojiPress = (
     emojiKey: SemoFeedEmojiRequest["emojiType"],
   ): void => {
-    if (item.id == null) return;
+    if (item.id == null || pendingEmoji !== null) return;
+    setPendingEmoji(emojiKey);
     toggleEmoji(
       {
         semoFeedId: item.id,
@@ -51,6 +57,7 @@ export function FeedCellDetail({
           setCounts((prev) => ({ ...prev, [emojiType]: count }));
           setReacted((prev) => ({ ...prev, [emojiType]: newReacted }));
         },
+        onSettled: () => setPendingEmoji(null),
       },
     );
   };
@@ -96,8 +103,8 @@ export function FeedCellDetail({
                 {imageUrl ? (
                   <Image
                     source={{ uri: imageUrl }}
-                    className="h-full w-full"
-                    resizeMode="cover"
+                    style={{ flex: 1 }}
+                    contentFit="cover"
                   />
                 ) : null}
               </View>
@@ -108,8 +115,8 @@ export function FeedCellDetail({
                   {item.profileUrl ? (
                     <Image
                       source={{ uri: item.profileUrl }}
-                      className="h-full w-full"
-                      resizeMode="cover"
+                      style={{ flex: 1 }}
+                      contentFit="cover"
                     />
                   ) : null}
                 </View>
@@ -125,18 +132,28 @@ export function FeedCellDetail({
             className="flex-row justify-center gap-2"
             style={{ paddingBottom: bottom + 24 }}
           >
-            {EMOJI_ORDER.map(({ key, char }) => (
-              <Pressable
-                key={key}
-                onPress={() => handleEmojiPress(key)}
-                className={`h-10 w-[70px] flex-row items-center justify-center gap-1 rounded-full ${reacted[key] ? "bg-white/25" : "bg-white/10"}`}
-              >
-                <Text style={{ fontSize: 20 }}>{char}</Text>
-                <Text className="text-label-normal-inverse typo-body-2-normal-semi-bold">
-                  {counts[key] ?? 0}
-                </Text>
-              </Pressable>
-            ))}
+            {EMOJI_ORDER.map(({ key, char }) => {
+              const isLoading = pendingEmoji === key;
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => handleEmojiPress(key)}
+                  disabled={pendingEmoji !== null}
+                  className={`h-10 w-[70px] flex-row items-center justify-center gap-1 rounded-full ${reacted[key] ? "bg-white/25" : "bg-white/10"}`}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <>
+                      <Text style={{ fontSize: 20 }}>{char}</Text>
+                      <Text className="text-label-normal-inverse typo-body-2-normal-semi-bold">
+                        {counts[key] ?? 0}
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              );
+            })}
           </View>
         </View>
       </Pressable>
