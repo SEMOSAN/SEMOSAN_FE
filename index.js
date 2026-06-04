@@ -11,17 +11,8 @@ messaging().setBackgroundMessageHandler(async (remoteMessage) => {
   // 핸들러 실행 확인용 — 타입 관계없이 뱃지 증가
   await Notifications.setBadgeCountAsync(1);
 
-  if (!data || data.type !== 'TRACKING_PHOTO_MILESTONE') return;
-
-  const distance = parseFloat(data.distance ?? '0');
-
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: 'SEMOSAN',
-      body: `${Math.round(distance)}m 돌파! 인증 사진을 남겨보세요!`,
-    },
-    trigger: null,
-  });
+  // mixed payload 트래킹 푸시는 시스템이 자동 배너 표시 → 로컬 알림 생성 X
+  if (data?.type === 'TRACKING_PHOTO_MILESTONE' || data?.type === 'TRACKING_SUMMIT_REACHED') return;
 });
 
 require('expo-router/entry');

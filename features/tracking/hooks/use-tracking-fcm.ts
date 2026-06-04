@@ -2,7 +2,6 @@ import { getApp } from '@react-native-firebase/app';
 import { getMessaging, onMessage } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
-
 import { PhotoWindowPayload } from './use-tracking-socket';
 
 type Options = {
