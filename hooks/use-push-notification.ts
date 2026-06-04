@@ -30,7 +30,7 @@ export function usePushNotification(enabled = true): void {
     // 트래킹 타입은 use-tracking-fcm.ts에서 처리하므로 제외
     const fcmMessaging = getMessaging(getApp());
     const unsubscribeFcm = onMessage(fcmMessaging, async (remoteMessage) => {
-      const type = remoteMessage.data?.type;
+      const type = typeof remoteMessage.data?.type === 'string' ? remoteMessage.data.type : undefined;
       if (!type || TRACKING_TYPES.has(type)) return;
 
       const title = remoteMessage.notification?.title ?? (typeof remoteMessage.data?.title === 'string' ? remoteMessage.data.title : undefined);
