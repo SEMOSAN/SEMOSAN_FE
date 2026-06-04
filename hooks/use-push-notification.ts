@@ -33,8 +33,8 @@ export function usePushNotification(enabled = true): void {
       const type = remoteMessage.data?.type;
       if (!type || TRACKING_TYPES.has(type)) return;
 
-      const title = remoteMessage.notification?.title ?? remoteMessage.data?.title as string | undefined;
-      const body = remoteMessage.notification?.body ?? remoteMessage.data?.body as string | undefined;
+      const title = remoteMessage.notification?.title ?? (typeof remoteMessage.data?.title === 'string' ? remoteMessage.data.title : undefined);
+      const body = remoteMessage.notification?.body ?? (typeof remoteMessage.data?.body === 'string' ? remoteMessage.data.body : undefined);
       if (!title && !body) return;
 
       await Notifications.scheduleNotificationAsync({
