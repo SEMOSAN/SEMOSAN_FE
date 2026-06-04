@@ -437,7 +437,7 @@ export default function TrackingScreen() {
 
   // 줌 레벨에 따른 폴리라인 두께 — 줌아웃 시 얇게, 줌인 시 두껍게
   const polylineWidth = useMemo(() => {
-    const colored = Math.max(2, Math.round((mapZoom - 9) * 1.2));
+    const colored = Math.max(5, Math.round((mapZoom - 9) * 1.2));
     const base = colored + 4;
     return { colored, base };
   }, [mapZoom]);
