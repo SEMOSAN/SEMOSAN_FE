@@ -1,6 +1,7 @@
 import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { MountainListResponse } from "@/types/api.generated";
-import { Image, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { Text, View } from "react-native";
 
 type MountainDifficulty = NonNullable<MountainListResponse["difficulty"]>;
 
@@ -16,8 +17,8 @@ export function MountainCard({ mountain }: { mountain: MountainListResponse }) {
       {mountain.imageUrls?.[0] ? (
         <Image
           source={{ uri: mountain.imageUrls[0] }}
-          className="h-[72px] w-[86px] rounded-[10px] bg-fill-stronger"
-          resizeMode="cover"
+          style={{ width: 86, height: 72, borderRadius: 10 }}
+          contentFit="cover"
         />
       ) : (
         <View className="h-[72px] w-[86px] rounded-[10px] bg-fill-stronger" />

@@ -9,7 +9,10 @@ import {
   HIKING_LEVEL_LABEL,
   useProfile,
 } from "@/features/mypage/hooks/use-profile";
+import { usePrefetchSavedMountains } from "@/features/mountains/hooks/use-saved-mountains";
+import { useFocusEffect } from "expo-router";
 import { useRouter } from "expo-router";
+import { useCallback } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -18,6 +21,13 @@ export default function MyPageScreen() {
   const router = useRouter();
 
   const { data: profile } = useProfile();
+  const prefetchSavedMountains = usePrefetchSavedMountains();
+
+  useFocusEffect(
+    useCallback(() => {
+      prefetchSavedMountains();
+    }, [prefetchSavedMountains]),
+  );
   const { mutate: logout } = useLogout();
   const { mutate: withdraw } = useWithdraw();
 

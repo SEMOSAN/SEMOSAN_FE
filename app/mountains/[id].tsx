@@ -11,14 +11,13 @@ import { DIFFICULTY_LABEL } from "@/features/mountains/components/mountain-card"
 import { COURSE_BADGE } from "@/features/mountains/constants/course-badge";
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
-
   Dimensions,
   FlatList,
-  Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -68,7 +67,7 @@ function ImageCarousel({
             <Image
               source={{ uri: item }}
               style={{ width: SCREEN_WIDTH, height: 284 }}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : (
             <View style={{ width: SCREEN_WIDTH, height: 284 }} className="bg-fill-stronger" />
