@@ -272,9 +272,9 @@ export default function RecordScreen() {
         {/* 통계 */}
         <View style={{ flexDirection: "row", marginHorizontal: 20, marginTop: 16, marginBottom: 16, gap: 4 }}>
           {[
-            { label: "소요시간", value: "3시간 24분" },
-            { label: "고도", value: "642m" },
-            { label: "칼로리", value: "1128kcal" },
+            { label: "소요시간", value: formatDuration(recordDetail?.durationSeconds ?? durationSec) },
+            { label: "고도", value: recordDetail?.ascentMeters != null ? `${Math.round(recordDetail.ascentMeters)}Nm` : "--" },
+            { label: "칼로리", value: recordDetail?.calories != null ? `${recordDetail.calories}kcal` : "--" },
           ].map((stat) => (
             <View key={stat.label} style={styles.statItem}>
               <Text style={styles.statLabel}>{stat.label}</Text>
