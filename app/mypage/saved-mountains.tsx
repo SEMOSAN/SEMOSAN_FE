@@ -4,9 +4,9 @@ import { DIFFICULTY_LABEL } from '@/features/mountains/components/mountain-card'
 import { COURSE_BADGE } from '@/features/mountains/constants/course-badge';
 import { useSavedMountains } from '@/features/mountains/hooks/use-saved-mountains';
 import { LikedMountainResponse } from '@/types/api.generated';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
-import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function SavedMountainItem({ mountain }: { mountain: LikedMountainResponse }) {
@@ -24,7 +24,7 @@ function SavedMountainItem({ mountain }: { mountain: LikedMountainResponse }) {
         source={mountain.imageUrls?.[0] ? { uri: mountain.imageUrls[0] } : undefined}
         className="bg-fill-stronger"
         style={{ width: 72, height: 72, borderRadius: 10 }}
-        resizeMode="cover"
+        contentFit="cover"
       />
 
       {/* 정보 */}
@@ -80,14 +80,7 @@ function EmptyState() {
 export default function SavedMountainsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { data, isLoading, refetch } = useSavedMountains();
-
-  // 화면 포커스될 때마다 최신 데이터 동기화
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
+  const { data, isLoading } = useSavedMountains();
 
   // 낙관적 업데이트로 임시 추가된 불완전한 항목(name 없는 항목) 필터링
   const mountains = (data?.content ?? []).filter((m) => !!m.name);
