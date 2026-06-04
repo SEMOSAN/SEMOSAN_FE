@@ -12,7 +12,6 @@ import { StopConfirmModal } from "@/features/tracking/components/stop-confirm-mo
 import { SummitSheet } from "@/features/tracking/components/summit-sheet";
 import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
 import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
-import { TrailAvatarMarker } from "@/features/tracking/components/trail-avatar-marker";
 import {
   COLLAPSED_PEEK_HEIGHT,
   Course,
@@ -20,15 +19,8 @@ import {
   FLOATING_CARD_GAP,
   LOCATION_BUTTON_GAP,
   SHADOW,
-  TRACKING_COURSE_CARD_HEIGHT,
   TRACKING_COURSE_CARD_TOP,
   TRACKING_SHEET_HEIGHT,
-  TRAIL_BAR_COLORS,
-  TRAIL_BAR_GAP,
-  TRAIL_BAR_LEFT,
-  TRAIL_BAR_LOCATIONS,
-  TRAIL_BAR_WIDTH,
-  TRAIL_MARKER_LEFT,
 } from "@/features/tracking/constants";
 import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
@@ -67,7 +59,6 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
 import * as ImagePicker from "expo-image-picker";
-import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
 import { Tabs, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -86,8 +77,9 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
   HARD: "고급",
 };
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { colors } = require("../../tokens.cjs") as { colors: Record<string, Record<string, string>> };
+const { colors } = require("../../tokens.cjs") as {
+  colors: Record<string, Record<string, string>>;
+};
 const COLOR_WHITE = colors.common["100"]; // #ffffff
 
 // ── 데모 모드 ─────────────────────────────────────────────────────────────────
@@ -104,11 +96,32 @@ const DEMO_SIM_STEP = 5;
 // 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)
 const SEGMENT_COLORS: Record<string, { color: string }> = {
   STEEP_DOWN: { color: "#2563EB" },
-  MILD_DOWN:  { color: "#93C5FD" },
-  FLAT:       { color: "#FFD40D" },
-  MILD_UP:    { color: "#FF8C49" },
-  STEEP_UP:   { color: "#DC2626" },
+  MILD_DOWN: { color: "#93C5FD" },
+  FLAT: { color: "#FFD40D" },
+  MILD_UP: { color: "#FF8C49" },
+  STEEP_UP: { color: "#DC2626" },
 };
+
+// 좌표 개수가 MIN_SEGMENT_COORDS 미만인 짧은 세그먼트를 앞 세그먼트에 흡수해 색 전환 빈도를 줄임
+const MIN_SEGMENT_COORDS = 8;
+
+function mergeShortSegments(
+  segments: { startIdx: number; endIdx: number; grade: string }[],
+): { startIdx: number; endIdx: number; grade: string }[] {
+  return segments.reduce<{ startIdx: number; endIdx: number; grade: string }[]>(
+    (acc, seg) => {
+      const len = seg.endIdx - seg.startIdx + 1;
+      const last = acc[acc.length - 1];
+      if (last && len < MIN_SEGMENT_COORDS) {
+        last.endIdx = seg.endIdx;
+      } else {
+        acc.push({ ...seg });
+      }
+      return acc;
+    },
+    [],
+  );
+}
 
 export default function TrackingScreen() {
   const {
@@ -188,7 +201,11 @@ export default function TrackingScreen() {
   // DEMO_MODE: 관악산 좌표로 고정 (nearbyMountain API가 관악산 반환)
   useEffect(() => {
     if (DEMO_MODE) {
-      setUserLocation({ latitude: DEMO_LAT, longitude: DEMO_LNG, altitude: null });
+      setUserLocation({
+        latitude: DEMO_LAT,
+        longitude: DEMO_LNG,
+        altitude: null,
+      });
       setMarkerCoord({ latitude: DEMO_LAT, longitude: DEMO_LNG });
       return;
     }
@@ -490,10 +507,10 @@ export default function TrackingScreen() {
   );
 
   const timeToTarget = (() => {
-    if (remainingDurationMin <= 0) return '-';
+    if (remainingDurationMin <= 0) return "-";
     const h = Math.floor(remainingDurationMin / 60);
     const m = remainingDurationMin % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   })();
   const distanceToTarget =
     remainingDistanceM >= 1000
@@ -520,10 +537,14 @@ export default function TrackingScreen() {
                   outlineColor={COLOR_WHITE}
                 />
                 {/* 컬러 segments — 베이스 위에 얹어서 가장자리만 흰색으로 보임 */}
-                {courseDetail.segments.map((seg, i) => {
-                  const coords = courseCoords.slice(seg.startIdx, seg.endIdx + 1);
+                {mergeShortSegments(courseDetail.segments).map((seg, i) => {
+                  const coords = courseCoords.slice(
+                    seg.startIdx,
+                    seg.endIdx + 1,
+                  );
                   if (coords.length < 2) return null;
-                  const { color } = SEGMENT_COLORS[seg.grade] ?? SEGMENT_COLORS.FLAT;
+                  const { color } =
+                    SEGMENT_COLORS[seg.grade] ?? SEGMENT_COLORS.FLAT;
                   return (
                     <NaverMapPathOverlay
                       key={i}
@@ -626,7 +647,14 @@ export default function TrackingScreen() {
         )}
       </>
     ),
-    [courseCoords, courseDetail?.segments, isFreeMode, recordedCoords, isTracking, nearbyData],
+    [
+      courseCoords,
+      courseDetail?.segments,
+      isFreeMode,
+      recordedCoords,
+      isTracking,
+      nearbyData,
+    ],
   );
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
@@ -692,7 +720,8 @@ export default function TrackingScreen() {
   // ── 데모 좌표 시뮬레이션 ────────────────────────────────────────────────────
   const simIdxRef = useRef(0);
   useEffect(() => {
-    if (!DEMO_MODE || !isTracking || isPaused || courseCoords.length < 2) return;
+    if (!DEMO_MODE || !isTracking || isPaused || courseCoords.length < 2)
+      return;
 
     simIdxRef.current = 0; // 트래킹 시작 시 처음부터
 
@@ -827,11 +856,13 @@ export default function TrackingScreen() {
         });
       }
     } else {
-      console.warn("[LiveActivity] isLiveActivityEnabled=false — 환경변수 확인 필요");
+      console.warn(
+        "[LiveActivity] isLiveActivityEnabled=false — 환경변수 확인 필요",
+      );
     }
 
     return () => {};
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTracking, isFreeMode]);
 
   // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
@@ -976,7 +1007,9 @@ export default function TrackingScreen() {
         if (action === "pause") {
           // AppState보다 먼저 발화할 경우 백그라운드 추적 시간을 직접 누적 후 ref 초기화
           if (backgroundedAtRef.current != null) {
-            const diff = Math.floor((Date.now() - backgroundedAtRef.current) / 1000);
+            const diff = Math.floor(
+              (Date.now() - backgroundedAtRef.current) / 1000,
+            );
             backgroundedAtRef.current = null;
             setElapsedSeconds((s) => s + diff);
           }
@@ -1084,9 +1117,10 @@ export default function TrackingScreen() {
         },
       );
     }
-    if (isLiveActivityEnabled) LiveActivity.stop().catch((e: unknown) => {
-      console.warn("[LiveActivity] stop() 실패:", e);
-    });
+    if (isLiveActivityEnabled)
+      LiveActivity.stop().catch((e: unknown) => {
+        console.warn("[LiveActivity] stop() 실패:", e);
+      });
     stopLocationTask().catch(() => {});
     disconnectSocket();
     setShowDifficultyRating(false);
@@ -1213,7 +1247,6 @@ export default function TrackingScreen() {
             />
           </View>
         )}
-
       </View>
 
       {/* 트래킹 중 — 상단 코스 카드 (자유기록 제외) */}
