@@ -14,10 +14,10 @@ import {
   FreePostReportRequest,
 } from "@/types/api.generated";
 import { useRef, useState } from "react";
+import { Image } from "expo-image";
 import {
   Alert,
   Dimensions,
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -147,9 +147,8 @@ export function PostBody({
                   {img.imageUrl ? (
                     <Image
                       source={{ uri: img.imageUrl }}
-                      className="rounded-xl"
-                      style={{ width: 148, height: 148 }}
-                      resizeMode="cover"
+                      style={{ width: 148, height: 148, borderRadius: 12 }}
+                      contentFit="cover"
                     />
                   ) : (
                     <View
