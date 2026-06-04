@@ -31,7 +31,7 @@ export function usePushNotification(enabled = true): void {
     const fcmMessaging = getMessaging(getApp());
     const unsubscribeFcm = onMessage(fcmMessaging, async (remoteMessage) => {
       const type = typeof remoteMessage.data?.type === 'string' ? remoteMessage.data.type : undefined;
-      if (!type || TRACKING_TYPES.has(type)) return;
+      if (type && TRACKING_TYPES.has(type)) return;
 
       const title = remoteMessage.notification?.title ?? (typeof remoteMessage.data?.title === 'string' ? remoteMessage.data.title : undefined);
       const body = remoteMessage.notification?.body ?? (typeof remoteMessage.data?.body === 'string' ? remoteMessage.data.body : undefined);
