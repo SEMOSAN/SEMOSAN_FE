@@ -34,7 +34,13 @@ import {
   requestForegroundPermissionsAsync,
 } from "expo-location";
 import { router } from "expo-router";
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
   interpolate,
@@ -76,6 +82,12 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
     const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
       null,
     );
+    const [loadedMarkerImageIds, setLoadedMarkerImageIds] = useState<
+      Set<number>
+    >(new Set());
+    const handleMarkerImageLoad = useCallback((id: number): void => {
+      setLoadedMarkerImageIds((prev) => new Set([...prev, id]));
+    }, []);
     const { data: mapData } = useMountainsMap(bbox);
     const hasRecords = mapData?.hasHikingRecord ?? false;
     const snapExpanded = hasRecords
@@ -169,6 +181,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
                     onTap={() => router.push(`/mountains/${mountain.id}`)}
                   >
                     <View
+                      key={`${mountain.visited} ${mountain.id === selectedMountainId} ${loadedMarkerImageIds.has(mountain.id)}`}
                       collapsable={false}
                       style={{
                         width: mountain.visited
@@ -187,6 +200,7 @@ export const MapHomeView = forwardRef<MapHomeViewRef, MapHomeViewProps>(
                             myMountainImageMap[mountain.id] ?? mountain.imageUrl
                           }
                           selected={mountain.id === selectedMountainId}
+                          onImageLoad={() => handleMarkerImageLoad(mountain.id)}
                         />
                       ) : (
                         <UnvisitedMountainPillMarker

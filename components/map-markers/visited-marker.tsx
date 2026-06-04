@@ -17,6 +17,7 @@ type Props = {
   imageUri?: string;
   flagColor?: string;
   selected?: boolean;
+  onImageLoad?: () => void;
 };
 
 export const VISITED_MARKER_OVERLAY_WIDTH = 88;
@@ -30,6 +31,7 @@ export function VisitedMarker({
   imageUri,
   flagColor = "#00D864",
   selected = false,
+  onImageLoad,
 }: Props) {
   const clipIdOuter = useId();
   const clipIdInner = useId();
@@ -75,6 +77,7 @@ export function VisitedMarker({
                   width={32}
                   height={29}
                   preserveAspectRatio="xMidYMid slice"
+                  onLoad={onImageLoad}
                 />
               </G>
             </Svg>
