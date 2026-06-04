@@ -365,17 +365,24 @@ export default function RecordScreen() {
           {(() => {
             const hasTrack = trackCoords.length > 1;
             const courseCoords = parseCoursePolyline(courseDetail?.polyline);
-            const courseCenter = getCenterCoordinate(courseCoords);
             const mapCoords = hasTrack ? trackCoords : courseCoords;
-            const center = hasTrack
-              ? { latitude: trackCoords[Math.floor(trackCoords.length / 2)].latitude, longitude: trackCoords[Math.floor(trackCoords.length / 2)].longitude }
-              : courseCenter ?? { latitude: 37.5665, longitude: 126.9780 };
+            const mapCenter = getCenterCoordinate(mapCoords);
+            const center = mapCenter ?? { latitude: 37.5665, longitude: 126.9780 };
+
+            const lats = mapCoords.map((c) => c.latitude);
+            const lngs = mapCoords.map((c) => c.longitude);
+            const latKm = (Math.max(...lats) - Math.min(...lats)) * 111;
+            const lngKm = (Math.max(...lngs) - Math.min(...lngs)) * 89;
+            const dominantRatio = Math.max(lngKm / 12, latKm / 7);
+            const zoom = mapCoords.length > 1
+              ? Math.min(Math.max(Math.round(11 + Math.log2(0.6 / dominantRatio)), 6), 18)
+              : 13;
 
             return (
               <NaverMapView
                 ref={mapRef}
                 style={StyleSheet.absoluteFill}
-                camera={{ ...center, zoom: 13 }}
+                camera={{ ...center, zoom }}
                 isScrollGesturesEnabled={false}
                 isZoomGesturesEnabled={false}
                 isRotateGesturesEnabled={false}
@@ -408,7 +415,7 @@ export default function RecordScreen() {
                     key={photo.milestoneIndex}
                     latitude={photo.lat}
                     longitude={photo.lng}
-                    width={44} height={44} anchor={{ x: 0.5, y: 0.5 }}
+                    width={24} height={24} anchor={{ x: 0.5, y: 0.5 }}
                   >
                     <View style={styles.photoMarkerWrap}>
                       <ExpoImage
@@ -1024,15 +1031,15 @@ const styles = StyleSheet.create({
     borderColor: "#FFFFFF",
   },
   photoMarkerWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     overflow: "hidden",
     borderWidth: 2,
     borderColor: "#FFFFFF",
   },
   photoMarkerImg: {
-    width: 40,
-    height: 40,
+    width: 24,
+    height: 24,
   },
 });
