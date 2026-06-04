@@ -1,4 +1,3 @@
-import Clive1Svg from "@/assets/clive1.svg";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -23,6 +22,9 @@ import { XIcon } from "@/components/icons/x-icon";
 import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
 import { useToggleSemofeedPublic } from "@/features/home/hooks/use-toggle-semofeed-public";
 import { useHikingSummary } from "@/features/mypage/hooks/use-hiking-summary";
+import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
+import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
+import { getCenterCoordinate } from "@/utils/get-center-coordinate";
 import { getPhotoReportState, setPhotoReportState } from "@/features/photo-report/photo-report-state";
 import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
 import { uploadImage } from "@/hooks/use-upload-image";
@@ -97,18 +99,20 @@ const PhotoReportBg = require("@/assets/photo-report-bg.png");
 type RecordTab = "클라이브" | "포토 리포트";
 
 export default function RecordScreen() {
-  const { id, hikingRecordId, name, courseName, imageUri, distance, duration } =
+  const { id, hikingRecordId, name, courseName, courseId, imageUri, distance, duration } =
     useLocalSearchParams<{
       id: string;
       hikingRecordId?: string;
       name: string;
       courseName?: string;
+      courseId?: string;
       imageUri?: string;
       distance?: string;
       duration?: string;
     }>();
   const sessionId = id ? parseInt(id) : null;
   const hikingRecordIdNum = hikingRecordId ? parseInt(hikingRecordId) : null;
+  const courseIdNum = courseId ? parseInt(courseId) : null;
   const distanceKm = distance ? parseFloat(distance) / 1000 : null;
   const durationSec = duration ? parseInt(duration) : null;
   const router = useRouter();
@@ -162,6 +166,7 @@ export default function RecordScreen() {
   const { data: clivePhotos = [] } = useClivePhotos(sessionId);
   const { data: hikingSummary } = useHikingSummary();
   const { data: recordDetail } = useHikingRecordDetail(hikingRecordIdNum);
+  const { data: courseDetail } = useCourseDetail(courseIdNum);
   const displayPhotos = [...clivePhotos].reverse();
   const cliveShotRef = useRef<ViewShot | null>(null);
   const photoReportShotRef = useRef<ViewShot | null>(null);
@@ -357,72 +362,67 @@ export default function RecordScreen() {
 
         {/* 루트 지도 */}
         <View className="mx-5 overflow-hidden rounded-xl" style={styles.mapContainer}>
-          {trackCoords.length > 1 ? (
-            <NaverMapView
-              ref={mapRef}
-              style={StyleSheet.absoluteFill}
-              camera={{
-                latitude: trackCoords[Math.floor(trackCoords.length / 2)].latitude,
-                longitude: trackCoords[Math.floor(trackCoords.length / 2)].longitude,
-                zoom: 13,
-              }}
-              isScrollGesturesEnabled={false}
-              isZoomGesturesEnabled={false}
-              isRotateGesturesEnabled={false}
-              isTiltGesturesEnabled={false}
-              isStopGesturesEnabled={false}
-              logoAlign="BottomLeft"
-              logoMargin={{ bottom: 4, left: 4 }}
-            >
-              {/* 흰색 베이스 (테두리 효과) */}
-              <NaverMapPathOverlay coords={trackCoords} width={16} color="#FFFFFF" outlineWidth={0} />
-              {/* 노란 경로 */}
-              <NaverMapPathOverlay coords={trackCoords} width={12} color="#FFD40D" outlineWidth={1} outlineColor="#FFD40D" />
+          {(() => {
+            const hasTrack = trackCoords.length > 1;
+            const courseCoords = parseCoursePolyline(courseDetail?.polyline);
+            const courseCenter = getCenterCoordinate(courseCoords);
+            const mapCoords = hasTrack ? trackCoords : courseCoords;
+            const center = hasTrack
+              ? { latitude: trackCoords[Math.floor(trackCoords.length / 2)].latitude, longitude: trackCoords[Math.floor(trackCoords.length / 2)].longitude }
+              : courseCenter ?? { latitude: 37.5665, longitude: 126.9780 };
 
-              {/* 출발 마커 (파란 원) */}
-              <NaverMapMarkerOverlay
-                latitude={trackCoords[0].latitude}
-                longitude={trackCoords[0].longitude}
-                width={14} height={14} anchor={{ x: 0.5, y: 0.5 }}
+            return (
+              <NaverMapView
+                ref={mapRef}
+                style={StyleSheet.absoluteFill}
+                camera={{ ...center, zoom: 13 }}
+                isScrollGesturesEnabled={false}
+                isZoomGesturesEnabled={false}
+                isRotateGesturesEnabled={false}
+                isTiltGesturesEnabled={false}
+                isStopGesturesEnabled={false}
+                logoAlign="BottomLeft"
+                logoMargin={{ bottom: 4, left: 4 }}
               >
-                <View style={styles.dotMarkerBlue} />
-              </NaverMapMarkerOverlay>
-
-              {/* 도착 마커 (빨간 원) */}
-              <NaverMapMarkerOverlay
-                latitude={trackCoords[trackCoords.length - 1].latitude}
-                longitude={trackCoords[trackCoords.length - 1].longitude}
-                width={14} height={14} anchor={{ x: 0.5, y: 0.5 }}
-              >
-                <View style={styles.dotMarkerRed} />
-              </NaverMapMarkerOverlay>
-
-              {/* 사진 마커 */}
-              {(recordDetail?.photos ?? []).map((photo) => (
-                <NaverMapMarkerOverlay
-                  key={photo.milestoneIndex}
-                  latitude={photo.lat}
-                  longitude={photo.lng}
-                  width={44} height={44} anchor={{ x: 0.5, y: 0.5 }}
-                >
-                  <View style={styles.photoMarkerWrap}>
-                    <ExpoImage
-                      source={{ uri: photo.imageUrl }}
-                      style={styles.photoMarkerImg}
-                      contentFit="cover"
-                    />
-                  </View>
-                </NaverMapMarkerOverlay>
-              ))}
-            </NaverMapView>
-          ) : (
-            // track 없으면 기존 하드코딩 이미지 폴백
-            typeof Clive1Svg === "number" ? (
-              <ExpoImage source={Clive1Svg} style={styles.mapImage} contentFit="cover" />
-            ) : (
-              <Clive1Svg width="100%" height="100%" />
-            )
-          )}
+                {mapCoords.length > 1 && (
+                  <>
+                    <NaverMapPathOverlay coords={mapCoords} width={16} color="#FFFFFF" outlineWidth={0} />
+                    <NaverMapPathOverlay coords={mapCoords} width={12} color="#FFD40D" outlineWidth={1} outlineColor="#FFD40D" />
+                    <NaverMapMarkerOverlay
+                      latitude={mapCoords[0].latitude}
+                      longitude={mapCoords[0].longitude}
+                      width={14} height={14} anchor={{ x: 0.5, y: 0.5 }}
+                    >
+                      <View style={styles.dotMarkerBlue} />
+                    </NaverMapMarkerOverlay>
+                    <NaverMapMarkerOverlay
+                      latitude={mapCoords[mapCoords.length - 1].latitude}
+                      longitude={mapCoords[mapCoords.length - 1].longitude}
+                      width={14} height={14} anchor={{ x: 0.5, y: 0.5 }}
+                    >
+                      <View style={styles.dotMarkerRed} />
+                    </NaverMapMarkerOverlay>
+                  </>
+                )}
+                {hasTrack && (recordDetail?.photos ?? []).map((photo) => (
+                  <NaverMapMarkerOverlay
+                    key={photo.milestoneIndex}
+                    latitude={photo.lat}
+                    longitude={photo.lng}
+                    width={44} height={44} anchor={{ x: 0.5, y: 0.5 }}
+                  >
+                    <View style={styles.photoMarkerWrap}>
+                      <ExpoImage
+                        source={{ uri: photo.imageUrl }}
+                        style={styles.photoMarkerImg}
+                        contentFit="cover"
+                      />
+                    </View>
+                  </NaverMapMarkerOverlay>
+                ))}
+              </NaverMapView>
+            );
+          })()}
           {/* 날짜/시간 배지 */}
           <View style={styles.dateBadgeWrap}>
             {(() => {

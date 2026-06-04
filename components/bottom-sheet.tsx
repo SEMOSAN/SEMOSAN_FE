@@ -88,6 +88,7 @@ export default function BottomSheet({
                   hikingRecordId: String(hikingRecordId ?? ""),
                   name: selectedCard.mountainName,
                   courseName: record?.courseName ?? "",
+                  courseId: String(record?.courseId ?? ""),
                   imageUri: "",
                   distance: String(record?.distance ?? ""),
                   duration: String(record?.duration ?? ""),
