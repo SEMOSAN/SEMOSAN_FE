@@ -43,7 +43,10 @@ import {
   startLocationTask,
   stopLocationTask,
 } from "@/features/tracking/tasks/location-task";
-import { parseCoursePolyline, smoothCourseCoords } from "@/features/tracking/utils/parse-course-polyline";
+import {
+  parseCoursePolyline,
+  smoothCourseCoords,
+} from "@/features/tracking/utils/parse-course-polyline";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
 import {
@@ -452,7 +455,7 @@ export default function TrackingScreen() {
     courseProgressState;
 
   // 줌 레벨에 따른 폴리라인 두께 — 줌아웃 시 얇게, 줌인 시 두껍게
-  const polylineWidth = { colored: 7, base: 11 };
+  const polylineWidth = { colored: 6, base: 10 };
 
   // altitudes 문자열에서 최고 고도(m) 파싱
   const peakAltitudeM = useMemo(() => {
