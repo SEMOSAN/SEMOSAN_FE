@@ -43,7 +43,7 @@ import {
   startLocationTask,
   stopLocationTask,
 } from "@/features/tracking/tasks/location-task";
-import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
+import { parseCoursePolyline, smoothCourseCoords } from "@/features/tracking/utils/parse-course-polyline";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
 import {
@@ -325,7 +325,7 @@ export default function TrackingScreen() {
     isFreeMode ? null : selectedCourseId,
   );
   const courseCoords = useMemo(
-    () => parseCoursePolyline(courseDetail?.polyline),
+    () => smoothCourseCoords(parseCoursePolyline(courseDetail?.polyline)),
     [courseDetail?.polyline],
   );
 
