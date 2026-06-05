@@ -85,16 +85,6 @@ const { colors } = require("../../tokens.cjs") as {
 };
 const COLOR_WHITE = colors.common["100"]; // #ffffff
 
-// ── 데모 모드 ─────────────────────────────────────────────────────────────────
-// 시연/촬영용. 배포 시 false로 변경
-const DEMO_MODE = true;
-// 관악산 좌표 — nearbyMountain API 대신 이 위치로 고정
-const DEMO_LAT = 37.4449;
-const DEMO_LNG = 126.9636;
-// 시뮬레이션 속도: N ms마다 STEP개 좌표씩 이동
-const DEMO_SIM_INTERVAL_MS = 800;
-const DEMO_SIM_STEP = 5;
-// ──────────────────────────────────────────────────────────────────────────────
 
 // 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)
 const SEGMENT_COLORS: Record<string, { color: string }> = {
@@ -201,17 +191,7 @@ export default function TrackingScreen() {
   }, [courseIdParameter, collapseParameter]);
 
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
-  // DEMO_MODE: 관악산 좌표로 고정 (nearbyMountain API가 관악산 반환)
   useEffect(() => {
-    if (DEMO_MODE) {
-      setUserLocation({
-        latitude: DEMO_LAT,
-        longitude: DEMO_LNG,
-        altitude: null,
-      });
-      setMarkerCoord({ latitude: DEMO_LAT, longitude: DEMO_LNG });
-      return;
-    }
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -662,24 +642,11 @@ export default function TrackingScreen() {
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
 
-  // polyline 로드되거나 트래킹 시작 시 카메라 설정
-  // 데모 모드 + 트래킹 중: 출발 좌표로 줌 (follow 모드와 충돌 방지)
-  // 그 외: 전체 경로가 보이도록 맞춤
+  // polyline 로드되거나 트래킹 시작 시 전체 경로가 보이도록 카메라 맞춤
   useEffect(() => {
     if (courseCoords.length < 2) return;
 
     const timer = setTimeout(() => {
-      if (DEMO_MODE && isTracking) {
-        // 데모 모드 트래킹 중 — 출발 좌표(첫 번째 포인트)로 줌
-        mapRef.current?.animateCameraTo({
-          latitude: courseCoords[0].latitude,
-          longitude: courseCoords[0].longitude,
-          zoom: 15,
-          duration: 500,
-        });
-        return;
-      }
-
       const lats = courseCoords.map((c) => c.latitude);
       const lngs = courseCoords.map((c) => c.longitude);
       const minLat = Math.min(...lats);
@@ -703,14 +670,18 @@ export default function TrackingScreen() {
   }, [courseDetail?.polyline, isTracking]);
 
   // 트래킹 시작/종료 시 follow 모드 토글
+  // 코스 따라가기: 시작 시 전체 코스가 보이도록 follow 비활성 (위치 버튼으로 재활성 가능)
+  // 자유기록: 시작 시 현위치 follow 활성
   useEffect(() => {
-    setIsFollowingUser(isTracking);
-  }, [isTracking]);
+    if (isTracking) {
+      setIsFollowingUser(isFreeMode);
+    } else {
+      setIsFollowingUser(false);
+    }
+  }, [isTracking, isFreeMode]);
 
   // 트래킹 중 실시간 위치 마커 카메라 추적 (사용자가 직접 조작하면 follow 해제)
-  // 데모 모드에서는 카메라 follow 비활성 — 출발 좌표로 고정 (시뮬 마커가 카메라 흔들기 방지)
   useEffect(() => {
-    if (DEMO_MODE) return;
     if (!isFollowingUser || !markerCoord) return;
     mapRef.current?.animateCameraTo({
       latitude: markerCoord.latitude,
@@ -720,37 +691,6 @@ export default function TrackingScreen() {
     });
   }, [markerCoord, isFollowingUser]);
 
-  // ── 데모 좌표 시뮬레이션 ────────────────────────────────────────────────────
-  const simIdxRef = useRef(0);
-  useEffect(() => {
-    if (!DEMO_MODE || !isTracking || isPaused || courseCoords.length < 2)
-      return;
-
-    simIdxRef.current = 0; // 트래킹 시작 시 처음부터
-
-    const interval = setInterval(() => {
-      const idx = simIdxRef.current;
-      if (idx >= courseCoords.length) {
-        clearInterval(interval);
-        return;
-      }
-      const { latitude, longitude } = courseCoords[idx];
-      setMarkerCoord({ latitude, longitude });
-      setUserLocation({ latitude, longitude, altitude: null });
-      if (sessionId != null) {
-        publishGps(sessionId, {
-          lat: latitude,
-          lng: longitude,
-          altitude: null,
-          recordedAt: new Date().toISOString(),
-        });
-      }
-      simIdxRef.current += DEMO_SIM_STEP;
-    }, DEMO_SIM_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [isTracking, isPaused, courseCoords, sessionId]);
-  // ──────────────────────────────────────────────────────────────────────────────
 
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
