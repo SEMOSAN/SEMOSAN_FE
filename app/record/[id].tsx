@@ -1,4 +1,19 @@
-import Clive1Svg from "@/assets/clive1.svg";
+import {
+  NaverMapMarkerOverlay,
+  NaverMapPathOverlay,
+  NaverMapView,
+  type NaverMapViewRef,
+} from "@mj-studio/react-native-naver-map";
+import {
+  OVERLAY_COMPONENTS,
+  fmtDistance,
+  fmtCalories,
+  fmtElevation,
+  fmtWeather,
+  fmtDuration,
+  fmtDate,
+  type OverlayProps,
+} from "@/features/photo-report/overlay-stats";
 import { CliveBottomBar } from "@/components/clive-bottom-bar";
 import { CheckCircleIcon } from "@/components/icons/check-circle-icon";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
@@ -7,7 +22,10 @@ import { XIcon } from "@/components/icons/x-icon";
 import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
 import { useToggleSemofeedPublic } from "@/features/home/hooks/use-toggle-semofeed-public";
 import { useHikingSummary } from "@/features/mypage/hooks/use-hiking-summary";
-import { getPhotoReportState } from "@/features/photo-report/photo-report-state";
+import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
+import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
+import { getCenterCoordinate } from "@/utils/get-center-coordinate";
+import { getPhotoReportState, setPhotoReportState } from "@/features/photo-report/photo-report-state";
 import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
 import { uploadImage } from "@/hooks/use-upload-image";
 import { api } from "@/lib/api";
@@ -38,6 +56,35 @@ import Svg, {
 import ViewShot from "react-native-view-shot";
 const ALTITUDE_LABELS = ["400m", "800m", "1200m", "1600m"];
 const CLIVE_CARD_HEIGHT = 596;
+const DAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
+
+function parseTrack(track?: string): { latitude: number; longitude: number }[] {
+  if (!track) return [];
+  try {
+    const geo = JSON.parse(track);
+    if (geo.type === "LineString" && Array.isArray(geo.coordinates)) {
+      return geo.coordinates.map(([lng, lat]: [number, number]) => ({
+        latitude: lat,
+        longitude: lng,
+      }));
+    }
+  } catch {}
+  return [];
+}
+
+function formatMapDateParts(startedAt?: string, endedAt?: string): { date: string; time: string } {
+  if (!startedAt) return { date: "", time: "" };
+  const d = new Date(startedAt);
+  const yy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const day = DAY_KO[d.getDay()];
+  const startTime = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  if (!endedAt) return { date: `${yy}.${mm}.${dd} ${day}`, time: startTime };
+  const e = new Date(endedAt);
+  const endTime = `${String(e.getHours()).padStart(2, "0")}:${String(e.getMinutes()).padStart(2, "0")}`;
+  return { date: `${yy}.${mm}.${dd} ${day}`, time: `${startTime} - ${endTime}` };
+}
 
 function formatDuration(seconds: number | null): string {
   if (seconds == null) return "--";
@@ -49,26 +96,23 @@ function formatDuration(seconds: number | null): string {
 }
 
 const PhotoReportBg = require("@/assets/photo-report-bg.png");
-const OVERLAY_STATS = [
-  require("@/assets/overlay-stats-1.png"),
-  require("@/assets/overlay-stats-2.png"),
-  require("@/assets/overlay-stats-3.png"),
-];
 type RecordTab = "클라이브" | "포토 리포트";
 
 export default function RecordScreen() {
-  const { id, hikingRecordId, name, courseName, imageUri, distance, duration } =
+  const { id, hikingRecordId, name, courseName, courseId, imageUri, distance, duration } =
     useLocalSearchParams<{
       id: string;
       hikingRecordId?: string;
       name: string;
       courseName?: string;
+      courseId?: string;
       imageUri?: string;
       distance?: string;
       duration?: string;
     }>();
   const sessionId = id ? parseInt(id) : null;
   const hikingRecordIdNum = hikingRecordId ? parseInt(hikingRecordId) : null;
+  const courseIdNum = courseId ? parseInt(courseId) : null;
   const distanceKm = distance ? parseFloat(distance) / 1000 : null;
   const durationSec = duration ? parseInt(duration) : null;
   const router = useRouter();
@@ -122,10 +166,13 @@ export default function RecordScreen() {
   const { data: clivePhotos = [] } = useClivePhotos(sessionId);
   const { data: hikingSummary } = useHikingSummary();
   const { data: recordDetail } = useHikingRecordDetail(hikingRecordIdNum);
+  const { data: courseDetail } = useCourseDetail(courseIdNum);
   const displayPhotos = [...clivePhotos].reverse();
   const cliveShotRef = useRef<ViewShot | null>(null);
   const photoReportShotRef = useRef<ViewShot | null>(null);
+  const mapRef = useRef<NaverMapViewRef>(null);
   const activeTabPublic = isPublicByTab[activeTab];
+  const trackCoords = parseTrack(recordDetail?.track);
 
   const captureCard = async (tab: RecordTab) => {
     const targetRef = tab === "클라이브" ? cliveShotRef : photoReportShotRef;
@@ -164,11 +211,35 @@ export default function RecordScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const { photoSource, templateIndex } = getPhotoReportState();
-      if (photoSource !== null) setPhotoReportSource(photoSource);
-      setPhotoReportTemplate(templateIndex);
-    }, []),
+      const saved = getPhotoReportState();
+      // 같은 세션의 상태만 복원 — 다른 기록의 사진이 유입되지 않도록
+      if (saved.sessionId === sessionId && saved.photoSource !== null) {
+        setPhotoReportSource(saved.photoSource);
+      }
+      if (saved.sessionId === sessionId) {
+        setPhotoReportTemplate(saved.templateIndex);
+      }
+    }, [sessionId]),
   );
+
+  // 경로 로드 후 카메라 fit
+  useEffect(() => {
+    if (trackCoords.length < 2) return;
+    const lats = trackCoords.map((c) => c.latitude);
+    const lngs = trackCoords.map((c) => c.longitude);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    const padding = 0.15;
+    setTimeout(() => {
+      mapRef.current?.animateCameraWithTwoCoords({
+        coord1: { latitude: minLat - (maxLat - minLat) * padding, longitude: minLng - (maxLng - minLng) * padding },
+        coord2: { latitude: maxLat + (maxLat - minLat) * padding, longitude: maxLng + (maxLng - minLng) * padding },
+        duration: 300,
+      });
+    }, 300);
+  }, [trackCoords.length]);
 
   // 클라이브 사진 프리페치 + 포토리포트 기본 사진 = 마지막 사진(정상)
   useEffect(() => {
@@ -290,19 +361,86 @@ export default function RecordScreen() {
         </View>
 
         {/* 루트 지도 */}
-        <View
-          className="mx-5 overflow-hidden rounded-xl"
-          style={styles.mapContainer}
-        >
-          {typeof Clive1Svg === "number" ? (
-            <ExpoImage
-              source={Clive1Svg}
-              style={styles.mapImage}
-              contentFit="cover"
-            />
-          ) : (
-            <Clive1Svg width="100%" height="100%" />
-          )}
+        <View className="mx-5 overflow-hidden rounded-xl" style={styles.mapContainer}>
+          {(() => {
+            const hasTrack = trackCoords.length > 1;
+            const courseCoords = parseCoursePolyline(courseDetail?.polyline);
+            const mapCoords = hasTrack ? trackCoords : courseCoords;
+            const mapCenter = getCenterCoordinate(mapCoords);
+            const center = mapCenter ?? { latitude: 37.5665, longitude: 126.9780 };
+
+            const lats = mapCoords.map((c) => c.latitude);
+            const lngs = mapCoords.map((c) => c.longitude);
+            const latKm = (Math.max(...lats) - Math.min(...lats)) * 111;
+            const lngKm = (Math.max(...lngs) - Math.min(...lngs)) * 89;
+            const dominantRatio = Math.max(lngKm / 12, latKm / 7);
+            const zoom = mapCoords.length > 1
+              ? Math.min(Math.max(Math.round(11 + Math.log2(0.6 / dominantRatio)), 6), 18)
+              : 13;
+
+            return (
+              <NaverMapView
+                ref={mapRef}
+                style={StyleSheet.absoluteFill}
+                camera={{ ...center, zoom }}
+                isScrollGesturesEnabled={false}
+                isZoomGesturesEnabled={false}
+                isRotateGesturesEnabled={false}
+                isTiltGesturesEnabled={false}
+                isStopGesturesEnabled={false}
+                logoAlign="BottomLeft"
+                logoMargin={{ bottom: 4, left: 4 }}
+              >
+                {mapCoords.length > 1 && (
+                  <>
+                    <NaverMapPathOverlay coords={mapCoords} width={4} color="#FFD40D" outlineWidth={1} outlineColor="#eab308" />
+                    <NaverMapMarkerOverlay
+                      latitude={mapCoords[0].latitude}
+                      longitude={mapCoords[0].longitude}
+                      width={14} height={14} anchor={{ x: 0.5, y: 0.5 }}
+                    >
+                      <View style={styles.dotMarkerBlue} />
+                    </NaverMapMarkerOverlay>
+                    <NaverMapMarkerOverlay
+                      latitude={mapCoords[mapCoords.length - 1].latitude}
+                      longitude={mapCoords[mapCoords.length - 1].longitude}
+                      width={14} height={14} anchor={{ x: 0.5, y: 0.5 }}
+                    >
+                      <View style={styles.dotMarkerRed} />
+                    </NaverMapMarkerOverlay>
+                  </>
+                )}
+                {hasTrack && (recordDetail?.photos ?? []).map((photo) => (
+                  <NaverMapMarkerOverlay
+                    key={photo.milestoneIndex}
+                    latitude={photo.lat}
+                    longitude={photo.lng}
+                    width={24} height={24} anchor={{ x: 0.5, y: 0.5 }}
+                  >
+                    <View style={styles.photoMarkerWrap}>
+                      <ExpoImage
+                        source={{ uri: photo.imageUrl }}
+                        style={styles.photoMarkerImg}
+                        contentFit="cover"
+                      />
+                    </View>
+                  </NaverMapMarkerOverlay>
+                ))}
+              </NaverMapView>
+            );
+          })()}
+          {/* 날짜/시간 배지 */}
+          <View style={styles.dateBadgeWrap}>
+            {(() => {
+              const { date, time } = formatMapDateParts(recordDetail?.startedAt, recordDetail?.endedAt);
+              return (
+                <View style={styles.dateBadge}>
+                  <Text style={styles.dateBadgeDateText}>{date || "--"}</Text>
+                  {!!time && <Text style={styles.dateBadgeTimeText}>{" " + time}</Text>}
+                </View>
+              );
+            })()}
+          </View>
         </View>
 
         {/* 통계 */}
@@ -550,14 +688,19 @@ export default function RecordScreen() {
                   />
 
                   {/* 스탯 오버레이 */}
-                  <ExpoImage
-                    source={
-                      OVERLAY_STATS[photoReportTemplate] ?? OVERLAY_STATS[0]
-                    }
-                    style={StyleSheet.absoluteFill}
-                    contentFit="cover"
-                    pointerEvents="none"
-                  />
+                  {(() => {
+                    const OverlayComponent = OVERLAY_COMPONENTS[photoReportTemplate] ?? OVERLAY_COMPONENTS[0];
+                    const overlayProps: OverlayProps = {
+                      distance: fmtDistance(recordDetail?.distanceMeters),
+                      calories: fmtCalories(recordDetail?.calories),
+                      elevation: fmtElevation(recordDetail?.ascentMeters),
+                      weather: fmtWeather(recordDetail?.temperature),
+                      duration: fmtDuration(recordDetail?.durationSeconds),
+                      date: fmtDate(recordDetail?.startedAt),
+                      scale: 335 / 240,
+                    };
+                    return <OverlayComponent {...overlayProps} />;
+                  })()}
                 </View>
               </ViewShot>
 
@@ -568,12 +711,21 @@ export default function RecordScreen() {
                   { position: "absolute", top: 16, right: 16 },
                 ]}
                 activeOpacity={0.7}
-                onPress={() =>
+                onPress={() => {
+                  // 현재 표시 중인 사진/템플릿을 상태에 저장 → 편집 화면에서 이어받음
+                  setPhotoReportState({
+                    sessionId,
+                    photoSource: photoReportSource,
+                    templateIndex: photoReportTemplate,
+                  });
                   router.push({
                     pathname: "/record/photo-report-edit",
-                    params: { sessionId: String(sessionId ?? "") },
-                  })
-                }
+                    params: {
+                      sessionId: String(sessionId ?? ""),
+                      hikingRecordId: String(hikingRecordIdNum ?? ""),
+                    },
+                  });
+                }}
               >
                 <PencilSimpleIcon size={16} color="#FFFFFF" />
                 <Text style={styles.editChipText}>편집하기</Text>
@@ -715,6 +867,32 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 235,
   },
+  dateBadgeWrap: {
+    position: "absolute",
+    bottom: 14,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 10,
+  },
+  dateBadge: {
+    backgroundColor: "#464A57",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dateBadgeDateText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  dateBadgeTimeText: {
+    color: "#E5E7EB",
+    fontSize: 13,
+    fontWeight: "500",
+  },
   statItem: {
     flex: 1,
     alignItems: "center",
@@ -818,5 +996,33 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0,0,0,0.25)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 13,
+  },
+  dotMarkerBlue: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#507EF4",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  dotMarkerRed: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#FF5249",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  photoMarkerWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  photoMarkerImg: {
+    width: 24,
+    height: 24,
   },
 });

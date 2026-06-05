@@ -56,7 +56,7 @@ export const MOCK_COURSES: Course[] = [
 type Props = {
   courses: GetUserHikingRecordResponse[];
   mountainId?: number;
-  onCoursePress?: (courseId?: number) => void;
+  onCoursePress?: (hikingRecordId?: number) => void;
 };
 
 export default function CourseBottomSheet({
@@ -71,7 +71,7 @@ export default function CourseBottomSheet({
           key={course.hikingRecordId}
           course={course}
           mountainId={mountainId}
-          onPress={() => onCoursePress?.(course.courseId)}
+          onPress={() => onCoursePress?.(course.hikingRecordId)}
         />
       ))}
     </View>

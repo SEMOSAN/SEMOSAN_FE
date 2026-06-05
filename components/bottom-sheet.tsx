@@ -77,19 +77,21 @@ export default function BottomSheet({
           <CourseBottomSheet
             courses={mountainRecords}
             mountainId={selectedCard.mountainId}
-            onCoursePress={(courseId) => {
+            onCoursePress={(hikingRecordId) => {
               const record = mountainRecords.find(
-                (r) => r.courseId === courseId,
+                (r) => r.hikingRecordId === hikingRecordId,
               );
               router.push({
                 pathname: "/record/[id]",
                 params: {
-                  id: String(record?.sessionId),
-                  hikingRecordId: String(record?.hikingRecordId),
+                  id: String(record?.sessionId ?? hikingRecordId),
+                  hikingRecordId: String(hikingRecordId ?? ""),
                   name: selectedCard.mountainName,
-                  courseName: record?.courseName,
-                  distance: String(record?.distance),
-                  duration: String(record?.duration),
+                  courseName: record?.courseName ?? "",
+                  courseId: String(record?.courseId ?? ""),
+                  imageUri: "",
+                  distance: String(record?.distance ?? ""),
+                  duration: String(record?.duration ?? ""),
                 },
               });
             }}
