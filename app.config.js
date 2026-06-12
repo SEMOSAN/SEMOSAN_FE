@@ -74,6 +74,26 @@ const config = {
     "expo-router",
     "expo-font",
     "@react-native-firebase/app",
+    [
+      "expo-location",
+      {
+        locationWhenInUsePermission:
+          "내 위치 기반 코스 추천 및 현재 위치 표시를 위해 위치 정보 접근이 필요합니다.",
+        locationAlwaysAndWhenInUsePermission:
+          "코스 추적 중 앱이 백그라운드에 있어도 위치를 기록하기 위해 항상 위치 접근 권한이 필요합니다.",
+        locationAlwaysPermission:
+          "코스 추적 중 앱이 백그라운드에 있어도 위치를 기록하기 위해 항상 위치 접근 권한이 필요합니다.",
+        isIosBackgroundLocationEnabled: true,
+        isAndroidBackgroundLocationEnabled: true,
+      },
+    ],
+    [
+      "expo-media-library",
+      {
+        savePhotosPermission:
+          "포토 리포트 이미지를 사진첩에 저장하기 위해 접근 권한이 필요합니다.",
+      },
+    ],
     "./plugins/withModularHeaders",
     "./plugins/withLiveActivity",
     [
@@ -108,13 +128,13 @@ const config = {
       },
     ],
     "expo-apple-authentication",
-    "expo-image-picker",
     "expo-web-browser",
     [
       "expo-image-picker",
       {
         photosPermission:
           "사진첩에 접근하여 포토 리포트에 사용할 사진을 가져옵니다.",
+        microphonePermission: false,
       },
     ],
     ...(hasKakaoNativeAppKey
