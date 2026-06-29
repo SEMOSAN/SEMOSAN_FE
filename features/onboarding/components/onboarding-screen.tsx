@@ -230,6 +230,15 @@ export function OnboardingScreen() {
           <View className="h-1 w-1/4 bg-secondary-normal" />
         </View>
 
+        {/* 건너뛰기 */}
+        <View className="items-end px-5 pt-3">
+          <Pressable onPress={() => router.replace("/(tabs)")} hitSlop={8}>
+            <Text className="typo-body-2-normal-regular text-label-subtler">
+              건너뛰기
+            </Text>
+          </Pressable>
+        </View>
+
         <ScrollView
           ref={scrollRef}
           className="flex-1"
