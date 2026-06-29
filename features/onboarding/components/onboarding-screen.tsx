@@ -230,15 +230,6 @@ export function OnboardingScreen() {
           <View className="h-1 w-1/4 bg-secondary-normal" />
         </View>
 
-        {/* 건너뛰기 */}
-        <View className="items-end px-5 pt-3">
-          <Pressable onPress={() => router.replace("/(tabs)")} hitSlop={8}>
-            <Text className="typo-body-2-normal-regular text-label-subtler">
-              건너뛰기
-            </Text>
-          </Pressable>
-        </View>
-
         <ScrollView
           ref={scrollRef}
           className="flex-1"
@@ -246,9 +237,16 @@ export function OnboardingScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
-          <Text className="text-label-normal typo-heading-1-semi-bold">
-            프로필 정보를 입력해 주세요
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <Text className="text-label-normal typo-heading-1-semi-bold">
+              프로필 정보를 입력해 주세요
+            </Text>
+            <Pressable onPress={() => router.replace("/(tabs)")} hitSlop={8}>
+              <Text className="typo-body-2-normal-regular text-label-subtler">
+                건너뛰기
+              </Text>
+            </Pressable>
+          </View>
 
           <View className="mt-6 gap-6">
             {/* 아바타 */}
