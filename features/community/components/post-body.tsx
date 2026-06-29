@@ -6,6 +6,9 @@ import {
 } from "@/components/icons/heart-icon";
 import { SirenIcon } from "@/components/icons/siren-icon";
 import { TrashIcon } from "@/components/icons/trash-icon";
+import { UserBlockIcon } from "@/components/icons/user-block-icon";
+import { useBlockUser } from "@/features/community/hooks/use-block-user";
+import { ApiError } from "@/lib/api";
 import { useTogglePostLike } from "@/features/community/hooks/use-post-like";
 import { useReportPost } from "@/features/community/hooks/use-report-post";
 import { formatDate } from "@/lib/utils";
@@ -53,10 +56,12 @@ export function PostBody({
 }: PostBodyProps) {
   const { mutate: toggleLike } = useTogglePostLike(post.id!);
   const { mutate: reportPost } = useReportPost(post.id!);
+  const { mutate: blockUser } = useBlockUser(post.id!);
   const [liked, setLiked] = useState(post.likedByMe ?? false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
+  const [blockModalVisible, setBlockModalVisible] = useState(false);
   const buttonRef = useRef<View>(null);
 
   const isAuthor =
@@ -82,6 +87,28 @@ export function PostBody({
         onPress: onDelete,
       },
     ]);
+  }
+
+  function handleBlock(): void {
+    setMenuVisible(false);
+    setBlockModalVisible(true);
+  }
+
+  function confirmBlock(): void {
+    setBlockModalVisible(false);
+    blockUser(undefined, {
+      onSuccess: () =>
+        Alert.alert("차단 완료", "해당 사용자를 차단했습니다."),
+      onError: (error) => {
+        if (error instanceof ApiError && error.statusCode === 400) {
+          Alert.alert("차단 불가", "자기 자신은 차단할 수 없습니다.");
+        } else if (error instanceof ApiError && error.statusCode === 404) {
+          Alert.alert("오류", "게시글을 찾을 수 없습니다.");
+        } else {
+          Alert.alert("오류", "차단 처리 중 오류가 발생했습니다.");
+        }
+      },
+    });
   }
 
   function handleReport(): void {
@@ -268,9 +295,8 @@ export function PostBody({
                   </View>
                 </Pressable>
 
-                {/* TODO : 차단 API 나오기 전까지 임시 주석처리 */}
-                {/* <View style={{ height: 1, backgroundColor: "#f0f0f0" }} /> */}
-                {/* <Pressable
+                <View style={{ height: 1, backgroundColor: "#f0f0f0" }} />
+                <Pressable
                   onPress={handleBlock}
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.7 : 1,
@@ -296,11 +322,85 @@ export function PostBody({
                       차단하기
                     </Text>
                   </View>
-                </Pressable> */}
+                </Pressable>
               </>
             )}
           </View>
         </Pressable>
+      </Modal>
+
+      <Modal
+        visible={blockModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setBlockModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+          }}
+        >
+          <View
+            className="bg-fill-normal"
+            style={{
+              borderRadius: 16,
+              padding: 24,
+              gap: 24,
+            }}
+          >
+            <View style={{ gap: 8 }}>
+              <Text className="typo-heading-1-semi-bold text-label-normal">
+                사용자를 차단할까요?
+              </Text>
+              <Text className="typo-body-1-normal-regular text-label-normal">
+                차단한 사용자는 [마이페이지 {">"} 차단목록]에서 관리할 수 있어요.
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <View
+                className="bg-fill-stronger"
+                style={{ flex: 1, height: 52, borderRadius: 10, justifyContent: "center", alignItems: "center" }}
+              >
+                <Pressable
+                  onPress={() => setBlockModalVisible(false)}
+                  style={({ pressed }) => ({
+                    position: "absolute",
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text className="typo-label-large text-label-subtle">
+                    취소
+                  </Text>
+                </Pressable>
+              </View>
+              <View
+                className="bg-status-negative-normal"
+                style={{ flex: 1, height: 52, borderRadius: 10, justifyContent: "center", alignItems: "center" }}
+              >
+                <Pressable
+                  onPress={confirmBlock}
+                  style={({ pressed }) => ({
+                    position: "absolute",
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text className="typo-label-large text-label-normal-inverse">
+                    차단하기
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </View>
       </Modal>
 
       <ImageViewerModal
