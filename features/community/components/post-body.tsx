@@ -8,6 +8,7 @@ import { SirenIcon } from "@/components/icons/siren-icon";
 import { TrashIcon } from "@/components/icons/trash-icon";
 import { UserBlockIcon } from "@/components/icons/user-block-icon";
 import { useBlockUser } from "@/features/community/hooks/use-block-user";
+import { ApiError } from "@/lib/api";
 import { useTogglePostLike } from "@/features/community/hooks/use-post-like";
 import { useReportPost } from "@/features/community/hooks/use-report-post";
 import { formatDate } from "@/lib/utils";
@@ -98,8 +99,15 @@ export function PostBody({
     blockUser(undefined, {
       onSuccess: () =>
         Alert.alert("차단 완료", "해당 사용자를 차단했습니다."),
-      onError: () =>
-        Alert.alert("오류", "차단 처리 중 오류가 발생했습니다."),
+      onError: (error) => {
+        if (error instanceof ApiError && error.statusCode === 400) {
+          Alert.alert("차단 불가", "자기 자신은 차단할 수 없습니다.");
+        } else if (error instanceof ApiError && error.statusCode === 404) {
+          Alert.alert("오류", "게시글을 찾을 수 없습니다.");
+        } else {
+          Alert.alert("오류", "차단 처리 중 오류가 발생했습니다.");
+        }
+      },
     });
   }
 

@@ -7,7 +7,6 @@ export function useBlockUser(postId: number) {
     mutationFn: async () => {
       const { data } = await api.post({
         path: ENDPOINTS.COMMUNITY_FREE_POSTS_BY_POSTID_BLOCKS(postId),
-        body: {},
       });
 
       return data;
