@@ -1,3 +1,5 @@
 {
-  "NSLocationWhenInUseUsageDescription": "SEMOSAN uses your location to find nearby mountains and show your position on the map during hiking. For example, we use it for nearby mountain recommendations and route tracking."
+  "NSLocationWhenInUseUsageDescription": "SEMOSAN uses your location to find nearby mountains and show your position on the map during hiking. For example, we use it for nearby mountain recommendations and route tracking.",
+  "NSLocationAlwaysAndWhenInUseUsageDescription": "SEMOSAN requires location access even in the background to record your hiking route during course tracking.",
+  "NSLocationAlwaysUsageDescription": "SEMOSAN requires location access even in the background to record your hiking route during course tracking."
 }
