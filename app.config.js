@@ -38,6 +38,7 @@ const config = {
   },
   locales: {
     ko: "./locales/ko.json",
+    en: "./locales/en.json",
   },
   android: {
     ...(hasAndroidGoogleServiceFile
@@ -78,7 +79,7 @@ const config = {
       "expo-location",
       {
         locationWhenInUsePermission:
-          "내 위치 기반 코스 추천 및 현재 위치 표시를 위해 위치 정보 접근이 필요합니다.",
+          "현재 위치를 사용해 주변 산을 찾고, 지도에서 내 위치와 등산 경로를 안내합니다. 예: 가까운 산 추천 및 트래킹 중 현재 위치 표시",
         locationAlwaysAndWhenInUsePermission:
           "코스 추적 중 앱이 백그라운드에 있어도 위치를 기록하기 위해 항상 위치 접근 권한이 필요합니다.",
         locationAlwaysPermission:
