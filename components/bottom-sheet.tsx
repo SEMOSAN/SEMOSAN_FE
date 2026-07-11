@@ -23,6 +23,7 @@ type Props = {
   scrollEnabled?: boolean;
   onDetailOpenChange?: (isOpen: boolean) => void;
   closeSelectedToken?: number;
+  selectedMountainId?: number | null;
 };
 
 const TABS: Tab[] = ["내 기록", "큐레이션"];
@@ -38,6 +39,7 @@ export default function BottomSheet({
   scrollEnabled = false,
   onDetailOpenChange,
   closeSelectedToken,
+  selectedMountainId,
 }: Props) {
   const router = useRouter();
   const [internalTab, setInternalTab] = useState<Tab>("내 기록");
@@ -59,6 +61,12 @@ export default function BottomSheet({
       setSelectedCard(null);
     }
   }, [closeSelectedToken]);
+
+  useEffect(() => {
+    if (selectedMountainId == null) return;
+    const card = cards?.find((c) => c.mountainId === selectedMountainId);
+    if (card) setSelectedCard(card);
+  }, [selectedMountainId, cards]);
 
   const { data: mountainRecords } = useMyMountainRecords(
     selectedCard?.mountainId,

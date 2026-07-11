@@ -65,12 +65,14 @@ type VisitedMarkerOverlayProps = {
   mountain: MountainMapItem;
   selected: boolean;
   imageUri?: string;
+  onPress: () => void;
 };
 
 const VisitedMarkerOverlay = memo(function VisitedMarkerOverlay({
   mountain,
   selected,
   imageUri,
+  onPress,
 }: VisitedMarkerOverlayProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -81,7 +83,7 @@ const VisitedMarkerOverlay = memo(function VisitedMarkerOverlay({
       width={VISITED_MARKER_OVERLAY_WIDTH}
       height={VISITED_MARKER_OVERLAY_HEIGHT}
       anchor={{ x: 0.2, y: 1 }}
-      onTap={() => router.push(`/mountains/${mountain.id}`)}
+      onTap={onPress}
     >
       <View
         key={`${selected} ${isLoaded}`}
@@ -204,6 +206,10 @@ const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
                     imageUri={
                       myMountainImageMap[mountain.id] ?? mountain.imageUrl
                     }
+                    onPress={() => {
+                      setSelectedMountainId(mountain.id);
+                      sheetRef.current?.expandToDefault();
+                    }}
                   />
                 ))
             : mapData?.mountains?.map((mountain) => (
@@ -267,6 +273,7 @@ const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
                 onCardSelect={(id) => setSelectedMountainId(Number(id))}
                 onDetailOpenChange={handleDetailOpenChange}
                 closeSelectedToken={closeSelectedToken}
+                selectedMountainId={selectedMountainId}
               />
             ) : (
               <NoRecordBottomSheet
