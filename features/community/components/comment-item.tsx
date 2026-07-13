@@ -1,4 +1,4 @@
-import { useBlockUser } from "@/features/community/hooks/use-block-user";
+import { useBlockCommentUser } from "@/features/community/hooks/use-block-comment-user";
 import { useCommentReplies } from "@/features/community/hooks/use-comment-replies";
 import { useDeleteComment } from "@/features/community/hooks/use-delete-comment";
 import { ApiError } from "@/lib/api";
@@ -57,7 +57,7 @@ function ReplyItem({
   const isAuthor =
     !!currentUserNickname && reply.author?.nickname === currentUserNickname;
   const { mutate: deleteComment } = useDeleteComment(postId, parentCommentId);
-  const { mutate: blockUser } = useBlockUser(postId);
+  const { mutate: blockUser } = useBlockCommentUser(reply.id!);
 
   function handleLongPress(): void {
     if (isAuthor) return;
@@ -67,6 +67,8 @@ function ReplyItem({
         onError: (error) => {
           if (error instanceof ApiError && error.statusCode === 400) {
             Alert.alert("차단 불가", "자기 자신은 차단할 수 없습니다.");
+          } else if (error instanceof ApiError && error.statusCode === 404) {
+            Alert.alert("오류", "댓글 또는 사용자를 찾을 수 없습니다.");
           } else {
             Alert.alert("오류", "차단 처리 중 오류가 발생했습니다.");
           }
@@ -141,7 +143,7 @@ export function CommentItem({
   const isAuthor =
     !!currentUserNickname && comment.author?.nickname === currentUserNickname;
   const { mutate: deleteComment } = useDeleteComment(postId);
-  const { mutate: blockUser } = useBlockUser(postId);
+  const { mutate: blockUser } = useBlockCommentUser(comment.id!);
   const { data: replies = [] } = useCommentReplies(comment.id!);
 
   function handleLongPress(): void {
@@ -152,6 +154,8 @@ export function CommentItem({
         onError: (error) => {
           if (error instanceof ApiError && error.statusCode === 400) {
             Alert.alert("차단 불가", "자기 자신은 차단할 수 없습니다.");
+          } else if (error instanceof ApiError && error.statusCode === 404) {
+            Alert.alert("오류", "댓글 또는 사용자를 찾을 수 없습니다.");
           } else {
             Alert.alert("오류", "차단 처리 중 오류가 발생했습니다.");
           }
