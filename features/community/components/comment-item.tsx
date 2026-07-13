@@ -1,8 +1,10 @@
+import { useBlockUser } from "@/features/community/hooks/use-block-user";
 import { useCommentReplies } from "@/features/community/hooks/use-comment-replies";
 import { useDeleteComment } from "@/features/community/hooks/use-delete-comment";
+import { ApiError } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { CommentResponse } from "@/types/api.generated";
-import { Alert, Pressable, Text, View } from "react-native";
+import { ActionSheetIOS, Alert, Platform, Pressable, Text, View } from "react-native";
 import { PostAvatar } from "./post-avatar";
 
 function confirmDelete(onConfirm: () => void): void {
@@ -11,6 +13,27 @@ function confirmDelete(onConfirm: () => void): void {
     { text: "삭제", style: "destructive", onPress: onConfirm },
   ]);
 }
+
+function showBlockSheet(onBlock: () => void): void {
+  if (Platform.OS === "ios") {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: ["취소", "차단하기"],
+        destructiveButtonIndex: 1,
+        cancelButtonIndex: 0,
+      },
+      (index) => {
+        if (index === 1) onBlock();
+      },
+    );
+  } else {
+    Alert.alert("차단하기", "해당 사용자를 차단하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      { text: "차단하기", style: "destructive", onPress: onBlock },
+    ]);
+  }
+}
+
 
 type ReplyItemProps = {
   reply: CommentResponse;
@@ -34,9 +57,30 @@ function ReplyItem({
   const isAuthor =
     !!currentUserNickname && reply.author?.nickname === currentUserNickname;
   const { mutate: deleteComment } = useDeleteComment(postId, parentCommentId);
+  const { mutate: blockUser } = useBlockUser(postId);
+
+  function handleLongPress(): void {
+    if (isAuthor) return;
+    showBlockSheet(() =>
+      blockUser(undefined, {
+        onSuccess: () => Alert.alert("차단 완료", "해당 사용자를 차단했습니다."),
+        onError: (error) => {
+          if (error instanceof ApiError && error.statusCode === 400) {
+            Alert.alert("차단 불가", "자기 자신은 차단할 수 없습니다.");
+          } else {
+            Alert.alert("오류", "차단 처리 중 오류가 발생했습니다.");
+          }
+        },
+      }),
+    );
+  }
 
   return (
-    <View className="flex-row gap-2 py-3 pl-[38px]">
+    <Pressable
+      className="flex-row gap-2 py-3 pl-[38px]"
+      onLongPress={handleLongPress}
+      delayLongPress={400}
+    >
       <PostAvatar size="sm" imageUrl={reply.author?.profileUrl} />
       <View className="flex-1 gap-1">
         <View className="flex-row flex-wrap items-center gap-1">
@@ -73,7 +117,7 @@ function ReplyItem({
           )}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -97,11 +141,32 @@ export function CommentItem({
   const isAuthor =
     !!currentUserNickname && comment.author?.nickname === currentUserNickname;
   const { mutate: deleteComment } = useDeleteComment(postId);
+  const { mutate: blockUser } = useBlockUser(postId);
   const { data: replies = [] } = useCommentReplies(comment.id!);
+
+  function handleLongPress(): void {
+    if (isAuthor) return;
+    showBlockSheet(() =>
+      blockUser(undefined, {
+        onSuccess: () => Alert.alert("차단 완료", "해당 사용자를 차단했습니다."),
+        onError: (error) => {
+          if (error instanceof ApiError && error.statusCode === 400) {
+            Alert.alert("차단 불가", "자기 자신은 차단할 수 없습니다.");
+          } else {
+            Alert.alert("오류", "차단 처리 중 오류가 발생했습니다.");
+          }
+        },
+      }),
+    );
+  }
 
   return (
     <View>
-      <View className="flex-row gap-2 py-3">
+      <Pressable
+        className="flex-row gap-2 py-3"
+        onLongPress={handleLongPress}
+        delayLongPress={400}
+      >
         <PostAvatar size="md" imageUrl={comment.author?.profileUrl} />
         <View className="flex-1 gap-1">
           <View className="flex-row flex-wrap items-center gap-1">
@@ -140,7 +205,7 @@ export function CommentItem({
             )}
           </View>
         </View>
-      </View>
+      </Pressable>
       {replies.map((reply) => (
         <ReplyItem
           key={reply.id}
