@@ -713,8 +713,10 @@ export default function TrackingScreen() {
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
 
-  // polyline 로드되거나 트래킹 시작 시 전체 경로가 보이도록 카메라 맞춤
+  // 트래킹 시작 전, polyline 로드 시 전체 경로가 보이도록 카메라 맞춤 (코스 미리보기)
+  // 트래킹 중에는 현위치 follow가 카메라를 담당하므로 전체 맞춤을 하지 않음
   useEffect(() => {
+    if (isTracking) return;
     if (courseCoords.length < 2) return;
 
     const timer = setTimeout(() => {
@@ -741,15 +743,11 @@ export default function TrackingScreen() {
   }, [courseDetail?.polyline, isTracking]);
 
   // 트래킹 시작/종료 시 follow 모드 토글
-  // 코스 따라가기: 시작 시 전체 코스가 보이도록 follow 비활성 (위치 버튼으로 재활성 가능)
-  // 자유기록: 시작 시 현위치 follow 활성
+  // 트래킹 중(코스·자유기록 공통): 현위치가 지도 중앙에 오도록 follow 활성
+  // (사용자가 직접 지도를 조작하면 onCameraChanged에서 follow 해제)
   useEffect(() => {
-    if (isTracking) {
-      setIsFollowingUser(isFreeMode);
-    } else {
-      setIsFollowingUser(false);
-    }
-  }, [isTracking, isFreeMode]);
+    setIsFollowingUser(isTracking);
+  }, [isTracking]);
 
   // 트래킹 중 실시간 위치 마커 카메라 추적 (사용자가 직접 조작하면 follow 해제)
   useEffect(() => {
