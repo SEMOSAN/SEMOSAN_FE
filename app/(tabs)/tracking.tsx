@@ -97,6 +97,28 @@ const SEGMENT_COLORS: Record<string, { color: string }> = {
 // 좌표 개수가 MIN_SEGMENT_COORDS 미만인 짧은 세그먼트를 앞 세그먼트에 흡수해 색 전환 빈도를 줄임
 const MIN_SEGMENT_COORDS = 8;
 
+// GPS 튐(outlier) 좌표 필터링 기준 — 누적 경로가 삐죽하게 그려지는 문제 방지
+const MAX_LOCATION_ACCURACY_M = 30; // 정확도(m)가 이보다 나쁘면서 크게 튄 좌표는 버림
+const MIN_JUMP_M = 20; // 이보다 작은 이동은 속도 판정에서 제외 (정지 시 노이즈)
+const MAX_SPEED_MPS = 30; // 이보다 빠른 이동(≈108km/h)은 비현실적 → 튐 좌표로 간주
+
+// 두 좌표 간 거리(m) — Haversine
+function haversineMeters(
+  a: { latitude: number; longitude: number },
+  b: { latitude: number; longitude: number },
+): number {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLng = toRad(b.longitude - a.longitude);
+  const lat1 = toRad(a.latitude);
+  const lat2 = toRad(b.latitude);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
 function mergeShortSegments(
   segments: { startIdx: number; endIdx: number; grade: string }[],
 ): { startIdx: number; endIdx: number; grade: string }[] {
@@ -175,6 +197,12 @@ export default function TrackingScreen() {
   const backgroundedAtRef = useRef<number | null>(null);
   // 위치 업데이트 중복 방지 — foreground watch + background task 동시 수신 대비
   const lastLocationTsRef = useRef(0);
+  // 직전에 채택된 좌표 — GPS 튐 좌표 필터링용 (누적 경로 왜곡 방지)
+  const lastAcceptedCoordRef = useRef<{
+    latitude: number;
+    longitude: number;
+    timestamp: number;
+  } | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
   const isMountedRef = useRef(true);
@@ -249,12 +277,30 @@ export default function TrackingScreen() {
       latitude: number;
       longitude: number;
       altitude: number | null;
+      accuracy?: number | null;
       timestamp: number;
     }) => {
       if (loc.timestamp && loc.timestamp <= lastLocationTsRef.current) return;
       lastLocationTsRef.current = loc.timestamp || Date.now();
 
-      const { latitude, longitude, altitude, timestamp } = loc;
+      const { latitude, longitude, altitude, accuracy, timestamp } = loc;
+
+      // GPS 튐 좌표 제거 — 직전 채택 좌표 대비 비현실적 점프/저정확도 좌표는 버림
+      const last = lastAcceptedCoordRef.current;
+      if (last) {
+        const dist = haversineMeters(last, { latitude, longitude });
+        const dtSec = (timestamp - last.timestamp) / 1000;
+        const speed = dtSec > 0 ? dist / dtSec : 0;
+        const inaccurateJump =
+          accuracy != null &&
+          accuracy > MAX_LOCATION_ACCURACY_M &&
+          dist > MAX_LOCATION_ACCURACY_M;
+        const teleport = dist > MIN_JUMP_M && speed > MAX_SPEED_MPS;
+        // 마커·경로·publish 모두 스킵 (다음 좌표는 마지막 정상 좌표 기준으로 재판정)
+        if (inaccurateJump || teleport) return;
+      }
+      lastAcceptedCoordRef.current = { latitude, longitude, timestamp };
+
       setUserLocation({ latitude, longitude, altitude });
       setMarkerCoord({ latitude, longitude });
       setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
@@ -314,6 +360,7 @@ export default function TrackingScreen() {
       // GPS 추적 재시작 — 백그라운드 포함
       sessionIdRef.current = activeSession.sessionId;
       lastLocationTsRef.current = 0;
+      lastAcceptedCoordRef.current = null;
       setLocationTaskCallback(handleLocationUpdate);
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
@@ -737,6 +784,7 @@ export default function TrackingScreen() {
               latitude: loc.coords.latitude,
               longitude: loc.coords.longitude,
               altitude: loc.coords.altitude,
+              accuracy: loc.coords.accuracy,
               timestamp: loc.timestamp,
             }),
         );
@@ -794,6 +842,7 @@ export default function TrackingScreen() {
                 // GPS 추적 시작 — 백그라운드 포함
                 setRecordedCoords([]);
                 lastLocationTsRef.current = 0;
+                lastAcceptedCoordRef.current = null;
                 setLocationTaskCallback(handleLocationUpdate);
                 startLocationTask().catch((err) => {
                   console.warn("[Location] 백그라운드 위치 시작 실패:", err);
