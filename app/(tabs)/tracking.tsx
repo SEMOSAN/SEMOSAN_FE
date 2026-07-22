@@ -85,7 +85,6 @@ const { colors } = require("../../tokens.cjs") as {
 };
 const COLOR_WHITE = colors.common["100"]; // #ffffff
 
-
 // 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)
 const SEGMENT_COLORS: Record<string, { color: string }> = {
   STEEP_DOWN: { color: "#2563EB" },
@@ -174,6 +173,8 @@ export default function TrackingScreen() {
     { latitude: number; longitude: number }[]
   >([]);
   const backgroundedAtRef = useRef<number | null>(null);
+  // 위치 업데이트 중복 방지 — foreground watch + background task 동시 수신 대비
+  const lastLocationTsRef = useRef(0);
   const mapRef = useRef<NaverMapViewRef>(null);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
   const isMountedRef = useRef(true);
@@ -237,6 +238,40 @@ export default function TrackingScreen() {
     onPhotoWindow: handlePhotoWindow,
   });
 
+  // sessionId를 ref로 미러링 — 위치 콜백에서 항상 최신 값 참조
+  const sessionIdRef = useRef<number | null>(null);
+  sessionIdRef.current = sessionId;
+
+  // 포어그라운드 watch + 백그라운드 task 공용 위치 업데이트 핸들러
+  // 동일/과거 타임스탬프는 무시해 두 소스 동시 수신 시 좌표·publish 중복 방지
+  const handleLocationUpdate = useCallback(
+    (loc: {
+      latitude: number;
+      longitude: number;
+      altitude: number | null;
+      timestamp: number;
+    }) => {
+      if (loc.timestamp && loc.timestamp <= lastLocationTsRef.current) return;
+      lastLocationTsRef.current = loc.timestamp || Date.now();
+
+      const { latitude, longitude, altitude, timestamp } = loc;
+      setUserLocation({ latitude, longitude, altitude });
+      setMarkerCoord({ latitude, longitude });
+      setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
+
+      const sid = sessionIdRef.current;
+      if (sid != null) {
+        publishGps(sid, {
+          lat: latitude,
+          lng: longitude,
+          altitude,
+          recordedAt: new Date(timestamp).toISOString(),
+        });
+      }
+    },
+    [publishGps],
+  );
+
   // 포어그라운드 FCM 수신 (백그라운드는 OS가 시스템 알림으로 자동 처리)
   useTrackingFcm({ enabled: isTracking, onPhotoWindow: handlePhotoWindow });
 
@@ -277,20 +312,9 @@ export default function TrackingScreen() {
       }
       connectSocket(activeSession.sessionId);
       // GPS 추적 재시작 — 백그라운드 포함
-      const sid = activeSession.sessionId;
-      setLocationTaskCallback(
-        ({ latitude, longitude, altitude, timestamp }) => {
-          setUserLocation({ latitude, longitude, altitude });
-          setMarkerCoord({ latitude, longitude });
-          setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-          publishGps(sid, {
-            lat: latitude,
-            lng: longitude,
-            altitude,
-            recordedAt: new Date(timestamp).toISOString(),
-          });
-        },
-      );
+      sessionIdRef.current = activeSession.sessionId;
+      lastLocationTsRef.current = 0;
+      setLocationTaskCallback(handleLocationUpdate);
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
@@ -691,6 +715,45 @@ export default function TrackingScreen() {
     });
   }, [markerCoord, isFollowingUser]);
 
+  // 포어그라운드 실시간 위치 추적 — 앱이 열려 있는 동안 마커/경로 갱신을 담당.
+  // 백그라운드 task는 "항상" 위치 권한이 있어야 시작되므로, 권한을 "앱 사용 중"만
+  // 허용한 경우 마커가 갱신되지 않던 문제를 해결한다. (화면이 꺼졌을 때는 백그라운드 task가 담당)
+  useEffect(() => {
+    if (!isTracking) return;
+    let sub: Location.LocationSubscription | null = null;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        sub = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.BestForNavigation,
+            timeInterval: 2000,
+            distanceInterval: 5,
+          },
+          (loc) =>
+            handleLocationUpdate({
+              latitude: loc.coords.latitude,
+              longitude: loc.coords.longitude,
+              altitude: loc.coords.altitude,
+              timestamp: loc.timestamp,
+            }),
+        );
+        // await 도중 언마운트/트래킹 종료된 경우 즉시 해제
+        if (cancelled) {
+          sub.remove();
+          sub = null;
+        }
+      } catch (err) {
+        console.warn("[Location] 포어그라운드 위치 추적 실패:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      sub?.remove();
+    };
+  }, [isTracking, handleLocationUpdate]);
 
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
@@ -725,26 +788,13 @@ export default function TrackingScreen() {
               if (data.sessionId != null) {
                 const sid = data.sessionId;
                 setSessionId(sid);
+                sessionIdRef.current = sid;
                 // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
                 connectSocket(sid);
                 // GPS 추적 시작 — 백그라운드 포함
                 setRecordedCoords([]);
-                setLocationTaskCallback(
-                  ({ latitude, longitude, altitude, timestamp }) => {
-                    setUserLocation({ latitude, longitude, altitude });
-                    setMarkerCoord({ latitude, longitude });
-                    setRecordedCoords((prev) => [
-                      ...prev,
-                      { latitude, longitude },
-                    ]);
-                    publishGps(sid, {
-                      lat: latitude,
-                      lng: longitude,
-                      altitude,
-                      recordedAt: new Date(timestamp).toISOString(),
-                    });
-                  },
-                );
+                lastLocationTsRef.current = 0;
+                setLocationTaskCallback(handleLocationUpdate);
                 startLocationTask().catch((err) => {
                   console.warn("[Location] 백그라운드 위치 시작 실패:", err);
                 });
