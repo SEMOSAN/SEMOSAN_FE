@@ -61,23 +61,6 @@ export function RestaurantTab() {
                 </View>
               </Pressable>
             ))}
-            {/* TODO : 화면 개발되면 추가 */}
-            {/* 더보기 버튼은 앞에 아이템 3개 이상일때 부터 추가 */}
-            {/* {(section.restaurants?.length ?? 0) >= 3 && (
-              <Pressable
-                className="h-[116px] w-[188px] items-center justify-center gap-1 rounded-[10px] bg-fill-stronger"
-                onPress={() => {
-                  // TODO: 맛집 더보기 화면으로 이동
-                }}
-              >
-                <Text className="text-center text-label-subtle typo-body-2-normal-semi-bold">
-                  {section.title}
-                </Text>
-                <Text className="text-label-subtler typo-body-2-normal-regular">
-                  {"더보기 >"}
-                </Text>
-              </Pressable>
-            )} */}
           </ScrollView>
         </View>
       ))}
