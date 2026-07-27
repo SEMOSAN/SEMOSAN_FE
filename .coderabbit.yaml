@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit 설정 — 리뷰 언어/강도 및 자동생성·lock·네이티브 파일 제외
+language: ko-KR
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+  # 리뷰 제외 경로 — 자동생성물/락파일/네이티브/에셋은 리뷰 낭비이므로 제외
+  path_filters:
+    - "!tokens/**" # Figma 내보내기 (직접 수정 금지)
+    - "!tokens.cjs" # npm run tokens 자동생성
+    - "!typography-plugin.cjs" # npm run tokens 자동생성
+    - "!css/variables.css" # npm run tokens 자동생성
+    - "!css/typography.css" # npm run tokens 자동생성
+    - "!global.css" # Tailwind 진입점 (자동생성 import)
+    - "!package-lock.json" # 의존성 락파일
+    - "!ios/**" # prebuild 생성 네이티브 프로젝트
+    - "!android/**" # prebuild 생성 네이티브 프로젝트
+    - "!**/*.png"
+    - "!**/*.jpg"
+    - "!**/*.jpeg"
+    - "!**/*.svg"
+chat:
+  auto_reply: true
