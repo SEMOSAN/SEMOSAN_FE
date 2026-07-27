@@ -36,7 +36,7 @@
     "@tokens-studio/sd-transforms": "^2.0.3",
     "axios": "^1.15.2",
     "babel-preset-expo": "~54.0.10",
-    "expo": "~54.0.35",
+    "expo": "~54.0.36",
     "expo-apple-authentication": "~8.0.8",
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.21",
