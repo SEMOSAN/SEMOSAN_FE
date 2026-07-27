@@ -10,7 +10,7 @@ const hasKakaoNativeAppKey = !!process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 const config = {
   name: "semosan",
   slug: "semosan",
-  version: "1.0.0",
+  version: "1.1",
   orientation: "portrait",
   icon: "./assets/images/app-icon.png",
   scheme: "semosan",
