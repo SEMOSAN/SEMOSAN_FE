@@ -85,7 +85,6 @@ const { colors } = require("../../tokens.cjs") as {
 };
 const COLOR_WHITE = colors.common["100"]; // #ffffff
 
-
 // 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)
 const SEGMENT_COLORS: Record<string, { color: string }> = {
   STEEP_DOWN: { color: "#2563EB" },
@@ -294,7 +293,25 @@ export default function TrackingScreen() {
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
-      setElapsedSeconds(0);
+      // 강제 종료 후 재진입 시 경과 시간을 서버 기준으로 복원 (0으로 초기화 방지)
+      // 등산 시간 = (기준 시각 - 시작 시각) - 누적 일시정지 시간
+      //   IN_PROGRESS: 기준 시각 = 현재, PAUSED: 기준 시각 = 일시정지 시각(시간 정지)
+      setElapsedSeconds(() => {
+        const startedMs = activeSession.startedAt
+          ? new Date(activeSession.startedAt).getTime()
+          : NaN;
+        if (Number.isNaN(startedMs)) return 0;
+        const pausedTotal = activeSession.pausedSecondsTotal ?? 0;
+        const refMs =
+          status === "PAUSED" && activeSession.pausedAt
+            ? new Date(activeSession.pausedAt).getTime()
+            : Date.now();
+        if (Number.isNaN(refMs)) return 0;
+        return Math.max(
+          0,
+          Math.floor((refMs - startedMs) / 1000) - pausedTotal,
+        );
+      });
     }
   }, [activeSession]);
 
@@ -690,7 +707,6 @@ export default function TrackingScreen() {
       duration: 800,
     });
   }, [markerCoord, isFollowingUser]);
-
 
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
