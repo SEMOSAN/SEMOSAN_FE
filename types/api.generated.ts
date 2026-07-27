@@ -556,6 +556,7 @@ export type RestaurantInfo = {
   name?: string;
   category?: string;
   imageUrl?: string;
+  mapUrl?: string;
 };
 export type RestaurantSectionInfo = {
   title?: string;
