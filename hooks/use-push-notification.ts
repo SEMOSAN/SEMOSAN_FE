@@ -156,7 +156,9 @@ function navigateByType(
     case 'COMMUNITY_REPLY':
     case 'COMMUNITY_LIKE':
     case 'COMMUNITY_MENTION':
-      push(`/community/${extras.postId}`);
+      // 자유게시판 게시글 상세 라우트는 /community/free-board/[id]
+      // (기존 /community/[postId]는 매칭되는 라우트가 없어 unmatched route 발생)
+      push(`/community/free-board/${extras.postId}`);
       break;
 
     case 'FOLLOW_RECEIVED':
