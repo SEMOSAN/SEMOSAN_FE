@@ -365,7 +365,25 @@ export default function TrackingScreen() {
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
-      setElapsedSeconds(0);
+      // 강제 종료 후 재진입 시 경과 시간을 서버 기준으로 복원 (0으로 초기화 방지)
+      // 등산 시간 = (기준 시각 - 시작 시각) - 누적 일시정지 시간
+      //   IN_PROGRESS: 기준 시각 = 현재, PAUSED: 기준 시각 = 일시정지 시각(시간 정지)
+      setElapsedSeconds(() => {
+        const startedMs = activeSession.startedAt
+          ? new Date(activeSession.startedAt).getTime()
+          : NaN;
+        if (Number.isNaN(startedMs)) return 0;
+        const pausedTotal = activeSession.pausedSecondsTotal ?? 0;
+        const refMs =
+          status === "PAUSED" && activeSession.pausedAt
+            ? new Date(activeSession.pausedAt).getTime()
+            : Date.now();
+        if (Number.isNaN(refMs)) return 0;
+        return Math.max(
+          0,
+          Math.floor((refMs - startedMs) / 1000) - pausedTotal,
+        );
+      });
     }
   }, [activeSession]);
 
