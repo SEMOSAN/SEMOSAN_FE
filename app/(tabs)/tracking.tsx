@@ -53,6 +53,7 @@ import {
   LiveActivity,
   addLiveActivityControlListener,
 } from "@/modules/live-activity";
+import { toast } from "@/store/toast.store";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -1086,6 +1087,20 @@ export default function TrackingScreen() {
   const requestStop = () => setShowStopModal(true);
 
   const handleCameraPress = async () => {
+    // 카메라를 열기 전에 인증 창을 먼저 확정 — 촬영 도중 창이 닫혀 사진이
+    // 조용히 버려지는 것을 막고, 이미 닫혔다면 촬영 전에 바로 안내한다.
+    const isWindowOpen = photoWindow?.status === "OPEN";
+    const activeWindow = isWindowOpen
+      ? photoWindow
+      : hasSummited
+        ? summitPhotoWindowRef.current
+        : null;
+
+    if (activeWindow == null || sessionId == null) {
+      toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", { type: "error" });
+      return;
+    }
+
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       console.warn("[Camera] 카메라 권한 거부됨");
@@ -1100,37 +1115,28 @@ export default function TrackingScreen() {
 
     if (result.canceled || !result.assets?.[0]?.uri) return;
 
-    const isWindowOpen = photoWindow?.status === "OPEN";
-    // 정상 인증 후에는 summitPhotoWindowRef에 저장된 photoWindow 사용
-    const activeWindow = isWindowOpen
-      ? photoWindow
-      : hasSummited
-        ? summitPhotoWindowRef.current
-        : null;
+    try {
+      const capturedAt = new Date().toISOString();
+      const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
+      console.log("[Tracking] 인증 사진 업로드 완료:", imageUrl);
 
-    if (activeWindow != null && sessionId != null) {
-      try {
-        const capturedAt = new Date().toISOString();
-        const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
-        console.log("[Tracking] 인증 사진 업로드 완료:", imageUrl);
-
-        await savePhoto({
-          sessionId,
-          body: {
-            milestoneIndex: activeWindow.milestoneIndex,
-            milestoneDistanceM: activeWindow.milestoneDistance,
-            imageUrl,
-            capturedAt,
-            lat: userLocation?.latitude ?? 0,
-            lng: userLocation?.longitude ?? 0,
-            altitude: userLocation?.altitude ?? 0,
-          },
-        });
-        console.log("[Tracking] 사진 메타 저장 완료");
-      } catch (err) {
-        console.warn("[Tracking] 인증 사진 처리 실패:", err);
-        Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
-      }
+      await savePhoto({
+        sessionId,
+        body: {
+          milestoneIndex: activeWindow.milestoneIndex,
+          milestoneDistanceM: activeWindow.milestoneDistance,
+          imageUrl,
+          capturedAt,
+          lat: userLocation?.latitude ?? 0,
+          lng: userLocation?.longitude ?? 0,
+          altitude: userLocation?.altitude ?? 0,
+        },
+      });
+      console.log("[Tracking] 사진 메타 저장 완료");
+    } catch (err) {
+      console.warn("[Tracking] 인증 사진 처리 실패:", err);
+      Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
+      toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", { type: "error" });
     }
   };
 
