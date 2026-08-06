@@ -1,17 +1,23 @@
 import * as Sentry from "@sentry/react-native";
 import { api } from '@/lib/api';
 import { getApp } from '@react-native-firebase/app';
-import { getMessaging, getToken } from '@react-native-firebase/messaging';
+import { getMessaging, getToken, onMessage } from '@react-native-firebase/messaging';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
+// 트래킹 전용 타입 — use-tracking-fcm.ts에서 처리하므로 여기서 제외
+const TRACKING_TYPES = new Set(['TRACKING_PHOTO_MILESTONE', 'TRACKING_SUMMIT_REACHED']);
 
 /**
  * 앱 시작 시 FCM 토큰을 서버에 등록하고
  * 포어그라운드 알림 수신 및 알림 탭 이벤트를 처리하는 훅
+ *
+ * 역할 분리:
+ * - 이 훅: 트래킹 외 모든 FCM 포어그라운드 수신 → 시스템 배너 표시
+ * - use-tracking-fcm.ts: TRACKING_PHOTO_MILESTONE → 인앱 PhotoWindowBanner
  */
 export function usePushNotification(enabled = true): void {
   const router = useRouter();
@@ -20,20 +26,22 @@ export function usePushNotification(enabled = true): void {
     if (!enabled) return;
     registerFcmToken();
 
-    // 포어그라운드 알림 수신 — Firebase SDK 충돌로 배너가 안 뜨는 경우 로컬 알림으로 재표시
-    // TRACKING_PHOTO_MILESTONE은 use-tracking-fcm.ts에서 별도 처리하므로 제외 (무한 루프 방지)
-    const foregroundSub = Notifications.addNotificationReceivedListener(
-      async (notification) => {
-        const data = notification.request.content.data as PushData | null;
-        if (data?.type === 'TRACKING_PHOTO_MILESTONE') return;
-        const { title, body } = notification.request.content;
-        if (!title && !body) return;
-        await Notifications.scheduleNotificationAsync({
-          content: { title: title ?? 'SEMOSAN', body: body ?? '' },
-          trigger: null,
-        });
-      },
-    );
+    // 포어그라운드 FCM 수신 — Firebase SDK가 expo-notifications보다 우선하므로 onMessage 사용
+    // 트래킹 타입은 use-tracking-fcm.ts에서 처리하므로 제외
+    const fcmMessaging = getMessaging(getApp());
+    const unsubscribeFcm = onMessage(fcmMessaging, async (remoteMessage) => {
+      const type = typeof remoteMessage.data?.type === 'string' ? remoteMessage.data.type : undefined;
+      if (type && TRACKING_TYPES.has(type)) return;
+
+      const title = remoteMessage.notification?.title ?? (typeof remoteMessage.data?.title === 'string' ? remoteMessage.data.title : undefined);
+      const body = remoteMessage.notification?.body ?? (typeof remoteMessage.data?.body === 'string' ? remoteMessage.data.body : undefined);
+      if (!title && !body) return;
+
+      await Notifications.scheduleNotificationAsync({
+        content: { title: title ?? 'SEMOSAN', body: body ?? '' },
+        trigger: null,
+      });
+    });
 
     // 알림 탭 → 화면 이동
     const tapSub = Notifications.addNotificationResponseReceivedListener(
@@ -51,7 +59,7 @@ export function usePushNotification(enabled = true): void {
     });
 
     return () => {
-      foregroundSub.remove();
+      unsubscribeFcm();
       tapSub.remove();
     };
   }, [router, enabled]);
@@ -148,7 +156,9 @@ function navigateByType(
     case 'COMMUNITY_REPLY':
     case 'COMMUNITY_LIKE':
     case 'COMMUNITY_MENTION':
-      push(`/community/${extras.postId}`);
+      // 자유게시판 게시글 상세 라우트는 /community/free-board/[id]
+      // (기존 /community/[postId]는 매칭되는 라우트가 없어 unmatched route 발생)
+      push(`/community/free-board/${extras.postId}`);
       break;
 
     case 'FOLLOW_RECEIVED':

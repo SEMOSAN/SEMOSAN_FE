@@ -114,7 +114,6 @@ export default function RecordScreen() {
   const sessionId = id ? parseInt(id) : null;
   const hikingRecordIdNum = hikingRecordId ? parseInt(hikingRecordId) : null;
   const courseIdNum = courseId ? parseInt(courseId) : null;
-  const distanceKm = distance ? parseFloat(distance) / 1000 : null;
   const durationSec = duration ? parseInt(duration) : null;
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -168,6 +167,12 @@ export default function RecordScreen() {
   const { data: hikingSummary } = useHikingSummary();
   const { data: recordDetail } = useHikingRecordDetail(hikingRecordIdNum);
   const { data: courseDetail } = useCourseDetail(courseIdNum);
+  const distanceKm =
+    recordDetail?.distanceMeters != null
+      ? recordDetail.distanceMeters / 1000
+      : distance
+        ? parseFloat(distance) / 1000
+        : null;
   const displayPhotos = [...clivePhotos].reverse();
   const cliveShotRef = useRef<ViewShot | null>(null);
   const photoReportShotRef = useRef<ViewShot | null>(null);
@@ -455,26 +460,9 @@ export default function RecordScreen() {
           }}
         >
           {[
-            {
-              label: "소요시간",
-              value: formatDuration(
-                recordDetail?.durationSeconds ?? durationSec,
-              ),
-            },
-            {
-              label: "고도",
-              value:
-                recordDetail?.ascentMeters != null
-                  ? `${Math.round(recordDetail.ascentMeters)}Nm`
-                  : "--",
-            },
-            {
-              label: "칼로리",
-              value:
-                recordDetail?.calories != null
-                  ? `${recordDetail.calories}kcal`
-                  : "--",
-            },
+            { label: "소요시간", value: formatDuration(recordDetail?.durationSeconds ?? durationSec) },
+            { label: "고도", value: recordDetail?.ascentMeters != null ? `${Math.round(recordDetail.ascentMeters)}Nm` : "--" },
+            { label: "칼로리", value: recordDetail?.calories != null ? `${recordDetail.calories}kcal` : "--" },
           ].map((stat) => (
             <View key={stat.label} style={styles.statItem}>
               <Text style={styles.statLabel}>{stat.label}</Text>

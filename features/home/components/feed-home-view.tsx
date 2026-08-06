@@ -1,4 +1,5 @@
 import { ResetIcon } from "@/components/icons/reset-icon";
+import { SemoFeedResponse } from "@/types/api.generated";
 import { Image } from "expo-image";
 import { useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -51,8 +52,7 @@ export function FeedHomeView() {
   // JS 스레드 state: 가상화 계산용
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
-  // TODO : API연동되면 imageUri 아니라 id가 와야할듯.
-  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<SemoFeedResponse | null>(null);
 
   // UI 스레드 shared value: transform 갱신용
   const translateX = useSharedValue(0);
@@ -91,7 +91,7 @@ export function FeedHomeView() {
   // Pan 제스처 (디테일 열려있으면 비활성)
   // ─────────────────────────────────────────────
   const pan = Gesture.Pan()
-    .enabled(selectedImageUri === null)
+    .enabled(selectedItem === null)
     // 8px 이상 움직여야 Pan 활성화 → 그 전엔 Tap이 우선
     .activeOffsetX([-8, 8])
     .activeOffsetY([-8, 8])
@@ -153,8 +153,8 @@ export function FeedHomeView() {
             key={`${col},${row}`}
             col={col}
             row={row}
-            imageUrl={feedItems[spiralIdx]?.imageUrl ?? undefined}
-            onPress={setSelectedImageUri}
+            item={feedItems[spiralIdx]}
+            onPress={setSelectedItem}
           />,
         );
       }
@@ -211,10 +211,10 @@ export function FeedHomeView() {
         <ResetIcon size={24} color="#ffffff" />
       </Pressable>
 
-      {selectedImageUri !== null && (
+      {selectedItem !== null && (
         <FeedCellDetail
-          imageUri={selectedImageUri}
-          onClose={() => setSelectedImageUri(null)}
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
         />
       )}
     </>

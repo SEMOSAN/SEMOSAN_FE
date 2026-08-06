@@ -15,6 +15,7 @@
 		5924807866955ACF8228BF7A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = ED0FDB9639E5FC65402DB80F /* PrivacyInfo.xcprivacy */; };
 		62AA5F0527CE7EF046B086D9 /* SemosanWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DB1C917F4FFF3242AA9628 /* SemosanWidgetBundle.swift */; };
 		693D45F803EE4908BCAFAFA8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 43040695C0354B4EA32E7480 /* InfoPlist.strings */; };
+		4A732CF95E76DA32F805FA8A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9C724FB1E1D716DDCC15E71E /* InfoPlist.strings */; };
 		A1B2C3D4E5F6A7B8C9D0E1F3 /* SemosanLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D6279DA4FA6101E8B8853A /* SemosanLiveActivityAttributes.swift */; };
 		B15883B685E09F4ACB7111FB /* SemosanLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F062AF6F8F169DC8CB336099 /* SemosanLiveActivity.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
@@ -52,6 +53,7 @@
 		30A54906D1126612186FF146 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = SemosanWidget/Assets.xcassets; sourceTree = "<group>"; };
 		41BBCF6E2CE0497EA17A760B /* WidgetKit.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		43040695C0354B4EA32E7480 /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = ko.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		9C724FB1E1D716DDCC15E71E /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		69DB1C917F4FFF3242AA9628 /* SemosanWidgetBundle.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SemosanWidgetBundle.swift; path = SemosanWidget/SemosanWidgetBundle.swift; sourceTree = "<group>"; };
 		6AEEBEE1FB64461746792160 /* libPods-semosan.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-semosan.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		87D6279DA4FA6101E8B8853A /* SemosanLiveActivityAttributes.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SemosanLiveActivityAttributes.swift; path = SemosanWidget/SemosanLiveActivityAttributes.swift; sourceTree = "<group>"; };
@@ -162,6 +164,7 @@
 			children = (
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
 				E9D036FFABE447CF9365B81D /* ko.lproj */,
+				4C05F667C69F443D24AEDE69 /* en.lproj */,
 			);
 			name = Supporting;
 			path = semosan/Supporting;
@@ -173,6 +176,15 @@
 				43040695C0354B4EA32E7480 /* InfoPlist.strings */,
 			);
 			name = ko.lproj;
+			path = "";
+			sourceTree = "<group>";
+		};
+		4C05F667C69F443D24AEDE69 /* en.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				9C724FB1E1D716DDCC15E71E /* InfoPlist.strings */,
+			);
+			name = en.lproj;
 			path = "";
 			sourceTree = "<group>";
 		};
@@ -254,6 +266,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				ko,
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
@@ -276,6 +289,7 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				693D45F803EE4908BCAFAFA8 /* InfoPlist.strings in Resources */,
+				4A732CF95E76DA32F805FA8A /* InfoPlist.strings in Resources */,
 				032B5A433A1E446384D535C8 /* GoogleService-Info.plist in Resources */,
 				5924807866955ACF8228BF7A /* PrivacyInfo.xcprivacy in Resources */,
 			);

@@ -4,14 +4,18 @@ import { KakaoIcon } from "@/components/icons/kakao-icon";
 import { SemosanIcon } from "@/components/icons/semosan-icon";
 import { SemosanTextLogo } from "@/components/icons/semosan-text-logo";
 import { isDevMode, isExpoGo } from "@/constants/platform";
+import { TermsAgreementSheet } from "@/features/auth/components/terms-agreement-sheet";
 import { useAppleLogin } from "@/features/auth/hooks/use-apple-login";
 import { useKakaoLogin } from "@/features/auth/hooks/use-kakao-login";
 import { useTestLogin } from "@/features/auth/hooks/use-test-login";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useRef, useState } from "react";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+type PendingProvider = "kakao" | "apple" | null;
 
 export default function LoginScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -20,7 +24,29 @@ export default function LoginScreen(): React.JSX.Element {
   const { mutateAsync: kakaoLoginAsync } = useKakaoLogin();
   const { mutateAsync: testLoginAsync } = useTestLogin();
 
-  async function handleAppleLogin(): Promise<void> {
+  const [termsVisible, setTermsVisible] = useState(false);
+  const pendingProvider = useRef<PendingProvider>(null);
+
+  // 소셜 로그인 버튼 → 약관 시트 표시
+  function openTermsSheet(provider: "kakao" | "apple") {
+    pendingProvider.current = provider;
+    setTermsVisible(true);
+  }
+
+  // 약관 동의 확인 → 실제 로그인 실행
+  async function handleTermsConfirm(_agreedMarketing: boolean) {
+    setTermsVisible(false);
+    const provider = pendingProvider.current;
+    pendingProvider.current = null;
+
+    if (provider === "apple") {
+      await doAppleLogin();
+    } else if (provider === "kakao") {
+      await doKakaoLogin();
+    }
+  }
+
+  async function doAppleLogin(): Promise<void> {
     try {
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
@@ -55,7 +81,7 @@ export default function LoginScreen(): React.JSX.Element {
     }
   }
 
-  async function handleKakaoLogin(): Promise<void> {
+  async function doKakaoLogin(): Promise<void> {
     if (isExpoGo) {
       Alert.alert(
         "카카오 로그인 불가",
@@ -120,6 +146,14 @@ export default function LoginScreen(): React.JSX.Element {
   return (
     <>
       <StatusBar style="light" />
+      <TermsAgreementSheet
+        visible={termsVisible}
+        onConfirm={handleTermsConfirm}
+        onDismiss={() => {
+          setTermsVisible(false);
+          pendingProvider.current = null;
+        }}
+      />
       <View
         className="flex-1 bg-neutral-900"
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
@@ -129,12 +163,12 @@ export default function LoginScreen(): React.JSX.Element {
           <SemosanTextLogo width={162} />
         </View>
 
-        <View className="gap-4 px-[43px]" style={{ paddingBottom: 16 }}>
+        <View className="gap-4 px-[43px]" style={{ paddingBottom: 120 }}>
           <Pressable
             className="h-[45px] flex-row items-center justify-center gap-3 overflow-hidden rounded-lg"
             style={{ backgroundColor: "#FEE500" }}
             android_ripple={{ color: "rgba(0,0,0,0.1)" }}
-            onPress={handleKakaoLogin}
+            onPress={() => openTermsSheet("kakao")}
           >
             <KakaoIcon size={18} />
             <Text
@@ -148,7 +182,7 @@ export default function LoginScreen(): React.JSX.Element {
           <Pressable
             className="h-[45px] flex-row items-center justify-center gap-3 overflow-hidden rounded-lg bg-white"
             android_ripple={{ color: "rgba(0,0,0,0.1)" }}
-            onPress={handleAppleLogin}
+            onPress={() => openTermsSheet("apple")}
           >
             <AppleIcon size={20} />
             <Text
@@ -162,7 +196,8 @@ export default function LoginScreen(): React.JSX.Element {
 
         {isDevMode && (
           <Pressable
-            className="absolute bottom-10 right-5 rounded-full bg-neutral-700 px-4 py-2"
+            className="absolute right-5 rounded-full bg-neutral-700 px-4 py-2"
+            style={{ bottom: insets.bottom + 128 }}
             onPress={handleTestLogin}
           >
             <Text className="text-label-normal-inverse typo-caption-1-semi-bold">

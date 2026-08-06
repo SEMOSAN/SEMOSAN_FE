@@ -12,7 +12,7 @@ import {
 } from "@/features/home/constants";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import Animated, {
   Easing,
@@ -26,11 +26,22 @@ export default function HomeScreen() {
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const [mapTab, setMapTab] = useState<MapTab>("map");
 
+  const [hasFeedMounted, setHasFeedMounted] = useState(false);
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] =
     useState(false);
   const [closeSelectedToken, setCloseSelectedToken] = useState(0);
 
   const mapViewRef = useRef<MapHomeViewRef>(null);
+  const feedMountTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    feedMountTimerRef.current = setTimeout(() => {
+      setHasFeedMounted(true);
+    }, 3000);
+    return () => {
+      if (feedMountTimerRef.current) clearTimeout(feedMountTimerRef.current);
+    };
+  }, []);
   const mapAnimatedStyle = useAnimatedStyle(() => ({
     opacity: 1 - tabProgress.value,
   }));
@@ -55,6 +66,11 @@ export default function HomeScreen() {
     setMapTab(tab);
 
     if (tab === "feed") {
+      if (feedMountTimerRef.current) {
+        clearTimeout(feedMountTimerRef.current);
+        feedMountTimerRef.current = null;
+      }
+      setHasFeedMounted(true);
       mapViewRef.current?.collapseSheet();
       tabProgress.value = withTiming(1, {
         duration: HOME_TAB_TRANSITION_DURATION,
@@ -103,7 +119,7 @@ export default function HomeScreen() {
         style={[{ top: -FEED_SLIDE_UP_DISTANCE }, feedAnimatedStyle]}
         pointerEvents={mapTab === "feed" ? "auto" : "none"}
       >
-        <FeedHomeView />
+        {hasFeedMounted && <FeedHomeView />}
       </Animated.View>
 
       <HomeHeader

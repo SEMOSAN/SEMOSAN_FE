@@ -10,7 +10,7 @@ const hasKakaoNativeAppKey = !!process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 const config = {
   name: "semosan",
   slug: "semosan",
-  version: "1.0.0",
+  version: "1.1",
   orientation: "portrait",
   icon: "./assets/images/app-icon.png",
   scheme: "semosan",
@@ -38,6 +38,7 @@ const config = {
   },
   locales: {
     ko: "./locales/ko.json",
+    en: "./locales/en.json",
   },
   android: {
     ...(hasAndroidGoogleServiceFile
@@ -74,6 +75,26 @@ const config = {
     "expo-router",
     "expo-font",
     "@react-native-firebase/app",
+    [
+      "expo-location",
+      {
+        locationWhenInUsePermission:
+          "현재 위치를 사용해 주변 산을 찾고, 지도에서 내 위치와 등산 경로를 안내합니다. 예: 가까운 산 추천 및 트래킹 중 현재 위치 표시",
+        locationAlwaysAndWhenInUsePermission:
+          "코스 추적 중 앱이 백그라운드에 있어도 위치를 기록하기 위해 항상 위치 접근 권한이 필요합니다.",
+        locationAlwaysPermission:
+          "코스 추적 중 앱이 백그라운드에 있어도 위치를 기록하기 위해 항상 위치 접근 권한이 필요합니다.",
+        isIosBackgroundLocationEnabled: true,
+        isAndroidBackgroundLocationEnabled: true,
+      },
+    ],
+    [
+      "expo-media-library",
+      {
+        savePhotosPermission:
+          "포토 리포트 이미지를 사진첩에 저장하기 위해 접근 권한이 필요합니다.",
+      },
+    ],
     "./plugins/withModularHeaders",
     "./plugins/withLiveActivity",
     [
@@ -108,13 +129,13 @@ const config = {
       },
     ],
     "expo-apple-authentication",
-    "expo-image-picker",
     "expo-web-browser",
     [
       "expo-image-picker",
       {
         photosPermission:
           "사진첩에 접근하여 포토 리포트에 사용할 사진을 가져옵니다.",
+        microphonePermission: false,
       },
     ],
     ...(hasKakaoNativeAppKey

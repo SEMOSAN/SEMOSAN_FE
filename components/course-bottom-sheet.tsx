@@ -1,4 +1,5 @@
 import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
+import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
 import { GetUserHikingRecordResponse } from "@/types/api.generated";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ChevronRightIcon } from "./icons/chevron-right-icon";
@@ -157,6 +158,14 @@ function CourseItem({
   mountainId?: number;
   onPress?: () => void;
 }) {
+  // 자유기록 등 목록 요약 API의 distance/duration이 비어있는 경우 상세 API로 폴백
+  const needsDetailFallback = !course.distance || !course.duration;
+  const { data: recordDetail } = useHikingRecordDetail(
+    needsDetailFallback ? (course.hikingRecordId ?? null) : null,
+  );
+  const distanceMeters = course.distance || recordDetail?.distanceMeters;
+  const durationSeconds = course.duration || recordDetail?.durationSeconds;
+
   return (
     <TouchableOpacity
       className="w-full flex-row items-center justify-between"
@@ -179,12 +188,12 @@ function CourseItem({
             {course.courseName}
           </Text>
           <Text className="text-label-subtler typo-caption-1-medium">
-            {!!course.distance && (
-              <>{(course.distance / 1000).toFixed(1)}km · </>
+            {!!distanceMeters && (
+              <>{(distanceMeters / 1000).toFixed(1)}km · </>
             )}
-            {!!course.duration && (
+            {!!durationSeconds && (
               <>
-                {formatDuration(course.duration)} ·{" "}
+                {formatDuration(durationSeconds)} ·{" "}
                 {formatHikedAt(course.hikedAt)}
               </>
             )}
