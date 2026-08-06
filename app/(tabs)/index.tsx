@@ -10,7 +10,9 @@ import {
   FEED_SLIDE_UP_DISTANCE,
   HOME_TAB_TRANSITION_DURATION,
 } from "@/features/home/constants";
-import { useRef, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useLocalSearchParams } from "expo-router";
+import { useCallback, useRef, useState } from "react";
 import { View } from "react-native";
 import Animated, {
   Easing,
@@ -21,6 +23,7 @@ import Animated, {
 
 export default function HomeScreen() {
   const { setTabBarVariant, tabProgress } = useHomeStateContext();
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const [mapTab, setMapTab] = useState<MapTab>("map");
 
   const [isMountainRecordListOpen, setIsMountainRecordListOpen] =
@@ -71,6 +74,16 @@ export default function HomeScreen() {
   function handleCloseSelected(): void {
     setCloseSelectedToken((prev) => prev + 1);
   }
+
+  // 다른 화면에서 세모피드로 바로 이동해야 할 때 (예: 클라이브 둘러보기)
+  useFocusEffect(
+    useCallback(() => {
+      if (tabParam === "feed") {
+        handleMapTabChange("feed");
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tabParam]),
+  );
 
   return (
     <View className="w-full flex-1">

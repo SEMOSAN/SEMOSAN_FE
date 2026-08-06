@@ -136,6 +136,8 @@ export default function PhotoReportEditScreen() {
     }
   };
 
+  const hasPhotos = photos.length > 0;
+
   const overlayProps: OverlayProps = {
     distance: fmtDistance(recordDetail?.distanceMeters),
     calories: fmtCalories(recordDetail?.calories),
@@ -173,14 +175,15 @@ export default function PhotoReportEditScreen() {
           }}
           style={styles.templateScroll}
         >
-          {OVERLAY_TEMPLATES.map((template, index) => {
+          {(hasPhotos ? OVERLAY_TEMPLATES : OVERLAY_TEMPLATES.slice(0, 1)).map((template, index) => {
             const OverlayComponent = OVERLAY_COMPONENTS[index];
             return (
               <TouchableOpacity
                 key={template.id}
                 activeOpacity={0.9}
+                disabled={!hasPhotos}
                 onPress={() => { setSelectedTemplate(index); scrollTo(index); }}
-                style={{ opacity: selectedTemplate === index ? 1 : 0.4 }}
+                style={{ opacity: !hasPhotos || selectedTemplate === index ? 1 : 0.4 }}
               >
                 <View style={styles.templateCard}>
                   <ExpoImage
@@ -189,19 +192,19 @@ export default function PhotoReportEditScreen() {
                     style={StyleSheet.absoluteFill}
                     contentFit="cover"
                   />
-                  <OverlayComponent {...overlayProps} />
+                  {hasPhotos && <OverlayComponent {...overlayProps} />}
                 </View>
               </TouchableOpacity>
             );
           })}
         </ScrollView>
 
-        {selectedTemplate > 0 && (
+        {hasPhotos && selectedTemplate > 0 && (
           <TouchableOpacity style={[styles.navBtn, { left: 16, top: NAV_BTN_TOP }]} onPress={handleLeft} activeOpacity={0.8}>
             <CaretLeftIcon color="#1A1B1F" />
           </TouchableOpacity>
         )}
-        {selectedTemplate < OVERLAY_TEMPLATES.length - 1 && (
+        {hasPhotos && selectedTemplate < OVERLAY_TEMPLATES.length - 1 && (
           <TouchableOpacity style={[styles.navBtn, { right: 16, top: NAV_BTN_TOP }]} onPress={handleRight} activeOpacity={0.8}>
             <CaretRightIcon size={24} color="#1A1B1F" />
           </TouchableOpacity>
