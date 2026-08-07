@@ -697,12 +697,14 @@ export default function RecordScreen() {
               </View>
             </ViewShot>
 
-            <CliveBottomBar
-              isPublic={activeTabPublic}
-              isToggling={isToggling}
-              onTogglePublic={handleTogglePublic}
-              onSave={handleSavePress}
-            />
+            {displayPhotos.length > 0 && (
+              <CliveBottomBar
+                isPublic={activeTabPublic}
+                isToggling={isToggling}
+                onTogglePublic={handleTogglePublic}
+                onSave={handleSavePress}
+              />
+            )}
           </View>
         )}
 

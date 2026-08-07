@@ -183,7 +183,7 @@ export default function PhotoReportEditScreen() {
                 activeOpacity={0.9}
                 disabled={!hasPhotos}
                 onPress={() => { setSelectedTemplate(index); scrollTo(index); }}
-                style={{ opacity: !hasPhotos || selectedTemplate === index ? 1 : 0.4 }}
+                className={!hasPhotos || selectedTemplate === index ? "opacity-100" : "opacity-40"}
               >
                 <View style={styles.templateCard}>
                   <ExpoImage
