@@ -2,7 +2,7 @@ import { CaretLeftIcon } from "@/components/icons/caret-left-icon";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-export function WriteHeader() {
+export function WriteHeader({ title = "게시글 작성하기" }: { title?: string }) {
   const router = useRouter();
   return (
     <View className="h-14 flex-row items-center justify-between bg-fill-normal px-5">
@@ -10,7 +10,7 @@ export function WriteHeader() {
         <CaretLeftIcon />
       </Pressable>
       <Text className="flex-1 text-center text-label-normal typo-headline-1-semi-bold">
-        게시글 작성하기
+        {title}
       </Text>
       <View className="flex-1" />
     </View>
