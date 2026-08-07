@@ -42,7 +42,10 @@ function toInitialImageUrls(post: FreePostDetailResponse): string[] {
 
 export function WriteScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const postId = id ? Number(id) : undefined;
+  // id가 유효한 양의 정수일 때만 수정 모드 — NaN/빈 값/비정상 id는 작성 모드로 처리
+  const parsedId = id ? Number(id) : NaN;
+  const postId =
+    Number.isInteger(parsedId) && parsedId > 0 ? parsedId : undefined;
 
   if (postId != null) {
     return <EditLoader postId={postId} />;
