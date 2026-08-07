@@ -96,6 +96,7 @@ function formatDuration(seconds: number | null): string {
 }
 
 const PhotoReportBg = require("@/assets/photo-report-bg.png");
+const ClivEmptyPhotos = require("@/assets/clive-empty-photos.png");
 type RecordTab = "클라이브" | "포토 리포트";
 
 export default function RecordScreen() {
@@ -662,17 +663,48 @@ export default function RecordScreen() {
                     );
                   })()
                 ) : (
-                  <View style={styles.cardImagePlaceholder} />
+                  <View
+                    style={{ width: "100%", height: "100%", borderRadius: 20 }}
+                    className="items-center justify-center gap-2 border border-dashed border-line-normal bg-fill-normal px-8"
+                  >
+                    <Text className="typo-body-1-normal-semi-bold text-center text-label-disabled">
+                      클라이브를 생성할 수 없어요
+                    </Text>
+                    <Text className="typo-body-2-normal-regular text-center text-neutral-100">
+                      {"등산하며 찍은 사진이 없어요\n다음에는 클라이브 도전!"}
+                    </Text>
+                    <ExpoImage
+                      source={ClivEmptyPhotos}
+                      style={{ width: 198, height: 166, marginTop: 16 }}
+                      contentFit="contain"
+                    />
+                    <TouchableOpacity
+                      className="mt-6 flex-row items-center gap-1.5 rounded-full bg-primary-normal px-5 py-3"
+                      activeOpacity={0.85}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/(tabs)",
+                          params: { tab: "feed" },
+                        })
+                      }
+                    >
+                      <Text className="typo-body-2-normal-semi-bold text-label-normal-inverse">
+                        클라이브 둘러보기 →
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             </ViewShot>
 
-            <CliveBottomBar
-              isPublic={activeTabPublic}
-              isToggling={isToggling}
-              onTogglePublic={handleTogglePublic}
-              onSave={handleSavePress}
-            />
+            {displayPhotos.length > 0 && (
+              <CliveBottomBar
+                isPublic={activeTabPublic}
+                isToggling={isToggling}
+                onTogglePublic={handleTogglePublic}
+                onSave={handleSavePress}
+              />
+            )}
           </View>
         )}
 
@@ -692,20 +724,21 @@ export default function RecordScreen() {
                     contentFit="cover"
                   />
 
-                  {/* 스탯 오버레이 */}
-                  {(() => {
-                    const OverlayComponent = OVERLAY_COMPONENTS[photoReportTemplate] ?? OVERLAY_COMPONENTS[0];
-                    const overlayProps: OverlayProps = {
-                      distance: fmtDistance(recordDetail?.distanceMeters),
-                      calories: fmtCalories(recordDetail?.calories),
-                      elevation: fmtElevation(recordDetail?.ascentMeters),
-                      weather: fmtWeather(recordDetail?.temperature),
-                      duration: fmtDuration(recordDetail?.durationSeconds),
-                      date: fmtDate(recordDetail?.startedAt),
-                      scale: 335 / 240,
-                    };
-                    return <OverlayComponent {...overlayProps} />;
-                  })()}
+                  {/* 스탯 오버레이 — 사진이 있을 때만 표시 */}
+                  {photoReportSource != null &&
+                    (() => {
+                      const OverlayComponent = OVERLAY_COMPONENTS[photoReportTemplate] ?? OVERLAY_COMPONENTS[0];
+                      const overlayProps: OverlayProps = {
+                        distance: fmtDistance(recordDetail?.distanceMeters),
+                        calories: fmtCalories(recordDetail?.calories),
+                        elevation: fmtElevation(recordDetail?.ascentMeters),
+                        weather: fmtWeather(recordDetail?.temperature),
+                        duration: fmtDuration(recordDetail?.durationSeconds),
+                        date: fmtDate(recordDetail?.startedAt),
+                        scale: 335 / 240,
+                      };
+                      return <OverlayComponent {...overlayProps} />;
+                    })()}
                 </View>
               </ViewShot>
 
@@ -965,11 +998,6 @@ const styles = StyleSheet.create({
   cardImage: {
     width: "100%",
     height: "100%",
-  },
-  cardImagePlaceholder: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "#E5E7EB",
   },
   stampSummitContainer: {
     justifyContent: "flex-end",
