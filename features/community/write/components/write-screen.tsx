@@ -133,17 +133,25 @@ function WriteForm({
       mainImageIndex: imageUrls.length > 0 ? 0 : undefined,
     };
 
-    if (isEdit) {
-      await updatePost(payload);
-      toast.show("게시글을 수정했어요.");
-    } else {
-      await createPost(payload);
-      queryClient.invalidateQueries({
-        queryKey: [ENDPOINTS.COMMUNITY_FREE_POSTS],
-      });
-      toast.show("게시글을 업로드했어요.");
+    try {
+      if (isEdit) {
+        await updatePost(payload);
+        toast.show("게시글을 수정했어요.");
+      } else {
+        await createPost(payload);
+        queryClient.invalidateQueries({
+          queryKey: [ENDPOINTS.COMMUNITY_FREE_POSTS],
+        });
+        toast.show("게시글을 업로드했어요.");
+      }
+      router.back();
+    } catch {
+      toast.show(
+        isEdit
+          ? "게시글 수정에 실패했어요. 잠시 후 다시 시도해주세요."
+          : "게시글 업로드에 실패했어요. 잠시 후 다시 시도해주세요.",
+      );
     }
-    router.back();
   }
 
   return (
