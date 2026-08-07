@@ -3,6 +3,7 @@ import { isExpoGo } from "@/constants/platform";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { useAppState } from "@/hooks/use-app-state";
 import { useOnlineManager } from "@/hooks/use-online-manager";
+import { AppUpdateGate } from "@/features/app-update/components/app-update-gate";
 import { usePushNotification } from "@/hooks/use-push-notification";
 import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { Lexend_700Bold, useFonts } from "@expo-google-fonts/lexend";
@@ -32,7 +33,10 @@ Notifications.setNotificationHandler({
 
     // 트래킹 푸시: 포어그라운드에서 시스템 배너 차단 (in-app banner 만 노출)
     // mixed payload 로 백엔드가 notification + data 둘 다 보내므로 중복 방지
-    if (type === 'TRACKING_PHOTO_MILESTONE' || type === 'TRACKING_SUMMIT_REACHED') {
+    if (
+      type === "TRACKING_PHOTO_MILESTONE" ||
+      type === "TRACKING_SUMMIT_REACHED"
+    ) {
       return {
         shouldShowBanner: true,
         shouldShowList: true,
@@ -183,6 +187,7 @@ function RootLayout(): React.JSX.Element | null {
           </Stack>
           {authStatus === "unauthenticated" && <Redirect href="/login" />}
           <Toast />
+          <AppUpdateGate />
           <StatusBar style="dark" />
         </ThemeProvider>
       </GestureHandlerRootView>
