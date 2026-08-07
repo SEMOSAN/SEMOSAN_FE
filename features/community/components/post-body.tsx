@@ -1,5 +1,6 @@
 import { ChatIcon } from "@/components/icons/chat-icon";
 import { DotsThreeIcon } from "@/components/icons/dots-three-icon";
+import { PencilSimpleIcon } from "@/components/icons/pencil-simple-icon";
 import {
   HeartFilledIcon,
   HeartOutlineIcon,
@@ -44,6 +45,7 @@ const REASON_MAP: { label: string; value: FreePostReportRequest["reason"] }[] =
 type PostBodyProps = {
   post: FreePostDetailResponse;
   currentUserNickname?: string;
+  onEdit?: () => void;
   onDelete?: () => void;
   onCommentPress?: () => void;
 };
@@ -51,6 +53,7 @@ type PostBodyProps = {
 export function PostBody({
   post,
   currentUserNickname,
+  onEdit,
   onDelete,
   onCommentPress,
 }: PostBodyProps) {
@@ -77,6 +80,11 @@ export function PostBody({
     });
   }
 
+  function handleEdit(): void {
+    setMenuVisible(false);
+    onEdit?.();
+  }
+
   function handleDelete(): void {
     setMenuVisible(false);
     Alert.alert("게시글 삭제", "삭제하시겠습니까?", [
@@ -97,8 +105,7 @@ export function PostBody({
   function confirmBlock(): void {
     setBlockModalVisible(false);
     blockUser(undefined, {
-      onSuccess: () =>
-        Alert.alert("차단 완료", "해당 사용자를 차단했습니다."),
+      onSuccess: () => Alert.alert("차단 완료", "해당 사용자를 차단했습니다."),
       onError: (error) => {
         if (error instanceof ApiError && error.statusCode === 400) {
           Alert.alert("차단 불가", "자기 자신은 차단할 수 없습니다.");
@@ -208,7 +215,11 @@ export function PostBody({
             {post.likeCount ?? 0}
           </Text>
         </Pressable>
-        <Pressable className="flex-row items-center gap-1" onPress={onCommentPress} hitSlop={8}>
+        <Pressable
+          className="flex-row items-center gap-1"
+          onPress={onCommentPress}
+          hitSlop={8}
+        >
           <ChatIcon size={20} color="#464a57" />
           <Text className="text-label-subtle typo-body-1-normal-medium">
             {post.commentCount ?? 0}
@@ -242,29 +253,62 @@ export function PostBody({
             }}
           >
             {isAuthor ? (
-              <Pressable
-                onPress={handleDelete}
-                style={({ pressed }) => ({
-                  opacity: pressed ? 0.7 : 1,
-                  paddingHorizontal: 2,
-                })}
-              >
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+              <>
+                <Pressable
+                  onPress={handleEdit}
+                  style={({ pressed }) => ({
+                    opacity: pressed ? 0.7 : 1,
+                    paddingHorizontal: 2,
+                  })}
                 >
-                  <TrashIcon size={16} color="#ff5249" />
-                  <Text
+                  <View
                     style={{
-                      fontSize: 13,
-                      fontWeight: "600",
-                      color: "#ff5249",
-                      lineHeight: 19.5,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
                     }}
                   >
-                    삭제하기
-                  </Text>
-                </View>
-              </Pressable>
+                    <PencilSimpleIcon size={16} color="#1a1b1f" />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "600",
+                        color: "#1a1b1f",
+                        lineHeight: 19.5,
+                      }}
+                    >
+                      수정하기
+                    </Text>
+                  </View>
+                </Pressable>
+                <Pressable
+                  onPress={handleDelete}
+                  style={({ pressed }) => ({
+                    opacity: pressed ? 0.7 : 1,
+                    paddingHorizontal: 2,
+                  })}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <TrashIcon size={16} color="#ff5249" />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "600",
+                        color: "#ff5249",
+                        lineHeight: 19.5,
+                      }}
+                    >
+                      삭제하기
+                    </Text>
+                  </View>
+                </Pressable>
+              </>
             ) : (
               <>
                 <Pressable
@@ -352,48 +396,67 @@ export function PostBody({
             }}
           >
             <View style={{ gap: 8 }}>
-              <Text className="typo-heading-1-semi-bold text-label-normal">
+              <Text className="text-label-normal typo-heading-1-semi-bold">
                 사용자를 차단할까요?
               </Text>
-              <Text className="typo-body-1-normal-regular text-label-normal">
-                차단한 사용자는 [마이페이지 {">"} 차단목록]에서 관리할 수 있어요.
+              <Text className="text-label-normal typo-body-1-normal-regular">
+                차단한 사용자는 [마이페이지 {">"} 차단목록]에서 관리할 수
+                있어요.
               </Text>
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <View
                 className="bg-fill-stronger"
-                style={{ flex: 1, height: 52, borderRadius: 10, justifyContent: "center", alignItems: "center" }}
+                style={{
+                  flex: 1,
+                  height: 52,
+                  borderRadius: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
                 <Pressable
                   onPress={() => setBlockModalVisible(false)}
                   style={({ pressed }) => ({
                     position: "absolute",
-                    top: 0, left: 0, right: 0, bottom: 0,
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
                     justifyContent: "center",
                     alignItems: "center",
                     opacity: pressed ? 0.7 : 1,
                   })}
                 >
-                  <Text className="typo-label-large text-label-subtle">
+                  <Text className="text-label-subtle typo-label-large">
                     취소
                   </Text>
                 </Pressable>
               </View>
               <View
                 className="bg-status-negative-normal"
-                style={{ flex: 1, height: 52, borderRadius: 10, justifyContent: "center", alignItems: "center" }}
+                style={{
+                  flex: 1,
+                  height: 52,
+                  borderRadius: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
                 <Pressable
                   onPress={confirmBlock}
                   style={({ pressed }) => ({
                     position: "absolute",
-                    top: 0, left: 0, right: 0, bottom: 0,
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
                     justifyContent: "center",
                     alignItems: "center",
                     opacity: pressed ? 0.7 : 1,
                   })}
                 >
-                  <Text className="typo-label-large text-label-normal-inverse">
+                  <Text className="text-label-normal-inverse typo-label-large">
                     차단하기
                   </Text>
                 </Pressable>

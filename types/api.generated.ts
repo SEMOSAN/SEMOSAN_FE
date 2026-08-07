@@ -333,6 +333,12 @@ export type FreePostCreateRequest = {
   imageUrls?: string[];
   mainImageIndex?: number;
 };
+export type FreePostUpdateRequest = {
+  title?: string;
+  content?: string;
+  imageUrls?: string[];
+  mainImageIndex?: number;
+};
 export type ApiResponseFreePostDetailResponse = {
   isSuccess?: boolean;
   code?: string;

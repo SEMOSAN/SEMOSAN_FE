@@ -30,7 +30,11 @@ export function FreeBoardDetailScreen({ postId }: FreeBoardDetailScreenProps) {
   const { data: profile } = useProfile();
   const { mutate: deletePost } = useDeletePost(postId);
 
-  function handleReplyPress(commentId: number, authorId: number, authorName: string): void {
+  function handleReplyPress(
+    commentId: number,
+    authorId: number,
+    authorName: string,
+  ): void {
     setReplyTarget({ commentId, authorId, authorName });
   }
 
@@ -54,6 +58,12 @@ export function FreeBoardDetailScreen({ postId }: FreeBoardDetailScreenProps) {
             <PostBody
               post={post}
               currentUserNickname={profile?.nickname}
+              onEdit={() =>
+                router.push({
+                  pathname: "/community/free-board/write",
+                  params: { id: String(postId) },
+                })
+              }
               onDelete={handleDeletePost}
               onCommentPress={() => inputBarRef.current?.focus()}
             />

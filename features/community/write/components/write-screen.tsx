@@ -1,8 +1,10 @@
 import { IOSKeyboardAccessoryToolbar } from "@/components/ios-keyboard-accessory-toolbar";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { useFreePostDetail } from "@/features/community/hooks/use-free-post-detail";
 import { toast } from "@/store/toast.store";
-import { ENDPOINTS } from "@/types/api.generated";
+import { ENDPOINTS, FreePostDetailResponse } from "@/types/api.generated";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -15,6 +17,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCreatePost } from "../hooks/use-create-post";
+import { useUpdatePost } from "../hooks/use-update-post";
 import { useWriteForm } from "../hooks/use-write-form";
 import { ImageUploadButton } from "./image-upload-button";
 import { WriteHeader } from "./write-header";
@@ -22,25 +25,97 @@ import { WriteHeader } from "./write-header";
 const TITLE_TOOLBAR_ID = "write-title-toolbar";
 const BODY_TOOLBAR_ID = "write-body-toolbar";
 
+/** 상세 응답의 images[] → 폼용 imageUrls[] (정렬 + 대표 이미지 맨 앞) */
+function toInitialImageUrls(post: FreePostDetailResponse): string[] {
+  const sorted = [...(post.images ?? [])].sort(
+    (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+  );
+  const mainIdx = sorted.findIndex((img) => img.main);
+  if (mainIdx > 0) {
+    const [main] = sorted.splice(mainIdx, 1);
+    sorted.unshift(main);
+  }
+  return sorted
+    .map((img) => img.imageUrl)
+    .filter((url): url is string => !!url);
+}
+
 export function WriteScreen() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const postId = id ? Number(id) : undefined;
+
+  if (postId != null) {
+    return <EditLoader postId={postId} />;
+  }
+  return <WriteForm mode="create" />;
+}
+
+/** 수정 모드 — 게시글 상세를 불러와 폼에 프리필 */
+function EditLoader({ postId }: { postId: number }) {
+  const { data: post, isPending, isError } = useFreePostDetail(postId);
+
+  if (isPending) return <LoadingSpinner fullScreen />;
+  if (isError || !post) return null;
+
+  return (
+    <WriteForm
+      mode="edit"
+      postId={postId}
+      initialTitle={post.title ?? ""}
+      initialBody={post.content ?? ""}
+      initialImageUrls={toInitialImageUrls(post)}
+    />
+  );
+}
+
+type WriteFormProps = {
+  mode: "create" | "edit";
+  postId?: number;
+  initialTitle?: string;
+  initialBody?: string;
+  initialImageUrls?: string[];
+};
+
+function WriteForm({
+  mode,
+  postId,
+  initialTitle = "",
+  initialBody = "",
+  initialImageUrls = [],
+}: WriteFormProps) {
+  const isEdit = mode === "edit";
   const queryClient = useQueryClient();
   const router = useRouter();
   const { top, bottom } = useSafeAreaInsets();
-  const { title, setTitle, body, setBody, isSubmittable } = useWriteForm();
-  const { mutateAsync: createPost, isPending } = useCreatePost();
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const { title, setTitle, body, setBody, isSubmittable } = useWriteForm(
+    initialTitle,
+    initialBody,
+  );
+  const { mutateAsync: createPost, isPending: isCreating } = useCreatePost();
+  const { mutateAsync: updatePost, isPending: isUpdating } = useUpdatePost(
+    postId ?? 0,
+  );
+  const [imageUrls, setImageUrls] = useState<string[]>(initialImageUrls);
+  const isPending = isCreating || isUpdating;
 
   async function handleSubmit(): Promise<void> {
-    await createPost({
+    const payload = {
       title: title.trim(),
       content: body.trim(),
       imageUrls,
       mainImageIndex: imageUrls.length > 0 ? 0 : undefined,
-    });
-    queryClient.invalidateQueries({
-      queryKey: [ENDPOINTS.COMMUNITY_FREE_POSTS],
-    });
-    toast.show("게시글을 업로드했어요.");
+    };
+
+    if (isEdit) {
+      await updatePost(payload);
+      toast.show("게시글을 수정했어요.");
+    } else {
+      await createPost(payload);
+      queryClient.invalidateQueries({
+        queryKey: [ENDPOINTS.COMMUNITY_FREE_POSTS],
+      });
+      toast.show("게시글을 업로드했어요.");
+    }
     router.back();
   }
 
@@ -50,7 +125,7 @@ export function WriteScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={{ paddingTop: top }}>
-        <WriteHeader />
+        <WriteHeader title={isEdit ? "게시글 수정하기" : "게시글 작성하기"} />
       </View>
 
       <ScrollView
@@ -112,7 +187,7 @@ export function WriteScreen() {
                 : "text-label-disabled"
             }`}
           >
-            완료
+            {isEdit ? "저장하기" : "완료"}
           </Text>
         </Pressable>
       </View>
