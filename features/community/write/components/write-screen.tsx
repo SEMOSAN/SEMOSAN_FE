@@ -55,10 +55,34 @@ export function WriteScreen() {
 
 /** 수정 모드 — 게시글 상세를 불러와 폼에 프리필 */
 function EditLoader({ postId }: { postId: number }) {
-  const { data: post, isPending, isError } = useFreePostDetail(postId);
+  const { top } = useSafeAreaInsets();
+  const { data: post, isPending, isError, refetch } = useFreePostDetail(postId);
 
   if (isPending) return <LoadingSpinner fullScreen />;
-  if (isError || !post) return null;
+
+  // 조회 실패 시 헤더(뒤로가기) + 오류 안내 + 재시도 화면 표시
+  if (isError || !post) {
+    return (
+      <View className="flex-1 bg-fill-normal">
+        <View style={{ paddingTop: top }}>
+          <WriteHeader title="게시글 수정하기" />
+        </View>
+        <View className="flex-1 items-center justify-center gap-4 px-5">
+          <Text className="text-center text-label-subtle typo-body-1-normal-regular">
+            게시글을 불러오지 못했어요.{"\n"}잠시 후 다시 시도해주세요.
+          </Text>
+          <Pressable
+            onPress={() => refetch()}
+            className="h-11 items-center justify-center rounded-xl bg-fill-stronger px-6 active:opacity-70"
+          >
+            <Text className="text-label-normal typo-label-large">
+              다시 시도
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <WriteForm
