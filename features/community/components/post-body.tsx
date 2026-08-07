@@ -256,54 +256,22 @@ export function PostBody({
               <>
                 <Pressable
                   onPress={handleEdit}
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.7 : 1,
-                    paddingHorizontal: 2,
-                  })}
+                  className="px-0.5 active:opacity-70"
                 >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
+                  <View className="flex-row items-center gap-1">
                     <PencilSimpleIcon size={16} color="#1a1b1f" />
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: "600",
-                        color: "#1a1b1f",
-                        lineHeight: 19.5,
-                      }}
-                    >
+                    <Text className="text-label-normal typo-body-2-normal-semi-bold">
                       수정하기
                     </Text>
                   </View>
                 </Pressable>
                 <Pressable
                   onPress={handleDelete}
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.7 : 1,
-                    paddingHorizontal: 2,
-                  })}
+                  className="px-0.5 active:opacity-70"
                 >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
+                  <View className="flex-row items-center gap-1">
                     <TrashIcon size={16} color="#ff5249" />
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: "600",
-                        color: "#ff5249",
-                        lineHeight: 19.5,
-                      }}
-                    >
+                    <Text className="text-status-negative-normal typo-body-2-normal-semi-bold">
                       삭제하기
                     </Text>
                   </View>
@@ -379,23 +347,9 @@ export function PostBody({
         animationType="fade"
         onRequestClose={() => setBlockModalVisible(false)}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.4)",
-            justifyContent: "center",
-            paddingHorizontal: 24,
-          }}
-        >
-          <View
-            className="bg-fill-normal"
-            style={{
-              borderRadius: 16,
-              padding: 24,
-              gap: 24,
-            }}
-          >
-            <View style={{ gap: 8 }}>
+        <View className="flex-1 justify-center bg-black/40 px-6">
+          <View className="gap-6 rounded-2xl bg-fill-normal p-6">
+            <View className="gap-2">
               <Text className="text-label-normal typo-heading-1-semi-bold">
                 사용자를 차단할까요?
               </Text>
@@ -404,57 +358,21 @@ export function PostBody({
                 있어요.
               </Text>
             </View>
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <View
-                className="bg-fill-stronger"
-                style={{
-                  flex: 1,
-                  height: 52,
-                  borderRadius: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+            <View className="flex-row gap-2">
+              <View className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-fill-stronger">
                 <Pressable
                   onPress={() => setBlockModalVisible(false)}
-                  style={({ pressed }) => ({
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    opacity: pressed ? 0.7 : 1,
-                  })}
+                  className="absolute inset-0 items-center justify-center active:opacity-70"
                 >
                   <Text className="text-label-subtle typo-label-large">
                     취소
                   </Text>
                 </Pressable>
               </View>
-              <View
-                className="bg-status-negative-normal"
-                style={{
-                  flex: 1,
-                  height: 52,
-                  borderRadius: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+              <View className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-status-negative-normal">
                 <Pressable
                   onPress={confirmBlock}
-                  style={({ pressed }) => ({
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    opacity: pressed ? 0.7 : 1,
-                  })}
+                  className="absolute inset-0 items-center justify-center active:opacity-70"
                 >
                   <Text className="text-label-normal-inverse typo-label-large">
                     차단하기
