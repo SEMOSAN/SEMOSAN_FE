@@ -7,6 +7,9 @@ type Props = {
   leading?: ReactNode;
   nameColor?: string;
   suffixColor?: string;
+  gap?: number;
+  fontSize?: number;
+  lineHeight?: number;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -16,16 +19,25 @@ export function MountainMarkerTextBox({
   leading,
   nameColor = '#464A57',
   suffixColor = '#BFC4D1',
+  gap = 4,
+  fontSize = 12,
+  lineHeight = 16,
   style,
 }: Props) {
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, { gap }, style]}>
       {leading}
-      <Text style={[styles.name, { color: nameColor }]} numberOfLines={1}>
+      <Text
+        style={[styles.name, { color: nameColor, fontSize, lineHeight }]}
+        numberOfLines={1}
+      >
         {name}
       </Text>
       {suffix !== undefined && suffix !== null ? (
-        <Text style={[styles.suffix, { color: suffixColor }]} numberOfLines={1}>
+        <Text
+          style={[styles.suffix, { color: suffixColor, fontSize, lineHeight }]}
+          numberOfLines={1}
+        >
           {suffix}
         </Text>
       ) : null}

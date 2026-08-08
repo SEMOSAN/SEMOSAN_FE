@@ -6,8 +6,13 @@ import Svg, {
   Defs,
   G,
   Path,
+  Rect,
   Image as SvgImage,
 } from "react-native-svg";
+
+// 안쪽 사진도 바깥 테두리와 동일한 세모 배너 실루엣으로 클립 (Figma 인셋 버전)
+const PHOTO_CLIP_PATH =
+  "M11.8889 1.09785C12.739 -0.36595 14.8446 -0.36595 15.6947 1.09785L27.2802 21.0473C28.1369 22.5225 27.0775 24.3751 25.3773 24.3751L2.20631 24.3751C0.506062 24.3751 -0.553295 22.5225 0.303412 21.0473L11.8889 1.09785Z";
 
 const FALLBACK_IMAGE = require("@/assets/photo-thumb-1.jpg");
 
@@ -25,6 +30,12 @@ export const VISITED_MARKER_OVERLAY_HEIGHT = 52;
 
 const SELECTED_BG = "#464A57";
 
+// Figma "Map Marker" 컴포넌트(Visited=True) 벡터 좌표 그대로 사용 — viewBox 0 0 31.111 40 기준
+const FLAG_PATH =
+  "M1.25 0C1.47517 0 1.68601 0.0601934 1.86849 0.164388L1.87174 0.166016L8.70361 4.11051C9.25912 4.43124 9.25902 5.23339 8.70361 5.5542L2.5 9.13574L2.5 15.4167C2.49994 16.107 1.94032 16.6667 1.25 16.6667C0.559678 16.6667 5.50001e-05 16.107 0 15.4167L0 1.25C0 0.559644 0.559644 0 1.25 0Z";
+const PIN_PATH =
+  "M12.1341 1.96445C13.6626 -0.65482 17.4485 -0.654816 18.977 1.96446L30.5656 21.8231C32.106 24.4628 30.2012 27.7778 27.1441 27.7778L3.96701 27.7778C0.909913 27.7778 -0.994839 24.4628 0.545543 21.8231L12.1341 1.96445Z";
+
 export function VisitedMarker({
   name,
   visitCount,
@@ -33,55 +44,58 @@ export function VisitedMarker({
   selected = false,
   onImageLoad,
 }: Props) {
-  const clipIdOuter = useId();
-  const clipIdInner = useId();
+  const clipIdFlag = useId();
+  const clipIdPhoto = useId();
+  const whiteOrSelected = selected ? SELECTED_BG : "#FFFFFF";
 
   return (
     <View style={styles.container} collapsable={false}>
       <View style={styles.contentWrap}>
         <View style={styles.imageGroup}>
-          <View
-            style={[
-              styles.flagPole,
-              selected && { backgroundColor: SELECTED_BG },
-            ]}
-          />
-          <View
-            style={[
-              styles.flag,
-              { borderLeftColor: selected ? SELECTED_BG : flagColor },
-            ]}
-          />
+          <Svg width={28} height={36} viewBox="0 0 31.111 40">
+            <Defs>
+              <ClipPath id={clipIdFlag}>
+                <Rect x={16.944} y={0} width={6.621} height={9.169} />
+              </ClipPath>
+              <ClipPath id={clipIdPhoto}>
+                <Path d={PHOTO_CLIP_PATH} transform="translate(1.764, 13.923)" />
+              </ClipPath>
+            </Defs>
 
-          <View style={styles.imageShapeWrap}>
-            <Svg width={28} height={25} viewBox="0 0 32 29">
-              <Defs>
-                <ClipPath id={clipIdOuter}>
-                  <Path d="M13.7571 1.26472C14.7408 -0.421574 17.1773 -0.421574 18.161 1.26472L31.567 24.2465C32.5584 25.9459 31.3326 28.0802 29.3651 28.0802H2.55302C0.585586 28.0802 -0.640242 25.946 0.351092 24.2465L13.7571 1.26472Z" />
-                </ClipPath>
-                <ClipPath id={clipIdInner}>
-                  <Path d="M14.719 3.632C15.307 2.624 16.761 2.624 17.349 3.632L28.919 23.466C29.511 24.481 28.779 25.757 27.605 25.757H4.463C3.288 25.757 2.556 24.481 3.149 23.466L14.719 3.632Z" />
-                </ClipPath>
-              </Defs>
-
+            {/* 깃대 — 흰색(선택 시 다크) */}
+            <Path
+              d={FLAG_PATH}
+              transform="translate(14.445, 0)"
+              fill={whiteOrSelected}
+            />
+            {/* 깃발 — 초록(선택 시 다크), 깃대 상단만 마스킹해 색칠 */}
+            <G clipPath={`url(#${clipIdFlag})`}>
               <Path
-                d="M13.7571 1.26472C14.7408 -0.421574 17.1773 -0.421574 18.161 1.26472L31.567 24.2465C32.5584 25.9459 31.3326 28.0802 29.3651 28.0802H2.55302C0.585586 28.0802 -0.640242 25.946 0.351092 24.2465L13.7571 1.26472Z"
-                fill={selected ? SELECTED_BG : "#FFFFFF"}
+                d={FLAG_PATH}
+                transform="translate(14.445, 0)"
+                fill={selected ? SELECTED_BG : flagColor}
               />
+            </G>
 
-              <G clipPath={`url(#${clipIdInner})`}>
-                <SvgImage
-                  href={imageUri ? { uri: imageUri } : FALLBACK_IMAGE}
-                  x={0}
-                  y={0}
-                  width={32}
-                  height={29}
-                  preserveAspectRatio="xMidYMid slice"
-                  onLoad={onImageLoad}
-                />
-              </G>
-            </Svg>
-          </View>
+            {/* 포토 핀 프레임 */}
+            <Path
+              d={PIN_PATH}
+              transform="translate(0, 12.222)"
+              fill={whiteOrSelected}
+            />
+            {/* 산행 사진 — 테두리와 같은 세모 배너 모양으로 클립 */}
+            <G clipPath={`url(#${clipIdPhoto})`}>
+              <SvgImage
+                href={imageUri ? { uri: imageUri } : FALLBACK_IMAGE}
+                x={1.764}
+                y={13.923}
+                width={27.584}
+                height={24.375}
+                preserveAspectRatio="xMidYMid slice"
+                onLoad={onImageLoad}
+              />
+            </G>
+          </Svg>
         </View>
 
         <View style={styles.textBoxWrap}>
@@ -90,6 +104,9 @@ export function VisitedMarker({
             suffix={visitCount}
             nameColor={selected ? "#ffffff" : "#464A57"}
             suffixColor={selected ? "#A4ABC0" : "#BFC4D1"}
+            gap={2}
+            fontSize={10}
+            lineHeight={13}
             style={[
               styles.textBox,
               selected ? { backgroundColor: SELECTED_BG } : undefined,
@@ -112,11 +129,7 @@ const styles = StyleSheet.create({
     top: 8,
     width: 72,
     height: 36,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    boxShadow: "0px 0.78px 6.26px 0px rgba(0, 0, 0, 0.2)",
   },
   imageGroup: {
     position: "absolute",
@@ -125,43 +138,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 36,
     zIndex: 2,
-  },
-  flagPole: {
-    position: "absolute",
-    left: 13,
-    top: 0,
-    width: 1.6,
-    height: 16,
-    borderRadius: 999,
-    backgroundColor: "#FFFFFF",
-  },
-  flag: {
-    position: "absolute",
-    top: 0.5,
-    left: 14.8,
-    width: 0,
-    height: 0,
-    borderTopWidth: 5,
-    borderBottomWidth: 4,
-    borderLeftWidth: 6.4,
-    borderTopColor: "transparent",
-    borderBottomColor: "transparent",
-  },
-  imageShapeWrap: {
-    position: "absolute",
-    left: 0,
-    top: 11,
-    width: 28,
-    height: 25,
-  },
-  imageIcon: {
-    position: "absolute",
-    top: 0,
-    left: 15,
-    width: 6,
-    height: 9,
-    alignItems: "center",
-    justifyContent: "center",
   },
   textBoxWrap: {
     position: "absolute",
@@ -173,9 +149,9 @@ const styles = StyleSheet.create({
     height: 21,
     borderRadius: 999,
     paddingLeft: 24,
-    paddingRight: 9,
-    paddingTop: 2,
-    paddingBottom: 2,
+    paddingRight: 8,
+    paddingTop: 4,
+    paddingBottom: 4,
     alignSelf: "flex-start",
   },
 });
