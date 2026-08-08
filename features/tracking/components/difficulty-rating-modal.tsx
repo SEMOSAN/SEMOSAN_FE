@@ -2,8 +2,6 @@ import { CloseIcon } from "@/components/icons/close-icon";
 import { FaceHappyIcon } from "@/components/icons/face-happy-icon";
 import { FaceNeutralIcon } from "@/components/icons/face-neutral-icon";
 import { FaceSadIcon } from "@/components/icons/face-sad-icon";
-import { ENDPOINTS } from "@/types/api.generated";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,7 +12,6 @@ type DifficultyOption = "similar" | "easier" | "harder";
 type Props = {
   visible: boolean;
   course: Course;
-  mountainId?: number;
   mountainName: string;
   onClose: () => void;
   onComplete: (option: DifficultyOption | null) => void;
@@ -33,26 +30,14 @@ const OPTIONS: {
 export function DifficultyRatingModal({
   visible,
   course,
-  mountainId,
   mountainName,
   onClose,
   onComplete,
 }: Props) {
-  const queryClient = useQueryClient();
   const [selected, setSelected] = useState<DifficultyOption | null>(null);
   const insets = useSafeAreaInsets();
 
   const handleComplete = () => {
-    queryClient.invalidateQueries({ queryKey: [ENDPOINTS.MOUNTAINS_MAP] });
-    queryClient.invalidateQueries({
-      queryKey: [ENDPOINTS.HIKING_RECORDS_ME_MOUNTAINS],
-    });
-    if (mountainId)
-      queryClient.invalidateQueries({
-        queryKey: [
-          ENDPOINTS.HIKING_RECORDS_ME_MOUNTAINS_BY_MOUNTAINID(mountainId),
-        ],
-      });
     onComplete(selected);
     setSelected(null);
   };

@@ -49,11 +49,11 @@ import {
 } from "@/features/tracking/utils/parse-course-polyline";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
+import { toast } from "@/store/toast.store";
 import {
   LiveActivity,
   addLiveActivityControlListener,
 } from "@/modules/live-activity";
-import { toast } from "@/store/toast.store";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -97,28 +97,6 @@ const SEGMENT_COLORS: Record<string, { color: string }> = {
 
 // 좌표 개수가 MIN_SEGMENT_COORDS 미만인 짧은 세그먼트를 앞 세그먼트에 흡수해 색 전환 빈도를 줄임
 const MIN_SEGMENT_COORDS = 8;
-
-// GPS 튐(outlier) 좌표 필터링 기준 — 누적 경로가 삐죽하게 그려지는 문제 방지
-const MAX_LOCATION_ACCURACY_M = 30; // 정확도(m)가 이보다 나쁘면서 크게 튄 좌표는 버림
-const MIN_JUMP_M = 20; // 이보다 작은 이동은 속도 판정에서 제외 (정지 시 노이즈)
-const MAX_SPEED_MPS = 30; // 이보다 빠른 이동(≈108km/h)은 비현실적 → 튐 좌표로 간주
-
-// 두 좌표 간 거리(m) — Haversine
-function haversineMeters(
-  a: { latitude: number; longitude: number },
-  b: { latitude: number; longitude: number },
-): number {
-  const R = 6371000;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(b.latitude - a.latitude);
-  const dLng = toRad(b.longitude - a.longitude);
-  const lat1 = toRad(a.latitude);
-  const lat2 = toRad(b.latitude);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
 
 function mergeShortSegments(
   segments: { startIdx: number; endIdx: number; grade: string }[],
@@ -181,6 +159,7 @@ export default function TrackingScreen() {
     height: number;
   } | null>(null);
   // 사용자 현재 위치 — useNearbyMountain API용 (실제 GPS에서만 업데이트)
+
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -196,14 +175,6 @@ export default function TrackingScreen() {
     { latitude: number; longitude: number }[]
   >([]);
   const backgroundedAtRef = useRef<number | null>(null);
-  // 위치 업데이트 중복 방지 — foreground watch + background task 동시 수신 대비
-  const lastLocationTsRef = useRef(0);
-  // 직전에 채택된 좌표 — GPS 튐 좌표 필터링용 (누적 경로 왜곡 방지)
-  const lastAcceptedCoordRef = useRef<{
-    latitude: number;
-    longitude: number;
-    timestamp: number;
-  } | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
   const isMountedRef = useRef(true);
@@ -267,58 +238,6 @@ export default function TrackingScreen() {
     onPhotoWindow: handlePhotoWindow,
   });
 
-  // sessionId를 ref로 미러링 — 위치 콜백에서 항상 최신 값 참조
-  const sessionIdRef = useRef<number | null>(null);
-  sessionIdRef.current = sessionId;
-
-  // 포어그라운드 watch + 백그라운드 task 공용 위치 업데이트 핸들러
-  // 동일/과거 타임스탬프는 무시해 두 소스 동시 수신 시 좌표·publish 중복 방지
-  const handleLocationUpdate = useCallback(
-    (loc: {
-      latitude: number;
-      longitude: number;
-      altitude: number | null;
-      accuracy?: number | null;
-      timestamp: number;
-    }) => {
-      if (loc.timestamp && loc.timestamp <= lastLocationTsRef.current) return;
-      lastLocationTsRef.current = loc.timestamp || Date.now();
-
-      const { latitude, longitude, altitude, accuracy, timestamp } = loc;
-
-      // GPS 튐 좌표 제거 — 직전 채택 좌표 대비 비현실적 점프/저정확도 좌표는 버림
-      const last = lastAcceptedCoordRef.current;
-      if (last) {
-        const dist = haversineMeters(last, { latitude, longitude });
-        const dtSec = (timestamp - last.timestamp) / 1000;
-        const speed = dtSec > 0 ? dist / dtSec : 0;
-        const inaccurateJump =
-          accuracy != null &&
-          accuracy > MAX_LOCATION_ACCURACY_M &&
-          dist > MAX_LOCATION_ACCURACY_M;
-        const teleport = dist > MIN_JUMP_M && speed > MAX_SPEED_MPS;
-        // 마커·경로·publish 모두 스킵 (다음 좌표는 마지막 정상 좌표 기준으로 재판정)
-        if (inaccurateJump || teleport) return;
-      }
-      lastAcceptedCoordRef.current = { latitude, longitude, timestamp };
-
-      setUserLocation({ latitude, longitude, altitude });
-      setMarkerCoord({ latitude, longitude });
-      setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
-
-      const sid = sessionIdRef.current;
-      if (sid != null) {
-        publishGps(sid, {
-          lat: latitude,
-          lng: longitude,
-          altitude,
-          recordedAt: new Date(timestamp).toISOString(),
-        });
-      }
-    },
-    [publishGps],
-  );
-
   // 포어그라운드 FCM 수신 (백그라운드는 OS가 시스템 알림으로 자동 처리)
   useTrackingFcm({ enabled: isTracking, onPhotoWindow: handlePhotoWindow });
 
@@ -359,32 +278,24 @@ export default function TrackingScreen() {
       }
       connectSocket(activeSession.sessionId);
       // GPS 추적 재시작 — 백그라운드 포함
-      sessionIdRef.current = activeSession.sessionId;
-      lastLocationTsRef.current = 0;
-      lastAcceptedCoordRef.current = null;
-      setLocationTaskCallback(handleLocationUpdate);
+      const sid = activeSession.sessionId;
+      setLocationTaskCallback(
+        ({ latitude, longitude, altitude, timestamp }) => {
+          setUserLocation({ latitude, longitude, altitude });
+          setMarkerCoord({ latitude, longitude });
+          setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
+          publishGps(sid, {
+            lat: latitude,
+            lng: longitude,
+            altitude,
+            recordedAt: new Date(timestamp).toISOString(),
+          });
+        },
+      );
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
-      // 강제 종료 후 재진입 시 경과 시간을 서버 기준으로 복원 (0으로 초기화 방지)
-      // 등산 시간 = (기준 시각 - 시작 시각) - 누적 일시정지 시간
-      //   IN_PROGRESS: 기준 시각 = 현재, PAUSED: 기준 시각 = 일시정지 시각(시간 정지)
-      setElapsedSeconds(() => {
-        const startedMs = activeSession.startedAt
-          ? new Date(activeSession.startedAt).getTime()
-          : NaN;
-        if (Number.isNaN(startedMs)) return 0;
-        const pausedTotal = activeSession.pausedSecondsTotal ?? 0;
-        const refMs =
-          status === "PAUSED" && activeSession.pausedAt
-            ? new Date(activeSession.pausedAt).getTime()
-            : Date.now();
-        if (Number.isNaN(refMs)) return 0;
-        return Math.max(
-          0,
-          Math.floor((refMs - startedMs) / 1000) - pausedTotal,
-        );
-      });
+      setElapsedSeconds(0);
     }
   }, [activeSession]);
 
@@ -732,10 +643,8 @@ export default function TrackingScreen() {
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
 
-  // 트래킹 시작 전, polyline 로드 시 전체 경로가 보이도록 카메라 맞춤 (코스 미리보기)
-  // 트래킹 중에는 현위치 follow가 카메라를 담당하므로 전체 맞춤을 하지 않음
+  // polyline 로드되거나 트래킹 시작 시 전체 경로가 보이도록 카메라 맞춤
   useEffect(() => {
-    if (isTracking) return;
     if (courseCoords.length < 2) return;
 
     const timer = setTimeout(() => {
@@ -762,11 +671,15 @@ export default function TrackingScreen() {
   }, [courseDetail?.polyline, isTracking]);
 
   // 트래킹 시작/종료 시 follow 모드 토글
-  // 트래킹 중(코스·자유기록 공통): 현위치가 지도 중앙에 오도록 follow 활성
-  // (사용자가 직접 지도를 조작하면 onCameraChanged에서 follow 해제)
+  // 코스 따라가기: 시작 시 전체 코스가 보이도록 follow 비활성 (위치 버튼으로 재활성 가능)
+  // 자유기록: 시작 시 현위치 follow 활성
   useEffect(() => {
-    setIsFollowingUser(isTracking);
-  }, [isTracking]);
+    if (isTracking) {
+      setIsFollowingUser(isFreeMode);
+    } else {
+      setIsFollowingUser(false);
+    }
+  }, [isTracking, isFreeMode]);
 
   // 트래킹 중 실시간 위치 마커 카메라 추적 (사용자가 직접 조작하면 follow 해제)
   useEffect(() => {
@@ -778,47 +691,6 @@ export default function TrackingScreen() {
       duration: 800,
     });
   }, [markerCoord, isFollowingUser]);
-
-  // 포어그라운드 실시간 위치 추적 — 앱이 열려 있는 동안 마커/경로 갱신을 담당.
-  // 백그라운드 task는 "항상" 위치 권한이 있어야 시작되므로, 권한을 "앱 사용 중"만
-  // 허용한 경우 마커가 갱신되지 않던 문제를 해결한다. (화면이 꺼졌을 때는 백그라운드 task가 담당)
-  useEffect(() => {
-    if (!isTracking) return;
-    let sub: Location.LocationSubscription | null = null;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status !== "granted") return;
-        sub = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.BestForNavigation,
-            timeInterval: 2000,
-            distanceInterval: 5,
-          },
-          (loc) =>
-            handleLocationUpdate({
-              latitude: loc.coords.latitude,
-              longitude: loc.coords.longitude,
-              altitude: loc.coords.altitude,
-              accuracy: loc.coords.accuracy,
-              timestamp: loc.timestamp,
-            }),
-        );
-        // await 도중 언마운트/트래킹 종료된 경우 즉시 해제
-        if (cancelled) {
-          sub.remove();
-          sub = null;
-        }
-      } catch (err) {
-        console.warn("[Location] 포어그라운드 위치 추적 실패:", err);
-      }
-    })();
-    return () => {
-      cancelled = true;
-      sub?.remove();
-    };
-  }, [isTracking, handleLocationUpdate]);
 
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
@@ -853,14 +725,26 @@ export default function TrackingScreen() {
               if (data.sessionId != null) {
                 const sid = data.sessionId;
                 setSessionId(sid);
-                sessionIdRef.current = sid;
                 // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
                 connectSocket(sid);
                 // GPS 추적 시작 — 백그라운드 포함
                 setRecordedCoords([]);
-                lastLocationTsRef.current = 0;
-                lastAcceptedCoordRef.current = null;
-                setLocationTaskCallback(handleLocationUpdate);
+                setLocationTaskCallback(
+                  ({ latitude, longitude, altitude, timestamp }) => {
+                    setUserLocation({ latitude, longitude, altitude });
+                    setMarkerCoord({ latitude, longitude });
+                    setRecordedCoords((prev) => [
+                      ...prev,
+                      { latitude, longitude },
+                    ]);
+                    publishGps(sid, {
+                      lat: latitude,
+                      lng: longitude,
+                      altitude,
+                      recordedAt: new Date(timestamp).toISOString(),
+                    });
+                  },
+                );
                 startLocationTask().catch((err) => {
                   console.warn("[Location] 백그라운드 위치 시작 실패:", err);
                 });
@@ -1097,7 +981,9 @@ export default function TrackingScreen() {
         : null;
 
     if (activeWindow == null || sessionId == null) {
-      toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", { type: "error" });
+      toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", {
+        type: "error",
+      });
       return;
     }
 
@@ -1136,7 +1022,9 @@ export default function TrackingScreen() {
     } catch (err) {
       console.warn("[Tracking] 인증 사진 처리 실패:", err);
       Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
-      toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", { type: "error" });
+      toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", {
+        type: "error",
+      });
     }
   };
 
@@ -1434,11 +1322,6 @@ export default function TrackingScreen() {
 
       {/* 난이도 체감 모달 */}
       <DifficultyRatingModal
-        mountainId={
-          mountainIdParameter
-            ? Number(mountainIdParameter)
-            : nearbyData?.mountain?.mountainId
-        }
         visible={showDifficultyRating}
         course={selectedCourse}
         mountainName={nearbyData?.mountain?.name ?? ""}
