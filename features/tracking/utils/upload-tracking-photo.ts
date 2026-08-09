@@ -1,6 +1,6 @@
-import { api } from '@/lib/api';
-import { optimizeImageForUpload } from '@/lib/optimize-image';
-import { ENDPOINTS } from '@/types/api.generated';
+import { api } from "@/lib/api";
+import { optimizeImageForUpload } from "@/lib/optimize-image";
+import { ENDPOINTS } from "@/types/api.generated";
 
 type PresignedUrlResponse = {
   uploadUrl: string;
@@ -21,7 +21,7 @@ export async function uploadTrackingPhoto(uri: string): Promise<string> {
   // 1. Presigned URL 발급
   const { data } = await api.get<PresignedUrlResponse>({
     path: ENDPOINTS.IMAGES_PRESIGNED_URL,
-    params: { bucket: 'tracking-photos', filename },
+    params: { bucket: "tracking-photos", filename },
   });
 
   // 2. uri → blob 변환 (React Native에서 file:// URI를 바이너리로 읽음)
@@ -30,8 +30,8 @@ export async function uploadTrackingPhoto(uri: string): Promise<string> {
 
   // 3. MinIO에 직접 PUT (Presigned URL이므로 Authorization 헤더 불필요)
   const uploadResponse = await fetch(data.uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'image/jpeg' },
+    method: "PUT",
+    headers: { "Content-Type": "image/jpeg" },
     body: blob,
   });
 
