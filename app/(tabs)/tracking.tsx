@@ -49,11 +49,11 @@ import {
 } from "@/features/tracking/utils/parse-course-polyline";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
+import { toast } from "@/store/toast.store";
 import {
   LiveActivity,
   addLiveActivityControlListener,
 } from "@/modules/live-activity";
-import { toast } from "@/store/toast.store";
 import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
@@ -181,6 +181,7 @@ export default function TrackingScreen() {
     height: number;
   } | null>(null);
   // 사용자 현재 위치 — useNearbyMountain API용 (실제 GPS에서만 업데이트)
+
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -1097,7 +1098,9 @@ export default function TrackingScreen() {
         : null;
 
     if (activeWindow == null || sessionId == null) {
-      toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", { type: "error" });
+      toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", {
+        type: "error",
+      });
       return;
     }
 
@@ -1136,7 +1139,9 @@ export default function TrackingScreen() {
     } catch (err) {
       console.warn("[Tracking] 인증 사진 처리 실패:", err);
       Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
-      toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", { type: "error" });
+      toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", {
+        type: "error",
+      });
     }
   };
 
@@ -1434,11 +1439,6 @@ export default function TrackingScreen() {
 
       {/* 난이도 체감 모달 */}
       <DifficultyRatingModal
-        mountainId={
-          mountainIdParameter
-            ? Number(mountainIdParameter)
-            : nearbyData?.mountain?.mountainId
-        }
         visible={showDifficultyRating}
         course={selectedCourse}
         mountainName={nearbyData?.mountain?.name ?? ""}
