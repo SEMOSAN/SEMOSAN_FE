@@ -58,7 +58,10 @@ export function VisitedMarker({
                 <Rect x={16.944} y={0} width={6.621} height={9.169} />
               </ClipPath>
               <ClipPath id={clipIdPhoto}>
-                <Path d={PHOTO_CLIP_PATH} transform="translate(1.764, 13.923)" />
+                <Path
+                  d={PHOTO_CLIP_PATH}
+                  transform="translate(1.764, 13.923)"
+                />
               </ClipPath>
             </Defs>
 
@@ -104,9 +107,7 @@ export function VisitedMarker({
             suffix={visitCount}
             nameColor={selected ? "#ffffff" : "#464A57"}
             suffixColor={selected ? "#A4ABC0" : "#BFC4D1"}
-            gap={2}
-            fontSize={10}
-            lineHeight={13}
+            variant="compact"
             style={[
               styles.textBox,
               selected ? { backgroundColor: SELECTED_BG } : undefined,
