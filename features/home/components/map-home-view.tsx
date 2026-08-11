@@ -19,6 +19,7 @@ import {
 } from "@/components/map-markers/visited-marker";
 import NoRecordBottomSheet from "@/components/no-record-bottom-sheet";
 import { useMyMountains } from "@/features/home/hooks/use-my-mountains";
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import {
   BBox,
   MountainMapItem,
@@ -38,6 +39,7 @@ import { router } from "expo-router";
 import {
   forwardRef,
   memo,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -60,6 +62,9 @@ const DEFAULT_REGION: Region = {
   longitude: 126.978,
   zoom: 8,
 };
+
+// 바텀시트에서 산 카드 선택 시 지도 포커스 확대 레벨
+const FOCUS_ZOOM = 14;
 
 type VisitedMarkerOverlayProps = {
   mountain: MountainMapItem;
@@ -128,6 +133,29 @@ const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
     );
     const { data: mapData } = useMountainsMap(bbox);
     const hasRecords = mapData?.hasHikingRecord ?? false;
+
+    // 선택된 산이 현재 뷰포트 안에 있으면 좌표를 바로 재사용, 없으면 상세 API로 조회
+    const selectedFromViewport = mapData?.mountains?.find(
+      (m) => m.id === selectedMountainId,
+    );
+    const { data: selectedMountainDetail } = useMountainDetail(
+      selectedMountainId != null && !selectedFromViewport
+        ? selectedMountainId
+        : NaN,
+    );
+
+    // 바텀시트에서 산 카드 선택 시 해당 산 좌표로 지도 카메라 포커스
+    useEffect(() => {
+      if (selectedMountainId == null) return;
+      const coords =
+        selectedFromViewport ?? selectedMountainDetail?.mountain;
+      if (coords?.latitude == null || coords?.longitude == null) return;
+      setRegion({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        zoom: FOCUS_ZOOM,
+      });
+    }, [selectedMountainId, selectedFromViewport, selectedMountainDetail]);
     const snapExpanded = hasRecords
       ? SNAP_EXPANDED_WITH_RECORDS
       : SNAP_EXPANDED_NO_RECORDS;
@@ -197,7 +225,12 @@ const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
         >
           {hasRecords
             ? mapData?.mountains
-                ?.filter((m) => m.visited)
+                ?.filter(
+                  (m) =>
+                    m.visited &&
+                    (selectedMountainId == null ||
+                      m.id === selectedMountainId),
+                )
                 .map((mountain) => (
                   <VisitedMarkerOverlay
                     key={mountain.id}
