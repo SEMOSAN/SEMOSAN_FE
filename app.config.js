@@ -148,6 +148,7 @@ const config = {
           ],
         ]
       : []),
+    "react-native-compressor",
   ],
   experiments: {
     typedRoutes: true,

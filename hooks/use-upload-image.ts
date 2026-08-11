@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { optimizeImageForUpload } from "@/lib/optimize-image";
 import { ENDPOINTS } from "@/types/api.generated";
 
 type PresignedUrlResponse = {
@@ -11,16 +12,11 @@ export async function uploadImage(
   filename: string,
   bucket: string = "posts",
 ): Promise<string> {
-  const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";
-  const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
-  const safeFilename =
-    safeExt === ext ? filename : filename.replace(/\.[^.]+$/, ".jpg");
-  const mimeType =
-    safeExt === "png"
-      ? "image/png"
-      : safeExt === "webp"
-        ? "image/webp"
-        : "image/jpeg";
+  // 압축 결과는 항상 jpg로 재인코딩되므로 확장자/mime도 jpg로 통일
+  // (확장자가 없는 filename도 대비해 basename만 뽑아 항상 .jpg를 붙임)
+  const optimizedUri = await optimizeImageForUpload(uri);
+  const baseName = filename.replace(/\.[^./]+$/, "");
+  const safeFilename = `${baseName}.jpg`;
 
   const { data } = await api.get<PresignedUrlResponse>({
     path: ENDPOINTS.IMAGES_PRESIGNED_URL,
@@ -35,7 +31,11 @@ export async function uploadImage(
       else reject(new Error(`이미지 업로드 실패: ${xhr.status}`));
     };
     xhr.onerror = () => reject(new Error("네트워크 오류"));
-    xhr.send({ uri, type: mimeType, name: safeFilename } as any);
+    xhr.send({
+      uri: optimizedUri,
+      type: "image/jpeg",
+      name: safeFilename,
+    } as any);
   });
 
   return data.imageUrl;
