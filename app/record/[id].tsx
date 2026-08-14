@@ -495,7 +495,7 @@ export default function RecordScreen() {
           <View className="pb-10 pt-2">
             <ViewShot
               ref={cliveShotRef}
-              options={{ format: "jpg", quality: 1 }}
+              options={{ format: "png", quality: 1 }}
               style={{ width: 335, alignSelf: "center" }}
             >
               <View style={styles.cardWrap}>
@@ -714,7 +714,7 @@ export default function RecordScreen() {
             <View style={{ width: 335, alignSelf: "center" }}>
               <ViewShot
                 ref={photoReportShotRef}
-                options={{ format: "jpg", quality: 1 }}
+                options={{ format: "png", quality: 1 }}
               >
                 <View style={styles.cardWrap}>
                   {/* 배경 사진 */}
