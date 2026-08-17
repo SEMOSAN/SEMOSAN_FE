@@ -370,8 +370,15 @@ export default function TrackingScreen() {
       );
       // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원 — 자유기록
       if (activeSession.isFreeRecording) {
-        fetchSessionTrack(activeSession.sessionId).then((saved) => {
-          if (!isMountedRef.current || saved.length === 0) return;
+        // 요청 시점의 세션 ID를 캡처 — 응답 지연 중 다른 세션으로 바뀌면 폐기
+        const restoringSessionId = activeSession.sessionId;
+        fetchSessionTrack(restoringSessionId).then((saved) => {
+          if (
+            !isMountedRef.current ||
+            sessionIdRef.current !== restoringSessionId ||
+            saved.length === 0
+          )
+            return;
           // fetch 지연 중 도착한 신규 좌표는 뒤에 유지
           setRecordedCoords((prev) =>
             prev.length ? [...saved, ...prev] : saved,
