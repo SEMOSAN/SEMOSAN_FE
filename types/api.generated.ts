@@ -10,6 +10,7 @@ export const ENDPOINTS = {
   USERS_ONBOARDING: "/api/users/onboarding",
   TRACKING_SESSIONS: "/api/tracking/sessions",
   TRACKING_SESSIONS_BY_SESSIONID_RESUME: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/resume`,
+  TRACKING_SESSIONS_BY_SESSIONID_TRACK: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/track`,
   TRACKING_SESSIONS_BY_SESSIONID_PHOTOS: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/photos`,
   TRACKING_SESSIONS_BY_SESSIONID_PAUSE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/pause`,
   TRACKING_SESSIONS_BY_SESSIONID_COMPLETE: (sessionId: number | string) => `/api/tracking/sessions/${sessionId}/complete`,
@@ -143,6 +144,11 @@ export type ApiResponseTrackingSessionResponse = {
   code?: string;
   message?: string;
   data?: TrackingSessionResponse;
+};
+export type TrackingSessionTrackResponse = {
+  sessionId?: number;
+  track?: string;
+  altitudes?: string;
 };
 export type TrackingSessionResponse = {
   sessionId?: number;
