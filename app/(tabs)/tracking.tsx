@@ -180,12 +180,18 @@ export default function TrackingScreen() {
     top: number;
     height: number;
   } | null>(null);
-  // 사용자 현재 위치 — useNearbyMountain API용 (실제 GPS에서만 업데이트)
+  // 사용자 현재 위치 — 코스 진행률/고도 계산용 (실제 GPS에서만 업데이트)
 
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
     altitude: number | null;
+  } | null>(null);
+  // 근처 산 조회(useNearbyMountain) 전용 좌표 — 진입 시 1회만 설정
+  // 트래킹 중 GPS 틱마다 좌표가 바뀌면 쿼리 키가 매번 달라져 API가 반복 호출됨
+  const [nearbyQueryCoord, setNearbyQueryCoord] = useState<{
+    lat: number;
+    lng: number;
   } | null>(null);
   // 현재 위치 마커 전용 — 시뮬/GPS 둘 다 업데이트 (잦은 리렌더 격리)
   const [markerCoord, setMarkerCoord] = useState<{
@@ -235,6 +241,10 @@ export default function TrackingScreen() {
           longitude: loc.coords.longitude,
           altitude: loc.coords.altitude,
         });
+        setNearbyQueryCoord({
+          lat: loc.coords.latitude,
+          lng: loc.coords.longitude,
+        });
         setMarkerCoord({
           latitude: loc.coords.latitude,
           longitude: loc.coords.longitude,
@@ -246,8 +256,8 @@ export default function TrackingScreen() {
   }, []);
 
   const { data: nearbyData, isLoading: isNearbyLoading } = useNearbyMountain({
-    lat: userLocation?.latitude ?? null,
-    lng: userLocation?.longitude ?? null,
+    lat: nearbyQueryCoord?.lat ?? null,
+    lng: nearbyQueryCoord?.lng ?? null,
   });
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
