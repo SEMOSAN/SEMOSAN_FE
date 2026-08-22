@@ -18,6 +18,10 @@ export function useNearbyMountain({ lat, lng }: Params) {
       return res.data;
     },
     enabled: lat !== null && lng !== null,
-    staleTime: 1000 * 60 * 5, // 5분
+    // 좌표가 트래킹 탭 진입 시 1회만 설정되므로 재조회해도 같은 결과 — 세션당 1회 조회 정책
+    // (refetchOnReconnect는 기본값 유지: 최초 조회가 실패한 경우 네트워크 복구 시 재시도 필요)
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 }
