@@ -41,6 +41,43 @@ client.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+let refreshPromise: Promise<string> | null = null;
+
+async function reissueTokens(): Promise<string> {
+  try {
+    const refreshToken = await tokenStorage.getRefreshToken();
+    if (!refreshToken) {
+      throw new ApiError(401, "No refresh token");
+    }
+
+    const response = await axios.post(
+      `${API_URL}${ENDPOINTS.AUTH_TOKEN_REISSUE}`,
+      null,
+      {
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      },
+    );
+
+    const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+
+    await tokenStorage.setTokens(accessToken, newRefreshToken);
+    return accessToken;
+  } catch (refreshError) {
+    const status = axios.isAxiosError(refreshError)
+      ? refreshError.response?.status
+      : refreshError instanceof ApiError
+        ? refreshError.statusCode
+        : undefined;
+
+    if (status === 401 || status === 403) {
+      await tokenStorage.clearTokens();
+      console.error("Token refresh failed:", refreshError);
+      Sentry.captureException(new Error("TokenRefreshFailed"));
+    }
+    throw refreshError;
+  }
+}
+
 client.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -55,30 +92,14 @@ client.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await tokenStorage.getRefreshToken();
-        if (!refreshToken) {
-          throw new Error("No refresh token");
-        }
-
-        const response = await axios.post(
-          `${API_URL}${ENDPOINTS.AUTH_TOKEN_REISSUE}`,
-          null,
-          {
-            headers: { Authorization: `Bearer ${refreshToken}` },
-          },
-        );
-
-        const { accessToken, refreshToken: newRefreshToken } =
-          response.data.data;
-
-        await tokenStorage.setTokens(accessToken, newRefreshToken);
+        refreshPromise ??= reissueTokens().finally(() => {
+          refreshPromise = null;
+        });
+        const accessToken = await refreshPromise;
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return client(originalRequest);
       } catch (refreshError) {
-        await tokenStorage.clearTokens();
-        console.error("Token refresh failed:", refreshError);
-        Sentry.captureException(new Error("TokenRefreshFailed"));
         return Promise.reject(refreshError);
       }
     }
