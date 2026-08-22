@@ -2,11 +2,9 @@ import { api } from "@/lib/api";
 import { AppVersionResponse, ENDPOINTS } from "@/types/api.generated";
 import { useQuery } from "@tanstack/react-query";
 
-const REFETCH_INTERVAL_MS = 1000 * 60 * 30; // 30분마다 재확인
-
 /**
- * 서버의 앱 버전/점검 정보를 주기적으로 조회한다.
- * - 30분 간격 폴링(포어그라운드) + 앱 포어그라운드 복귀 시 재확인(refetchOnWindowFocus)
+ * 서버의 앱 버전/점검 정보를 앱 실행(콜드 스타트) 시 1회만 조회한다.
+ * - 강제 업데이트는 대규모 업데이트에만 쓰이므로 폴링/포어그라운드 재확인 불필요
  * - 실패/빈 응답이면 null → 게이트는 아무것도 막지 않음(fail-open)
  */
 export function useAppVersion() {
@@ -18,9 +16,9 @@ export function useAppVersion() {
       });
       return res.data ?? null;
     },
-    refetchInterval: REFETCH_INTERVAL_MS,
-    refetchOnWindowFocus: true,
-    staleTime: 0,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
     retry: 1,
   });
 }
