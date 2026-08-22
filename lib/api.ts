@@ -85,8 +85,6 @@ client.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return client(originalRequest);
       } catch (refreshError) {
-        // refresh token 자체가 무효(401/403)일 때만 로그아웃 처리.
-        // 네트워크 오류/타임아웃은 토큰을 유지하고 해당 요청만 실패시킨다.
         const status = axios.isAxiosError(refreshError)
           ? refreshError.response?.status
           : refreshError instanceof ApiError
