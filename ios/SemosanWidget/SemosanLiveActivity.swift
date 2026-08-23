@@ -29,6 +29,17 @@ private struct LiveTimerText: View {
     let state: SemosanLiveActivityAttributes.ContentState
     var fontSize: CGFloat = 36
     var kerning: CGFloat = 0.72
+    // fontFamily가 nil이면 시스템 폰트(semibold) 사용 — compactTrailing처럼 Lexend가 아닌 곳에서 사용
+    var fontFamily: String? = "Lexend-SemiBold"
+    var color: Color = C.timerGreen
+    var minimumScaleFactor: CGFloat = 0.6
+
+    private var font: Font {
+        if let fontFamily {
+            return .custom(fontFamily, size: fontSize)
+        }
+        return .system(size: fontSize, weight: .semibold)
+    }
 
     var body: some View {
         Group {
@@ -37,18 +48,18 @@ private struct LiveTimerText: View {
                 TimelineView(.periodic(from: .now, by: 1.0)) { tl in
                     let elapsed = max(0, Int(tl.date.timeIntervalSince(startDate)))
                     Text(formatExpanded(elapsed))
-                        .font(.custom("Lexend-SemiBold", size: fontSize))
+                        .font(font)
                         .kerning(kerning)
-                        .foregroundColor(C.timerGreen)
-                        .minimumScaleFactor(0.6)
+                        .foregroundColor(color)
+                        .minimumScaleFactor(minimumScaleFactor)
                         .lineLimit(1)
                 }
             } else {
                 Text(formatExpanded(state.elapsedSeconds))
-                    .font(.custom("Lexend-SemiBold", size: fontSize))
+                    .font(font)
                     .kerning(kerning)
-                    .foregroundColor(C.timerGreen)
-                    .minimumScaleFactor(0.6)
+                    .foregroundColor(color)
+                    .minimumScaleFactor(minimumScaleFactor)
                     .lineLimit(1)
             }
         }
@@ -462,12 +473,15 @@ struct SemosanLiveActivity: Widget {
                 CompactPlayPauseBtn(isRunning: state.isRunning)
                     .padding(.leading, 4)
             } compactTrailing: {
-                Text(formatExpanded(state.elapsedSeconds))
-                    .foregroundStyle(C.timerGreenSm)
-                    .font(.system(size: 12, weight: .semibold))
-                    .minimumScaleFactor(0.7)
-                    .lineLimit(1)
-                    .padding(.trailing, 4)
+                LiveTimerText(
+                    state: state,
+                    fontSize: 12,
+                    kerning: 0,
+                    fontFamily: nil,
+                    color: C.timerGreenSm,
+                    minimumScaleFactor: 0.7
+                )
+                .padding(.trailing, 4)
             } minimal: {
                 Image(systemName: "figure.hiking")
                     .foregroundStyle(C.timerGreen)
