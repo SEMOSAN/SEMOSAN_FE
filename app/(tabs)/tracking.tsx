@@ -47,6 +47,7 @@ import {
   parseCoursePolyline,
   smoothCourseCoords,
 } from "@/features/tracking/utils/parse-course-polyline";
+import { fetchSessionTrack } from "@/features/tracking/utils/fetch-session-track";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
 import { toast } from "@/store/toast.store";
@@ -377,6 +378,23 @@ export default function TrackingScreen() {
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
+      // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원 — 자유기록
+      if (activeSession.isFreeRecording) {
+        // 요청 시점의 세션 ID를 캡처 — 응답 지연 중 다른 세션으로 바뀌면 폐기
+        const restoringSessionId = activeSession.sessionId;
+        fetchSessionTrack(restoringSessionId).then((saved) => {
+          if (
+            !isMountedRef.current ||
+            sessionIdRef.current !== restoringSessionId ||
+            saved.length === 0
+          )
+            return;
+          // fetch 지연 중 도착한 신규 좌표는 뒤에 유지
+          setRecordedCoords((prev) =>
+            prev.length ? [...saved, ...prev] : saved,
+          );
+        });
+      }
       // 강제 종료 후 재진입 시 경과 시간을 서버 기준으로 복원 (0으로 초기화 방지)
       // 등산 시간 = (기준 시각 - 시작 시각) - 누적 일시정지 시간
       //   IN_PROGRESS: 기준 시각 = 현재, PAUSED: 기준 시각 = 일시정지 시각(시간 정지)
