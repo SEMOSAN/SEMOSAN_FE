@@ -15,6 +15,7 @@ import { useLocalSearchParams } from "expo-router";
 import {
   ScrollView,
   StyleSheet,
+
   Text,
   TouchableOpacity,
   View,
@@ -25,7 +26,6 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 const TABS = [
   "코스",
   "교통 정보",
@@ -33,6 +33,8 @@ const TABS = [
   "주변 맛집",
   "등산 후기",
 ] as const;
+
+
 const MAP_BG_URI =
   "https://www.figma.com/api/mcp/asset/290712df-c28e-4d6b-b1b7-48d12eb7313f";
 const COURSES = [

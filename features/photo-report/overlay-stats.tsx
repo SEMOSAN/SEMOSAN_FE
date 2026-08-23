@@ -56,15 +56,13 @@ export type OverlayProps = {
 };
 
 // ─── 산 실루엣 SVG (Figma 하드코딩) ─────────────────────────────────────────
-// viewBox="0 0 186 44", Figma 기준 position: x=28, y=30
-
-const MTN_MULT = 1.15; // 산 SVG 크기 배율
+// viewBox="0 0 186 44", Figma 기준 position: x=28.36, y=30.48
 
 function MountainFrame({ scale = 1 }: { scale?: number }) {
-  const w = 186 * scale * MTN_MULT;
-  const h = 44 * scale * MTN_MULT;
+  const w = 186 * scale;
+  const h = 44 * scale;
   return (
-    <View style={{ position: "absolute", top: 30 * scale, left: 26 * scale }}>
+    <View style={{ position: "absolute", top: 30.48 * scale, left: 28.36 * scale }}>
       <Svg width={w} height={h} viewBox="0 0 186 44" fill="none">
         <Defs>
           <SvgGradient id="fillGrad" x1="92.12" y1="0.42" x2="92.12" y2="43.42" gradientUnits="userSpaceOnUse">
@@ -89,19 +87,29 @@ function MountainFrame({ scale = 1 }: { scale?: number }) {
 
 // ─── 통계 아이템 ──────────────────────────────────────────────────────────────
 
-// 폰트 크기 배율 — Figma 원본(3/13/6)에서 시각적으로 키운 값
-const LABEL_FS = 4.2;
-const VALUE_FS = 17.5;
-const UNIT_FS = 8;
+// 폰트 크기 — Figma 원본 그대로 (카드가 240×426로 Figma 프레임과 1:1 크기이므로 배율 불필요)
+const LABEL_FS = 3;
+const VALUE_FS = 13;
+const UNIT_FS = 6;
 
-function StatItem({ label, value, unit, scale = 1 }: { label: string; value: string; unit?: string; scale?: number }) {
+function StatItem({
+  label,
+  value,
+  unit,
+  scale = 1,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  scale?: number;
+}) {
   return (
     <View style={{ gap: scale * 1 }}>
-      <Text style={{ fontSize: scale * LABEL_FS, fontWeight: "600", color: "white", letterSpacing: 0.5, opacity: 0.8 }}>
+      <Text style={{ fontSize: scale * LABEL_FS, fontWeight: "600", color: "white", opacity: 0.8 }}>
         {label}
       </Text>
       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: scale * 1.5 }}>
-        <Text style={{ fontSize: scale * VALUE_FS, fontWeight: "700", color: "white", fontFamily: "Lexend_700Bold", lineHeight: scale * VALUE_FS * 1.15 }}>
+        <Text style={{ fontSize: scale * VALUE_FS, fontWeight: "700", color: "white", fontFamily: "Lexend_700Bold", letterSpacing: scale * 0.26, lineHeight: scale * VALUE_FS * 1.25 }}>
           {value}
         </Text>
         {unit ? (
@@ -132,12 +140,12 @@ function OverlayBackground() {
 
 export function Template1Overlay({ distance, calories, elevation, weather, duration, date, scale = 1 }: OverlayProps) {
   const s = scale;
-  // 열 시작 x (Figma: 26, 95, 158)
-  const col1x = s * 26;
-  const col2x = s * 95;
-  const col3x = s * 158;
-  // 그리드 시작 y (Figma: 88)
-  const gridY = s * 88;
+  // 열 시작 x (Figma: 26.36, 95.36, 158.36)
+  const col1x = s * 26.36;
+  const col2x = s * 95.36;
+  const col3x = s * 158.36;
+  // 그리드 시작 y (Figma: 87.8)
+  const gridY = s * 87.8;
   // 로고 (Figma: x=159, y=402)
   const logoX = s * 159;
   const logoY = s * 402;
@@ -160,7 +168,7 @@ export function Template1Overlay({ distance, calories, elevation, weather, durat
       </View>
 
       {/* 열 3: DURATION / DATE */}
-      <View style={{ position: "absolute", top: gridY, right: s * 8, gap: s * 10 }}>
+      <View style={{ position: "absolute", top: gridY, left: col3x, gap: s * 10 }}>
         <StatItem label="DURATION" value={duration} scale={s} />
         <StatItem label="DATE" value={date} scale={s} />
       </View>
@@ -176,10 +184,10 @@ export function Template1Overlay({ distance, calories, elevation, weather, durat
 // ─── 템플릿 2 산 실루엣 (83×29 viewBox, Figma 하드코딩) ──────────────────────
 
 function MountainFrameSmall({ scale = 1 }: { scale?: number }) {
-  const w = 83 * scale * MTN_MULT;
-  const h = 29 * scale * MTN_MULT;
+  const w = 83 * scale;
+  const h = 29 * scale;
   return (
-    <View style={{ position: "absolute", top: 334.6 * scale, left: 134.5 * scale }}>
+    <View style={{ position: "absolute", top: 334.64 * scale, left: 134.5 * scale }}>
       <Svg width={w} height={h} viewBox="0 0 83 29" fill="none">
         <Defs>
           <SvgGradient id="fillGrad2" x1="41.15" y1="0.43" x2="41.15" y2="28.43" gradientUnits="userSpaceOnUse">
@@ -212,9 +220,9 @@ export function Template2Overlay({ distance, calories, elevation, weather, durat
   const col1x = s * 24.5;   // x=7794.5-7770
   const col2x = s * 76.5;   // x=7846.5-7770
   const datex = s * 160.5;  // x=7930.5-7770
-  const row1y = s * 308.5;  // y=58.0-(-250.5)
-  const row2y = s * 342.5;  // y=92.0-(-250.5)
-  const row3y = s * 376.5;  // y=126.0-(-250.5)
+  const row1y = s * 308.49; // y=58.0-(-250.5)
+  const row2y = s * 342.49; // y=92.0-(-250.5)
+  const row3y = s * 376.49; // y=126.0-(-250.5)
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -250,11 +258,11 @@ export function Template2Overlay({ distance, calories, elevation, weather, durat
         <StatItem label="CALORIES" value={calories} unit="kcal" scale={s} />
       </View>
 
-      {/* 행 3: WEATHER | (STEPS 빈칸) | DATE */}
+      {/* 행 3: WEATHER | (STEPS 빈칸 — 데이터 소스 없음) | DATE */}
       <View style={{ position: "absolute", top: row3y, left: col1x }}>
         <StatItem label="WEATHER (°C)" value={weather} scale={s} />
       </View>
-      <View style={{ position: "absolute", top: row3y, right: s * 8 }}>
+      <View style={{ position: "absolute", top: row3y, left: datex }}>
         <StatItem label="DATE" value={date} scale={s} />
       </View>
     </View>
@@ -264,8 +272,8 @@ export function Template2Overlay({ distance, calories, elevation, weather, durat
 // ─── 템플릿 3 산 실루엣 (85×30 viewBox, Figma 하드코딩) ──────────────────────
 
 function MountainFrame3({ scale = 1 }: { scale?: number }) {
-  const w = 85 * scale * MTN_MULT;
-  const h = 30 * scale * MTN_MULT;
+  const w = 85 * scale;
+  const h = 30 * scale;
   return (
     <View style={{ position: "absolute", top: 29 * scale, left: 25 * scale }}>
       <Svg width={w} height={h} viewBox="0 0 85 30" fill="none">
