@@ -68,6 +68,7 @@ import * as Location from "expo-location";
 import { Tabs, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  AppState,
   LayoutChangeEvent,
   Linking,
   StyleSheet,
@@ -103,6 +104,9 @@ const MIN_SEGMENT_COORDS = 8;
 const MAX_LOCATION_ACCURACY_M = 30; // 정확도(m)가 이보다 나쁘면서 크게 튄 좌표는 버림
 const MIN_JUMP_M = 20; // 이보다 작은 이동은 속도 판정에서 제외 (정지 시 노이즈)
 const MAX_SPEED_MPS = 30; // 이보다 빠른 이동(≈108km/h)은 비현실적 → 튐 좌표로 간주
+
+// 소켓 GPS 전송 최소 간격 — 경로 기록(2초)보다 낮은 해상도로 충분해 전송량만 줄임
+const MIN_GPS_PUBLISH_INTERVAL_MS = 3000;
 
 // 두 좌표 간 거리(m) — Haversine
 function haversineMeters(
@@ -206,6 +210,8 @@ export default function TrackingScreen() {
   const backgroundedAtRef = useRef<number | null>(null);
   // 위치 업데이트 중복 방지 — foreground watch + background task 동시 수신 대비
   const lastLocationTsRef = useRef(0);
+  // 소켓 GPS 전송 throttle — 마지막 전송 시각
+  const lastPublishTsRef = useRef(0);
   // 직전에 채택된 좌표 — GPS 튐 좌표 필터링용 (누적 경로 왜곡 방지)
   const lastAcceptedCoordRef = useRef<{
     latitude: number;
@@ -319,7 +325,11 @@ export default function TrackingScreen() {
       setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
 
       const sid = sessionIdRef.current;
-      if (sid != null) {
+      if (
+        sid != null &&
+        timestamp - lastPublishTsRef.current >= MIN_GPS_PUBLISH_INTERVAL_MS
+      ) {
+        lastPublishTsRef.current = timestamp;
         publishGps(sid, {
           lat: latitude,
           lng: longitude,
@@ -329,6 +339,30 @@ export default function TrackingScreen() {
       }
     },
     [publishGps],
+  );
+
+  // 백그라운드 task 전용 핸들러 — 포어그라운드에서는 watch가 담당하므로 무시
+  // (두 스트림이 동시에 처리되면 좌표·publish가 이중으로 발생)
+  const handleBackgroundLocationUpdate = useCallback(
+    (loc: {
+      latitude: number;
+      longitude: number;
+      altitude: number | null;
+      accuracy?: number | null;
+      timestamp: number;
+    }) => {
+      if (AppState.currentState === "active") return;
+      handleLocationUpdate(loc);
+    },
+    [handleLocationUpdate],
+  );
+
+  // 포어그라운드 여부 — 위치 스트림 배타 제어용 (active ↔ background/inactive)
+  const [isAppActive, setIsAppActive] = useState(
+    AppState.currentState === "active",
+  );
+  useAppState(
+    useCallback((state) => setIsAppActive(state === "active"), []),
   );
 
   // 포어그라운드 FCM 수신 (백그라운드는 OS가 시스템 알림으로 자동 처리)
@@ -373,8 +407,9 @@ export default function TrackingScreen() {
       // GPS 추적 재시작 — 백그라운드 포함
       sessionIdRef.current = activeSession.sessionId;
       lastLocationTsRef.current = 0;
+      lastPublishTsRef.current = 0;
       lastAcceptedCoordRef.current = null;
-      setLocationTaskCallback(handleLocationUpdate);
+      setLocationTaskCallback(handleBackgroundLocationUpdate);
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
@@ -810,9 +845,10 @@ export default function TrackingScreen() {
 
   // 포어그라운드 실시간 위치 추적 — 앱이 열려 있는 동안 마커/경로 갱신을 담당.
   // 백그라운드 task는 "항상" 위치 권한이 있어야 시작되므로, 권한을 "앱 사용 중"만
-  // 허용한 경우 마커가 갱신되지 않던 문제를 해결한다. (화면이 꺼졌을 때는 백그라운드 task가 담당)
+  // 허용한 경우 마커가 갱신되지 않던 문제를 해결한다.
+  // 백그라운드 진입 시에는 watch를 해제해 task와의 이중 GPS 스트림을 방지한다.
   useEffect(() => {
-    if (!isTracking) return;
+    if (!isTracking || !isAppActive) return;
     let sub: Location.LocationSubscription | null = null;
     let cancelled = false;
     (async () => {
@@ -847,7 +883,7 @@ export default function TrackingScreen() {
       cancelled = true;
       sub?.remove();
     };
-  }, [isTracking, handleLocationUpdate]);
+  }, [isTracking, isAppActive, handleLocationUpdate]);
 
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
@@ -888,8 +924,9 @@ export default function TrackingScreen() {
                 // GPS 추적 시작 — 백그라운드 포함
                 setRecordedCoords([]);
                 lastLocationTsRef.current = 0;
+                lastPublishTsRef.current = 0;
                 lastAcceptedCoordRef.current = null;
-                setLocationTaskCallback(handleLocationUpdate);
+                setLocationTaskCallback(handleBackgroundLocationUpdate);
                 startLocationTask().catch((err) => {
                   console.warn("[Location] 백그라운드 위치 시작 실패:", err);
                 });
