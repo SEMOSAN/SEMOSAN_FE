@@ -10,8 +10,7 @@ import {
   useProfile,
 } from "@/features/mypage/hooks/use-profile";
 import { usePrefetchSavedMountains } from "@/features/mountains/hooks/use-saved-mountains";
-import { useFocusEffect } from "expo-router";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
