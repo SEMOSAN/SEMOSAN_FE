@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { tokenStorage } from "@/lib/auth/tokenStorage";
+import { startSession } from "@/lib/auth/session";
 import {
   AppleLoginBody,
   ENDPOINTS,
@@ -20,9 +20,8 @@ export function useAppleLogin() {
     mutationFn: appleLogin,
     onSuccess: async ({ accessToken, refreshToken }) => {
       if (accessToken && refreshToken) {
-    console.log("✅ accessToken:", accessToken);  // 임시 추가
-    await tokenStorage.setTokens(accessToken, refreshToken);
-  }
+        await startSession(accessToken, refreshToken);
+      }
     },
   });
 }

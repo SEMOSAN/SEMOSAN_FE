@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { tokenStorage } from "@/lib/auth/tokenStorage";
+import { startSession } from "@/lib/auth/session";
 import { ENDPOINTS, LoginResponse } from "@/types/api.generated";
 import { useMutation } from "@tanstack/react-query";
 
@@ -22,7 +22,7 @@ export function useTestLogin() {
     },
     onSuccess: async ({ accessToken, refreshToken }) => {
       if (accessToken && refreshToken) {
-        await tokenStorage.setTokens(accessToken, refreshToken);
+        await startSession(accessToken, refreshToken);
       }
     },
   });

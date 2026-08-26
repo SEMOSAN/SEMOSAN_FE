@@ -61,8 +61,9 @@ export default function MyPageScreen() {
           {
             text: "로그아웃",
             style: "destructive",
+            // 서버 응답과 무관하게 세션은 정리되므로 onSettled 에서 이동한다.
             onPress: () =>
-              logout(undefined, { onSuccess: () => router.replace("/login") }),
+              logout(undefined, { onSettled: () => router.replace("/login") }),
           },
         ]),
     },
@@ -75,9 +76,10 @@ export default function MyPageScreen() {
           {
             text: "탈퇴",
             style: "destructive",
+            // 이미 탈퇴된 계정이라 401 이 떨어져도 로그인 화면으로 빠져나가야 한다.
             onPress: () =>
               withdraw(undefined, {
-                onSuccess: () => router.replace("/login"),
+                onSettled: () => router.replace("/login"),
               }),
           },
         ]),
