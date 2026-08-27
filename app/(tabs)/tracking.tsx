@@ -24,6 +24,7 @@ import {
   TRACKING_SHEET_HEIGHT,
 } from "@/features/tracking/constants";
 import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
+import { useAbandonTrackingSession } from "@/features/tracking/hooks/use-abandon-tracking-session";
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
@@ -111,6 +112,9 @@ const MIN_GPS_PUBLISH_INTERVAL_MS = 3000;
 
 // GPS 응답 전 임시 중심 좌표 (서울시청)
 const FALLBACK_CAMERA = { latitude: 37.5665, longitude: 126.978, zoom: 12 };
+
+// 이보다 짧은 세션은 기록으로 남기지 않고 abandon 처리
+const MIN_RECORD_DURATION_SEC = 60;
 
 // 자유 기록을 산에 귀속시킬 최대 거리 — nearby API는 거리 무관하게 최근접 산을 돌려줌
 // 산 좌표가 정상 기준이라 등산로 입구(정상까지 3~5km)를 감안해 넉넉히 잡음
@@ -382,6 +386,7 @@ export default function TrackingScreen() {
   const { mutate: pauseSession } = usePauseTrackingSession();
   const { mutate: resumeSession } = useResumeTrackingSession();
   const { mutate: completeSession } = useCompleteTrackingSession();
+  const { mutate: abandonSession } = useAbandonTrackingSession();
   const { mutateAsync: savePhoto } = useSaveTrackingPhoto();
   const { mutate: saveDifficultyFeedback } = useSaveDifficultyFeedback();
   const { data: activeSession, refetch: refetchActiveSession } =
@@ -1295,19 +1300,41 @@ export default function TrackingScreen() {
   /** StopConfirmModal → 난이도 체감 화면으로 전환 */
   const finishTracking = () => {
     setShowStopModal(false);
-    // 기록 종료 시 항상 세션 완료 API 호출 (정상 인증 여부와 무관)
+
+    // complete는 등산 기록을 생성하므로 짧은 세션은 abandon으로 폐기
+    const tooShortToRecord = elapsedSeconds < MIN_RECORD_DURATION_SEC;
+
     if (sessionId != null) {
-      completeSession(sessionId, {
-        onSuccess: (data) => {
-          if (data.hikingRecordId != null)
-            setHikingRecordId(data.hikingRecordId);
-        },
-        onError: (err) => {
-          console.warn("[Tracking] 세션 종료 실패:", err);
-          Sentry.captureException(new Error("TrackingSessionCompleteFailed"));
-        },
-      });
+      if (tooShortToRecord) {
+        abandonSession(sessionId, {
+          onError: (err) => {
+            console.warn("[Tracking] 세션 폐기 실패:", err);
+            Sentry.captureException(new Error("TrackingSessionAbandonFailed"));
+          },
+        });
+      } else {
+        completeSession(sessionId, {
+          onSuccess: (data) => {
+            if (data.hikingRecordId != null)
+              setHikingRecordId(data.hikingRecordId);
+          },
+          onError: (err) => {
+            console.warn("[Tracking] 세션 종료 실패:", err);
+            Sentry.captureException(new Error("TrackingSessionCompleteFailed"));
+          },
+        });
+      }
     }
+
+    // 기록이 남지 않으므로 난이도 평가 단계도 건너뛴다
+    if (tooShortToRecord) {
+      completeTracking(null);
+      toast.show(
+        `${MIN_RECORD_DURATION_SEC / 60}분 미만은 기록으로 저장되지 않아요`,
+      );
+      return;
+    }
+
     // 자유기록은 난이도 평가 없이 바로 종료
     if (isFreeMode) {
       completeTracking(null);
