@@ -829,12 +829,19 @@ export default function TrackingScreen() {
   }, [courseDetail?.polyline, isTracking]);
 
   // 진입 시 카메라를 근처 산으로 1회 이동 — 근처 산이 없으면 현위치
-  // 코스 선택 시엔 위 전체맞춤 effect가 담당하므로 제외
   const didInitialCameraMoveRef = useRef(false);
+  // 사용자가 먼저 지도를 움직였으면 뒤늦게 도착한 좌표로 덮어쓰지 않음
+  const didUserMoveMapRef = useRef(false);
   const nearbyMountain = nearbyData?.mountain;
   useEffect(() => {
-    if (didInitialCameraMoveRef.current) return;
-    if (isTracking || courseCoords.length >= 2) return;
+    if (didInitialCameraMoveRef.current || didUserMoveMapRef.current) return;
+    // 트래킹이 시작되면 초기 이동은 포기 — 종료 후 카메라가 뒤늦게 튀는 것 방지
+    if (isTracking) {
+      didInitialCameraMoveRef.current = true;
+      return;
+    }
+    // 코스가 선택돼 있으면 위 전체맞춤 effect가 담당 (polyline 로딩 중 이중 이동 방지)
+    if (selectedCourseId != null || courseCoords.length >= 2) return;
 
     const target =
       nearbyMountain?.latitude != null && nearbyMountain?.longitude != null
@@ -855,6 +862,7 @@ export default function TrackingScreen() {
     didInitialCameraMoveRef.current = true;
     mapRef.current?.animateCameraTo({ ...target, duration: 500 });
   }, [
+    selectedCourseId,
     nearbyMountain,
     isNearbyLoading,
     userLocation,
@@ -1344,7 +1352,10 @@ export default function TrackingScreen() {
             right: 0,
           }}
           onCameraChanged={({ reason }) => {
-            if (reason === "Gesture") setIsFollowingUser(false);
+            if (reason === "Gesture") {
+              didUserMoveMapRef.current = true;
+              setIsFollowingUser(false);
+            }
           }}
         >
           {staticMapOverlays}
