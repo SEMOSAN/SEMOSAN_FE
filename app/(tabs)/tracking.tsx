@@ -112,10 +112,9 @@ const MIN_GPS_PUBLISH_INTERVAL_MS = 3000;
 // GPS 응답 전 임시 중심 좌표 (서울시청)
 const FALLBACK_CAMERA = { latitude: 37.5665, longitude: 126.978, zoom: 12 };
 
-// 자유 기록을 해당 산에 귀속시킬 수 있는 최대 거리(산 중심 좌표 기준).
-// nearby-mountain API는 거리와 무관하게 가장 가까운 산을 돌려주므로,
-// 이 값이 없으면 산과 멀리 떨어진 곳의 기록도 그 산에 붙는다.
-const FREE_RECORD_MAX_DISTANCE_M = 3000;
+// 자유 기록을 산에 귀속시킬 최대 거리 — nearby API는 거리 무관하게 최근접 산을 돌려줌
+// 산 좌표가 정상 기준이라 등산로 입구(정상까지 3~5km)를 감안해 넉넉히 잡음
+const FREE_RECORD_MAX_DISTANCE_M = 5000;
 
 // 두 좌표 간 거리(m) — Haversine
 function haversineMeters(
@@ -943,7 +942,7 @@ export default function TrackingScreen() {
     setCountdown(3);
   };
 
-  // 현위치 ~ 근처 산 중심 좌표 거리(m). 좌표가 없으면 판정 불가로 null
+  // 현위치 ~ 근처 산 거리(m), 좌표 없으면 null
   const nearbyMountainDistanceM = useMemo(() => {
     if (!userLocation) return null;
     const latitude = nearbyMountain?.latitude;
@@ -953,7 +952,7 @@ export default function TrackingScreen() {
   }, [userLocation, nearbyMountain]);
 
   const handleFreeRecord = () => {
-    // 코스 상세에서 산을 명시적으로 골라 진입한 경우엔 그 산의 좌표를 알 수 없어 거리 판정에서 제외
+    // 산을 골라 진입한 경우엔 좌표를 알 수 없어 거리 판정 제외
     if (mountainIdParameter) {
       startCountdown(true);
       return;
@@ -980,8 +979,7 @@ export default function TrackingScreen() {
         ? Number(mountainIdParameter)
         : nearbyData?.mountain?.mountainId;
 
-      // 산이 없으면 세션을 만들 수 없다. isTracking을 켜두면 세션·GPS·소켓이
-      // 전부 죽은 채 화면만 트래킹 중인 좀비 상태가 되므로 여기서 중단한다.
+      // 산이 없으면 세션 생성 불가 — isTracking만 켜면 GPS·소켓 없이 화면만 트래킹 중이 됨
       if (mountainId == null) {
         setIsFreeMode(false);
         setShowNoNearbyMountainModal(true);
@@ -1578,7 +1576,7 @@ export default function TrackingScreen() {
         }}
       />
 
-      {/* 근처에 산이 없어 자유 기록을 시작할 수 없을 때 */}
+      {/* 근처에 산이 없을 때 */}
       <NoNearbyMountainModal
         visible={showNoNearbyMountainModal}
         onClose={() => setShowNoNearbyMountainModal(false)}
