@@ -108,7 +108,7 @@ const MAX_SPEED_MPS = 30; // 이보다 빠른 이동(≈108km/h)은 비현실적
 // 소켓 GPS 전송 최소 간격 — 경로 기록(2초)보다 낮은 해상도로 충분해 전송량만 줄임
 const MIN_GPS_PUBLISH_INTERVAL_MS = 3000;
 
-// GPS 응답 전까지만 쓰는 임시 중심 좌표(서울시청). 위치를 받으면 바로 현위치로 이동한다.
+// GPS 응답 전 임시 중심 좌표 (서울시청)
 const FALLBACK_CAMERA = { latitude: 37.5665, longitude: 126.978, zoom: 12 };
 
 // 두 좌표 간 거리(m) — Haversine
@@ -828,20 +828,39 @@ export default function TrackingScreen() {
     return () => clearTimeout(timer);
   }, [courseDetail?.polyline, isTracking]);
 
-  // 진입 후 첫 위치 수신 시 카메라를 현위치로 1회 이동.
-  // 코스가 선택돼 있으면 위 전체맞춤 effect가 카메라를 담당하므로 건너뛴다.
+  // 진입 시 카메라를 근처 산으로 1회 이동 — 근처 산이 없으면 현위치
+  // 코스 선택 시엔 위 전체맞춤 effect가 담당하므로 제외
   const didInitialCameraMoveRef = useRef(false);
+  const nearbyMountain = nearbyData?.mountain;
   useEffect(() => {
     if (didInitialCameraMoveRef.current) return;
-    if (!userLocation || isTracking || courseCoords.length >= 2) return;
+    if (isTracking || courseCoords.length >= 2) return;
+
+    const target =
+      nearbyMountain?.latitude != null && nearbyMountain?.longitude != null
+        ? {
+            latitude: nearbyMountain.latitude,
+            longitude: nearbyMountain.longitude,
+            zoom: 12,
+          }
+        : !isNearbyLoading && userLocation
+          ? {
+              latitude: userLocation.latitude,
+              longitude: userLocation.longitude,
+              zoom: 15,
+            }
+          : null;
+    if (!target) return;
+
     didInitialCameraMoveRef.current = true;
-    mapRef.current?.animateCameraTo({
-      latitude: userLocation.latitude,
-      longitude: userLocation.longitude,
-      zoom: 15,
-      duration: 500,
-    });
-  }, [userLocation, isTracking, courseCoords.length]);
+    mapRef.current?.animateCameraTo({ ...target, duration: 500 });
+  }, [
+    nearbyMountain,
+    isNearbyLoading,
+    userLocation,
+    isTracking,
+    courseCoords.length,
+  ]);
 
   // 트래킹 시작/종료 시 follow 모드 토글
   // 트래킹 중(코스·자유기록 공통): 현위치가 지도 중앙에 오도록 follow 활성
