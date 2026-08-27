@@ -2,6 +2,7 @@ import { toast } from "@/store/toast.store";
 import { ENDPOINTS } from "@/types/api.generated";
 import * as Sentry from "@sentry/react-native";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import { endSession } from "./auth/session";
 import { tokenStorage } from "./auth/tokenStorage";
 import { buildQueryParams } from "./buildQueryParams";
 
@@ -13,6 +14,23 @@ export class ApiError extends Error {
     super(`API Error: ${status} ${statusText}`);
     this.statusCode = status;
   }
+}
+
+const PUBLIC_AUTH_PATHS: string[] = [
+  ENDPOINTS.OAUTH_KAKAO_LOGIN,
+  ENDPOINTS.OAUTH_APPLE_LOGIN,
+  ENDPOINTS.AUTH_TEST_LOGIN,
+  ENDPOINTS.AUTH_TOKEN_REISSUE,
+];
+
+function isPublicAuthPath(url?: string): boolean {
+  return !!url && PUBLIC_AUTH_PATHS.some((path) => url.startsWith(path));
+}
+
+function getErrorStatus(error: unknown): number | undefined {
+  if (axios.isAxiosError(error)) return error.response?.status;
+  if (error instanceof ApiError) return error.statusCode;
+  return undefined;
 }
 
 type RequestOptions = {
@@ -32,6 +50,9 @@ const client = axios.create({
 
 client.interceptors.request.use(
   async (config) => {
+    // 로그인 요청에 이전 계정의 토큰이 붙으면 서버가 이를 거절할 수 있으므로 제외
+    if (isPublicAuthPath(config.url)) return config;
+
     const accessToken = await tokenStorage.getAccessToken();
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
@@ -63,14 +84,11 @@ async function reissueTokens(): Promise<string> {
     await tokenStorage.setTokens(accessToken, newRefreshToken);
     return accessToken;
   } catch (refreshError) {
-    const status = axios.isAxiosError(refreshError)
-      ? refreshError.response?.status
-      : refreshError instanceof ApiError
-        ? refreshError.statusCode
-        : undefined;
+    const status = getErrorStatus(refreshError);
 
+    // 재발급 자체가 인증 실패면 되살릴 수 있는 세션이 아니다. 즉시 로그아웃 처리한다.
     if (status === 401 || status === 403) {
-      await tokenStorage.clearTokens();
+      await endSession();
       console.error("Token refresh failed:", refreshError);
       Sentry.captureException(new Error("TokenRefreshFailed"));
     }
@@ -85,7 +103,7 @@ client.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       // 토큰이 필요하지 않은 인증 API들은 토큰 갱신을 시도하지 않음
-      if (originalRequest.url?.includes("/auth/login")) {
+      if (isPublicAuthPath(originalRequest.url)) {
         return Promise.reject(error);
       }
 

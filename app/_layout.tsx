@@ -10,11 +10,8 @@ import { Lexend_700Bold, useFonts } from "@expo-google-fonts/lexend";
 import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
-import {
-  QueryClient,
-  QueryClientProvider,
-  focusManager,
-} from "@tanstack/react-query";
+import { queryClient } from "@/lib/query-client";
+import { QueryClientProvider, focusManager } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
 import { Redirect, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -74,10 +71,6 @@ function onAppStateChange(status: AppStateStatus) {
     focusManager.setFocused(status === "active");
   }
 }
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 2, staleTime: 1000 * 60 * 5 } },
-});
-
 export const unstable_settings = {
   anchor: "(tabs)",
 };
