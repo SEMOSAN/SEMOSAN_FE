@@ -108,6 +108,9 @@ const MAX_SPEED_MPS = 30; // 이보다 빠른 이동(≈108km/h)은 비현실적
 // 소켓 GPS 전송 최소 간격 — 경로 기록(2초)보다 낮은 해상도로 충분해 전송량만 줄임
 const MIN_GPS_PUBLISH_INTERVAL_MS = 3000;
 
+// GPS 응답 전 임시 중심 좌표 (서울시청)
+const FALLBACK_CAMERA = { latitude: 37.5665, longitude: 126.978, zoom: 12 };
+
 // 두 좌표 간 거리(m) — Haversine
 function haversineMeters(
   a: { latitude: number; longitude: number },
@@ -825,6 +828,48 @@ export default function TrackingScreen() {
     return () => clearTimeout(timer);
   }, [courseDetail?.polyline, isTracking]);
 
+  // 진입 시 카메라를 근처 산으로 1회 이동 — 근처 산이 없으면 현위치
+  const didInitialCameraMoveRef = useRef(false);
+  // 사용자가 먼저 지도를 움직였으면 뒤늦게 도착한 좌표로 덮어쓰지 않음
+  const didUserMoveMapRef = useRef(false);
+  const nearbyMountain = nearbyData?.mountain;
+  useEffect(() => {
+    if (didInitialCameraMoveRef.current || didUserMoveMapRef.current) return;
+    // 트래킹이 시작되면 초기 이동은 포기 — 종료 후 카메라가 뒤늦게 튀는 것 방지
+    if (isTracking) {
+      didInitialCameraMoveRef.current = true;
+      return;
+    }
+    // 코스가 선택돼 있으면 위 전체맞춤 effect가 담당 (polyline 로딩 중 이중 이동 방지)
+    if (selectedCourseId != null || courseCoords.length >= 2) return;
+
+    const target =
+      nearbyMountain?.latitude != null && nearbyMountain?.longitude != null
+        ? {
+            latitude: nearbyMountain.latitude,
+            longitude: nearbyMountain.longitude,
+            zoom: 12,
+          }
+        : !isNearbyLoading && userLocation
+          ? {
+              latitude: userLocation.latitude,
+              longitude: userLocation.longitude,
+              zoom: 15,
+            }
+          : null;
+    if (!target) return;
+
+    didInitialCameraMoveRef.current = true;
+    mapRef.current?.animateCameraTo({ ...target, duration: 500 });
+  }, [
+    selectedCourseId,
+    nearbyMountain,
+    isNearbyLoading,
+    userLocation,
+    isTracking,
+    courseCoords.length,
+  ]);
+
   // 트래킹 시작/종료 시 follow 모드 토글
   // 트래킹 중(코스·자유기록 공통): 현위치가 지도 중앙에 오도록 follow 활성
   // (사용자가 직접 지도를 조작하면 onCameraChanged에서 follow 해제)
@@ -1295,11 +1340,7 @@ export default function TrackingScreen() {
         <NaverMapView
           ref={mapRef}
           style={styles.map}
-          camera={{
-            latitude: 37.4449,
-            longitude: 126.9636,
-            zoom: 12,
-          }}
+          initialCamera={FALLBACK_CAMERA}
           mapPadding={{
             bottom: isTracking
               ? trackingSheetHeight
@@ -1311,7 +1352,10 @@ export default function TrackingScreen() {
             right: 0,
           }}
           onCameraChanged={({ reason }) => {
-            if (reason === "Gesture") setIsFollowingUser(false);
+            if (reason === "Gesture") {
+              didUserMoveMapRef.current = true;
+              setIsFollowingUser(false);
+            }
           }}
         >
           {staticMapOverlays}
