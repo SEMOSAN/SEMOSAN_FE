@@ -178,6 +178,11 @@ export default function RecordScreen() {
   const photoReportShotRef = useRef<ViewShot | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
   const activeTabPublic = isPublicByTab[activeTab];
+  // 사진이 없는 탭은 빈 카드가 캡처돼 세모피드에 올라가므로 저장/공개를 막는다
+  const canShareActiveTab =
+    activeTab === "클라이브"
+      ? displayPhotos.length > 0
+      : photoReportSource != null;
   const trackCoords = parseTrack(recordDetail?.track);
 
   const captureCard = async (tab: RecordTab) => {
@@ -265,6 +270,7 @@ export default function RecordScreen() {
   }, []);
 
   const handleSavePress = async () => {
+    if (!canShareActiveTab) return;
     try {
       const imageUri = await captureCard(activeTab);
       if (!imageUri) return;
@@ -285,6 +291,7 @@ export default function RecordScreen() {
   };
 
   const handleTogglePublic = async () => {
+    if (!canShareActiveTab) return;
     try {
       const semoFeedId = await ensureSemoFeed(activeTab);
       if (!semoFeedId) return;
@@ -770,12 +777,14 @@ export default function RecordScreen() {
               </TouchableOpacity>
             </View>
 
-            <CliveBottomBar
-              isPublic={activeTabPublic}
-              isToggling={isToggling}
-              onTogglePublic={handleTogglePublic}
-              onSave={handleSavePress}
-            />
+            {photoReportSource != null && (
+              <CliveBottomBar
+                isPublic={activeTabPublic}
+                isToggling={isToggling}
+                onTogglePublic={handleTogglePublic}
+                onSave={handleSavePress}
+              />
+            )}
           </View>
         )}
       </ScrollView>
