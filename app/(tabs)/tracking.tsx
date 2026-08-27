@@ -7,6 +7,7 @@ import { CountdownOverlay } from "@/features/tracking/components/countdown-overl
 import { CourseSelectSheet } from "@/features/tracking/components/course-select-sheet";
 import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
 import { FreeRecordConfirmModal } from "@/features/tracking/components/free-record-confirm-modal";
+import { NoNearbyMountainModal } from "@/features/tracking/components/no-nearby-mountain-modal";
 import { PhotoWindowBanner } from "@/features/tracking/components/photo-window-banner";
 import { StopConfirmModal } from "@/features/tracking/components/stop-confirm-modal";
 import { SummitSheet } from "@/features/tracking/components/summit-sheet";
@@ -111,6 +112,10 @@ const MIN_GPS_PUBLISH_INTERVAL_MS = 3000;
 // GPS 응답 전 임시 중심 좌표 (서울시청)
 const FALLBACK_CAMERA = { latitude: 37.5665, longitude: 126.978, zoom: 12 };
 
+// 자유 기록을 산에 귀속시킬 최대 거리 — nearby API는 거리 무관하게 최근접 산을 돌려줌
+// 산 좌표가 정상 기준이라 등산로 입구(정상까지 3~5km)를 감안해 넉넉히 잡음
+const FREE_RECORD_MAX_DISTANCE_M = 5000;
+
 // 두 좌표 간 거리(m) — Haversine
 function haversineMeters(
   a: { latitude: number; longitude: number },
@@ -183,6 +188,8 @@ export default function TrackingScreen() {
   // 정상 인증 시점의 photoWindow 저장 — 인증 후 photoWindow가 닫혀도 메타 업로드에 사용
   const summitPhotoWindowRef = useRef<PhotoWindowPayload | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
+  const [showNoNearbyMountainModal, setShowNoNearbyMountainModal] =
+    useState(false);
   // 그라데이션 바 레이아웃 (map 영역 내 좌표)
   const [barLayout, setBarLayout] = useState<{
     top: number;
@@ -935,12 +942,35 @@ export default function TrackingScreen() {
     setCountdown(3);
   };
 
-  const handleFreeRecord = () => startCountdown(true);
+  // 현위치 ~ 근처 산 거리(m), 좌표 없으면 null
+  const nearbyMountainDistanceM = useMemo(() => {
+    if (!userLocation) return null;
+    const latitude = nearbyMountain?.latitude;
+    const longitude = nearbyMountain?.longitude;
+    if (latitude == null || longitude == null) return null;
+    return haversineMeters(userLocation, { latitude, longitude });
+  }, [userLocation, nearbyMountain]);
+
+  const handleFreeRecord = () => {
+    // 산을 골라 진입한 경우엔 좌표를 알 수 없어 거리 판정 제외
+    if (mountainIdParameter) {
+      startCountdown(true);
+      return;
+    }
+    if (
+      nearbyMountain?.mountainId == null ||
+      nearbyMountainDistanceM == null ||
+      nearbyMountainDistanceM > FREE_RECORD_MAX_DISTANCE_M
+    ) {
+      setShowNoNearbyMountainModal(true);
+      return;
+    }
+    startCountdown(true);
+  };
 
   useEffect(() => {
     if (countdown === null) return;
     if (countdown === 0) {
-      setIsTracking(true);
       setCountdown(null);
 
       // 트래킹 세션 시작 API 호출
@@ -948,49 +978,56 @@ export default function TrackingScreen() {
       const mountainId = mountainIdParameter
         ? Number(mountainIdParameter)
         : nearbyData?.mountain?.mountainId;
-      if (mountainId != null) {
-        startSession(
-          {
-            mountainId,
-            courseId: isFreeMode
-              ? undefined
-              : (selectedCourseId_num ?? undefined),
-            isFreeRecording: isFreeMode,
-          },
-          {
-            onSuccess: (data) => {
-              if (!isMountedRef.current) return;
-              if (data.sessionId != null) {
-                const sid = data.sessionId;
-                setSessionId(sid);
-                sessionIdRef.current = sid;
-                // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
-                connectSocket(sid);
-                // GPS 추적 시작 — 백그라운드 포함
-                setRecordedCoords([]);
-                lastLocationTsRef.current = 0;
-                lastPublishTsRef.current = 0;
-                lastAcceptedCoordRef.current = null;
-                setLocationTaskCallback(handleBackgroundLocationUpdate);
-                startLocationTask().catch((err) => {
-                  console.warn("[Location] 백그라운드 위치 시작 실패:", err);
-                });
-              }
-            },
-            onError: (err: any) => {
-              if (!isMountedRef.current) return;
-              console.warn(
-                "[Tracking] 세션 시작 실패:",
-                err?.response?.data ?? err?.message ?? err,
-              );
-              Sentry.captureException(new Error("TrackingSessionStartFailed"));
-              // API 실패 시 트래킹 상태 롤백
-              setIsTracking(false);
-              setIsFreeMode(false);
-            },
-          },
-        );
+
+      // 산이 없으면 세션 생성 불가 — isTracking만 켜면 GPS·소켓 없이 화면만 트래킹 중이 됨
+      if (mountainId == null) {
+        setIsFreeMode(false);
+        setShowNoNearbyMountainModal(true);
+        return;
       }
+
+      setIsTracking(true);
+      startSession(
+        {
+          mountainId,
+          courseId: isFreeMode
+            ? undefined
+            : (selectedCourseId_num ?? undefined),
+          isFreeRecording: isFreeMode,
+        },
+        {
+          onSuccess: (data) => {
+            if (!isMountedRef.current) return;
+            if (data.sessionId != null) {
+              const sid = data.sessionId;
+              setSessionId(sid);
+              sessionIdRef.current = sid;
+              // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
+              connectSocket(sid);
+              // GPS 추적 시작 — 백그라운드 포함
+              setRecordedCoords([]);
+              lastLocationTsRef.current = 0;
+              lastPublishTsRef.current = 0;
+              lastAcceptedCoordRef.current = null;
+              setLocationTaskCallback(handleBackgroundLocationUpdate);
+              startLocationTask().catch((err) => {
+                console.warn("[Location] 백그라운드 위치 시작 실패:", err);
+              });
+            }
+          },
+          onError: (err: any) => {
+            if (!isMountedRef.current) return;
+            console.warn(
+              "[Tracking] 세션 시작 실패:",
+              err?.response?.data ?? err?.message ?? err,
+            );
+            Sentry.captureException(new Error("TrackingSessionStartFailed"));
+            // API 실패 시 트래킹 상태 롤백
+            setIsTracking(false);
+            setIsFreeMode(false);
+          },
+        },
+      );
       return;
     }
     const timer = setTimeout(
@@ -1537,6 +1574,12 @@ export default function TrackingScreen() {
           setShowFreeRecordModal(false);
           startCountdown();
         }}
+      />
+
+      {/* 근처에 산이 없을 때 */}
+      <NoNearbyMountainModal
+        visible={showNoNearbyMountainModal}
+        onClose={() => setShowNoNearbyMountainModal(false)}
       />
 
       {/* 기록 종료 확인 모달 */}
