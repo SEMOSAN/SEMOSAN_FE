@@ -979,9 +979,7 @@ export default function TrackingScreen() {
     ),
   );
 
-  // Live Activity 업데이트 — 매초가 아니라 "의미 있는 변화"(일시정지/재개, GPS 갱신)가 있을 때만.
-  // 타이머 자체는 위젯이 timerStartEpoch 기준으로 네이티브(TimelineView)로 직접 틱하므로
-  // elapsedSeconds가 매초 바뀐다고 해서 여기서 업데이트를 매초 보낼 필요가 없다.
+  // 매 초 Live Activity 업데이트
   useEffect(() => {
     if (!isTracking) return;
 
@@ -1039,9 +1037,14 @@ export default function TrackingScreen() {
         }).catch(() => {});
       }
     }
-    // elapsedSeconds는 의도적으로 deps에서 제외 — 매초 업데이트 방지 (위젯이 자체적으로 틱함).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPaused, isFreeMode, selectedCourse, liveActivityCourse, userLocation]);
+  }, [
+    elapsedSeconds,
+    isPaused,
+    isFreeMode,
+    selectedCourse,
+    liveActivityCourse,
+    userLocation,
+  ]);
 
   const pauseTracking = () => {
     setIsPaused(true);
