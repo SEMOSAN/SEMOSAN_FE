@@ -179,6 +179,9 @@ function RootLayout(): React.JSX.Element | null {
             />
           </Stack>
           {authStatus === "unauthenticated" && <Redirect href="/login" />}
+          {authStatus === "needsOnboarding" && (
+            <Redirect href="/onboarding" />
+          )}
           <Toast />
           <AppUpdateGate />
           <StatusBar style="dark" />

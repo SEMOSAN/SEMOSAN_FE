@@ -18,9 +18,9 @@ async function appleLogin(body: AppleLoginBody): Promise<OAuthLoginResponse> {
 export function useAppleLogin() {
   return useMutation({
     mutationFn: appleLogin,
-    onSuccess: async ({ accessToken, refreshToken }) => {
+    onSuccess: async ({ accessToken, refreshToken, onboardingCompleted }) => {
       if (accessToken && refreshToken) {
-        await startSession(accessToken, refreshToken);
+        await startSession(accessToken, refreshToken, !!onboardingCompleted);
       }
     },
   });

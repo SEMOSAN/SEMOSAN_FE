@@ -10,6 +10,8 @@ import {
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
 import { useSubmitOnboardingFromStore } from "@/features/onboarding/store/use-submit-onboarding-from-store";
 import { ApiError } from "@/lib/api";
+import { tokenStorage } from "@/lib/auth/tokenStorage";
+import { authState } from "@/store/auth.store";
 import { toast } from "@/store/toast.store";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -40,6 +42,8 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
       router.replace("/(tabs)");
     } catch (e) {
       if (e instanceof ApiError && e.statusCode === 409) {
+        await tokenStorage.setOnboardingPending(false);
+        authState.setAuthenticated();
         toast.show("이미 등록된 사용자입니다.");
         router.replace("/(tabs)");
       } else {

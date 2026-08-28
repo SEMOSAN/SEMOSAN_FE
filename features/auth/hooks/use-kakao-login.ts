@@ -19,9 +19,9 @@ export function useKakaoLogin() {
 
       return data;
     },
-    onSuccess: async ({ accessToken, refreshToken }) => {
+    onSuccess: async ({ accessToken, refreshToken, onboardingCompleted }) => {
       if (accessToken && refreshToken) {
-        await startSession(accessToken, refreshToken);
+        await startSession(accessToken, refreshToken, !!onboardingCompleted);
       }
     },
   });

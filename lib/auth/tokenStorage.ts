@@ -16,6 +16,8 @@ const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 /** 사용자가 명시적으로 로그아웃/탈퇴했음을 기록. 개발용 샘플 토큰 재주입을 막는다. */
 const SIGNED_OUT_KEY = "auth.signedOut";
+/** 로그인은 됐지만 온보딩(회원가입 마지막 단계)이 아직 안 끝났음을 기록 */
+const ONBOARDING_PENDING_KEY = "auth.onboardingPending";
 
 const SAMPLE_ACCESS_TOKEN = process.env.EXPO_PUBLIC_SAMPLE_ACCESS_TOKEN;
 
@@ -74,6 +76,7 @@ export const tokenStorage = {
     await Promise.all([this.removeAccessToken(), this.removeRefreshToken()]);
     try {
       await AsyncStorage.setItem(SIGNED_OUT_KEY, "true");
+      await AsyncStorage.removeItem(ONBOARDING_PENDING_KEY);
     } catch (error) {
       reportFailure("markSignedOut", error);
     }
@@ -88,6 +91,28 @@ export const tokenStorage = {
       await AsyncStorage.removeItem(SIGNED_OUT_KEY);
     } catch (error) {
       reportFailure("clearSignedOutFlag", error);
+    }
+  },
+
+  /** 온보딩이 아직 안 끝난 상태로 표시(true) / 완료 처리(false) */
+  async setOnboardingPending(pending: boolean): Promise<void> {
+    try {
+      if (pending) {
+        await AsyncStorage.setItem(ONBOARDING_PENDING_KEY, "true");
+      } else {
+        await AsyncStorage.removeItem(ONBOARDING_PENDING_KEY);
+      }
+    } catch (error) {
+      reportFailure("setOnboardingPending", error);
+    }
+  },
+
+  async isOnboardingPending(): Promise<boolean> {
+    try {
+      return (await AsyncStorage.getItem(ONBOARDING_PENDING_KEY)) === "true";
+    } catch (error) {
+      reportFailure("isOnboardingPending", error);
+      return false;
     }
   },
 
