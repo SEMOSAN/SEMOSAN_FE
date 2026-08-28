@@ -1,7 +1,7 @@
 import { ResetIcon } from "@/components/icons/reset-icon";
 import { SemoFeedResponse } from "@/types/api.generated";
 import { Image } from "expo-image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -42,7 +42,13 @@ const OVERSCAN = 1; // 화면 밖 여유분 (셀 단위)
 // 메인 그리드
 // ─────────────────────────────────────────────
 export function FeedHomeView() {
-  const { data: semofeedData, refetch } = useSemofeed();
+  const {
+    data: semofeedData,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useSemofeed();
 
   const feedItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
 
@@ -125,6 +131,8 @@ export function FeedHomeView() {
   // 가상화: 화면에 보일 셀 범위 계산
   // ─────────────────────────────────────────────
   const cells: React.ReactElement[] = [];
+  // 뷰포트가 현재 로드된 나선의 가장 바깥 링에 닿았는지 (다음 페이지 로드 트리거)
+  let touchesEdge = false;
 
   if (screen.w > 0 && screen.h > 0) {
     // "지금 화면 왼쪽 위가 그리드의 어느 픽셀 지점인가"
@@ -141,6 +149,14 @@ export function FeedHomeView() {
       feedItems.length > 0
         ? Math.ceil((Math.sqrt(feedItems.length) - 1) / 2)
         : 0;
+
+    touchesEdge =
+      Math.max(
+        Math.abs(colStart),
+        Math.abs(colEnd),
+        Math.abs(rowStart),
+        Math.abs(rowEnd),
+      ) >= maxRing;
 
     for (let col = colStart; col <= colEnd; col++) {
       if (Math.abs(col) > maxRing) continue;
@@ -160,6 +176,13 @@ export function FeedHomeView() {
       }
     }
   }
+
+  // 뷰포트가 로드된 영역의 가장자리에 닿으면 다음 페이지 로드
+  useEffect(() => {
+    if (touchesEdge && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [touchesEdge, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // ─────────────────────────────────────────────
   // 렌더
