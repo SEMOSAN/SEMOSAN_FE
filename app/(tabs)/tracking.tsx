@@ -1400,18 +1400,15 @@ export default function TrackingScreen() {
     setRecordedCoords([]);
   };
 
-  /** 입력한 이름으로 자유기록을 마감 */
+  /**
+   * 입력한 이름으로 자유기록을 마감.
+   * 비워두고 저장하면 이름 없이 보내 서버 기본 이름으로 저장된다.
+   */
   const handleCourseNameSubmit = (name: string) => {
-    setFreeRecordCourseName(name);
+    const trimmed = name.trim();
+    setFreeRecordCourseName(trimmed || null);
     setShowCourseNameModal(false);
-    runCompleteSession(name);
-    completeTracking(null);
-  };
-
-  /** 이름 입력 건너뛰기 — 서버 기본 이름으로 마감 */
-  const handleCourseNameSkip = () => {
-    setShowCourseNameModal(false);
-    runCompleteSession();
+    runCompleteSession(trimmed || undefined);
     completeTracking(null);
   };
 
@@ -1653,9 +1650,8 @@ export default function TrackingScreen() {
       <CourseNameInputModal
         visible={showCourseNameModal}
         initialValue={freeRecordCourseName ?? ""}
-        mountainName={nearbyData?.mountain?.name}
-        onCancel={handleCourseNameSkip}
         onSubmit={handleCourseNameSubmit}
+        onDismiss={() => handleCourseNameSubmit("")}
       />
 
       {/* 난이도 체감 모달 */}

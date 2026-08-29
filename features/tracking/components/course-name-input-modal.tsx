@@ -1,4 +1,3 @@
-import { XIcon } from "@/components/icons/x-icon";
 import { RECORD_NAME_MAX_LENGTH } from "@/features/tracking/constants";
 import { useEffect, useState } from "react";
 import {
@@ -15,42 +14,38 @@ const MODAL_BORDER_RADIUS = 16;
 const MODAL_MAX_WIDTH = 320;
 // 배경 오버레이 투명도 — StopConfirmModal과 동일
 const OVERLAY_COLOR = "rgba(0,0,0,0.4)";
+// 비워두면 서버가 채우는 기본 이름 형식 — 입력 없이 저장해도 된다는 힌트
+const DEFAULT_NAME_HINT = "260723_닉네임의코스1";
 
 type Props = {
   visible: boolean;
   /** 수정 진입 시 기존 이름, 새로 입력하는 경우 빈 문자열 */
   initialValue?: string;
-  /** placeholder 기본값 생성용 */
-  mountainName?: string;
-  onCancel: () => void;
+  /** 비우고 저장하면 빈 문자열이 넘어온다 (서버 기본 이름으로 저장) */
   onSubmit: (name: string) => void;
+  /** 하드웨어 back 등으로 닫힌 경우 — 이름 없이 저장과 동일하게 처리 */
+  onDismiss: () => void;
 };
 
 export function CourseNameInputModal({
   visible,
   initialValue = "",
-  mountainName,
-  onCancel,
   onSubmit,
+  onDismiss,
 }: Props) {
   const [value, setValue] = useState(initialValue);
-  const [isFocused, setIsFocused] = useState(false);
 
   // 열릴 때마다 기존 이름으로 초기화 (이전 입력값 잔류 방지)
   useEffect(() => {
     if (visible) setValue(initialValue);
   }, [visible, initialValue]);
 
-  const isEditing = initialValue.length > 0;
-  const trimmed = value.trim();
-  const canSubmit = trimmed.length > 0 && trimmed !== initialValue;
-
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onCancel}
+      onRequestClose={onDismiss}
     >
       {/* 어두운 오버레이 */}
       <View
@@ -63,94 +58,42 @@ export function CourseNameInputModal({
         >
           {/* 모달 본체 */}
           <View
-            className="w-full bg-fill-normal"
+            className="w-full gap-3 bg-fill-normal px-5 py-5"
             style={{
               maxWidth: MODAL_MAX_WIDTH,
               borderRadius: MODAL_BORDER_RADIUS,
               marginHorizontal: 16,
             }}
           >
-            {/* 타이틀 + 설명 */}
-            <View className="gap-2 px-5 pb-4 pt-5">
-              <Text className="text-label-normal typo-heading-1-semi-bold">
-                {isEditing
-                  ? "코스 이름을 수정할까요?"
-                  : "코스 이름을 정할까요?"}
-              </Text>
-              <Text className="text-label-subtle typo-body-1-normal-regular">
-                입력한 이름으로 홈의 다녀온 코스에 표시돼요.
-                {!isEditing && " 건너뛰면 기본 이름으로 저장돼요."}
-              </Text>
-            </View>
+            {/* 타이틀 */}
+            <Text className="text-center text-label-normal typo-body-1-normal-semi-bold">
+              자유기록 이름을 정해주세요
+            </Text>
 
             {/* 입력 필드 */}
-            <View className="gap-2 px-5 pb-1">
-              <View
-                className={`h-12 flex-row items-center gap-2 rounded-[10px] border bg-fill-normal px-3 ${
-                  isFocused ? "border-line-primary" : "border-line-subtle"
-                }`}
-              >
-                <TextInput
-                  className="flex-1 text-label-normal typo-body-1-reading-regular"
-                  value={value}
-                  onChangeText={setValue}
-                  placeholder={
-                    mountainName ? `${mountainName} 자유 기록` : "자유 기록"
-                  }
-                  placeholderTextColor="#73798c"
-                  maxLength={RECORD_NAME_MAX_LENGTH}
-                  returnKeyType="done"
-                  autoFocus
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  onSubmitEditing={() => canSubmit && onSubmit(trimmed)}
-                  style={{ paddingVertical: 0 }}
-                />
-                {value.length > 0 && (
-                  <TouchableOpacity
-                    onPress={() => setValue("")}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <XIcon size={20} color="#1a1b1f" />
-                  </TouchableOpacity>
-                )}
-              </View>
-              <Text className="text-label-subtler typo-caption-1-regular">
-                {RECORD_NAME_MAX_LENGTH}글자까지 입력할 수 있어요
-              </Text>
+            <View className="h-12 justify-center rounded-[10px] border border-line-subtle bg-fill-strong px-3">
+              <TextInput
+                className="text-label-normal typo-body-1-reading-regular"
+                value={value}
+                onChangeText={setValue}
+                placeholder={DEFAULT_NAME_HINT}
+                placeholderTextColor="#8b92a6"
+                maxLength={RECORD_NAME_MAX_LENGTH}
+                returnKeyType="done"
+                autoFocus
+                onSubmitEditing={() => onSubmit(value.trim())}
+                style={{ paddingVertical: 0 }}
+              />
             </View>
 
-            {/* 버튼 행 */}
-            <View className="flex-row gap-2 px-4 pb-4 pt-4">
-              {/* 건너뛰기 / 취소 */}
-              <TouchableOpacity
-                className="flex-1 items-center justify-center rounded-[10px] bg-fill-stronger"
-                style={{ height: 48 }}
-                onPress={onCancel}
-              >
-                <Text className="text-label-subtle typo-label-large">
-                  {isEditing ? "취소" : "건너뛰기"}
-                </Text>
-              </TouchableOpacity>
-
-              {/* 저장 */}
-              <TouchableOpacity
-                className={`flex-1 items-center justify-center rounded-[10px] ${
-                  canSubmit ? "bg-label-normal" : "bg-fill-disabled"
-                }`}
-                style={{ height: 48 }}
-                disabled={!canSubmit}
-                onPress={() => onSubmit(trimmed)}
-              >
-                <Text
-                  className={`typo-label-large ${
-                    canSubmit ? "text-common-100" : "text-label-disabled"
-                  }`}
-                >
-                  저장
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {/* 저장하기 — 비워둬도 저장 가능(서버 기본 이름) */}
+            <TouchableOpacity
+              className="h-12 items-center justify-center rounded-[10px] bg-label-normal"
+              activeOpacity={0.8}
+              onPress={() => onSubmit(value.trim())}
+            >
+              <Text className="text-common-100 typo-label-large">저장하기</Text>
+            </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       </View>
