@@ -4,6 +4,7 @@ import { isLiveActivityEnabled } from "@/constants/platform";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
 import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
+import { CourseNameInputModal } from "@/features/tracking/components/course-name-input-modal";
 import { CourseSelectSheet } from "@/features/tracking/components/course-select-sheet";
 import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
 import { FreeRecordConfirmModal } from "@/features/tracking/components/free-record-confirm-modal";
@@ -178,6 +179,12 @@ export default function TrackingScreen() {
   // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
   const [isAtSummit, setIsAtSummit] = useState(false); // 목 값 (GPS 연동 전까지 false)
   const [showSummitSheet, setShowSummitSheet] = useState(false);
+  // 자유기록 종료 후 코스 이름 입력 모달
+  const [showCourseNameModal, setShowCourseNameModal] = useState(false);
+  // 사용자가 입력한 자유기록 코스 이름 (미입력 시 null)
+  const [freeRecordCourseName, setFreeRecordCourseName] = useState<
+    string | null
+  >(null);
   const [trackingSheetHeight, setTrackingSheetHeight] = useState(
     TRACKING_SHEET_HEIGHT,
   );
@@ -944,6 +951,7 @@ export default function TrackingScreen() {
 
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
+    setFreeRecordCourseName(null);
     setCountdown(3);
   };
 
@@ -1297,37 +1305,44 @@ export default function TrackingScreen() {
     }
   };
 
-  /** StopConfirmModal → 난이도 체감 화면으로 전환 */
+  /**
+   * 세션을 COMPLETED로 마감한다.
+   * 자유기록은 사용자가 입력한 기록 이름을 함께 보내고, 비워 보내면 서버가 기본 이름을 채운다.
+   * 코스 기록은 코스명으로 표시되므로 이름을 보내지 않는다.
+   */
+  const runCompleteSession = (name?: string) => {
+    if (sessionId == null) return;
+    completeSession(
+      { sessionId, name },
+      {
+        onSuccess: (data) => {
+          if (data.hikingRecordId != null) setHikingRecordId(data.hikingRecordId);
+        },
+        onError: (err) => {
+          console.warn("[Tracking] 세션 종료 실패:", err);
+          Sentry.captureException(new Error("TrackingSessionCompleteFailed"));
+        },
+      },
+    );
+  };
+
+  /** StopConfirmModal → 기록 이름 입력 / 난이도 체감 화면으로 전환 */
   const finishTracking = () => {
     setShowStopModal(false);
 
     // complete는 등산 기록을 생성하므로 짧은 세션은 abandon으로 폐기
     const tooShortToRecord = elapsedSeconds < MIN_RECORD_DURATION_SEC;
 
-    if (sessionId != null) {
-      if (tooShortToRecord) {
+    // 기록이 남지 않으므로 이름 입력·난이도 평가 단계도 건너뛴다
+    if (tooShortToRecord) {
+      if (sessionId != null) {
         abandonSession(sessionId, {
           onError: (err) => {
             console.warn("[Tracking] 세션 폐기 실패:", err);
             Sentry.captureException(new Error("TrackingSessionAbandonFailed"));
           },
         });
-      } else {
-        completeSession(sessionId, {
-          onSuccess: (data) => {
-            if (data.hikingRecordId != null)
-              setHikingRecordId(data.hikingRecordId);
-          },
-          onError: (err) => {
-            console.warn("[Tracking] 세션 종료 실패:", err);
-            Sentry.captureException(new Error("TrackingSessionCompleteFailed"));
-          },
-        });
       }
-    }
-
-    // 기록이 남지 않으므로 난이도 평가 단계도 건너뛴다
-    if (tooShortToRecord) {
       completeTracking(null);
       toast.show(
         `${MIN_RECORD_DURATION_SEC / 60}분 미만은 기록으로 저장되지 않아요`,
@@ -1335,11 +1350,13 @@ export default function TrackingScreen() {
       return;
     }
 
-    // 자유기록은 난이도 평가 없이 바로 종료
+    // 자유기록은 이름을 complete 요청에 실어 보내야 하므로 입력을 먼저 받는다
     if (isFreeMode) {
-      completeTracking(null);
+      setShowCourseNameModal(true);
       return;
     }
+
+    runCompleteSession();
     setShowDifficultyRating(true);
   };
 
@@ -1367,6 +1384,7 @@ export default function TrackingScreen() {
     stopLocationTask().catch(() => {});
     disconnectSocket();
     setShowDifficultyRating(false);
+    setShowCourseNameModal(false);
     setIsTracking(false);
     setIsPaused(false);
     setIsFreeMode(false);
@@ -1380,6 +1398,21 @@ export default function TrackingScreen() {
     summitPhotoWindowRef.current = null;
     setCollapsed(false);
     setRecordedCoords([]);
+  };
+
+  /** 입력한 이름으로 자유기록을 마감 */
+  const handleCourseNameSubmit = (name: string) => {
+    setFreeRecordCourseName(name);
+    setShowCourseNameModal(false);
+    runCompleteSession(name);
+    completeTracking(null);
+  };
+
+  /** 이름 입력 건너뛰기 — 서버 기본 이름으로 마감 */
+  const handleCourseNameSkip = () => {
+    setShowCourseNameModal(false);
+    runCompleteSession();
+    completeTracking(null);
   };
 
   // GPS로 정상 부근 감지 시 자동으로 정상 시트 표시
@@ -1614,6 +1647,15 @@ export default function TrackingScreen() {
         visible={showStopModal}
         onCancel={() => setShowStopModal(false)}
         onConfirm={finishTracking}
+      />
+
+      {/* 자유기록 코스 이름 입력 모달 */}
+      <CourseNameInputModal
+        visible={showCourseNameModal}
+        initialValue={freeRecordCourseName ?? ""}
+        mountainName={nearbyData?.mountain?.name}
+        onCancel={handleCourseNameSkip}
+        onSubmit={handleCourseNameSubmit}
       />
 
       {/* 난이도 체감 모달 */}

@@ -148,6 +148,9 @@ export const LOCATION_BUTTON_GAP = 18;
 export const TRACKING_SHEET_HEIGHT = 220;
 
 
+/** 자유기록 기록 이름 최대 길이 — 서버 검증 한도(초과 시 400) */
+export const RECORD_NAME_MAX_LENGTH = 30;
+
 export const COLLAPSED_PEEK_HEIGHT = 24;
 export const FLOATING_CARD_GAP = 16;
 export const FLOATING_CARD_HORIZONTAL_MARGIN = 16;
