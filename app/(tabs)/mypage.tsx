@@ -4,13 +4,18 @@ import { MenuChevronIcon } from "@/features/mypage/components/menu-chevron-icon"
 import { MenuRow } from "@/features/mypage/components/menu-row";
 import { ProfileAvatar } from "@/features/mypage/components/profile-avatar";
 import { SectionDivider } from "@/features/mypage/components/section-divider";
-import { APP_VERSION } from "@/features/mypage/constants";
+import {
+  APP_VERSION,
+  INQUIRY_URL,
+  NOTICE_URL,
+} from "@/features/mypage/constants";
 import {
   HIKING_LEVEL_LABEL,
   useProfile,
 } from "@/features/mypage/hooks/use-profile";
 import { usePrefetchSavedMountains } from "@/features/mountains/hooks/use-saved-mountains";
 import { useFocusEffect, useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import { useCallback } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -41,6 +46,14 @@ export default function MyPageScreen() {
   ];
 
   const serviceItems = [
+    {
+      label: "공지사항",
+      onPress: () => WebBrowser.openBrowserAsync(NOTICE_URL),
+    },
+    {
+      label: "1:1 문의하기",
+      onPress: () => WebBrowser.openBrowserAsync(INQUIRY_URL),
+    },
     { label: "권한 관리", onPress: () => router.push("/mypage/permissions") },
     { label: "이용약관", onPress: () => router.push("/mypage/terms") },
     {
