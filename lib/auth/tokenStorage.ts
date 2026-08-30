@@ -94,25 +94,28 @@ export const tokenStorage = {
     }
   },
 
-  /** 온보딩이 아직 안 끝난 상태로 표시(true) / 완료 처리(false) */
-  async setOnboardingPending(pending: boolean): Promise<void> {
+  /** 온보딩이 아직 안 끝난 상태로 표시(true) / 완료 처리(false). 저장 성공 여부를 반환한다. */
+  async setOnboardingPending(pending: boolean): Promise<boolean> {
     try {
       if (pending) {
         await AsyncStorage.setItem(ONBOARDING_PENDING_KEY, "true");
       } else {
         await AsyncStorage.removeItem(ONBOARDING_PENDING_KEY);
       }
+      return true;
     } catch (error) {
       reportFailure("setOnboardingPending", error);
+      return false;
     }
   },
 
-  async isOnboardingPending(): Promise<boolean> {
+  /** 저장소 읽기 실패는 완료(false)와 구분해야 하므로 null 을 반환한다. */
+  async isOnboardingPending(): Promise<boolean | null> {
     try {
       return (await AsyncStorage.getItem(ONBOARDING_PENDING_KEY)) === "true";
     } catch (error) {
       reportFailure("isOnboardingPending", error);
-      return false;
+      return null;
     }
   },
 

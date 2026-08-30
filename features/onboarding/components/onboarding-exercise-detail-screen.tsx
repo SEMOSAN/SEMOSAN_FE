@@ -42,7 +42,11 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
       router.replace("/(tabs)");
     } catch (e) {
       if (e instanceof ApiError && e.statusCode === 409) {
-        await tokenStorage.setOnboardingPending(false);
+        const saved = await tokenStorage.setOnboardingPending(false);
+        if (!saved) {
+          toast.show("잠시후 다시 시도해주십시오.");
+          return;
+        }
         authState.setAuthenticated();
         toast.show("이미 등록된 사용자입니다.");
         router.replace("/(tabs)");
