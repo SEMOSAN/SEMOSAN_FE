@@ -2,12 +2,11 @@ import { api } from '@/lib/api';
 import { ENDPOINTS } from '@/types/api.generated';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-type NotificationKey = 'push' | 'liveActivity' | 'voice';
+type NotificationKey = 'push' | 'liveActivity';
 
 const ENDPOINT_MAP: Record<NotificationKey, string> = {
   push: ENDPOINTS.USERS_NOTIFICATION_SETTINGS_PUSH,
   liveActivity: ENDPOINTS.USERS_NOTIFICATION_SETTINGS_LIVE_ACTIVITY,
-  voice: ENDPOINTS.USERS_NOTIFICATION_SETTINGS_VOICE,
 };
 
 export function useUpdateNotification() {

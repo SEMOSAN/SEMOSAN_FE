@@ -68,12 +68,11 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
   );
 }
 
-type NotificationKey = 'push' | 'liveActivity' | 'voice';
+type NotificationKey = 'push' | 'liveActivity';
 
 const NOTIFICATION_ITEMS: { key: NotificationKey; label: string; toastMessage: string }[] = [
   { key: 'push', label: '푸시 알림', toastMessage: '푸시 알림을 활성화했어요' },
   { key: 'liveActivity', label: '라이브 액티비티', toastMessage: '라이브 액티비티를 활성화했어요' },
-  { key: 'voice', label: '음성 안내', toastMessage: '음성 안내를 활성화했어요' },
 ];
 
 const DEVICE_PERMISSION_KEYS = [
@@ -89,7 +88,6 @@ export default function PermissionsScreen() {
   const [notifications, setNotifications] = useState<Record<NotificationKey, boolean>>({
     push: false,
     liveActivity: false,
-    voice: false,
   });
 
   useEffect(() => {
@@ -97,7 +95,6 @@ export default function PermissionsScreen() {
     setNotifications({
       push: settings.pushNotificationEnabled,
       liveActivity: settings.liveActivityEnabled,
-      voice: settings.voiceEnabled,
     });
   }, [settings]);
 
