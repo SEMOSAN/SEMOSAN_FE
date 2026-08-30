@@ -61,11 +61,7 @@ export function MountainList({
       showsVerticalScrollIndicator={false}
       data={filteredMountains}
       keyExtractor={(mountain) => String(mountain.mountainId)}
-      contentContainerStyle={{
-        gap: 20,
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-      }}
+      contentContainerClassName="gap-5 px-5 py-3"
       renderItem={({ item }) => (
         <TouchableOpacity
           onPress={() => router.push(`/mountains/${item.mountainId}`)}
