@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react-native";
 import { api } from "@/lib/api";
+import { NotificationTestRequest } from "@/types/api.generated";
 import { getApp } from "@react-native-firebase/app";
 import {
   getMessaging,
@@ -92,28 +93,8 @@ type PushData = {
 };
 
 // 백엔드 NotificationType enum과 동기화
-type NotificationType =
-  | "COMMUNITY_COMMENT"
-  | "COMMUNITY_REPLY"
-  | "COMMUNITY_LIKE"
-  | "COMMUNITY_MENTION"
-  | "FOLLOW_RECEIVED"
-  | "HIKING_INVITE"
-  | "HIKING_INVITE_ACCEPTED"
-  | "HIKING_STARTED"
-  | "HIKING_MEMBER_JOINED"
-  | "HIKING_MEMBER_LEFT"
-  | "HIKING_NEAR_DESTINATION"
-  | "HIKING_OFF_TRAIL"
-  | "HIKING_FINISHED"
-  | "HIKING_CHAT"
-  | "EMERGENCY_SOS"
-  | "WEATHER_WARNING"
-  | "TRAIL_CLOSED"
-  | "SYSTEM_NOTICE"
-  | "SYSTEM_MAINTENANCE"
-  | "APP_UPDATE"
-  | "TRACKING_PHOTO_MILESTONE";
+// (types/api.generated.ts의 NotificationTestRequest.type과 같은 목록)
+type NotificationType = NotificationTestRequest["type"];
 
 // ─── FCM 토큰 등록 ───────────────────────────────────────────
 
@@ -191,31 +172,22 @@ function navigateByType(data: PushData, router: ReturnType<typeof useRouter>) {
   switch (data.type) {
     case "COMMUNITY_COMMENT":
     case "COMMUNITY_REPLY":
-    case "COMMUNITY_LIKE":
-    case "COMMUNITY_MENTION":
+    case "COMMUNITY_POST_LIKE":
       // 자유게시판 게시글 상세 — postId 없으면 이동하지 않음(undefined 경로 방지)
       if (extras.postId != null) {
         push(`/community/free-board/${extras.postId}`);
       }
       break;
 
-    case "HIKING_INVITE":
-    case "HIKING_INVITE_ACCEPTED":
-    case "HIKING_STARTED":
-    case "HIKING_MEMBER_JOINED":
-    case "HIKING_MEMBER_LEFT":
-    case "HIKING_NEAR_DESTINATION":
-    case "HIKING_OFF_TRAIL":
-    case "HIKING_FINISHED":
-    case "HIKING_CHAT":
-    case "EMERGENCY_SOS":
     case "TRACKING_PHOTO_MILESTONE":
+    case "TRACKING_SUMMIT_REACHED":
       router.push("/(tabs)/tracking");
       break;
 
-    // 대응 화면이 아직 없는 타입(FOLLOW_RECEIVED, SYSTEM_*, WEATHER_WARNING 등)은
-    // 존재하지 않는 라우트로 이동하면 unmatched route가 뜨므로 이동하지 않는다.
-    // (알림 센터/프로필 화면 구현 시 여기에 연결)
+    // SEMOFEED_EMOJI는 개별 글로 이동할 라우트가 없어 이동하지 않는다.
+    // 세모피드는 홈 탭 내부 뷰라 `?tab=feed`로 목록까지만 열 수 있고,
+    // 반응이 달린 글이 목록 첫 페이지에 없으면 사용자가 찾을 수 없다.
+    // (세모피드 단건 조회 및 딥링크 지원 시 여기에 연결)
     default:
       break;
   }
