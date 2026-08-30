@@ -183,6 +183,8 @@ export function PostBody({
                       source={{ uri: img.imageUrl }}
                       style={{ width: 148, height: 148, borderRadius: 12 }}
                       contentFit="cover"
+                      cachePolicy="memory-disk"
+                      transition={100}
                     />
                   ) : (
                     <View

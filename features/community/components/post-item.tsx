@@ -3,11 +3,16 @@ import { HeartIcon } from "@/components/icons/heart-icon";
 import { formatDate } from "@/lib/utils";
 import { FreePostListResponse } from "@/types/api.generated";
 import { useRouter } from "expo-router";
+import { memo } from "react";
 import { Pressable, Text, View } from "react-native";
 import { StatItem } from "./stat-item";
 import { Thumbnail } from "./thumbnail";
 
-export function PostItem({ post }: { post: FreePostListResponse }) {
+export const PostItem = memo(function PostItem({
+  post,
+}: {
+  post: FreePostListResponse;
+}) {
   const hasImage = !!post.thumbnailUrl;
   const router = useRouter();
   return (
@@ -48,4 +53,4 @@ export function PostItem({ post }: { post: FreePostListResponse }) {
       </View>
     </Pressable>
   );
-}
+});

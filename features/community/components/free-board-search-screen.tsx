@@ -75,6 +75,9 @@ export function FreeBoardSearchScreen(): React.JSX.Element {
         renderItem={({ item }) => <PostItem post={item} />}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={{ flexGrow: 1 }}
+        windowSize={7}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
       />
     </View>
   );

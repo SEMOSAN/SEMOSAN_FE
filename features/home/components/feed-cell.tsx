@@ -19,6 +19,7 @@ type FeedCellProps = {
   row: number;
   item?: SemoFeedResponse;
   onPress: (item: SemoFeedResponse) => void;
+  animated?: boolean;
 };
 
 export const FeedCell = memo(function FeedCell({
@@ -26,6 +27,7 @@ export const FeedCell = memo(function FeedCell({
   row,
   item,
   onPress,
+  animated = false,
 }: FeedCellProps) {
   const imageUrl = item?.imageUrl;
 
@@ -35,7 +37,7 @@ export const FeedCell = memo(function FeedCell({
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(300).delay(200)}
+      entering={animated ? FadeInDown.duration(300).delay(200) : undefined}
       className="absolute overflow-hidden rounded-2xl bg-transparent"
       style={{
         left: col * CELL_W + CELL_GAP / 2,
@@ -52,6 +54,8 @@ export const FeedCell = memo(function FeedCell({
               source={{ uri: imageUrl.replace(/"/g, "") }}
               style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
               contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={150}
             />
           )}
         </View>

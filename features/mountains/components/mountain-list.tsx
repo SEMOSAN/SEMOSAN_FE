@@ -1,11 +1,7 @@
 import { MountainCard } from "@/features/mountains/components/mountain-card";
 import { useRouter } from "expo-router";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import {
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, TouchableOpacity } from "react-native";
 import { useMountains } from "../hooks/use-mountains";
 import {
   Coordinates,
@@ -60,18 +56,23 @@ export function MountainList({
   );
 
   return (
-    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-      <View className="gap-5 px-5 py-3">
-        {filteredMountains.map((mountain) => (
-          <TouchableOpacity
-            key={mountain.mountainId}
-            onPress={() => router.push(`/mountains/${mountain.mountainId}`)}
-            activeOpacity={0.7}
-          >
-            <MountainCard mountain={mountain} />
-          </TouchableOpacity>
-        ))}
-      </View>
-    </ScrollView>
+    <FlatList
+      className="flex-1"
+      showsVerticalScrollIndicator={false}
+      data={filteredMountains}
+      keyExtractor={(mountain) => String(mountain.mountainId)}
+      contentContainerClassName="gap-5 px-5 py-3"
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          onPress={() => router.push(`/mountains/${item.mountainId}`)}
+          activeOpacity={0.7}
+        >
+          <MountainCard mountain={item} />
+        </TouchableOpacity>
+      )}
+      windowSize={7}
+      initialNumToRender={10}
+      maxToRenderPerBatch={10}
+    />
   );
 }
