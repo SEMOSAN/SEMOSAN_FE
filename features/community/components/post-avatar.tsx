@@ -1,5 +1,6 @@
 import { UserIcon } from "@/components/icons/user-icon";
-import { Image, View } from "react-native";
+import { Image } from "expo-image";
+import { View } from "react-native";
 
 type AvatarSize = "sm" | "md" | "lg";
 
@@ -25,6 +26,8 @@ export function PostAvatar({ size = "md", imageUrl }: PostAvatarProps) {
         <Image
           source={{ uri: imageUrl }}
           style={{ width: container, height: container }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
         />
       ) : (
         <UserIcon size={icon} color="#A4ABC0" />
