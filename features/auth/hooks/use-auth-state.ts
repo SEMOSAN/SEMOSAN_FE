@@ -28,6 +28,10 @@ export function useAuthState(): { status: AuthStatus } {
           { ignoreErrorToast: true },
         );
         const onboardingPending = await tokenStorage.isOnboardingPending();
+        if (onboardingPending === null) {
+          authState.setUnauthenticated();
+          return;
+        }
         if (onboardingPending) {
           authState.setNeedsOnboarding();
         } else {
