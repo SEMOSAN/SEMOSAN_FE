@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import { NotificationTestRequest } from "@/types/api.generated";
 import { getApp } from "@react-native-firebase/app";
 import {
+  getAPNSToken,
   getMessaging,
   getToken,
   onMessage,
@@ -109,11 +110,8 @@ type NotificationType = NotificationTestRequest["type"];
 // ─── FCM 토큰 등록 ───────────────────────────────────────────
 
 async function registerFcmToken() {
-  if (!Device.isDevice) {
-    console.log("[Push] 실기기에서만 토큰 등록 가능");
-    return;
-  }
-
+  // 권한 요청은 시뮬레이터에서도 수행한다.
+  // simctl push로 알림 표시·탭 라우팅을 검증하려면 권한이 필요하다.
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
 
@@ -127,11 +125,28 @@ async function registerFcmToken() {
     return;
   }
 
+  // FCM 토큰은 실기기에서만 발급된다
+  if (!Device.isDevice) {
+    console.log("[Push] 실기기에서만 토큰 등록 가능");
+    return;
+  }
+
   try {
     // iOS: Firebase SDK로 FCM 등록 토큰 획득 (APNs 토큰 아님)
     // Android: FCM 토큰 직접 반환
     const app = getApp();
     const fcmMessaging = getMessaging(app);
+
+    // APNs 토큰이 붙지 않으면 FCM 토큰이 발급돼도 iOS로 전달되지 않는다.
+    // 원인 추적이 어려웠던 지점이라 값을 남긴다.
+    if (Platform.OS === "ios") {
+      const apnsToken = await getAPNSToken(fcmMessaging);
+      console.log(
+        "[Push] APNs 토큰:",
+        apnsToken ? `있음 (${apnsToken.length}자)` : "null — APNs 등록 실패",
+      );
+    }
+
     const token = await getToken(fcmMessaging);
 
     await api.post({
