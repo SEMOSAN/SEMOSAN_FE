@@ -52,11 +52,16 @@ export function FeedHomeView() {
 
   const feedItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
 
+  const prefetchedUrlsRef = useRef(new Set<string>());
+
   useEffect(() => {
     const urls = (semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [])
       .map((item) => item.imageUrl?.replace(/"/g, ""))
-      .filter((url): url is string => !!url);
+      .filter(
+        (url): url is string => !!url && !prefetchedUrlsRef.current.has(url),
+      );
     if (urls.length > 0) {
+      urls.forEach((url) => prefetchedUrlsRef.current.add(url));
       Image.prefetch(urls, { cachePolicy: "memory-disk" });
     }
   }, [semofeedData]);
