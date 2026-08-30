@@ -42,6 +42,15 @@ export function usePushNotification(enabled = true): void {
         typeof remoteMessage.data?.type === "string"
           ? remoteMessage.data.type
           : undefined;
+      // 수신 여부를 확인할 수단이 없어 진단이 어려웠던 지점 (트래킹 훅과 동일하게 로깅)
+      console.log(
+        "[Push] 포어그라운드 수신:",
+        type,
+        "notification:",
+        remoteMessage.notification != null,
+        "data keys:",
+        Object.keys(remoteMessage.data ?? {}).join(","),
+      );
       if (type && TRACKING_TYPES.has(type)) return;
 
       const title =
@@ -66,6 +75,7 @@ export function usePushNotification(enabled = true): void {
     const tapSub = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = extractPushData(response);
+        console.log("[Push] 알림 탭:", data?.type, "extras:", data?.extras);
         if (data) navigateByType(data, router);
       },
     );
