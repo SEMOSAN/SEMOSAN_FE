@@ -15,7 +15,8 @@ export function useSubmitOnboarding() {
       await api.post({ path: ENDPOINTS.USERS_ONBOARDING, body }, { ignoreErrorToast: true });
     },
     onSuccess: async () => {
-      await tokenStorage.setOnboardingPending(false);
+      const saved = await tokenStorage.setOnboardingPending(false);
+      if (!saved) return;
       authState.setAuthenticated();
       reset();
     },
