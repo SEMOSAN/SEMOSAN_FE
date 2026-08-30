@@ -13,7 +13,6 @@ const TOAST_PADDING_V = 10;
 const TOAST_PADDING_H = 16;
 const TOAST_GAP = 8;
 const TOAST_BORDER_RADIUS = 12; // radius-xl
-const TOAST_LEFT = 70;
 const TOAST_BOTTOM = 54;
 const TOAST_BG = '#2F323A';       // fill-heavy
 const TOAST_TEXT_COLOR = '#FFFFFF'; // label-normal-inverse
@@ -103,8 +102,10 @@ export default function Toast({ containerClassName, gap = 8 }: Props) {
       pointerEvents="none"
       style={{
         position: 'absolute',
-        left: TOAST_LEFT,
+        left: 0,
+        right: 0,
         bottom: insets.bottom + TOAST_BOTTOM,
+        alignItems: 'center',
         zIndex: 9999,
       }}
     >
