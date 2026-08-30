@@ -52,6 +52,15 @@ export function FeedHomeView() {
 
   const feedItems = semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [];
 
+  useEffect(() => {
+    const urls = (semofeedData?.pages.flatMap((p) => p.content ?? []) ?? [])
+      .map((item) => item.imageUrl?.replace(/"/g, ""))
+      .filter((url): url is string => !!url);
+    if (urls.length > 0) {
+      Image.prefetch(urls, { cachePolicy: "memory-disk" });
+    }
+  }, [semofeedData]);
+
   // 화면 크기 (onLayout으로 측정)
   const [screen, setScreen] = useState({ w: 0, h: 0 });
 
@@ -71,17 +80,31 @@ export function FeedHomeView() {
   // 초기 중심 위치 저장 (리셋 버튼용)
   const initPosRef = useRef({ x: 0, y: 0 });
 
+  // 첫 진입 연출이 끝났는지 (이후 드러나는 셀은 등장 애니메이션 생략)
+  const introPlayedRef = useRef(false);
+
   // rAF 스로틀용
   const rafRef = useRef<number | null>(null);
+  const pendingOffsetRef = useRef({ x: 0, y: 0 });
+  const lastBucketRef = useRef({ x: 0, y: 0 });
 
   // ─────────────────────────────────────────────
-  // rAF 스로틀: setOffset을 프레임당 1번으로 묶음
+  // rAF 스로틀: setOffset을 프레임당 최대 1번으로 묶고,
+  // 가시 셀 범위가 바뀔 만큼(반 셀) 움직였을 때만 리렌더
   // ─────────────────────────────────────────────
   const scheduleSetOffset = (x: number, y: number): void => {
+    pendingOffsetRef.current = { x, y };
     if (rafRef.current != null) return; // 이미 예약돼 있으면 무시
     rafRef.current = requestAnimationFrame(() => {
-      setOffset({ x, y });
       rafRef.current = null;
+      const { x: px, y: py } = pendingOffsetRef.current;
+      // OVERSCAN 1셀 여유가 있으므로 반 셀 단위 이동 전까지는 범위 재계산 불필요
+      const bucketX = Math.round(px / (CELL_W / 2));
+      const bucketY = Math.round(py / (CELL_H / 2));
+      const last = lastBucketRef.current;
+      if (bucketX === last.x && bucketY === last.y) return;
+      lastBucketRef.current = { x: bucketX, y: bucketY };
+      setOffset({ x: px, y: py });
     });
   };
 
@@ -171,6 +194,7 @@ export function FeedHomeView() {
             row={row}
             item={feedItems[spiralIdx]}
             onPress={setSelectedItem}
+            animated={!introPlayedRef.current}
           />,
         );
       }
@@ -204,7 +228,16 @@ export function FeedHomeView() {
             translateY.value = initY;
             savedX.value = initX;
             savedY.value = initY;
+            lastBucketRef.current = {
+              x: Math.round(initX / (CELL_W / 2)),
+              y: Math.round(initY / (CELL_H / 2)),
+            };
             setOffset({ x: initX, y: initY });
+            if (!introPlayedRef.current) {
+              setTimeout(() => {
+                introPlayedRef.current = true;
+              }, 600);
+            }
           }}
         >
           {/* 배경 이미지 */}
