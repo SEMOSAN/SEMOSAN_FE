@@ -7,6 +7,7 @@ import {
   getMessaging,
   getToken,
   onMessage,
+  setAPNSToken,
 } from "@react-native-firebase/messaging";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
@@ -145,6 +146,14 @@ async function registerFcmToken() {
         "[Push] APNs 토큰:",
         apnsToken ? `있음 (${apnsToken.length}자)` : "null — APNs 등록 실패",
       );
+
+      // 개발 빌드는 APNs 샌드박스를 쓰는데, Firebase SDK의 프로비저닝 프로파일
+      // 기반 자동 판별이 실패하면 FCM이 프로덕션 서버로 보내고 APNs가 조용히
+      // 거절한다(앱에 아무 흔적도 남지 않음). 개발 빌드에서만 환경을 명시한다.
+      if (__DEV__ && apnsToken) {
+        await setAPNSToken(fcmMessaging, apnsToken, "sandbox");
+        console.log("[Push] APNs 토큰 타입을 sandbox로 명시");
+      }
     }
 
     const token = await getToken(fcmMessaging);
