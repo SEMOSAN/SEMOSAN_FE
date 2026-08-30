@@ -4,6 +4,9 @@ import { GetUserHikingRecordResponse } from "@/types/api.generated";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ChevronRightIcon } from "./icons/chevron-right-icon";
 
+// 이름도 코스도 없는 기록의 최종 표시명
+const FREE_RECORD_FALLBACK_NAME = "자유 기록";
+
 function formatHikedAt(dateStr?: string): string {
   if (!dateStr) return "";
   const d = new Date(dateStr);
@@ -158,13 +161,17 @@ function CourseItem({
   mountainId?: number;
   onPress?: () => void;
 }) {
-  // 자유기록 등 목록 요약 API의 distance/duration이 비어있는 경우 상세 API로 폴백
-  const needsDetailFallback = !course.distance || !course.duration;
+  // 목록 요약 API는 자유기록의 이름(recordName)을 내려주지 않고 distance/duration도
+  // 비어있는 경우가 있어, 부족한 값은 상세 API로 폴백한다
+  const needsDetailFallback =
+    !course.courseName || !course.distance || !course.duration;
   const { data: recordDetail } = useHikingRecordDetail(
     needsDetailFallback ? (course.hikingRecordId ?? null) : null,
   );
   const distanceMeters = course.distance || recordDetail?.distanceMeters;
   const durationSeconds = course.duration || recordDetail?.durationSeconds;
+  const displayName =
+    course.courseName || recordDetail?.recordName || FREE_RECORD_FALLBACK_NAME;
 
   return (
     <TouchableOpacity
@@ -185,12 +192,10 @@ function CourseItem({
             className="text-common-0 typo-body-1-normal-semi-bold"
             numberOfLines={1}
           >
-            {course.courseName}
+            {displayName}
           </Text>
           <Text className="text-label-subtler typo-caption-1-medium">
-            {!!distanceMeters && (
-              <>{(distanceMeters / 1000).toFixed(1)}km · </>
-            )}
+            {!!distanceMeters && <>{(distanceMeters / 1000).toFixed(1)}km · </>}
             {!!durationSeconds && (
               <>
                 {formatDuration(durationSeconds)} ·{" "}

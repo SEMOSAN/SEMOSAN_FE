@@ -11,11 +11,11 @@
 		10BE4E2D651B7E442D3322E6 /* libPods-semosan.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6AEEBEE1FB64461746792160 /* libPods-semosan.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		4A732CF95E76DA32F805FA8A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9C724FB1E1D716DDCC15E71E /* InfoPlist.strings */; };
 		58E4E904FF7A4F8E91FFD44A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0915453EF2B7459C92BFD452 /* SwiftUI.framework */; };
 		5924807866955ACF8228BF7A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = ED0FDB9639E5FC65402DB80F /* PrivacyInfo.xcprivacy */; };
 		62AA5F0527CE7EF046B086D9 /* SemosanWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DB1C917F4FFF3242AA9628 /* SemosanWidgetBundle.swift */; };
 		693D45F803EE4908BCAFAFA8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 43040695C0354B4EA32E7480 /* InfoPlist.strings */; };
-		4A732CF95E76DA32F805FA8A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9C724FB1E1D716DDCC15E71E /* InfoPlist.strings */; };
 		A1B2C3D4E5F6A7B8C9D0E1F3 /* SemosanLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D6279DA4FA6101E8B8853A /* SemosanLiveActivityAttributes.swift */; };
 		B15883B685E09F4ACB7111FB /* SemosanLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F062AF6F8F169DC8CB336099 /* SemosanLiveActivity.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
@@ -53,10 +53,10 @@
 		30A54906D1126612186FF146 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = SemosanWidget/Assets.xcassets; sourceTree = "<group>"; };
 		41BBCF6E2CE0497EA17A760B /* WidgetKit.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		43040695C0354B4EA32E7480 /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = ko.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		9C724FB1E1D716DDCC15E71E /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		69DB1C917F4FFF3242AA9628 /* SemosanWidgetBundle.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SemosanWidgetBundle.swift; path = SemosanWidget/SemosanWidgetBundle.swift; sourceTree = "<group>"; };
 		6AEEBEE1FB64461746792160 /* libPods-semosan.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-semosan.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		87D6279DA4FA6101E8B8853A /* SemosanLiveActivityAttributes.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SemosanLiveActivityAttributes.swift; path = SemosanWidget/SemosanLiveActivityAttributes.swift; sourceTree = "<group>"; };
+		9C724FB1E1D716DDCC15E71E /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A8A28D9327D64115B3E69FC8 /* SemosanWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = undefined; name = SemosanWidget.appex; path = SemosanWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = semosan/SplashScreen.storyboard; sourceTree = "<group>"; };
 		AB01D059CE2A77403C4309E5 /* Lexend-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Lexend-SemiBold.ttf"; path = "SemosanWidget/Lexend-SemiBold.ttf"; sourceTree = "<group>"; };
@@ -120,6 +120,15 @@
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
+		4C05F667C69F443D24AEDE69 /* en.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				9C724FB1E1D716DDCC15E71E /* InfoPlist.strings */,
+			);
+			name = en.lproj;
+			path = "";
+			sourceTree = "<group>";
+		};
 		67C638EDC16DEAE4F5E487C4 /* semosan */ = {
 			isa = PBXGroup;
 			children = (
@@ -176,15 +185,6 @@
 				43040695C0354B4EA32E7480 /* InfoPlist.strings */,
 			);
 			name = ko.lproj;
-			path = "";
-			sourceTree = "<group>";
-		};
-		4C05F667C69F443D24AEDE69 /* en.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				9C724FB1E1D716DDCC15E71E /* InfoPlist.strings */,
-			);
-			name = en.lproj;
 			path = "";
 			sourceTree = "<group>";
 		};
