@@ -13,11 +13,21 @@ export async function endSession(): Promise<void> {
   authState.setUnauthenticated();
 }
 
-/** 로그인 성공 직후 호출. 토큰 저장 후 인증 상태를 켠다. */
+/**
+ * 로그인 성공 직후 호출. 토큰 저장 후 인증 상태를 켠다.
+ * onboardingCompleted 가 false 면, 다음 앱 재시작 시에도 온보딩 화면으로
+ * 돌아갈 수 있도록 로컬에 "온보딩 미완료" 표시를 남겨둔다.
+ */
 export async function startSession(
   accessToken: string,
   refreshToken: string,
+  onboardingCompleted: boolean,
 ): Promise<void> {
   await tokenStorage.setTokens(accessToken, refreshToken);
-  authState.setAuthenticated();
+  await tokenStorage.setOnboardingPending(!onboardingCompleted);
+  if (onboardingCompleted) {
+    authState.setAuthenticated();
+  } else {
+    authState.setNeedsOnboarding();
+  }
 }

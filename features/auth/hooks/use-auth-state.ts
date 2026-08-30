@@ -27,7 +27,12 @@ export function useAuthState(): { status: AuthStatus } {
           { path: ENDPOINTS.USERS_PROFILE },
           { ignoreErrorToast: true },
         );
-        authState.setAuthenticated();
+        const onboardingPending = await tokenStorage.isOnboardingPending();
+        if (onboardingPending) {
+          authState.setNeedsOnboarding();
+        } else {
+          authState.setAuthenticated();
+        }
       } catch {
         authState.setUnauthenticated();
       }
