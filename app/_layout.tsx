@@ -24,25 +24,9 @@ import "../global.css";
 
 // 포어그라운드에서도 알림 배너 표시
 Notifications.setNotificationHandler({
-  handleNotification: async (notification) => {
-    const data = notification.request.content.data as { type?: string } | null;
-    const type = data?.type;
-
-    // 트래킹 푸시: 포어그라운드에서 시스템 배너 차단 (in-app banner 만 노출)
-    // mixed payload 로 백엔드가 notification + data 둘 다 보내므로 중복 방지
-    if (
-      type === "TRACKING_PHOTO_MILESTONE" ||
-      type === "TRACKING_SUMMIT_REACHED"
-    ) {
-      return {
-        shouldShowBanner: true,
-        shouldShowList: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-      };
-    }
-
-    // 그 외 (커뮤니티/세모피드 등): 시스템 배너 그대로 표시
+  handleNotification: async () => {
+    // 모든 타입에 대해 시스템 배너를 그대로 표시한다.
+    // (이전에는 트래킹 타입을 분기했지만 두 갈래가 같은 값을 반환해 동작이 동일했다)
     return {
       shouldShowBanner: true,
       shouldShowList: true,

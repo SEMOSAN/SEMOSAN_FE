@@ -1,10 +1,13 @@
 import * as Sentry from "@sentry/react-native";
 import { api } from "@/lib/api";
+import { NotificationTestRequest } from "@/types/api.generated";
 import { getApp } from "@react-native-firebase/app";
 import {
+  getAPNSToken,
   getMessaging,
   getToken,
   onMessage,
+  setAPNSToken,
 } from "@react-native-firebase/messaging";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
@@ -41,6 +44,15 @@ export function usePushNotification(enabled = true): void {
         typeof remoteMessage.data?.type === "string"
           ? remoteMessage.data.type
           : undefined;
+      // 수신 여부를 확인할 수단이 없어 진단이 어려웠던 지점 (트래킹 훅과 동일하게 로깅)
+      console.log(
+        "[Push] 포어그라운드 수신:",
+        type,
+        "notification:",
+        remoteMessage.notification != null,
+        "data keys:",
+        Object.keys(remoteMessage.data ?? {}).join(","),
+      );
       if (type && TRACKING_TYPES.has(type)) return;
 
       const title =
@@ -65,6 +77,7 @@ export function usePushNotification(enabled = true): void {
     const tapSub = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = extractPushData(response);
+        console.log("[Push] 알림 탭:", data?.type, "extras:", data?.extras);
         if (data) navigateByType(data, router);
       },
     );
@@ -92,37 +105,14 @@ type PushData = {
 };
 
 // 백엔드 NotificationType enum과 동기화
-type NotificationType =
-  | "COMMUNITY_COMMENT"
-  | "COMMUNITY_REPLY"
-  | "COMMUNITY_LIKE"
-  | "COMMUNITY_MENTION"
-  | "FOLLOW_RECEIVED"
-  | "HIKING_INVITE"
-  | "HIKING_INVITE_ACCEPTED"
-  | "HIKING_STARTED"
-  | "HIKING_MEMBER_JOINED"
-  | "HIKING_MEMBER_LEFT"
-  | "HIKING_NEAR_DESTINATION"
-  | "HIKING_OFF_TRAIL"
-  | "HIKING_FINISHED"
-  | "HIKING_CHAT"
-  | "EMERGENCY_SOS"
-  | "WEATHER_WARNING"
-  | "TRAIL_CLOSED"
-  | "SYSTEM_NOTICE"
-  | "SYSTEM_MAINTENANCE"
-  | "APP_UPDATE"
-  | "TRACKING_PHOTO_MILESTONE";
+// (types/api.generated.ts의 NotificationTestRequest.type과 같은 목록)
+type NotificationType = NotificationTestRequest["type"];
 
 // ─── FCM 토큰 등록 ───────────────────────────────────────────
 
 async function registerFcmToken() {
-  if (!Device.isDevice) {
-    console.log("[Push] 실기기에서만 토큰 등록 가능");
-    return;
-  }
-
+  // 권한 요청은 시뮬레이터에서도 수행한다.
+  // simctl push로 알림 표시·탭 라우팅을 검증하려면 권한이 필요하다.
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
 
@@ -136,11 +126,36 @@ async function registerFcmToken() {
     return;
   }
 
+  // FCM 토큰은 실기기에서만 발급된다
+  if (!Device.isDevice) {
+    console.log("[Push] 실기기에서만 토큰 등록 가능");
+    return;
+  }
+
   try {
     // iOS: Firebase SDK로 FCM 등록 토큰 획득 (APNs 토큰 아님)
     // Android: FCM 토큰 직접 반환
     const app = getApp();
     const fcmMessaging = getMessaging(app);
+
+    // APNs 토큰이 붙지 않으면 FCM 토큰이 발급돼도 iOS로 전달되지 않는다.
+    // 원인 추적이 어려웠던 지점이라 값을 남긴다.
+    if (Platform.OS === "ios") {
+      const apnsToken = await getAPNSToken(fcmMessaging);
+      console.log(
+        "[Push] APNs 토큰:",
+        apnsToken ? `있음 (${apnsToken.length}자)` : "null — APNs 등록 실패",
+      );
+
+      // 개발 빌드는 APNs 샌드박스를 쓰는데, Firebase SDK의 프로비저닝 프로파일
+      // 기반 자동 판별이 실패하면 FCM이 프로덕션 서버로 보내고 APNs가 조용히
+      // 거절한다(앱에 아무 흔적도 남지 않음). 개발 빌드에서만 환경을 명시한다.
+      if (__DEV__ && apnsToken) {
+        await setAPNSToken(fcmMessaging, apnsToken, "sandbox");
+        console.log("[Push] APNs 토큰 타입을 sandbox로 명시");
+      }
+    }
+
     const token = await getToken(fcmMessaging);
 
     await api.post({
@@ -191,31 +206,22 @@ function navigateByType(data: PushData, router: ReturnType<typeof useRouter>) {
   switch (data.type) {
     case "COMMUNITY_COMMENT":
     case "COMMUNITY_REPLY":
-    case "COMMUNITY_LIKE":
-    case "COMMUNITY_MENTION":
+    case "COMMUNITY_POST_LIKE":
       // 자유게시판 게시글 상세 — postId 없으면 이동하지 않음(undefined 경로 방지)
       if (extras.postId != null) {
         push(`/community/free-board/${extras.postId}`);
       }
       break;
 
-    case "HIKING_INVITE":
-    case "HIKING_INVITE_ACCEPTED":
-    case "HIKING_STARTED":
-    case "HIKING_MEMBER_JOINED":
-    case "HIKING_MEMBER_LEFT":
-    case "HIKING_NEAR_DESTINATION":
-    case "HIKING_OFF_TRAIL":
-    case "HIKING_FINISHED":
-    case "HIKING_CHAT":
-    case "EMERGENCY_SOS":
     case "TRACKING_PHOTO_MILESTONE":
+    case "TRACKING_SUMMIT_REACHED":
       router.push("/(tabs)/tracking");
       break;
 
-    // 대응 화면이 아직 없는 타입(FOLLOW_RECEIVED, SYSTEM_*, WEATHER_WARNING 등)은
-    // 존재하지 않는 라우트로 이동하면 unmatched route가 뜨므로 이동하지 않는다.
-    // (알림 센터/프로필 화면 구현 시 여기에 연결)
+    // SEMOFEED_EMOJI는 개별 글로 이동할 라우트가 없어 이동하지 않는다.
+    // 세모피드는 홈 탭 내부 뷰라 `?tab=feed`로 목록까지만 열 수 있고,
+    // 반응이 달린 글이 목록 첫 페이지에 없으면 사용자가 찾을 수 없다.
+    // (세모피드 단건 조회 및 딥링크 지원 시 여기에 연결)
     default:
       break;
   }
