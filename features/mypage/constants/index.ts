@@ -14,3 +14,8 @@ export const MOCK_USER = {
 
 import Constants from 'expo-constants';
 export const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
+
+/** 공지사항 — 외부 링크 모음 페이지 */
+export const NOTICE_URL = "https://linktr.ee/semosan0504";
+/** 1:1 문의하기 — 외부 문의 폼 */
+export const INQUIRY_URL = "https://smore.im/form/EBucAafRsC#_q=Oty6phXY";
