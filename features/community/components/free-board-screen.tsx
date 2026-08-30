@@ -21,6 +21,9 @@ export function FreeBoardScreen() {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();
         }}
         onEndReachedThreshold={0.5}
+        windowSize={7}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
