@@ -87,7 +87,7 @@ export function BirthDateBottomSheet({ visible, initialValue, onClose, onSave }:
                 placeholderTextColor="#8b92a6"
                 keyboardType="numbers-and-punctuation"
                 autoFocus
-                style={{ letterSpacing: -0.16 }}
+                style={{ letterSpacing: -0.16, lineHeight: 20 }}
               />
             </View>
 

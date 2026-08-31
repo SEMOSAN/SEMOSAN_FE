@@ -64,6 +64,7 @@ export default function MountainSearchScreen(): React.JSX.Element {
             onSubmitEditing={handleSubmit}
             autoFocus
             returnKeyType="search"
+            style={{ lineHeight: 20 }}
           />
           <SearchIcon />
         </Pressable>
