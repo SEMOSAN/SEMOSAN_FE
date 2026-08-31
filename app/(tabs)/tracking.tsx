@@ -1165,6 +1165,9 @@ export default function TrackingScreen() {
 
     if (result.canceled || !result.assets?.[0]?.uri) return;
 
+    // 업로드/저장이 진행되는 동안 세션이 종료·교체될 수 있어 촬영 시점의 세션을 고정
+    const capturedSessionId = sessionId;
+
     try {
       const capturedAt = new Date().toISOString();
       const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
@@ -1183,7 +1186,10 @@ export default function TrackingScreen() {
         },
       });
       console.log("[Tracking] 사진 메타 저장 완료");
-      setPhotosTaken((prev) => Math.min(prev + 1, MAX_TRACKING_PHOTOS));
+      // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음
+      if (sessionIdRef.current === capturedSessionId) {
+        setPhotosTaken((prev) => Math.min(prev + 1, MAX_TRACKING_PHOTOS));
+      }
     } catch (err) {
       console.warn("[Tracking] 인증 사진 처리 실패:", err);
       Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
