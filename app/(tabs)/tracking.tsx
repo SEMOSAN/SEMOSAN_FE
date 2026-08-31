@@ -27,6 +27,7 @@ import {
 import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
 import { useAbandonTrackingSession } from "@/features/tracking/hooks/use-abandon-tracking-session";
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
@@ -65,6 +66,7 @@ import {
   NaverMapView,
   type NaverMapViewRef,
 } from "@mj-studio/react-native-naver-map";
+import { logAnalyticsEvent } from "@/utils/analytics";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -181,6 +183,10 @@ export default function TrackingScreen() {
   // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
   const [isAtSummit, setIsAtSummit] = useState(false); // 목 값 (GPS 연동 전까지 false)
   const [showSummitSheet, setShowSummitSheet] = useState(false);
+  // 복원된 세션의 산 이름 — 서버가 준 값이 현재 위치 기반 추정보다 정확하다
+  const [restoredMountainName, setRestoredMountainName] = useState<
+    string | null
+  >(null);
   // 자유기록 종료 후 코스 이름 입력 모달
   const [showCourseNameModal, setShowCourseNameModal] = useState(false);
   // 사용자가 입력한 자유기록 코스 이름 (미입력 시 null)
@@ -291,6 +297,23 @@ export default function TrackingScreen() {
     lat: nearbyQueryCoord?.lat ?? null,
     lng: nearbyQueryCoord?.lng ?? null,
   });
+
+  // 세션이 생성되는 산 — URL 파라미터(코스 상세에서 진입) > 현재 위치 기반
+  const sessionMountainId = mountainIdParameter
+    ? Number(mountainIdParameter)
+    : nearbyData?.mountain?.mountainId;
+
+  // 파라미터로 진입하면 근처 산과 다를 수 있어 해당 산 이름을 따로 조회한다.
+  // (코스 상세 응답에는 mountainName이 없다)
+  const { data: sessionMountainDetail } = useMountainDetail(
+    mountainIdParameter ? Number(mountainIdParameter) : 0,
+  );
+  // 우선순위: 복원된 세션(서버 값) > URL 파라미터 조회 > 현재 위치 기반
+  const sessionMountainName =
+    restoredMountainName ??
+    (mountainIdParameter
+      ? sessionMountainDetail?.mountain?.name
+      : nearbyData?.mountain?.name);
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
     console.log("[PhotoWindow] 수신:", JSON.stringify(payload));
@@ -404,6 +427,13 @@ export default function TrackingScreen() {
     useActiveTrackingSession();
   const { data: profile } = useProfile();
 
+  // 트래킹 탭 진입 로깅 — 세션 복원과 무관하게 진입 시 1회
+  useFocusEffect(
+    useCallback(() => {
+      logAnalyticsEvent("tracking_tab_view");
+    }, []),
+  );
+
   // 앱 재진입 시 진행 중인 세션 복원
   useFocusEffect(
     useCallback(() => {
@@ -420,6 +450,7 @@ export default function TrackingScreen() {
     const status = activeSession.status;
     if (status === "IN_PROGRESS" || status === "PAUSED") {
       setSessionId(activeSession.sessionId);
+      setRestoredMountainName(activeSession.mountainName ?? null);
       setIsTracking(true);
       setIsPaused(status === "PAUSED");
       // 코스 정보 복원
@@ -968,6 +999,7 @@ export default function TrackingScreen() {
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
     setFreeRecordCourseName(null);
+    setRestoredMountainName(null);
     setCountdown(3);
   };
 
@@ -981,6 +1013,10 @@ export default function TrackingScreen() {
   }, [userLocation, nearbyMountain]);
 
   const handleFreeRecord = () => {
+    logAnalyticsEvent("free_record_start_click", {
+      mountain_name: sessionMountainName,
+    });
+
     // 산을 골라 진입한 경우엔 좌표를 알 수 없어 거리 판정 제외
     if (mountainIdParameter) {
       startCountdown(true);
@@ -1003,10 +1039,7 @@ export default function TrackingScreen() {
       setCountdown(null);
 
       // 트래킹 세션 시작 API 호출
-      // mountainId 우선순위: URL 파라미터(코스 상세에서 진입) > nearbyData(현재 위치 기반)
-      const mountainId = mountainIdParameter
-        ? Number(mountainIdParameter)
-        : nearbyData?.mountain?.mountainId;
+      const mountainId = sessionMountainId;
 
       // 산이 없으면 세션 생성 불가 — isTracking만 켜면 GPS·소켓 없이 화면만 트래킹 중이 됨
       if (mountainId == null) {
@@ -1029,6 +1062,13 @@ export default function TrackingScreen() {
             if (!isMountedRef.current) return;
             if (data.sessionId != null) {
               const sid = data.sessionId;
+              // sessionId가 없으면 소켓·위치 추적이 시작되지 않아 실질적으로
+              // 기록이 시작된 것이 아니므로, 확정된 뒤에 기록한다
+              logAnalyticsEvent("tracking_started", {
+                tracking_type: isFreeMode ? "free" : "course",
+                mountain_name: sessionMountainName,
+                course_name: isFreeMode ? "" : selectedCourse.name,
+              });
               setSessionId(sid);
               sessionIdRef.current = sid;
               // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
@@ -1318,9 +1358,15 @@ export default function TrackingScreen() {
         },
       });
       console.log("[Tracking] 사진 메타 저장 완료");
-      // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음
+      // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음.
+      // 이때는 isFreeMode·산 이름도 이미 초기화된 상태라 분석 이벤트도 함께 건너뛴다.
       if (sessionIdRef.current === capturedSessionId) {
         setPhotosTaken((prev) => Math.min(prev + 1, MAX_TRACKING_PHOTOS));
+        logAnalyticsEvent("clive_photo_taken", {
+          tracking_type: isFreeMode ? "free" : "course",
+          mountain_name: sessionMountainName,
+          photo_order: activeWindow.milestoneIndex,
+        });
       }
     } catch (err) {
       console.warn("[Tracking] 인증 사진 처리 실패:", err);
@@ -1338,10 +1384,26 @@ export default function TrackingScreen() {
    */
   const runCompleteSession = (name?: string) => {
     if (sessionId == null) return;
+
+    // completeTracking이 상태를 초기화하므로 지표는 호출 전에 확정해 둔다
+    const trackedMeters = recordedCoords.reduce(
+      (total, coord, i) =>
+        i === 0 ? 0 : total + haversineMeters(recordedCoords[i - 1], coord),
+      0,
+    );
+    const finishedParams = {
+      tracking_type: isFreeMode ? "free" : "course",
+      mountain_name: sessionMountainName,
+      course_name: isFreeMode ? "" : selectedCourse.name,
+      distance_km: Number((trackedMeters / 1000).toFixed(2)),
+      duration_min: Math.round(elapsedSeconds / 60),
+    };
+
     completeSession(
       { sessionId, name },
       {
         onSuccess: (data) => {
+          logAnalyticsEvent("tracking_finished", finishedParams);
           if (data.hikingRecordId != null) setHikingRecordId(data.hikingRecordId);
         },
         onError: (err) => {
@@ -1419,6 +1481,7 @@ export default function TrackingScreen() {
     setShowSummitSheet(false);
     setHasSummited(false);
     setSessionId(null);
+    setRestoredMountainName(null);
     setHikingRecordId(null);
     setPhotoWindow(null);
     setPhotosTaken(0);
