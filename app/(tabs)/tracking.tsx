@@ -39,6 +39,7 @@ import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tra
 import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
 import {
   PhotoWindowPayload,
+  SummitReachedPayload,
   useTrackingSocket,
 } from "@/features/tracking/hooks/use-tracking-socket";
 import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
@@ -180,8 +181,6 @@ export default function TrackingScreen() {
   const [isFreeMode, setIsFreeMode] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showTooltip, setShowTooltip] = useState(true);
-  // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
-  const [isAtSummit, setIsAtSummit] = useState(false); // 목 값 (GPS 연동 전까지 false)
   const [showSummitSheet, setShowSummitSheet] = useState(false);
   // 복원된 세션의 산 이름 — 서버가 준 값이 현재 위치 기반 추정보다 정확하다
   const [restoredMountainName, setRestoredMountainName] = useState<
@@ -324,6 +323,32 @@ export default function TrackingScreen() {
     }
   }, []);
 
+  /**
+   * 정상 도달(TRACKING_SUMMIT_REACHED) — 정상 인증 시트를 띄운다.
+   *
+   * 페이로드를 인증 사진 창으로 확보해 둔다. 백엔드 ±10% 윈도우 특성상
+   * 4/4 촬영 창은 정상까지 거리의 90% 지점에서 열리는데, GPS가 드물어
+   * 그 구간을 건너뛰면 photo 4/4가 발송되지 않는다. 정상 알림에 물려두면
+   * 그 경우에도 정상 인증 사진을 찍을 수 있다.
+   */
+  const handleSummitReached = useCallback((payload: PhotoWindowPayload) => {
+    console.log("[Summit] 정상 도달 수신:", JSON.stringify(payload));
+    summitPhotoWindowRef.current = payload;
+    setShowSummitSheet(true);
+  }, []);
+
+  // 소켓 페이로드는 milestoneDistanceM, FCM은 milestoneDistance로 필드명이 달라 변환한다
+  const handleSocketSummitReached = useCallback(
+    (payload: SummitReachedPayload) =>
+      handleSummitReached({
+        milestoneIndex: payload.milestoneIndex,
+        milestoneDistance: payload.milestoneDistanceM,
+        status: "OPEN",
+        openedAt: payload.reachedAt ?? new Date().toISOString(),
+      }),
+    [handleSummitReached],
+  );
+
   const {
     connect: connectSocket,
     disconnect: disconnectSocket,
@@ -331,6 +356,7 @@ export default function TrackingScreen() {
     publishGps,
   } = useTrackingSocket({
     onPhotoWindow: handlePhotoWindow,
+    onSummitReached: handleSocketSummitReached,
   });
 
   // sessionId를 ref로 미러링 — 위치 콜백에서 항상 최신 값 참조
@@ -414,7 +440,11 @@ export default function TrackingScreen() {
   );
 
   // 포어그라운드 FCM 수신 (백그라운드는 OS가 시스템 알림으로 자동 처리)
-  useTrackingFcm({ enabled: isTracking, onPhotoWindow: handlePhotoWindow });
+  useTrackingFcm({
+    enabled: isTracking,
+    onPhotoWindow: handlePhotoWindow,
+    onSummitReached: handleSummitReached,
+  });
 
   const { mutate: startSession } = useStartTrackingSession();
   const { mutate: pauseSession } = usePauseTrackingSession();
@@ -535,9 +565,16 @@ export default function TrackingScreen() {
     [courseDetail?.polyline],
   );
 
-  // 정상/하산까지 시간·거리 — 코스 전체의 절반 (courseProgressState useMemo보다 먼저 선언)
-  const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
-  const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
+  // 정상까지 시간·거리 (courseProgressState useMemo보다 먼저 선언).
+  // 서버의 summitDistance/summitEstimatedTime을 우선 쓴다 — 마일스톤 푸시가
+  // 오는 지점과 같은 값이라 화면 표시와 알림 시점이 일치한다.
+  // 정상 좌표가 없어 서버가 계산하지 못한 코스는 기존대로 코스 전체의 절반으로 폴백한다.
+  const summitDurationMinutes =
+    liveActivityCourse?.summitEstimatedTime ??
+    Math.round((courseDetail?.duration ?? 0) / 2);
+  const summitDistanceM = Math.round(
+    liveActivityCourse?.summitDistance ?? (courseDetail?.distance ?? 0) / 2,
+  );
 
   // 코스 진행 상태 — GPS 기반 실시간 (markerRatio + 남은 거리/시간 통합)
   const courseProgressState = useMemo(() => {
@@ -569,14 +606,22 @@ export default function TrackingScreen() {
         };
       }
 
-      // 등산 중: 코스 중간(정상)까지 남은 거리/시간
-      const halfDistance = liveActivityCourse.totalDistance / 2;
-      const remainingToSummitM = Math.max(0, halfDistance - traveledM);
-      const ascProgress = Math.min(traveledM / halfDistance, 1); // 0(출발) ~ 1(정상)
+      // 등산 중: 정상까지 남은 거리/시간
+      const summitDistance =
+        liveActivityCourse.summitDistance ??
+        liveActivityCourse.totalDistance / 2;
+      const remainingToSummitM = Math.max(0, summitDistance - traveledM);
+      const ascProgress =
+        summitDistance > 0 ? Math.min(traveledM / summitDistance, 1) : 0; // 0(출발) ~ 1(정상)
+      // 정상까지 시간도 서버 값이 있으면 그 비율로 — 전체 페이스 배분보다 정확하다
+      const remainingToSummitMin =
+        liveActivityCourse.summitEstimatedTime != null
+          ? liveActivityCourse.summitEstimatedTime * (1 - ascProgress)
+          : remainingToSummitM * paceMinPerM;
       return {
         markerRatio: Math.max(0, 1.0 - ascProgress), // 1.0(바 하단/출발) ~ 0.0(바 상단/정상)
         remainingDistanceM: Math.round(remainingToSummitM),
-        remainingDurationMin: Math.round(remainingToSummitM * paceMinPerM),
+        remainingDurationMin: Math.round(remainingToSummitMin),
       };
     }
 
@@ -588,8 +633,8 @@ export default function TrackingScreen() {
       if (!markerCoord || courseCoords.length < 2) {
         return {
           markerRatio: 0.0,
-          remainingDistanceM: halfDistanceM,
-          remainingDurationMin: halfDurationMinutes,
+          remainingDistanceM: summitDistanceM,
+          remainingDurationMin: summitDurationMinutes,
         };
       }
       let closestIdx = summitIdx;
@@ -613,16 +658,16 @@ export default function TrackingScreen() {
           : 0;
       return {
         markerRatio: 0.0,
-        remainingDistanceM: Math.round(halfDistanceM * ratio),
-        remainingDurationMin: Math.round(halfDurationMinutes * ratio),
+        remainingDistanceM: Math.round(summitDistanceM * ratio),
+        remainingDurationMin: Math.round(summitDurationMinutes * ratio),
       };
     }
 
     if (!markerCoord || courseCoords.length < 2) {
       return {
         markerRatio: 1.0,
-        remainingDistanceM: halfDistanceM,
-        remainingDurationMin: halfDurationMinutes,
+        remainingDistanceM: summitDistanceM,
+        remainingDurationMin: summitDurationMinutes,
       };
     }
 
@@ -641,15 +686,15 @@ export default function TrackingScreen() {
     const remaining = Math.max(0, 1 - progress);
     return {
       markerRatio: 1.0 - progress,
-      remainingDistanceM: Math.round(halfDistanceM * remaining),
-      remainingDurationMin: Math.round(halfDurationMinutes * remaining),
+      remainingDistanceM: Math.round(summitDistanceM * remaining),
+      remainingDurationMin: Math.round(summitDurationMinutes * remaining),
     };
   }, [
     markerCoord,
     courseCoords,
     hasSummited,
-    halfDistanceM,
-    halfDurationMinutes,
+    summitDistanceM,
+    summitDurationMinutes,
     liveActivityCourse,
     userLocation,
   ]);
@@ -700,8 +745,8 @@ export default function TrackingScreen() {
       difficulty: DIFFICULTY_KO[courseDetail?.difficulty ?? ""] ?? "중급",
       altitudeNm: peakAltitudeM,
       distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
-      summitDistanceM: halfDistanceM,
-      descentDistanceM: halfDistanceM,
+      summitDistanceM,
+      descentDistanceM: summitDistanceM,
       durationHours: Math.floor((courseDetail?.duration ?? 0) / 60),
       durationMinutes: (courseDetail?.duration ?? 0) % 60,
       coordinates: [],
@@ -709,7 +754,7 @@ export default function TrackingScreen() {
       centerLongitude: 0,
       zoom: 14,
     }),
-    [courseDetail, peakAltitudeM, halfDistanceM],
+    [courseDetail, peakAltitudeM, summitDistanceM],
   );
 
   const timeToTarget = (() => {
@@ -1502,14 +1547,6 @@ export default function TrackingScreen() {
     completeTracking(null);
   };
 
-  // GPS로 정상 부근 감지 시 자동으로 정상 시트 표시
-  // TODO: 실제 구현 시 GPS 좌표와 정상 좌표를 비교해 isAtSummit 업데이트
-  useEffect(() => {
-    if (isTracking && isAtSummit) {
-      setShowSummitSheet(true);
-    }
-  }, [isAtSummit, isTracking]);
-
   const floatingCardBottom = COLLAPSED_PEEK_HEIGHT + FLOATING_CARD_GAP;
 
   return (
@@ -1677,8 +1714,11 @@ export default function TrackingScreen() {
           {showSummitSheet ? (
             <SummitSheet
               onCertify={() => {
-                // 정상 인증 → 현재 photoWindow 저장 후 하산 시트로 전환
-                summitPhotoWindowRef.current = photoWindow;
+                // 정상 인증 → 인증 사진 창 확보 후 하산 시트로 전환.
+                // 정상 알림으로 이미 확보해 둔 창이 있으면 유지하고(4/4 촬영
+                // 창이 누락된 경우에도 촬영 가능), 없을 때만 현재 창을 쓴다.
+                summitPhotoWindowRef.current =
+                  summitPhotoWindowRef.current ?? photoWindow;
                 setHasSummited(true);
                 setShowSummitSheet(false);
               }}
