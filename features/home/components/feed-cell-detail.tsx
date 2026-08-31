@@ -112,7 +112,7 @@ export function FeedCellDetail({
 
               {/* 프로필 */}
               <View className="mb-5 mt-5 flex-row items-center gap-2 px-1">
-                <View className="h-8 w-8 overflow-hidden rounded-full bg-fill-normal">
+                <View className="h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-fill-normal">
                   {item.profileUrl ? (
                     <Image
                       source={{ uri: item.profileUrl }}
