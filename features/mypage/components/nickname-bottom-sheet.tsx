@@ -86,7 +86,7 @@ export function NicknameBottomSheet({ visible, initialValue, onClose, onSave }: 
               onChangeText={setValue}
               maxLength={10}
               autoFocus
-              style={{ letterSpacing: -0.16 }}
+              style={{ letterSpacing: -0.16, lineHeight: 20 }}
             />
             {value.length > 0 && (
               <TouchableOpacity
