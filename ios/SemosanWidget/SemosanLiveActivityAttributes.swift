@@ -18,5 +18,6 @@ struct SemosanLiveActivityAttributes: ActivityAttributes {
         var remainingMinutes: Int
         var remainingMeters: Int
         var progress: Double      // 0.0 ~ 1.0
+        var remainingPhotos: Int  // 남은 사진 촬영 가능 횟수 (최대 4장)
     }
 }
