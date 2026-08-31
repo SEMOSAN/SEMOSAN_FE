@@ -288,6 +288,7 @@ private struct SummitIconBadge: View {
 private struct CourseStatsRow: View {
     let remainingMinutes: Int
     let remainingMeters: Int
+    let remainingPhotos: Int
 
     var body: some View {
         HStack(spacing: 12) {
@@ -306,6 +307,11 @@ private struct CourseStatsRow: View {
             divider
 
             Text("\(remainingMeters)m")
+                .foregroundColor(.white)
+
+            divider
+
+            Text("\(remainingPhotos)장")
                 .foregroundColor(.white)
 
             Spacer()
@@ -388,7 +394,8 @@ private struct CourseLockScreenView: View {
 
             CourseStatsRow(
                 remainingMinutes: state.remainingMinutes,
-                remainingMeters: state.remainingMeters
+                remainingMeters: state.remainingMeters,
+                remainingPhotos: state.remainingPhotos
             )
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
@@ -450,7 +457,8 @@ struct SemosanLiveActivity: Widget {
                             LiveProgressBar(progress: state.progress)
                             CourseStatsRow(
                                 remainingMinutes: state.remainingMinutes,
-                                remainingMeters: state.remainingMeters
+                                remainingMeters: state.remainingMeters,
+                                remainingPhotos: state.remainingPhotos
                             )
                         }
                     }

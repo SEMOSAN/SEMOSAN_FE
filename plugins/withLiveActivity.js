@@ -388,7 +388,8 @@ public class LiveActivityModule: Module {
                 timerStartEpoch: params["timerStartEpoch"] as? Double ?? Date().timeIntervalSince1970 * 1000,
                 remainingMinutes: params["remainingMinutes"] as? Int ?? 0,
                 remainingMeters: params["remainingMeters"] as? Int ?? 0,
-                progress: params["progress"] as? Double ?? 0.0
+                progress: params["progress"] as? Double ?? 0.0,
+                remainingPhotos: params["remainingPhotos"] as? Int ?? 4
             )
 
             let activity = try Activity<SemosanLiveActivityAttributes>.request(
@@ -423,7 +424,8 @@ public class LiveActivityModule: Module {
                 timerStartEpoch: params["timerStartEpoch"] as? Double,
                 remainingMinutes: params["remainingMinutes"] as? Int ?? 0,
                 remainingMeters: params["remainingMeters"] as? Int ?? 0,
-                progress: params["progress"] as? Double ?? 0.0
+                progress: params["progress"] as? Double ?? 0.0,
+                remainingPhotos: params["remainingPhotos"] as? Int ?? 4
             )
             await activity.update(.init(state: newState, staleDate: nil))
         }

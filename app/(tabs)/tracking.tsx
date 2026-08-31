@@ -51,6 +51,7 @@ import {
   smoothCourseCoords,
 } from "@/features/tracking/utils/parse-course-polyline";
 import { fetchSessionTrack } from "@/features/tracking/utils/fetch-session-track";
+import { fetchSessionPhotoCount } from "@/features/tracking/utils/fetch-session-photo-count";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
 import { toast } from "@/store/toast.store";
@@ -102,6 +103,7 @@ const SEGMENT_COLORS: Record<string, { color: string }> = {
 
 // 좌표 개수가 MIN_SEGMENT_COORDS 미만인 짧은 세그먼트를 앞 세그먼트에 흡수해 색 전환 빈도를 줄임
 const MIN_SEGMENT_COORDS = 8;
+const MAX_TRACKING_PHOTOS = 4; // 세션당 최대 인증 사진 촬영 횟수 — 라이브 액티비티 "남은 사진 장수" 계산 기준
 
 // GPS 튐(outlier) 좌표 필터링 기준 — 누적 경로가 삐죽하게 그려지는 문제 방지
 const MAX_LOCATION_ACCURACY_M = 30; // 정확도(m)가 이보다 나쁘면서 크게 튄 좌표는 버림
@@ -196,6 +198,8 @@ export default function TrackingScreen() {
   const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(
     null,
   );
+  // 이번 세션에서 촬영한 사진 수 (최대 4장) — 라이브 액티비티 "남은 사진 장수" 표시용
+  const [photosTaken, setPhotosTaken] = useState(0);
   // 정상 인증 시점의 photoWindow 저장 — 인증 후 photoWindow가 닫혀도 메타 업로드에 사용
   const summitPhotoWindowRef = useRef<PhotoWindowPayload | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
@@ -435,6 +439,18 @@ export default function TrackingScreen() {
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
+      // 강제 종료 후 재진입 시 이미 촬영한 사진 수 복원 — 라이브 액티비티 "남은 사진 장수" 정확도 보장
+      {
+        const restoringPhotoSessionId = activeSession.sessionId;
+        fetchSessionPhotoCount(restoringPhotoSessionId).then((count) => {
+          if (
+            !isMountedRef.current ||
+            sessionIdRef.current !== restoringPhotoSessionId
+          )
+            return;
+          setPhotosTaken(Math.min(count, MAX_TRACKING_PHOTOS));
+        });
+      }
       // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원 — 자유기록
       if (activeSession.isFreeRecording) {
         // 요청 시점의 세션 ID를 캡처 — 응답 지연 중 다른 세션으로 바뀌면 폐기
@@ -1071,6 +1087,7 @@ export default function TrackingScreen() {
           remainingMinutes: totalMinutes,
           remainingMeters: Math.round(totalMeters),
           progress: 0,
+          remainingPhotos: MAX_TRACKING_PHOTOS - photosTaken,
         }).catch((e: unknown) => {
           console.warn("[LiveActivity] start(course) 실패:", e);
         });
@@ -1166,6 +1183,7 @@ export default function TrackingScreen() {
           remainingMinutes,
           remainingMeters,
           progress,
+          remainingPhotos: Math.max(0, MAX_TRACKING_PHOTOS - photosTaken),
         }).catch(() => {});
       }
     }
@@ -1176,6 +1194,7 @@ export default function TrackingScreen() {
     selectedCourse,
     liveActivityCourse,
     userLocation,
+    photosTaken,
   ]);
 
   const pauseTracking = () => {
@@ -1278,6 +1297,9 @@ export default function TrackingScreen() {
 
     if (result.canceled || !result.assets?.[0]?.uri) return;
 
+    // 업로드/저장이 진행되는 동안 세션이 종료·교체될 수 있어 촬영 시점의 세션을 고정
+    const capturedSessionId = sessionId;
+
     try {
       const capturedAt = new Date().toISOString();
       const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
@@ -1296,6 +1318,10 @@ export default function TrackingScreen() {
         },
       });
       console.log("[Tracking] 사진 메타 저장 완료");
+      // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음
+      if (sessionIdRef.current === capturedSessionId) {
+        setPhotosTaken((prev) => Math.min(prev + 1, MAX_TRACKING_PHOTOS));
+      }
     } catch (err) {
       console.warn("[Tracking] 인증 사진 처리 실패:", err);
       Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
@@ -1395,6 +1421,7 @@ export default function TrackingScreen() {
     setSessionId(null);
     setHikingRecordId(null);
     setPhotoWindow(null);
+    setPhotosTaken(0);
     summitPhotoWindowRef.current = null;
     setCollapsed(false);
     setRecordedCoords([]);
