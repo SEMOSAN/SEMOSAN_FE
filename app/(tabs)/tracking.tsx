@@ -183,6 +183,10 @@ export default function TrackingScreen() {
   // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
   const [isAtSummit, setIsAtSummit] = useState(false); // 목 값 (GPS 연동 전까지 false)
   const [showSummitSheet, setShowSummitSheet] = useState(false);
+  // 복원된 세션의 산 이름 — 서버가 준 값이 현재 위치 기반 추정보다 정확하다
+  const [restoredMountainName, setRestoredMountainName] = useState<
+    string | null
+  >(null);
   // 자유기록 종료 후 코스 이름 입력 모달
   const [showCourseNameModal, setShowCourseNameModal] = useState(false);
   // 사용자가 입력한 자유기록 코스 이름 (미입력 시 null)
@@ -304,9 +308,12 @@ export default function TrackingScreen() {
   const { data: sessionMountainDetail } = useMountainDetail(
     mountainIdParameter ? Number(mountainIdParameter) : 0,
   );
-  const sessionMountainName = mountainIdParameter
-    ? sessionMountainDetail?.mountain?.name
-    : nearbyData?.mountain?.name;
+  // 우선순위: 복원된 세션(서버 값) > URL 파라미터 조회 > 현재 위치 기반
+  const sessionMountainName =
+    restoredMountainName ??
+    (mountainIdParameter
+      ? sessionMountainDetail?.mountain?.name
+      : nearbyData?.mountain?.name);
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
     console.log("[PhotoWindow] 수신:", JSON.stringify(payload));
@@ -443,6 +450,7 @@ export default function TrackingScreen() {
     const status = activeSession.status;
     if (status === "IN_PROGRESS" || status === "PAUSED") {
       setSessionId(activeSession.sessionId);
+      setRestoredMountainName(activeSession.mountainName ?? null);
       setIsTracking(true);
       setIsPaused(status === "PAUSED");
       // 코스 정보 복원
@@ -991,6 +999,7 @@ export default function TrackingScreen() {
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
     setFreeRecordCourseName(null);
+    setRestoredMountainName(null);
     setCountdown(3);
   };
 
@@ -1472,6 +1481,7 @@ export default function TrackingScreen() {
     setShowSummitSheet(false);
     setHasSummited(false);
     setSessionId(null);
+    setRestoredMountainName(null);
     setHikingRecordId(null);
     setPhotoWindow(null);
     setPhotosTaken(0);
