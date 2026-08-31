@@ -82,7 +82,6 @@ export function CourseNameInputModal({
                 returnKeyType="done"
                 autoFocus
                 onSubmitEditing={() => onSubmit(value.trim())}
-                style={{ paddingVertical: 0 }}
               />
             </View>
 
