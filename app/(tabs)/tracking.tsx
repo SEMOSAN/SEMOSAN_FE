@@ -27,6 +27,7 @@ import {
 import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
 import { useAbandonTrackingSession } from "@/features/tracking/hooks/use-abandon-tracking-session";
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
@@ -288,6 +289,20 @@ export default function TrackingScreen() {
     lat: nearbyQueryCoord?.lat ?? null,
     lng: nearbyQueryCoord?.lng ?? null,
   });
+
+  // 세션이 생성되는 산 — URL 파라미터(코스 상세에서 진입) > 현재 위치 기반
+  const sessionMountainId = mountainIdParameter
+    ? Number(mountainIdParameter)
+    : nearbyData?.mountain?.mountainId;
+
+  // 파라미터로 진입하면 근처 산과 다를 수 있어 해당 산 이름을 따로 조회한다.
+  // (코스 상세 응답에는 mountainName이 없다)
+  const { data: sessionMountainDetail } = useMountainDetail(
+    mountainIdParameter ? Number(mountainIdParameter) : 0,
+  );
+  const sessionMountainName = mountainIdParameter
+    ? sessionMountainDetail?.mountain?.name
+    : nearbyData?.mountain?.name;
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
     console.log("[PhotoWindow] 수신:", JSON.stringify(payload));
@@ -974,7 +989,7 @@ export default function TrackingScreen() {
 
   const handleFreeRecord = () => {
     logAnalyticsEvent("free_record_start_click", {
-      mountain_name: nearbyData?.mountain?.name,
+      mountain_name: sessionMountainName,
     });
 
     // 산을 골라 진입한 경우엔 좌표를 알 수 없어 거리 판정 제외
@@ -999,10 +1014,7 @@ export default function TrackingScreen() {
       setCountdown(null);
 
       // 트래킹 세션 시작 API 호출
-      // mountainId 우선순위: URL 파라미터(코스 상세에서 진입) > nearbyData(현재 위치 기반)
-      const mountainId = mountainIdParameter
-        ? Number(mountainIdParameter)
-        : nearbyData?.mountain?.mountainId;
+      const mountainId = sessionMountainId;
 
       // 산이 없으면 세션 생성 불가 — isTracking만 켜면 GPS·소켓 없이 화면만 트래킹 중이 됨
       if (mountainId == null) {
@@ -1025,7 +1037,7 @@ export default function TrackingScreen() {
             if (!isMountedRef.current) return;
             logAnalyticsEvent("tracking_started", {
               tracking_type: isFreeMode ? "free" : "course",
-              mountain_name: nearbyData?.mountain?.name,
+              mountain_name: sessionMountainName,
               course_name: isFreeMode ? "" : selectedCourse.name,
             });
             if (data.sessionId != null) {
@@ -1315,7 +1327,7 @@ export default function TrackingScreen() {
       console.log("[Tracking] 사진 메타 저장 완료");
       logAnalyticsEvent("clive_photo_taken", {
         tracking_type: isFreeMode ? "free" : "course",
-        mountain_name: nearbyData?.mountain?.name,
+        mountain_name: sessionMountainName,
         photo_order: activeWindow.milestoneIndex,
       });
     } catch (err) {
@@ -1343,7 +1355,7 @@ export default function TrackingScreen() {
     );
     const finishedParams = {
       tracking_type: isFreeMode ? "free" : "course",
-      mountain_name: nearbyData?.mountain?.name,
+      mountain_name: sessionMountainName,
       course_name: isFreeMode ? "" : selectedCourse.name,
       distance_km: Number((trackedMeters / 1000).toFixed(2)),
       duration_min: Math.round(elapsedSeconds / 60),
