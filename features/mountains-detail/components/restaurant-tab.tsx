@@ -51,11 +51,17 @@ export function RestaurantTab() {
                 ) : (
                   <View className="h-[116px] w-[188px] rounded-[10px] bg-fill-stronger" />
                 )}
-                <View className="gap-0.5">
-                  <Text className="text-label-normal typo-body-1-normal-semi-bold">
+                <View className="w-[188px] gap-0.5">
+                  <Text
+                    numberOfLines={1}
+                    className="text-label-normal typo-body-1-normal-semi-bold"
+                  >
                     {item.name}
                   </Text>
-                  <Text className="text-label-subtler typo-caption-1-medium">
+                  <Text
+                    numberOfLines={1}
+                    className="text-label-subtler typo-caption-1-medium"
+                  >
                     {item.category}
                   </Text>
                 </View>
