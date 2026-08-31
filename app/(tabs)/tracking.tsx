@@ -1035,13 +1035,15 @@ export default function TrackingScreen() {
         {
           onSuccess: (data) => {
             if (!isMountedRef.current) return;
-            logAnalyticsEvent("tracking_started", {
-              tracking_type: isFreeMode ? "free" : "course",
-              mountain_name: sessionMountainName,
-              course_name: isFreeMode ? "" : selectedCourse.name,
-            });
             if (data.sessionId != null) {
               const sid = data.sessionId;
+              // sessionId가 없으면 소켓·위치 추적이 시작되지 않아 실질적으로
+              // 기록이 시작된 것이 아니므로, 확정된 뒤에 기록한다
+              logAnalyticsEvent("tracking_started", {
+                tracking_type: isFreeMode ? "free" : "course",
+                mountain_name: sessionMountainName,
+                course_name: isFreeMode ? "" : selectedCourse.name,
+              });
               setSessionId(sid);
               sessionIdRef.current = sid;
               // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
