@@ -394,6 +394,7 @@ export default function RecordScreen() {
                 isRotateGesturesEnabled={false}
                 isTiltGesturesEnabled={false}
                 isStopGesturesEnabled={false}
+                isShowZoomControls={false}
                 logoAlign="BottomLeft"
                 logoMargin={{ bottom: 4, left: 4 }}
               >
@@ -416,19 +417,21 @@ export default function RecordScreen() {
                     </NaverMapMarkerOverlay>
                   </>
                 )}
-                {hasTrack && (recordDetail?.photos ?? []).map((photo) => (
+                {(recordDetail?.photos ?? []).map((photo) => (
                   <NaverMapMarkerOverlay
                     key={photo.milestoneIndex}
                     latitude={photo.lat}
                     longitude={photo.lng}
-                    width={24} height={24} anchor={{ x: 0.5, y: 0.5 }}
+                    width={32} height={32} anchor={{ x: 0.5, y: 0.5 }}
                   >
-                    <View style={styles.photoMarkerWrap}>
-                      <ExpoImage
-                        source={{ uri: photo.imageUrl }}
-                        style={styles.photoMarkerImg}
-                        contentFit="cover"
-                      />
+                    <View style={styles.photoMarkerOuter}>
+                      <View style={styles.photoMarkerWrap}>
+                        <ExpoImage
+                          source={{ uri: photo.imageUrl }}
+                          style={styles.photoMarkerImg}
+                          contentFit="cover"
+                        />
+                      </View>
                     </View>
                   </NaverMapMarkerOverlay>
                 ))}
@@ -1045,6 +1048,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF5249",
     borderWidth: 2,
     borderColor: "#FFFFFF",
+  },
+  photoMarkerOuter: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0px 2px 4px 0px rgba(0,0,0,0.2)",
   },
   photoMarkerWrap: {
     width: 24,
