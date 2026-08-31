@@ -36,35 +36,44 @@ function sanitize(params?: AnalyticsParams) {
 }
 
 /**
+ * 분석 실패가 기능을 막지 않도록 동기 예외와 Promise rejection을 모두 삼킨다.
+ * getAnalytics(getApp())은 기본 Firebase 앱이 초기화되기 전이면 동기적으로
+ * throw하므로, .catch()만으로는 호출부로의 전파를 막을 수 없다.
+ */
+function runSafely(label: string, task: () => Promise<unknown>): void {
+  try {
+    task().catch((error: unknown) => {
+      console.warn(`[Analytics] ${label} 실패:`, error);
+    });
+  } catch (error) {
+    console.warn(`[Analytics] ${label} 실패:`, error);
+  }
+}
+
+/**
  * GA4 커스텀 이벤트 전송.
- *
- * 분석 실패가 기능을 막으면 안 되므로 에러를 삼킨다.
  * 호출부에서 await 하지 않아도 되도록 Promise를 반환하지 않는다.
  */
 export function logAnalyticsEvent(
   eventName: string,
   params?: AnalyticsParams,
 ): void {
-  logEvent(getAnalytics(getApp()), eventName, sanitize(params)).catch(
-    (error: unknown) => {
-      console.warn("[Analytics] 이벤트 전송 실패:", eventName, error);
-    },
+  runSafely(`이벤트 전송(${eventName})`, () =>
+    logEvent(getAnalytics(getApp()), eventName, sanitize(params)),
   );
 }
 
 /** 화면 조회 이벤트 — GA4의 screen_view */
 export function logAnalyticsScreenView(screenName: string): void {
-  logScreenView(getAnalytics(getApp()), {
-    screen_name: screenName,
-    screen_class: screenName,
-  }).catch((error: unknown) => {
-    console.warn("[Analytics] 화면 조회 전송 실패:", screenName, error);
-  });
+  runSafely(`화면 조회 전송(${screenName})`, () =>
+    logScreenView(getAnalytics(getApp()), {
+      screen_name: screenName,
+      screen_class: screenName,
+    }),
+  );
 }
 
 /** 로그인 시 사용자 식별자 설정, 로그아웃 시 null */
 export function setAnalyticsUserId(userId: string | null): void {
-  setUserId(getAnalytics(getApp()), userId).catch((error: unknown) => {
-    console.warn("[Analytics] 사용자 ID 설정 실패:", error);
-  });
+  runSafely("사용자 ID 설정", () => setUserId(getAnalytics(getApp()), userId));
 }
