@@ -48,6 +48,7 @@ import {
   smoothCourseCoords,
 } from "@/features/tracking/utils/parse-course-polyline";
 import { fetchSessionTrack } from "@/features/tracking/utils/fetch-session-track";
+import { fetchSessionPhotoCount } from "@/features/tracking/utils/fetch-session-photo-count";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
 import { toast } from "@/store/toast.store";
@@ -381,6 +382,18 @@ export default function TrackingScreen() {
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
+      // 강제 종료 후 재진입 시 이미 촬영한 사진 수 복원 — 라이브 액티비티 "남은 사진 장수" 정확도 보장
+      {
+        const restoringPhotoSessionId = activeSession.sessionId;
+        fetchSessionPhotoCount(restoringPhotoSessionId).then((count) => {
+          if (
+            !isMountedRef.current ||
+            sessionIdRef.current !== restoringPhotoSessionId
+          )
+            return;
+          setPhotosTaken(Math.min(count, MAX_TRACKING_PHOTOS));
+        });
+      }
       // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원 — 자유기록
       if (activeSession.isFreeRecording) {
         // 요청 시점의 세션 ID를 캡처 — 응답 지연 중 다른 세션으로 바뀌면 폐기
