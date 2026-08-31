@@ -1,3 +1,4 @@
+import { AvatarIcon } from "@/components/icons/avatar-icon";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { XIcon } from "@/components/icons/x-icon";
 import { SemoFeedEmojiRequest, SemoFeedResponse } from "@/types/api.generated";
@@ -118,7 +119,9 @@ export function FeedCellDetail({
                       style={{ flex: 1 }}
                       contentFit="cover"
                     />
-                  ) : null}
+                  ) : (
+                    <AvatarIcon size={32} />
+                  )}
                 </View>
                 <Text className="text-label-normal-inverse typo-body-2-normal-semi-bold">
                   {item.nickname ?? ""}
