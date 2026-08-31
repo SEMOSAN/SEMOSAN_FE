@@ -7,13 +7,8 @@ import {
   ExerciseFrequency,
   FREQUENCY_OPTIONS,
 } from "@/features/onboarding/constants/exercise";
+import { useCompleteOnboarding } from "@/features/onboarding/hooks/use-complete-onboarding";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
-import { useSubmitOnboardingFromStore } from "@/features/onboarding/store/use-submit-onboarding-from-store";
-import { ApiError } from "@/lib/api";
-import { tokenStorage } from "@/lib/auth/tokenStorage";
-import { authState } from "@/store/auth.store";
-import { toast } from "@/store/toast.store";
-import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,7 +21,7 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
   const setExerciseFrequency = useOnboardingStore(
     (s) => s.setExerciseFrequency,
   );
-  const { submit, isPending } = useSubmitOnboardingFromStore();
+  const { complete, isPending } = useCompleteOnboarding();
 
   const [selectedDuration, setSelectedDuration] =
     useState<ExerciseDuration | null>(null);
@@ -37,23 +32,7 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
     if (!selectedDuration || !selectedFrequency) return;
     setExerciseDuration(selectedDuration);
     setExerciseFrequency(selectedFrequency);
-    try {
-      await submit();
-      router.replace("/(tabs)");
-    } catch (e) {
-      if (e instanceof ApiError && e.statusCode === 409) {
-        const saved = await tokenStorage.setOnboardingPending(false);
-        if (!saved) {
-          toast.show("잠시후 다시 시도해주십시오.");
-          return;
-        }
-        authState.setAuthenticated();
-        toast.show("이미 등록된 사용자입니다.");
-        router.replace("/(tabs)");
-      } else {
-        toast.show("잠시후 다시 시도해주십시오.");
-      }
-    }
+    await complete();
   }
 
   const exerciseLabel = EXERCISE_LABELS[exerciseType];
