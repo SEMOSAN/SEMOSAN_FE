@@ -206,6 +206,9 @@ export default function TrackingScreen() {
   );
   // 이번 세션에서 촬영한 사진 수 (최대 4장) — 라이브 액티비티 "남은 사진 장수" 표시용
   const [photosTaken, setPhotosTaken] = useState(0);
+  // 업로드 완료 콜백에서 최신 촬영 수를 참조하기 위한 미러
+  const photosTakenRef = useRef(0);
+  photosTakenRef.current = photosTaken;
   // 정상 인증 시점의 photoWindow 저장 — 인증 후 photoWindow가 닫혀도 메타 업로드에 사용
   const summitPhotoWindowRef = useRef<PhotoWindowPayload | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
@@ -479,7 +482,9 @@ export default function TrackingScreen() {
             sessionIdRef.current !== restoringPhotoSessionId
           )
             return;
-          setPhotosTaken(Math.min(count, MAX_TRACKING_PHOTOS));
+          const restored = Math.min(count, MAX_TRACKING_PHOTOS);
+          photosTakenRef.current = restored;
+          setPhotosTaken(restored);
         });
       }
       // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원 — 자유기록
@@ -1361,7 +1366,20 @@ export default function TrackingScreen() {
       // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음.
       // 이때는 isFreeMode·산 이름도 이미 초기화된 상태라 분석 이벤트도 함께 건너뛴다.
       if (sessionIdRef.current === capturedSessionId) {
-        setPhotosTaken((prev) => Math.min(prev + 1, MAX_TRACKING_PHOTOS));
+        const nextPhotoCount = Math.min(
+          photosTakenRef.current + 1,
+          MAX_TRACKING_PHOTOS,
+        );
+        photosTakenRef.current = nextPhotoCount;
+        setPhotosTaken(nextPhotoCount);
+
+        const remainingPhotos = MAX_TRACKING_PHOTOS - nextPhotoCount;
+        toast.show(
+          remainingPhotos > 0
+            ? `${remainingPhotos}장 더 찍을 수 있어요!`
+            : "인증 사진을 모두 찍었어요!",
+        );
+
         logAnalyticsEvent("clive_photo_taken", {
           tracking_type: isFreeMode ? "free" : "course",
           mountain_name: sessionMountainName,
@@ -1485,6 +1503,7 @@ export default function TrackingScreen() {
     setHikingRecordId(null);
     setPhotoWindow(null);
     setPhotosTaken(0);
+    photosTakenRef.current = 0;
     summitPhotoWindowRef.current = null;
     setCollapsed(false);
     setRecordedCoords([]);
