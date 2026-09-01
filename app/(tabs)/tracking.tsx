@@ -576,6 +576,21 @@ export default function TrackingScreen() {
     liveActivityCourse?.summitDistance ?? (courseDetail?.distance ?? 0) / 2,
   );
 
+  // 하산 구간 = 코스 전체 − 정상까지.
+  // 정상이 코스 중간이 아닌 코스에서 하산 표시가 정상 구간 값과 같아지지 않도록
+  // 별도로 계산한다. 전체 값은 summit과 같은 출처(liveActivityCourse)를 우선해
+  // 뺄셈이 어긋나지 않게 한다.
+  const courseTotalDistanceM = Math.round(
+    liveActivityCourse?.totalDistance ?? courseDetail?.distance ?? 0,
+  );
+  const courseTotalDurationMin =
+    liveActivityCourse?.estimatedTime ?? courseDetail?.duration ?? 0;
+  const descentDistanceM = Math.max(0, courseTotalDistanceM - summitDistanceM);
+  const descentDurationMinutes = Math.max(
+    0,
+    Math.round(courseTotalDurationMin - summitDurationMinutes),
+  );
+
   // 코스 진행 상태 — GPS 기반 실시간 (markerRatio + 남은 거리/시간 통합)
   const courseProgressState = useMemo(() => {
     // ── 1순위: liveActivityCourse + Haversine 실측 거리 계산 ──────────────
@@ -596,12 +611,18 @@ export default function TrackingScreen() {
         liveActivityCourse.totalDistance - result.remainingMeters;
 
       if (hasSummited) {
-        // 하산 중: 코스 끝까지 남은 거리/시간
+        // 하산 중: 코스 끝까지 남은 거리/시간.
+        // 시간은 하산 구간 페이스로 환산한다 — 전체 페이스는 오르막이 섞여 있어
+        // 하산에 적용하면 과대 추정된다.
+        const descentPaceMinPerM =
+          descentDistanceM > 0
+            ? descentDurationMinutes / descentDistanceM
+            : paceMinPerM;
         return {
           markerRatio: 0.0,
           remainingDistanceM: Math.round(result.remainingMeters),
           remainingDurationMin: Math.round(
-            result.remainingMeters * paceMinPerM,
+            result.remainingMeters * descentPaceMinPerM,
           ),
         };
       }
@@ -633,8 +654,8 @@ export default function TrackingScreen() {
       if (!markerCoord || courseCoords.length < 2) {
         return {
           markerRatio: 0.0,
-          remainingDistanceM: summitDistanceM,
-          remainingDurationMin: summitDurationMinutes,
+          remainingDistanceM: descentDistanceM,
+          remainingDurationMin: descentDurationMinutes,
         };
       }
       let closestIdx = summitIdx;
@@ -658,8 +679,8 @@ export default function TrackingScreen() {
           : 0;
       return {
         markerRatio: 0.0,
-        remainingDistanceM: Math.round(summitDistanceM * ratio),
-        remainingDurationMin: Math.round(summitDurationMinutes * ratio),
+        remainingDistanceM: Math.round(descentDistanceM * ratio),
+        remainingDurationMin: Math.round(descentDurationMinutes * ratio),
       };
     }
 
@@ -695,6 +716,8 @@ export default function TrackingScreen() {
     hasSummited,
     summitDistanceM,
     summitDurationMinutes,
+    descentDistanceM,
+    descentDurationMinutes,
     liveActivityCourse,
     userLocation,
   ]);
@@ -746,7 +769,7 @@ export default function TrackingScreen() {
       altitudeNm: peakAltitudeM,
       distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
       summitDistanceM,
-      descentDistanceM: summitDistanceM,
+      descentDistanceM,
       durationHours: Math.floor((courseDetail?.duration ?? 0) / 60),
       durationMinutes: (courseDetail?.duration ?? 0) % 60,
       coordinates: [],
@@ -754,7 +777,7 @@ export default function TrackingScreen() {
       centerLongitude: 0,
       zoom: 14,
     }),
-    [courseDetail, peakAltitudeM, summitDistanceM],
+    [courseDetail, peakAltitudeM, summitDistanceM, descentDistanceM],
   );
 
   const timeToTarget = (() => {
