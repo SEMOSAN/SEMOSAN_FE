@@ -565,30 +565,33 @@ export default function TrackingScreen() {
     [courseDetail?.polyline],
   );
 
-  // 정상까지 시간·거리 (courseProgressState useMemo보다 먼저 선언).
-  // 서버의 summitDistance/summitEstimatedTime을 우선 쓴다 — 마일스톤 푸시가
-  // 오는 지점과 같은 값이라 화면 표시와 알림 시점이 일치한다.
-  // 정상 좌표가 없어 서버가 계산하지 못한 코스는 기존대로 코스 전체의 절반으로 폴백한다.
-  const summitDurationMinutes =
-    liveActivityCourse?.summitEstimatedTime ??
-    Math.round((courseDetail?.duration ?? 0) / 2);
-  const summitDistanceM = Math.round(
-    liveActivityCourse?.summitDistance ?? (courseDetail?.distance ?? 0) / 2,
-  );
-
-  // 하산 구간 = 코스 전체 − 정상까지.
-  // 정상이 코스 중간이 아닌 코스에서 하산 표시가 정상 구간 값과 같아지지 않도록
-  // 별도로 계산한다. 전체 값은 summit과 같은 출처(liveActivityCourse)를 우선해
-  // 뺄셈이 어긋나지 않게 한다.
+  // 코스 전체 거리·시간 — 한 출처에서 확정한다.
+  // liveActivityCourse와 courseDetail은 서로 다른 쿼리라 도착 순서가 다르고
+  // 값의 출처도 달라(polyline 누적 vs 코스 메타), 섞어 쓰면 전체 ≠ 정상 + 하산이 된다.
   const courseTotalDistanceM = Math.round(
     liveActivityCourse?.totalDistance ?? courseDetail?.distance ?? 0,
   );
-  const courseTotalDurationMin =
-    liveActivityCourse?.estimatedTime ?? courseDetail?.duration ?? 0;
+  const courseTotalDurationMin = Math.round(
+    liveActivityCourse?.estimatedTime ?? courseDetail?.duration ?? 0,
+  );
+
+  // 정상까지 거리·시간 (courseProgressState useMemo보다 먼저 선언).
+  // 서버 값을 우선 쓴다 — 마일스톤 푸시가 오는 지점과 같은 값이라 화면 표시와
+  // 알림 시점이 일치한다. 정상 좌표가 없어 서버가 계산하지 못한 코스는
+  // "같은 출처"의 절반으로 폴백한다. courseDetail 기준으로 폴백하면
+  // liveActivityCourse만 먼저 도착한 순간 정상 값이 0이 되어 하산이 코스 전체가 된다.
+  const summitDistanceM = Math.round(
+    liveActivityCourse?.summitDistance ?? courseTotalDistanceM / 2,
+  );
+  const summitDurationMinutes = Math.round(
+    liveActivityCourse?.summitEstimatedTime ?? courseTotalDurationMin / 2,
+  );
+
+  // 하산 구간 = 코스 전체 − 정상까지
   const descentDistanceM = Math.max(0, courseTotalDistanceM - summitDistanceM);
   const descentDurationMinutes = Math.max(
     0,
-    Math.round(courseTotalDurationMin - summitDurationMinutes),
+    courseTotalDurationMin - summitDurationMinutes,
   );
 
   // 코스 진행 상태 — GPS 기반 실시간 (markerRatio + 남은 거리/시간 통합)
@@ -767,17 +770,24 @@ export default function TrackingScreen() {
       name: courseDetail?.name ?? "",
       difficulty: DIFFICULTY_KO[courseDetail?.difficulty ?? ""] ?? "중급",
       altitudeNm: peakAltitudeM,
-      distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
+      distanceKm: Math.round(courseTotalDistanceM / 100) / 10,
       summitDistanceM,
       descentDistanceM,
-      durationHours: Math.floor((courseDetail?.duration ?? 0) / 60),
-      durationMinutes: (courseDetail?.duration ?? 0) % 60,
+      durationHours: Math.floor(courseTotalDurationMin / 60),
+      durationMinutes: courseTotalDurationMin % 60,
       coordinates: [],
       centerLatitude: 0,
       centerLongitude: 0,
       zoom: 14,
     }),
-    [courseDetail, peakAltitudeM, summitDistanceM, descentDistanceM],
+    [
+      courseDetail,
+      peakAltitudeM,
+      courseTotalDistanceM,
+      courseTotalDurationMin,
+      summitDistanceM,
+      descentDistanceM,
+    ],
   );
 
   const timeToTarget = (() => {
