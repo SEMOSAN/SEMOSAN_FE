@@ -30,8 +30,8 @@ type FcmData = {
   extras?: string;
 } | null;
 
-const PHOTO_MILESTONE = 'TRACKING_PHOTO_MILESTONE';
-const SUMMIT_REACHED = 'TRACKING_SUMMIT_REACHED';
+const PHOTO_MILESTONE = "TRACKING_PHOTO_MILESTONE";
+const SUMMIT_REACHED = "TRACKING_SUMMIT_REACHED";
 
 /**
  * TRACKING_PHOTO_MILESTONE FCM 수신 처리.
@@ -110,9 +110,9 @@ export function useTrackingFcm({
       if (data.type === SUMMIT_REACHED) {
         const summitPayload = buildPayload(data);
         console.log(
-          '[TrackingFCM] 정상 도달 — milestoneIndex:',
+          "[TrackingFCM] 정상 도달 — milestoneIndex:",
           summitPayload.milestoneIndex,
-          'distance:',
+          "distance:",
           summitPayload.milestoneDistance,
         );
         onSummitReached?.(summitPayload);

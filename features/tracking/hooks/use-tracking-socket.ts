@@ -84,12 +84,12 @@ export function useTrackingSocket({
             summitSubscriptionRef.current = client.subscribe(
               `/topic/tracking/${sessionId}/summit`,
               (message) => {
-                console.log('[TrackingSocket] summit 메시지 수신:', message.body);
+                console.log("[TrackingSocket] summit 메시지 수신:", message.body);
                 try {
                   const payload: SummitReachedPayload = JSON.parse(message.body);
                   onSummitReached?.(payload);
                 } catch {
-                  console.warn('[TrackingSocket] summit 파싱 실패:', message.body);
+                  console.warn("[TrackingSocket] summit 파싱 실패:", message.body);
                 }
               },
             );
