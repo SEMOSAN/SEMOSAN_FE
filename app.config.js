@@ -144,6 +144,8 @@ const config = {
             "@react-native-kakao/core",
             {
               nativeAppKey: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
+              ios: { handleKakaoOpenUrl: true },
+              android: { authCodeHandlerActivity: true },
             },
           ],
         ]

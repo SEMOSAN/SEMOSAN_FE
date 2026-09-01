@@ -2,6 +2,7 @@ import Expo
 import FirebaseCore
 import React
 import ReactAppDependencyProvider
+import RNCKakaoUser
 
 @UIApplicationMain
 public class AppDelegate: ExpoAppDelegate {
@@ -42,6 +43,7 @@ FirebaseApp.configure()
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
+    if RNCKakaoUserUtil.isKakaoTalkLoginUrl(url) { return RNCKakaoUserUtil.handleOpen(url) }
     return super.application(app, open: url, options: options) || RCTLinkingManager.application(app, open: url, options: options)
   }
 
