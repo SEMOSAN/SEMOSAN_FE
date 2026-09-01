@@ -47,10 +47,19 @@ export function useTrackingFcm({
   useEffect(() => {
     if (!enabled) return;
 
+    // JSON.parse는 "null"·"[]"·"3" 같은 입력도 성공하므로 평범한 객체만 통과시킨다.
+    // null이 그대로 반환되면 호출부에서 extras.distance를 읽다가 예외가 난다.
     const parseExtras = (data: FcmData): FcmExtras => {
       if (!data?.extras) return {};
       try {
-        return JSON.parse(data.extras) as FcmExtras;
+        const parsed: unknown = JSON.parse(data.extras);
+        if (
+          typeof parsed !== "object" ||
+          parsed === null ||
+          Array.isArray(parsed)
+        )
+          return {};
+        return parsed as FcmExtras;
       } catch {
         return {};
       }
