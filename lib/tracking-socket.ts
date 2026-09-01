@@ -27,7 +27,9 @@ export async function createTrackingStompClient(
     heartbeatIncoming: 0,
     heartbeatOutgoing: 0,
     reconnectDelay: 5000,
-    debug: (str) => console.log('[STOMP]', str),
+    // STOMP 디버그는 CONNECT 프레임(Authorization: Bearer ...)을 그대로 넘긴다.
+    // 개발 중에만 출력한다.
+    debug: __DEV__ ? (str) => console.log('[STOMP]', str) : () => {},
     onConnect: () => {
       console.log('[STOMP] CONNECTED ✓');
       callbacks?.onConnect?.();

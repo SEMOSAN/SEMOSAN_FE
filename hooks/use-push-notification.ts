@@ -166,7 +166,8 @@ async function registerFcmToken() {
       },
     });
 
-    console.log("[Push] FCM 토큰 등록 완료:", token);
+    // 토큰 값 자체는 남기지 않는다 — 유출되면 해당 기기로 임의 푸시를 보낼 수 있다
+    console.log("[Push] FCM 토큰 등록 완료 (길이:", token.length, ")");
   } catch (error) {
     console.error("[Push] FCM 토큰 등록 실패:", error);
     Sentry.captureException(new Error("FcmTokenRegistrationFailed"));

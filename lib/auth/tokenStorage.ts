@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import * as Sentry from "@sentry/react-native";
 
 /**
@@ -12,8 +13,37 @@ function reportFailure(operation: string, error: unknown): void {
   });
 }
 
+/**
+ * 인증 토큰은 SecureStore(iOS Keychain / Android Keystore)에 둔다.
+ * AsyncStorage는 평문이라 기기 백업이나 탈옥·루팅 기기에서 그대로 읽힌다.
+ * 로그인 여부 같은 비민감 플래그는 그대로 AsyncStorage를 쓴다.
+ */
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
+
+/**
+ * AsyncStorage에 남아 있는 기존 토큰을 SecureStore로 옮긴다.
+ * 이 처리가 없으면 업데이트한 사용자가 전부 로그아웃된다.
+ * 옮긴 뒤 평문 사본은 반드시 지운다.
+ */
+async function migrateFromAsyncStorage(key: string): Promise<string | null> {
+  try {
+    const legacy = await AsyncStorage.getItem(key);
+    if (legacy == null) return null;
+    await SecureStore.setItemAsync(key, legacy);
+    await AsyncStorage.removeItem(key);
+    return legacy;
+  } catch (error) {
+    reportFailure(`migrate:${key}`, error);
+    return null;
+  }
+}
+
+async function readToken(key: string): Promise<string | null> {
+  const stored = await SecureStore.getItemAsync(key);
+  if (stored != null) return stored;
+  return migrateFromAsyncStorage(key);
+}
 /** 사용자가 명시적으로 로그아웃/탈퇴했음을 기록. 개발용 샘플 토큰 재주입을 막는다. */
 const SIGNED_OUT_KEY = "auth.signedOut";
 /** 로그인은 됐지만 온보딩(회원가입 마지막 단계)이 아직 안 끝났음을 기록 */
@@ -24,7 +54,7 @@ const SAMPLE_ACCESS_TOKEN = process.env.EXPO_PUBLIC_SAMPLE_ACCESS_TOKEN;
 export const tokenStorage = {
   async getAccessToken(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+      return await readToken(ACCESS_TOKEN_KEY);
     } catch (error) {
       reportFailure("getAccessToken", error);
       return null;
@@ -33,7 +63,7 @@ export const tokenStorage = {
 
   async setAccessToken(token: string): Promise<void> {
     try {
-      await AsyncStorage.setItem(ACCESS_TOKEN_KEY, token);
+      await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, token);
     } catch (error) {
       reportFailure("setAccessToken", error);
     }
@@ -41,6 +71,8 @@ export const tokenStorage = {
 
   async removeAccessToken(): Promise<void> {
     try {
+      await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+      // 마이그레이션 전 남아 있을 수 있는 평문 사본도 함께 제거
       await AsyncStorage.removeItem(ACCESS_TOKEN_KEY);
     } catch (error) {
       reportFailure("removeAccessToken", error);
@@ -49,7 +81,7 @@ export const tokenStorage = {
 
   async getRefreshToken(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+      return await readToken(REFRESH_TOKEN_KEY);
     } catch (error) {
       reportFailure("getRefreshToken", error);
       return null;
@@ -58,7 +90,7 @@ export const tokenStorage = {
 
   async setRefreshToken(token: string): Promise<void> {
     try {
-      await AsyncStorage.setItem(REFRESH_TOKEN_KEY, token);
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, token);
     } catch (error) {
       reportFailure("setRefreshToken", error);
     }
@@ -66,6 +98,7 @@ export const tokenStorage = {
 
   async removeRefreshToken(): Promise<void> {
     try {
+      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
       await AsyncStorage.removeItem(REFRESH_TOKEN_KEY);
     } catch (error) {
       reportFailure("removeRefreshToken", error);
@@ -128,11 +161,11 @@ export const tokenStorage = {
     if (!__DEV__ || !SAMPLE_ACCESS_TOKEN) return;
     try {
       const [token, signedOut] = await Promise.all([
-        AsyncStorage.getItem(ACCESS_TOKEN_KEY),
+        readToken(ACCESS_TOKEN_KEY),
         AsyncStorage.getItem(SIGNED_OUT_KEY),
       ]);
       if (token || signedOut) return;
-      await AsyncStorage.setItem(ACCESS_TOKEN_KEY, SAMPLE_ACCESS_TOKEN);
+      await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, SAMPLE_ACCESS_TOKEN);
     } catch (error) {
       reportFailure("seedSampleAccessToken", error);
     }
