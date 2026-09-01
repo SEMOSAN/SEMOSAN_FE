@@ -206,9 +206,11 @@ export default function TrackingScreen() {
   );
   // 이번 세션에서 촬영한 사진 수 (최대 4장) — 라이브 액티비티 "남은 사진 장수" 표시용
   const [photosTaken, setPhotosTaken] = useState(0);
-  // 업로드 완료 콜백에서 최신 촬영 수를 참조하기 위한 미러
+  // 업로드 완료 콜백에서 최신 촬영 수를 참조하기 위한 미러.
+  // 렌더 중에는 쓰지 않는다 — React가 렌더를 버리거나 재실행할 수 있어
+  // 커밋되지 않은 값이 새어나갈 수 있다. setPhotosTaken을 호출하는 세 지점
+  // (세션 복원 / 촬영 성공 / 트래킹 종료)에서만 함께 갱신한다.
   const photosTakenRef = useRef(0);
-  photosTakenRef.current = photosTaken;
   // 정상 인증 시점의 photoWindow 저장 — 인증 후 photoWindow가 닫혀도 메타 업로드에 사용
   const summitPhotoWindowRef = useRef<PhotoWindowPayload | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
@@ -1325,6 +1327,16 @@ export default function TrackingScreen() {
       toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", {
         type: "error",
       });
+      return;
+    }
+
+    // 상한 검사를 촬영 전에 한다. 카운터는 저장 성공 후에 오르므로, 검사가
+    // 없으면 연속 촬영으로 4장을 넘겨 업로드할 수 있다.
+    if (photosTakenRef.current >= MAX_TRACKING_PHOTOS) {
+      toast.show(
+        `인증 사진은 ${MAX_TRACKING_PHOTOS}장까지만 찍을 수 있어요.`,
+        { type: "error" },
+      );
       return;
     }
 
