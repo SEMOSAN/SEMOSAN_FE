@@ -1,8 +1,8 @@
-import { getApp } from '@react-native-firebase/app';
-import { getMessaging, onMessage } from '@react-native-firebase/messaging';
-import * as Notifications from 'expo-notifications';
-import { useEffect } from 'react';
-import { PhotoWindowPayload } from './use-tracking-socket';
+import { getApp } from "@react-native-firebase/app";
+import { getMessaging, onMessage } from "@react-native-firebase/messaging";
+import * as Notifications from "expo-notifications";
+import { useEffect } from "react";
+import { PhotoWindowPayload } from "./use-tracking-socket";
 
 type Options = {
   /** 트래킹 중일 때만 리스너 등록 */
@@ -75,7 +75,7 @@ export function useTrackingFcm({
       if (extras.distance != null) return Number(extras.distance);
       if (data.milestoneDistanceM != null)
         return parseFloat(data.milestoneDistanceM);
-      return parseFloat(data.distance ?? '0');
+      return parseFloat(data.distance ?? "0");
     };
 
     const parseMilestoneIndex = (data: FcmData): number => {
@@ -89,14 +89,15 @@ export function useTrackingFcm({
     const buildPayload = (data: FcmData): PhotoWindowPayload => ({
       milestoneIndex: parseMilestoneIndex(data),
       milestoneDistance: parseDistance(data),
-      status: 'OPEN',
+      status: "OPEN",
       openedAt: new Date().toISOString(),
     });
 
     const extractPayload = (notification: Notifications.Notification) => {
       // content.data 우선, Firebase SDK 충돌로 null이면 trigger.payload에서 읽음
       const contentData = notification.request.content.data as FcmData;
-      const triggerPayload = (notification.request.trigger as any)?.payload as FcmData;
+      const triggerPayload = (notification.request.trigger as any)
+        ?.payload as FcmData;
       const data = contentData?.type ? contentData : triggerPayload;
 
       if (!data) return;
@@ -112,7 +113,10 @@ export function useTrackingFcm({
     // 포어그라운드 FCM 수신 — Firebase SDK가 expo-notifications보다 우선하므로 onMessage 사용
     const fcmMessaging = getMessaging(getApp());
     const unsubscribeFcm = onMessage(fcmMessaging, async (remoteMessage) => {
-      console.log('[TrackingFCM] 포어그라운드 FCM 수신:', JSON.stringify(remoteMessage.data));
+      console.log(
+        "[TrackingFCM] 포어그라운드 FCM 수신:",
+        JSON.stringify(remoteMessage.data),
+      );
       const data = remoteMessage.data as FcmData;
       if (!data) return;
 
@@ -131,7 +135,12 @@ export function useTrackingFcm({
       if (data.type !== PHOTO_MILESTONE) return;
 
       const payload = buildPayload(data);
-      console.log('[TrackingFCM] milestoneIndex:', payload.milestoneIndex, 'distance:', payload.milestoneDistance);
+      console.log(
+        "[TrackingFCM] milestoneIndex:",
+        payload.milestoneIndex,
+        "distance:",
+        payload.milestoneDistance,
+      );
 
       // 인앱 PhotoWindowBanner 활성화
       // notification 필드가 포함된 FCM 페이로드로 변경되어 iOS가 자동으로 시스템 배너 표시
@@ -139,9 +148,11 @@ export function useTrackingFcm({
     });
 
     // 백그라운드/잠금화면 알림 탭 후 앱 복귀
-    const tapSub = Notifications.addNotificationResponseReceivedListener((response) => {
-      extractPayload(response.notification);
-    });
+    const tapSub = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        extractPayload(response.notification);
+      },
+    );
 
     return () => {
       unsubscribeFcm();
