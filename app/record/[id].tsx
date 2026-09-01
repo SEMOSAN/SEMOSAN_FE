@@ -26,6 +26,10 @@ import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { parseCoursePolyline } from "@/features/tracking/utils/parse-course-polyline";
 import { getCenterCoordinate } from "@/utils/get-center-coordinate";
 import { getPhotoReportState, setPhotoReportState } from "@/features/photo-report/photo-report-state";
+import {
+  getRecordSemoFeedState,
+  setRecordSemoFeedState,
+} from "@/features/home/record-semofeed-storage";
 import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
 import { uploadImage } from "@/hooks/use-upload-image";
 import { api } from "@/lib/api";
@@ -217,21 +221,47 @@ export default function RecordScreen() {
       id: createdFeedId,
       isPublic,
     });
+    if (sessionId != null) {
+      setRecordSemoFeedState(sessionId, tab, { id: createdFeedId, isPublic });
+    }
     return createdFeedId;
   };
 
   useFocusEffect(
     useCallback(() => {
-      const saved = getPhotoReportState();
-      // 같은 세션의 상태만 복원 — 다른 기록의 사진이 유입되지 않도록
-      if (saved.sessionId === sessionId && saved.photoSource !== null) {
-        setPhotoReportSource(saved.photoSource);
-      }
-      if (saved.sessionId === sessionId) {
-        setPhotoReportTemplate(saved.templateIndex);
-      }
+      let cancelled = false;
+      getPhotoReportState().then((saved) => {
+        if (cancelled) return;
+        // 같은 세션의 상태만 복원 — 다른 기록의 사진이 유입되지 않도록
+        if (saved.sessionId === sessionId && saved.photoSource !== null) {
+          setPhotoReportSource(saved.photoSource);
+        }
+        if (saved.sessionId === sessionId) {
+          setPhotoReportTemplate(saved.templateIndex);
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
     }, [sessionId]),
   );
+
+  // 세모피드 게시/공개 상태 조회 API가 없어, 이 기기에 저장해둔 상태를 복원
+  useEffect(() => {
+    if (sessionId == null) return;
+    let cancelled = false;
+    (["클라이브", "포토 리포트"] as RecordTab[]).forEach((tab) => {
+      getRecordSemoFeedState(sessionId, tab).then((saved) => {
+        if (cancelled || !saved) return;
+        setSemoFeedIdByTab((prev) => ({ ...prev, [tab]: saved.id }));
+        setIsPublicByTab((prev) => ({ ...prev, [tab]: saved.isPublic }));
+        queryClient.setQueryData(["record-semofeed", sessionId, tab], saved);
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId, queryClient]);
 
   // 경로 로드 후 카메라 fit
   useEffect(() => {
@@ -304,6 +334,12 @@ export default function RecordScreen() {
         id: semoFeedId,
         isPublic: nextPublic,
       });
+      if (sessionId != null) {
+        setRecordSemoFeedState(sessionId, activeTab, {
+          id: semoFeedId,
+          isPublic: nextPublic,
+        });
+      }
       queryClient.invalidateQueries({ queryKey: [ENDPOINTS.SEMOFEED] });
 
       if (nextPublic) {
@@ -759,9 +795,9 @@ export default function RecordScreen() {
                   { position: "absolute", top: 16, right: 16 },
                 ]}
                 activeOpacity={0.7}
-                onPress={() => {
+                onPress={async () => {
                   // 현재 표시 중인 사진/템플릿을 상태에 저장 → 편집 화면에서 이어받음
-                  setPhotoReportState({
+                  await setPhotoReportState({
                     sessionId,
                     photoSource: photoReportSource,
                     templateIndex: photoReportTemplate,
