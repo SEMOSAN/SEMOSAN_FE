@@ -65,17 +65,17 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
         </View>
 
         {/* 섹션 1: 운동 시간 — 빈도 선택 후 위에 노출 */}
-        {selectedDuration !== null && (
+        {selectedFrequency !== null && (
           <View className="mt-8 gap-[10px]">
             <Text className="text-label-normal typo-headline-1-semi-bold">
               운동 시간은 어떻게 되시나요?
             </Text>
-            {FREQUENCY_OPTIONS.map((option) => (
+            {DURATION_OPTIONS.map((option) => (
               <OptionButton
                 key={option.value}
                 label={option.label}
-                selected={selectedFrequency === option.value}
-                onPress={() => setSelectedFrequency(option.value)}
+                selected={selectedDuration === option.value}
+                onPress={() => setSelectedDuration(option.value)}
               />
             ))}
           </View>
@@ -86,12 +86,12 @@ export function OnboardingExerciseDetailScreen(): React.JSX.Element {
           <Text className="text-label-normal typo-headline-1-semi-bold">
             운동 빈도는 어떻게 되시나요?
           </Text>
-          {DURATION_OPTIONS.map((option) => (
+          {FREQUENCY_OPTIONS.map((option) => (
             <OptionButton
               key={option.value}
               label={option.label}
-              selected={selectedDuration === option.value}
-              onPress={() => setSelectedDuration(option.value)}
+              selected={selectedFrequency === option.value}
+              onPress={() => setSelectedFrequency(option.value)}
             />
           ))}
         </View>
