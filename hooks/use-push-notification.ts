@@ -195,8 +195,7 @@ function extractPushData(
   return null;
 }
 
-// 타입별 라우팅 분기는 알림함 셀 탭과 공유한다.
-// (features/notifications/utils/navigate-by-notification.ts)
+// 타입별 라우팅 분기는 알림함 셀 탭과 공유한다
 function navigateByType(data: PushData, router: ReturnType<typeof useRouter>) {
   let extras: NotificationExtras = {};
   try {

@@ -88,7 +88,6 @@ export function HomeHeader({
                 >
                   <BellIcon size={24} color="#ffffff" />
                 </Animated.View>
-                {/* 안읽은 알림 뱃지 */}
                 {unreadCount > 0 && (
                   <View
                     className="absolute rounded-full bg-status-negative"

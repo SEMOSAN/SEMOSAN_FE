@@ -87,7 +87,6 @@ export function NotificationCell({
           >
             {notification.title ?? "알림"}
           </Text>
-          {/* 안읽음 표시 */}
           {!notification.isRead && (
             <View
               className="shrink-0 rounded-full bg-primary-normal"

@@ -1,43 +1,28 @@
-import { api } from "@/lib/api";
 import { optimizeImageForUpload } from "@/lib/optimize-image";
-import { ENDPOINTS } from "@/types/api.generated";
-
-type PresignedUrlResponse = {
-  uploadUrl: string;
-  imageUrl: string;
-  /** 서명에 포함된 Content-Type. 이 값과 다른 헤더로 PUT하면 SignatureDoesNotMatch. */
-  contentType?: string;
-};
-
-// 압축 결과는 항상 jpg이므로, 서버가 contentType을 아직 안 내려줄 때의 기준값
-const DEFAULT_CONTENT_TYPE = "image/jpeg";
+import { requestPresignedUrl } from "@/lib/presigned-upload";
 
 /**
  * 트래킹 인증 사진을 tracking-photos 버킷에 업로드합니다.
- * 1. 리사이징/압축/EXIF 제거 후 Presigned URL 발급 (GET /api/images/presigned-url?bucket=tracking-photos)
- * 2. uri → blob 변환 후 uploadUrl로 MinIO에 직접 PUT
+ * 리사이징/압축/EXIF 제거 후 Presigned URL을 발급받아 MinIO에 직접 PUT 합니다.
  * @returns 업로드된 이미지의 최종 URL
  */
 export async function uploadTrackingPhoto(uri: string): Promise<string> {
   const optimizedUri = await optimizeImageForUpload(uri);
-  const timestamp = Date.now();
-  const filename = `tracking_${timestamp}.jpg`;
+  const filename = `tracking_${Date.now()}.jpg`;
 
-  // 1. Presigned URL 발급
-  const { data } = await api.get<PresignedUrlResponse>({
-    path: ENDPOINTS.IMAGES_PRESIGNED_URL,
-    params: { bucket: "tracking-photos", filename },
-  });
+  const { uploadUrl, imageUrl, contentType } = await requestPresignedUrl(
+    "tracking-photos",
+    filename,
+  );
 
-  // 2. uri → blob 변환 (React Native에서 file:// URI를 바이너리로 읽음)
+  // React Native에서 file:// URI를 바이너리로 읽음
   const fileResponse = await fetch(optimizedUri);
   const blob = await fileResponse.blob();
 
-  // 3. MinIO에 직접 PUT (Presigned URL이므로 Authorization 헤더 불필요)
-  // 서명에 Content-Type이 포함되므로 발급 응답의 값을 그대로 실어야 한다.
-  const uploadResponse = await fetch(data.uploadUrl, {
+  // Presigned URL이므로 Authorization 헤더는 불필요
+  const uploadResponse = await fetch(uploadUrl, {
     method: "PUT",
-    headers: { "Content-Type": data.contentType ?? DEFAULT_CONTENT_TYPE },
+    headers: { "Content-Type": contentType },
     body: blob,
   });
 
@@ -45,5 +30,5 @@ export async function uploadTrackingPhoto(uri: string): Promise<string> {
     throw new Error(`이미지 업로드 실패: ${uploadResponse.status}`);
   }
 
-  return data.imageUrl;
+  return imageUrl;
 }

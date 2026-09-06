@@ -17,7 +17,7 @@ export function navigateByNotificationType(
     case "COMMUNITY_COMMENT":
     case "COMMUNITY_REPLY":
     case "COMMUNITY_POST_LIKE":
-      // 자유게시판 게시글 상세 — postId 없으면 이동하지 않음(undefined 경로 방지)
+      // 대상 id가 없으면 이동하지 않는다 (undefined 경로 방지)
       if (extras.postId != null) {
         push(`/community/free-board/${extras.postId}`);
       }
@@ -29,7 +29,6 @@ export function navigateByNotificationType(
       break;
 
     case "SEMOFEED_EMOJI":
-      // 세모피드 단건 화면 — semoFeedId 없으면 이동하지 않음(undefined 경로 방지)
       if (extras.semoFeedId != null) {
         push(`/semofeed/${extras.semoFeedId}`);
       }
