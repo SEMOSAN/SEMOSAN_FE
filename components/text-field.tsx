@@ -78,6 +78,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
             onBlur={() => setIsFocused(false)}
             onEndEditing={onEndEditing}
             maxLength={maxLength}
+            style={{ lineHeight: 20 }}
           />
           {showClear ? (
             <Pressable onPressIn={handleClear}>

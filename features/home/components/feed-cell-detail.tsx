@@ -1,3 +1,4 @@
+import { AvatarIcon } from "@/components/icons/avatar-icon";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { XIcon } from "@/components/icons/x-icon";
 import { SemoFeedEmojiRequest, SemoFeedResponse } from "@/types/api.generated";
@@ -111,14 +112,16 @@ export function FeedCellDetail({
 
               {/* 프로필 */}
               <View className="mb-5 mt-5 flex-row items-center gap-2 px-1">
-                <View className="h-8 w-8 overflow-hidden rounded-full bg-fill-normal">
+                <View className="h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-fill-normal">
                   {item.profileUrl ? (
                     <Image
                       source={{ uri: item.profileUrl }}
                       style={{ flex: 1 }}
                       contentFit="cover"
                     />
-                  ) : null}
+                  ) : (
+                    <AvatarIcon size={32} />
+                  )}
                 </View>
                 <Text className="text-label-normal-inverse typo-body-2-normal-semi-bold">
                   {item.nickname ?? ""}

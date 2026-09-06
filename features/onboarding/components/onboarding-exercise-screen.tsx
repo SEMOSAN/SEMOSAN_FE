@@ -4,6 +4,7 @@ import {
   EXERCISE_OPTIONS,
   ExerciseType,
 } from "@/features/onboarding/constants/exercise";
+import { useCompleteOnboarding } from "@/features/onboarding/hooks/use-complete-onboarding";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -13,11 +14,19 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export function OnboardingExerciseScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const setExerciseType = useOnboardingStore((s) => s.setExerciseType);
+  const { complete, isPending } = useCompleteOnboarding();
   const [selected, setSelected] = useState<ExerciseType | null>(null);
 
-  function handleNext(): void {
+  async function handleNext(): Promise<void> {
     if (!selected) return;
     setExerciseType(selected);
+
+    // 운동 안 함 선택 시 루틴 질문 없이 바로 회원가입 완료
+    if (selected === "NONE") {
+      await complete();
+      return;
+    }
+
     router.push("/onboarding/exercise-detail");
   }
 
@@ -54,7 +63,11 @@ export function OnboardingExerciseScreen(): React.JSX.Element {
 
       {selected !== null && (
         <View className="px-5 pb-4 pt-3">
-          <LongButton label="다음" onPress={handleNext} />
+          <LongButton
+            label="다음"
+            onPress={handleNext}
+            loading={selected === "NONE" && isPending}
+          />
         </View>
       )}
     </View>

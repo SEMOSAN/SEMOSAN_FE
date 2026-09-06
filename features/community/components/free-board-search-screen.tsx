@@ -60,6 +60,7 @@ export function FreeBoardSearchScreen(): React.JSX.Element {
             onSubmitEditing={() => setSubmittedKeyword(keyword)}
             returnKeyType="search"
             autoFocus
+            style={{ lineHeight: 20 }}
           />
           {isLoading && submittedKeyword.trim().length > 0 ? (
             <LoadingSpinner size={24} />

@@ -103,6 +103,7 @@ export function RegionFilterContent({ initialSelections = [], onApply }: Props) 
             placeholderTextColor="#8b92a6"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            style={{ lineHeight: 20 }}
           />
           <SearchIcon />
         </View>

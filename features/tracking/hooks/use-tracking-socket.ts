@@ -12,13 +12,29 @@ export type PhotoWindowPayload = {
   closedAt?: string;
 };
 
-type UseTrackingSocketOptions = {
-  onPhotoWindow?: (payload: PhotoWindowPayload) => void;
+/**
+ * 정상 도달 메시지. halfwayMark는 기존 클라이언트 호환용이라 신규 코드는
+ * milestoneDistanceM을 쓴다.
+ */
+export type SummitReachedPayload = {
+  milestoneIndex: number;
+  milestoneDistanceM: number;
+  halfwayMark?: number;
+  reachedAt?: string;
 };
 
-export function useTrackingSocket({ onPhotoWindow }: UseTrackingSocketOptions = {}) {
+type UseTrackingSocketOptions = {
+  onPhotoWindow?: (payload: PhotoWindowPayload) => void;
+  onSummitReached?: (payload: SummitReachedPayload) => void;
+};
+
+export function useTrackingSocket({
+  onPhotoWindow,
+  onSummitReached,
+}: UseTrackingSocketOptions = {}) {
   const clientRef = useRef<Client | null>(null);
   const subscriptionRef = useRef<StompSubscription | null>(null);
+  const summitSubscriptionRef = useRef<StompSubscription | null>(null);
   const [status, setStatus] = useState<SocketStatus>('disconnected');
 
   const connect = useCallback((sessionId?: number) => {
@@ -62,6 +78,21 @@ export function useTrackingSocket({ onPhotoWindow }: UseTrackingSocketOptions = 
                 }
               },
             );
+
+            summitSubscriptionRef.current?.unsubscribe();
+            console.log(`[TrackingSocket] 구독 시작: /topic/tracking/${sessionId}/summit`);
+            summitSubscriptionRef.current = client.subscribe(
+              `/topic/tracking/${sessionId}/summit`,
+              (message) => {
+                console.log("[TrackingSocket] summit 메시지 수신:", message.body);
+                try {
+                  const payload: SummitReachedPayload = JSON.parse(message.body);
+                  onSummitReached?.(payload);
+                } catch {
+                  console.warn("[TrackingSocket] summit 파싱 실패:", message.body);
+                }
+              },
+            );
           };
           trySubscribe();
         }
@@ -78,7 +109,7 @@ export function useTrackingSocket({ onPhotoWindow }: UseTrackingSocketOptions = 
       clientRef.current = client;
       client.activate();
     });
-  }, [onPhotoWindow]);
+  }, [onPhotoWindow, onSummitReached]);
 
   const subscribePhotoWindow = useCallback((sessionId: number) => {
     const client = clientRef.current;
@@ -101,6 +132,8 @@ export function useTrackingSocket({ onPhotoWindow }: UseTrackingSocketOptions = 
   const disconnect = useCallback(() => {
     subscriptionRef.current?.unsubscribe();
     subscriptionRef.current = null;
+    summitSubscriptionRef.current?.unsubscribe();
+    summitSubscriptionRef.current = null;
     if (clientRef.current?.active) {
       clientRef.current.deactivate();
     }
@@ -133,6 +166,7 @@ export function useTrackingSocket({ onPhotoWindow }: UseTrackingSocketOptions = 
   useEffect(() => {
     return () => {
       subscriptionRef.current?.unsubscribe();
+      summitSubscriptionRef.current?.unsubscribe();
       if (clientRef.current?.active) {
         clientRef.current.deactivate();
       }

@@ -27,6 +27,7 @@ import {
 import { useActiveTrackingSession } from "@/features/tracking/hooks/use-active-tracking-session";
 import { useAbandonTrackingSession } from "@/features/tracking/hooks/use-abandon-tracking-session";
 import { useCompleteTrackingSession } from "@/features/tracking/hooks/use-complete-tracking-session";
+import { useMountainDetail } from "@/features/mountains/hooks/use-mountain-detail";
 import { useCourseDetail } from "@/features/tracking/hooks/use-course-detail";
 import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activity-course";
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
@@ -38,6 +39,7 @@ import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tra
 import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
 import {
   PhotoWindowPayload,
+  SummitReachedPayload,
   useTrackingSocket,
 } from "@/features/tracking/hooks/use-tracking-socket";
 import { calcCourseProgress } from "@/features/tracking/modules/course-progress";
@@ -51,6 +53,7 @@ import {
   smoothCourseCoords,
 } from "@/features/tracking/utils/parse-course-polyline";
 import { fetchSessionTrack } from "@/features/tracking/utils/fetch-session-track";
+import { fetchSessionPhotoCount } from "@/features/tracking/utils/fetch-session-photo-count";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
 import { toast } from "@/store/toast.store";
@@ -64,6 +67,7 @@ import {
   NaverMapView,
   type NaverMapViewRef,
 } from "@mj-studio/react-native-naver-map";
+import { logAnalyticsEvent } from "@/utils/analytics";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -102,6 +106,7 @@ const SEGMENT_COLORS: Record<string, { color: string }> = {
 
 // 좌표 개수가 MIN_SEGMENT_COORDS 미만인 짧은 세그먼트를 앞 세그먼트에 흡수해 색 전환 빈도를 줄임
 const MIN_SEGMENT_COORDS = 8;
+const MAX_TRACKING_PHOTOS = 4; // 세션당 최대 인증 사진 촬영 횟수 — 라이브 액티비티 "남은 사진 장수" 계산 기준
 
 // GPS 튐(outlier) 좌표 필터링 기준 — 누적 경로가 삐죽하게 그려지는 문제 방지
 const MAX_LOCATION_ACCURACY_M = 30; // 정확도(m)가 이보다 나쁘면서 크게 튄 좌표는 버림
@@ -176,9 +181,11 @@ export default function TrackingScreen() {
   const [isFreeMode, setIsFreeMode] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showTooltip, setShowTooltip] = useState(true);
-  // TODO: 실제 구현 시 GPS 좌표 기반으로 정상 도달 여부 판단
-  const [isAtSummit, setIsAtSummit] = useState(false); // 목 값 (GPS 연동 전까지 false)
   const [showSummitSheet, setShowSummitSheet] = useState(false);
+  // 복원된 세션의 산 이름 — 서버가 준 값이 현재 위치 기반 추정보다 정확하다
+  const [restoredMountainName, setRestoredMountainName] = useState<
+    string | null
+  >(null);
   // 자유기록 종료 후 코스 이름 입력 모달
   const [showCourseNameModal, setShowCourseNameModal] = useState(false);
   // 사용자가 입력한 자유기록 코스 이름 (미입력 시 null)
@@ -196,6 +203,13 @@ export default function TrackingScreen() {
   const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(
     null,
   );
+  // 이번 세션에서 촬영한 사진 수 (최대 4장) — 라이브 액티비티 "남은 사진 장수" 표시용
+  const [photosTaken, setPhotosTaken] = useState(0);
+  // 업로드 완료 콜백에서 최신 촬영 수를 참조하기 위한 미러.
+  // 렌더 중에는 쓰지 않는다 — React가 렌더를 버리거나 재실행할 수 있어
+  // 커밋되지 않은 값이 새어나갈 수 있다. setPhotosTaken을 호출하는 세 지점
+  // (세션 복원 / 촬영 성공 / 트래킹 종료)에서만 함께 갱신한다.
+  const photosTakenRef = useRef(0);
   // 정상 인증 시점의 photoWindow 저장 — 인증 후 photoWindow가 닫혀도 메타 업로드에 사용
   const summitPhotoWindowRef = useRef<PhotoWindowPayload | null>(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
@@ -288,6 +302,23 @@ export default function TrackingScreen() {
     lng: nearbyQueryCoord?.lng ?? null,
   });
 
+  // 세션이 생성되는 산 — URL 파라미터(코스 상세에서 진입) > 현재 위치 기반
+  const sessionMountainId = mountainIdParameter
+    ? Number(mountainIdParameter)
+    : nearbyData?.mountain?.mountainId;
+
+  // 파라미터로 진입하면 근처 산과 다를 수 있어 해당 산 이름을 따로 조회한다.
+  // (코스 상세 응답에는 mountainName이 없다)
+  const { data: sessionMountainDetail } = useMountainDetail(
+    mountainIdParameter ? Number(mountainIdParameter) : 0,
+  );
+  // 우선순위: 복원된 세션(서버 값) > URL 파라미터 조회 > 현재 위치 기반
+  const sessionMountainName =
+    restoredMountainName ??
+    (mountainIdParameter
+      ? sessionMountainDetail?.mountain?.name
+      : nearbyData?.mountain?.name);
+
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
     console.log("[PhotoWindow] 수신:", JSON.stringify(payload));
     if (payload.status === "OPEN") {
@@ -297,6 +328,32 @@ export default function TrackingScreen() {
     }
   }, []);
 
+  /**
+   * 정상 도달(TRACKING_SUMMIT_REACHED) — 정상 인증 시트를 띄운다.
+   *
+   * 페이로드를 인증 사진 창으로 확보해 둔다. 백엔드 ±10% 윈도우 특성상
+   * 4/4 촬영 창은 정상까지 거리의 90% 지점에서 열리는데, GPS가 드물어
+   * 그 구간을 건너뛰면 photo 4/4가 발송되지 않는다. 정상 알림에 물려두면
+   * 그 경우에도 정상 인증 사진을 찍을 수 있다.
+   */
+  const handleSummitReached = useCallback((payload: PhotoWindowPayload) => {
+    console.log("[Summit] 정상 도달 수신:", JSON.stringify(payload));
+    summitPhotoWindowRef.current = payload;
+    setShowSummitSheet(true);
+  }, []);
+
+  // 소켓 페이로드는 milestoneDistanceM, FCM은 milestoneDistance로 필드명이 달라 변환한다
+  const handleSocketSummitReached = useCallback(
+    (payload: SummitReachedPayload) =>
+      handleSummitReached({
+        milestoneIndex: payload.milestoneIndex,
+        milestoneDistance: payload.milestoneDistanceM,
+        status: "OPEN",
+        openedAt: payload.reachedAt ?? new Date().toISOString(),
+      }),
+    [handleSummitReached],
+  );
+
   const {
     connect: connectSocket,
     disconnect: disconnectSocket,
@@ -304,6 +361,7 @@ export default function TrackingScreen() {
     publishGps,
   } = useTrackingSocket({
     onPhotoWindow: handlePhotoWindow,
+    onSummitReached: handleSocketSummitReached,
   });
 
   // sessionId를 ref로 미러링 — 위치 콜백에서 항상 최신 값 참조
@@ -387,7 +445,11 @@ export default function TrackingScreen() {
   );
 
   // 포어그라운드 FCM 수신 (백그라운드는 OS가 시스템 알림으로 자동 처리)
-  useTrackingFcm({ enabled: isTracking, onPhotoWindow: handlePhotoWindow });
+  useTrackingFcm({
+    enabled: isTracking,
+    onPhotoWindow: handlePhotoWindow,
+    onSummitReached: handleSummitReached,
+  });
 
   const { mutate: startSession } = useStartTrackingSession();
   const { mutate: pauseSession } = usePauseTrackingSession();
@@ -399,6 +461,13 @@ export default function TrackingScreen() {
   const { data: activeSession, refetch: refetchActiveSession } =
     useActiveTrackingSession();
   const { data: profile } = useProfile();
+
+  // 트래킹 탭 진입 로깅 — 세션 복원과 무관하게 진입 시 1회
+  useFocusEffect(
+    useCallback(() => {
+      logAnalyticsEvent("tracking_tab_view");
+    }, []),
+  );
 
   // 앱 재진입 시 진행 중인 세션 복원
   useFocusEffect(
@@ -416,6 +485,7 @@ export default function TrackingScreen() {
     const status = activeSession.status;
     if (status === "IN_PROGRESS" || status === "PAUSED") {
       setSessionId(activeSession.sessionId);
+      setRestoredMountainName(activeSession.mountainName ?? null);
       setIsTracking(true);
       setIsPaused(status === "PAUSED");
       // 코스 정보 복원
@@ -435,6 +505,20 @@ export default function TrackingScreen() {
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
+      // 강제 종료 후 재진입 시 이미 촬영한 사진 수 복원 — 라이브 액티비티 "남은 사진 장수" 정확도 보장
+      {
+        const restoringPhotoSessionId = activeSession.sessionId;
+        fetchSessionPhotoCount(restoringPhotoSessionId).then((count) => {
+          if (
+            !isMountedRef.current ||
+            sessionIdRef.current !== restoringPhotoSessionId
+          )
+            return;
+          const restored = Math.min(count, MAX_TRACKING_PHOTOS);
+          photosTakenRef.current = restored;
+          setPhotosTaken(restored);
+        });
+      }
       // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원 — 자유기록
       if (activeSession.isFreeRecording) {
         // 요청 시점의 세션 ID를 캡처 — 응답 지연 중 다른 세션으로 바뀌면 폐기
@@ -504,9 +588,34 @@ export default function TrackingScreen() {
     [courseDetail?.segments],
   );
 
-  // 정상/하산까지 시간·거리 — 코스 전체의 절반 (courseProgressState useMemo보다 먼저 선언)
-  const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
-  const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
+  // 코스 전체 거리·시간 — 한 출처에서 확정한다.
+  // liveActivityCourse와 courseDetail은 서로 다른 쿼리라 도착 순서가 다르고
+  // 값의 출처도 달라(polyline 누적 vs 코스 메타), 섞어 쓰면 전체 ≠ 정상 + 하산이 된다.
+  const courseTotalDistanceM = Math.round(
+    liveActivityCourse?.totalDistance ?? courseDetail?.distance ?? 0,
+  );
+  const courseTotalDurationMin = Math.round(
+    liveActivityCourse?.estimatedTime ?? courseDetail?.duration ?? 0,
+  );
+
+  // 정상까지 거리·시간 (courseProgressState useMemo보다 먼저 선언).
+  // 서버 값을 우선 쓴다 — 마일스톤 푸시가 오는 지점과 같은 값이라 화면 표시와
+  // 알림 시점이 일치한다. 정상 좌표가 없어 서버가 계산하지 못한 코스는
+  // "같은 출처"의 절반으로 폴백한다. courseDetail 기준으로 폴백하면
+  // liveActivityCourse만 먼저 도착한 순간 정상 값이 0이 되어 하산이 코스 전체가 된다.
+  const summitDistanceM = Math.round(
+    liveActivityCourse?.summitDistance ?? courseTotalDistanceM / 2,
+  );
+  const summitDurationMinutes = Math.round(
+    liveActivityCourse?.summitEstimatedTime ?? courseTotalDurationMin / 2,
+  );
+
+  // 하산 구간 = 코스 전체 − 정상까지
+  const descentDistanceM = Math.max(0, courseTotalDistanceM - summitDistanceM);
+  const descentDurationMinutes = Math.max(
+    0,
+    courseTotalDurationMin - summitDurationMinutes,
+  );
 
   // 코스 진행 상태 — GPS 기반 실시간 (markerRatio + 남은 거리/시간 통합)
   const courseProgressState = useMemo(() => {
@@ -528,24 +637,38 @@ export default function TrackingScreen() {
         liveActivityCourse.totalDistance - result.remainingMeters;
 
       if (hasSummited) {
-        // 하산 중: 코스 끝까지 남은 거리/시간
+        // 하산 중: 코스 끝까지 남은 거리/시간.
+        // 시간은 하산 구간 페이스로 환산한다 — 전체 페이스는 오르막이 섞여 있어
+        // 하산에 적용하면 과대 추정된다.
+        const descentPaceMinPerM =
+          descentDistanceM > 0
+            ? descentDurationMinutes / descentDistanceM
+            : paceMinPerM;
         return {
           markerRatio: 0.0,
           remainingDistanceM: Math.round(result.remainingMeters),
           remainingDurationMin: Math.round(
-            result.remainingMeters * paceMinPerM,
+            result.remainingMeters * descentPaceMinPerM,
           ),
         };
       }
 
-      // 등산 중: 코스 중간(정상)까지 남은 거리/시간
-      const halfDistance = liveActivityCourse.totalDistance / 2;
-      const remainingToSummitM = Math.max(0, halfDistance - traveledM);
-      const ascProgress = Math.min(traveledM / halfDistance, 1); // 0(출발) ~ 1(정상)
+      // 등산 중: 정상까지 남은 거리/시간
+      const summitDistance =
+        liveActivityCourse.summitDistance ??
+        liveActivityCourse.totalDistance / 2;
+      const remainingToSummitM = Math.max(0, summitDistance - traveledM);
+      const ascProgress =
+        summitDistance > 0 ? Math.min(traveledM / summitDistance, 1) : 0; // 0(출발) ~ 1(정상)
+      // 정상까지 시간도 서버 값이 있으면 그 비율로 — 전체 페이스 배분보다 정확하다
+      const remainingToSummitMin =
+        liveActivityCourse.summitEstimatedTime != null
+          ? liveActivityCourse.summitEstimatedTime * (1 - ascProgress)
+          : remainingToSummitM * paceMinPerM;
       return {
         markerRatio: Math.max(0, 1.0 - ascProgress), // 1.0(바 하단/출발) ~ 0.0(바 상단/정상)
         remainingDistanceM: Math.round(remainingToSummitM),
-        remainingDurationMin: Math.round(remainingToSummitM * paceMinPerM),
+        remainingDurationMin: Math.round(remainingToSummitMin),
       };
     }
 
@@ -557,8 +680,8 @@ export default function TrackingScreen() {
       if (!markerCoord || courseCoords.length < 2) {
         return {
           markerRatio: 0.0,
-          remainingDistanceM: halfDistanceM,
-          remainingDurationMin: halfDurationMinutes,
+          remainingDistanceM: descentDistanceM,
+          remainingDurationMin: descentDurationMinutes,
         };
       }
       let closestIdx = summitIdx;
@@ -582,16 +705,16 @@ export default function TrackingScreen() {
           : 0;
       return {
         markerRatio: 0.0,
-        remainingDistanceM: Math.round(halfDistanceM * ratio),
-        remainingDurationMin: Math.round(halfDurationMinutes * ratio),
+        remainingDistanceM: Math.round(descentDistanceM * ratio),
+        remainingDurationMin: Math.round(descentDurationMinutes * ratio),
       };
     }
 
     if (!markerCoord || courseCoords.length < 2) {
       return {
         markerRatio: 1.0,
-        remainingDistanceM: halfDistanceM,
-        remainingDurationMin: halfDurationMinutes,
+        remainingDistanceM: summitDistanceM,
+        remainingDurationMin: summitDurationMinutes,
       };
     }
 
@@ -610,15 +733,17 @@ export default function TrackingScreen() {
     const remaining = Math.max(0, 1 - progress);
     return {
       markerRatio: 1.0 - progress,
-      remainingDistanceM: Math.round(halfDistanceM * remaining),
-      remainingDurationMin: Math.round(halfDurationMinutes * remaining),
+      remainingDistanceM: Math.round(summitDistanceM * remaining),
+      remainingDurationMin: Math.round(summitDurationMinutes * remaining),
     };
   }, [
     markerCoord,
     courseCoords,
     hasSummited,
-    halfDistanceM,
-    halfDurationMinutes,
+    summitDistanceM,
+    summitDurationMinutes,
+    descentDistanceM,
+    descentDurationMinutes,
     liveActivityCourse,
     userLocation,
   ]);
@@ -668,17 +793,24 @@ export default function TrackingScreen() {
       name: courseDetail?.name ?? "",
       difficulty: DIFFICULTY_KO[courseDetail?.difficulty ?? ""] ?? "중급",
       altitudeNm: peakAltitudeM,
-      distanceKm: Math.round((courseDetail?.distance ?? 0) / 100) / 10,
-      summitDistanceM: halfDistanceM,
-      descentDistanceM: halfDistanceM,
-      durationHours: Math.floor((courseDetail?.duration ?? 0) / 60),
-      durationMinutes: (courseDetail?.duration ?? 0) % 60,
+      distanceKm: Math.round(courseTotalDistanceM / 100) / 10,
+      summitDistanceM,
+      descentDistanceM,
+      durationHours: Math.floor(courseTotalDurationMin / 60),
+      durationMinutes: courseTotalDurationMin % 60,
       coordinates: [],
       centerLatitude: 0,
       centerLongitude: 0,
       zoom: 14,
     }),
-    [courseDetail, peakAltitudeM, halfDistanceM],
+    [
+      courseDetail,
+      peakAltitudeM,
+      courseTotalDistanceM,
+      courseTotalDurationMin,
+      summitDistanceM,
+      descentDistanceM,
+    ],
   );
 
   const timeToTarget = (() => {
@@ -968,6 +1100,7 @@ export default function TrackingScreen() {
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
     setFreeRecordCourseName(null);
+    setRestoredMountainName(null);
     setCountdown(3);
   };
 
@@ -981,6 +1114,10 @@ export default function TrackingScreen() {
   }, [userLocation, nearbyMountain]);
 
   const handleFreeRecord = () => {
+    logAnalyticsEvent("free_record_start_click", {
+      mountain_name: sessionMountainName,
+    });
+
     // 산을 골라 진입한 경우엔 좌표를 알 수 없어 거리 판정 제외
     if (mountainIdParameter) {
       startCountdown(true);
@@ -1003,10 +1140,7 @@ export default function TrackingScreen() {
       setCountdown(null);
 
       // 트래킹 세션 시작 API 호출
-      // mountainId 우선순위: URL 파라미터(코스 상세에서 진입) > nearbyData(현재 위치 기반)
-      const mountainId = mountainIdParameter
-        ? Number(mountainIdParameter)
-        : nearbyData?.mountain?.mountainId;
+      const mountainId = sessionMountainId;
 
       // 산이 없으면 세션 생성 불가 — isTracking만 켜면 GPS·소켓 없이 화면만 트래킹 중이 됨
       if (mountainId == null) {
@@ -1029,6 +1163,13 @@ export default function TrackingScreen() {
             if (!isMountedRef.current) return;
             if (data.sessionId != null) {
               const sid = data.sessionId;
+              // sessionId가 없으면 소켓·위치 추적이 시작되지 않아 실질적으로
+              // 기록이 시작된 것이 아니므로, 확정된 뒤에 기록한다
+              logAnalyticsEvent("tracking_started", {
+                tracking_type: isFreeMode ? "free" : "course",
+                mountain_name: sessionMountainName,
+                course_name: isFreeMode ? "" : selectedCourse.name,
+              });
               setSessionId(sid);
               sessionIdRef.current = sid;
               // 세션 ID 확정 후 웹소켓 연결 및 photo-window 구독
@@ -1087,6 +1228,7 @@ export default function TrackingScreen() {
           remainingMinutes: totalMinutes,
           remainingMeters: Math.round(totalMeters),
           progress: 0,
+          remainingPhotos: MAX_TRACKING_PHOTOS - photosTaken,
         }).catch((e: unknown) => {
           console.warn("[LiveActivity] start(course) 실패:", e);
         });
@@ -1182,6 +1324,7 @@ export default function TrackingScreen() {
           remainingMinutes,
           remainingMeters,
           progress,
+          remainingPhotos: Math.max(0, MAX_TRACKING_PHOTOS - photosTaken),
         }).catch(() => {});
       }
     }
@@ -1192,6 +1335,7 @@ export default function TrackingScreen() {
     selectedCourse,
     liveActivityCourse,
     userLocation,
+    photosTaken,
   ]);
 
   const pauseTracking = () => {
@@ -1280,6 +1424,16 @@ export default function TrackingScreen() {
       return;
     }
 
+    // 상한 검사를 촬영 전에 한다. 카운터는 저장 성공 후에 오르므로, 검사가
+    // 없으면 연속 촬영으로 4장을 넘겨 업로드할 수 있다.
+    if (photosTakenRef.current >= MAX_TRACKING_PHOTOS) {
+      toast.show(
+        `인증 사진은 ${MAX_TRACKING_PHOTOS}장까지만 찍을 수 있어요.`,
+        { type: "error" },
+      );
+      return;
+    }
+
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       console.warn("[Camera] 카메라 권한 거부됨");
@@ -1293,6 +1447,9 @@ export default function TrackingScreen() {
     });
 
     if (result.canceled || !result.assets?.[0]?.uri) return;
+
+    // 업로드/저장이 진행되는 동안 세션이 종료·교체될 수 있어 촬영 시점의 세션을 고정
+    const capturedSessionId = sessionId;
 
     try {
       const capturedAt = new Date().toISOString();
@@ -1312,6 +1469,29 @@ export default function TrackingScreen() {
         },
       });
       console.log("[Tracking] 사진 메타 저장 완료");
+      // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음.
+      // 이때는 isFreeMode·산 이름도 이미 초기화된 상태라 분석 이벤트도 함께 건너뛴다.
+      if (sessionIdRef.current === capturedSessionId) {
+        const nextPhotoCount = Math.min(
+          photosTakenRef.current + 1,
+          MAX_TRACKING_PHOTOS,
+        );
+        photosTakenRef.current = nextPhotoCount;
+        setPhotosTaken(nextPhotoCount);
+
+        const remainingPhotos = MAX_TRACKING_PHOTOS - nextPhotoCount;
+        toast.show(
+          remainingPhotos > 0
+            ? `${remainingPhotos}장 더 찍을 수 있어요!`
+            : "인증 사진을 모두 찍었어요!",
+        );
+
+        logAnalyticsEvent("clive_photo_taken", {
+          tracking_type: isFreeMode ? "free" : "course",
+          mountain_name: sessionMountainName,
+          photo_order: activeWindow.milestoneIndex,
+        });
+      }
     } catch (err) {
       console.warn("[Tracking] 인증 사진 처리 실패:", err);
       Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
@@ -1328,10 +1508,26 @@ export default function TrackingScreen() {
    */
   const runCompleteSession = (name?: string) => {
     if (sessionId == null) return;
+
+    // completeTracking이 상태를 초기화하므로 지표는 호출 전에 확정해 둔다
+    const trackedMeters = recordedCoords.reduce(
+      (total, coord, i) =>
+        i === 0 ? 0 : total + haversineMeters(recordedCoords[i - 1], coord),
+      0,
+    );
+    const finishedParams = {
+      tracking_type: isFreeMode ? "free" : "course",
+      mountain_name: sessionMountainName,
+      course_name: isFreeMode ? "" : selectedCourse.name,
+      distance_km: Number((trackedMeters / 1000).toFixed(2)),
+      duration_min: Math.round(elapsedSeconds / 60),
+    };
+
     completeSession(
       { sessionId, name },
       {
         onSuccess: (data) => {
+          logAnalyticsEvent("tracking_finished", finishedParams);
           if (data.hikingRecordId != null) setHikingRecordId(data.hikingRecordId);
         },
         onError: (err) => {
@@ -1409,8 +1605,11 @@ export default function TrackingScreen() {
     setShowSummitSheet(false);
     setHasSummited(false);
     setSessionId(null);
+    setRestoredMountainName(null);
     setHikingRecordId(null);
     setPhotoWindow(null);
+    setPhotosTaken(0);
+    photosTakenRef.current = 0;
     summitPhotoWindowRef.current = null;
     setCollapsed(false);
     setRecordedCoords([]);
@@ -1427,14 +1626,6 @@ export default function TrackingScreen() {
     runCompleteSession(trimmed || undefined);
     completeTracking(null);
   };
-
-  // GPS로 정상 부근 감지 시 자동으로 정상 시트 표시
-  // TODO: 실제 구현 시 GPS 좌표와 정상 좌표를 비교해 isAtSummit 업데이트
-  useEffect(() => {
-    if (isTracking && isAtSummit) {
-      setShowSummitSheet(true);
-    }
-  }, [isAtSummit, isTracking]);
 
   const floatingCardBottom = COLLAPSED_PEEK_HEIGHT + FLOATING_CARD_GAP;
 
@@ -1603,8 +1794,11 @@ export default function TrackingScreen() {
           {showSummitSheet ? (
             <SummitSheet
               onCertify={() => {
-                // 정상 인증 → 현재 photoWindow 저장 후 하산 시트로 전환
-                summitPhotoWindowRef.current = photoWindow;
+                // 정상 인증 → 인증 사진 창 확보 후 하산 시트로 전환.
+                // 정상 알림으로 이미 확보해 둔 창이 있으면 유지하고(4/4 촬영
+                // 창이 누락된 경우에도 촬영 가능), 없을 때만 현재 창을 쓴다.
+                summitPhotoWindowRef.current =
+                  summitPhotoWindowRef.current ?? photoWindow;
                 setHasSummited(true);
                 setShowSummitSheet(false);
               }}

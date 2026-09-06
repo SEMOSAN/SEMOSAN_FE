@@ -10,7 +10,7 @@ const hasKakaoNativeAppKey = !!process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 const config = {
   name: "semosan",
   slug: "semosan",
-  version: "1.1.1",
+  version: "1.2.0",
   orientation: "portrait",
   icon: "./assets/images/app-icon.png",
   scheme: "semosan",
@@ -144,6 +144,8 @@ const config = {
             "@react-native-kakao/core",
             {
               nativeAppKey: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
+              ios: { handleKakaoOpenUrl: true },
+              android: { authCodeHandlerActivity: true },
             },
           ],
         ]
