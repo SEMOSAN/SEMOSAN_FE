@@ -158,6 +158,14 @@ function RootLayout(): React.JSX.Element | null {
               options={{ headerShown: false }}
             />
             <Stack.Screen
+              name="notifications"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="semofeed/[id]"
+              options={{ headerShown: false, presentation: "transparentModal" }}
+            />
+            <Stack.Screen
               name="mypage/terms"
               options={{ headerShown: false }}
             />
