@@ -1,3 +1,7 @@
+import {
+  registerFcmToken,
+  resetFcmTokenRegistration,
+} from "@/features/notifications/register-fcm-token";
 import { queryClient } from "@/lib/query-client";
 import { authState } from "@/store/auth.store";
 import * as Notifications from "expo-notifications";
@@ -13,6 +17,7 @@ export async function endSession(): Promise<void> {
   queryClient.clear();
   // 앱 아이콘 뱃지는 로그아웃해도 OS에 남는다
   await Notifications.setBadgeCountAsync(0).catch(() => {});
+  resetFcmTokenRegistration();
   authState.setUnauthenticated();
 }
 
@@ -28,6 +33,11 @@ export async function startSession(
 ): Promise<void> {
   await tokenStorage.setTokens(accessToken, refreshToken);
   await tokenStorage.setOnboardingPending(!onboardingCompleted);
+
+  // 서버가 로그인 시점에 이 유저의 FCM 토큰을 정리하므로 매번 다시 등록한다.
+  // 화면 전환을 네트워크에 묶지 않도록 기다리지 않는다(실패는 내부에서 처리).
+  void registerFcmToken({ requestPermission: false });
+
   if (onboardingCompleted) {
     authState.setAuthenticated();
   } else {
