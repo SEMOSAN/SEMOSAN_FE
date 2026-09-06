@@ -5,7 +5,12 @@ import { ENDPOINTS } from "@/types/api.generated";
 type PresignedUrlResponse = {
   uploadUrl: string;
   imageUrl: string;
+  /** 서명에 포함된 Content-Type. 이 값과 다른 헤더로 PUT하면 SignatureDoesNotMatch. */
+  contentType?: string;
 };
+
+// 압축 결과는 항상 jpg이므로, 서버가 contentType을 아직 안 내려줄 때의 기준값
+const DEFAULT_CONTENT_TYPE = "image/jpeg";
 
 /**
  * 트래킹 인증 사진을 tracking-photos 버킷에 업로드합니다.
@@ -29,9 +34,10 @@ export async function uploadTrackingPhoto(uri: string): Promise<string> {
   const blob = await fileResponse.blob();
 
   // 3. MinIO에 직접 PUT (Presigned URL이므로 Authorization 헤더 불필요)
+  // 서명에 Content-Type이 포함되므로 발급 응답의 값을 그대로 실어야 한다.
   const uploadResponse = await fetch(data.uploadUrl, {
     method: "PUT",
-    headers: { "Content-Type": "image/jpeg" },
+    headers: { "Content-Type": data.contentType ?? DEFAULT_CONTENT_TYPE },
     body: blob,
   });
 
