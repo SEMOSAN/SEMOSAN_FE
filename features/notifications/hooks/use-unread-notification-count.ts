@@ -1,11 +1,21 @@
 import { api } from "@/lib/api";
 import { ENDPOINTS } from "@/types/api.generated";
 import { useQuery } from "@tanstack/react-query";
+import * as Notifications from "expo-notifications";
+import { useEffect } from "react";
 
-/** 홈 헤더 벨 아이콘의 안읽음 뱃지용 카운트 */
+/**
+ * 홈 헤더 벨 아이콘의 안읽음 뱃지용 카운트.
+ *
+ * 앱 아이콘 뱃지도 이 값으로 맞춘다. 푸시 페이로드의 badge 값에만 의존하면
+ * 서버가 보내는 고정값에 묶여 개수가 늘지 않으므로, 서버의 안읽음 수를 진짜
+ * 출처로 삼는다. (로그아웃 시 정리는 lib/auth/session.ts의 endSession)
+ */
 export function useUnreadNotificationCount() {
-  return useQuery<number>({
+  const query = useQuery<number>({
     queryKey: ["notifications", "unread-count"],
+    // 뱃지는 최신 값이 중요하므로 화면 복귀 때마다 다시 확인한다
+    staleTime: 0,
     queryFn: async () => {
       const res = await api.get<number>(
         { path: ENDPOINTS.NOTIFICATIONS_UNREAD_COUNT },
@@ -15,4 +25,12 @@ export function useUnreadNotificationCount() {
       return res.data ?? 0;
     },
   });
+
+  const count = query.data;
+  useEffect(() => {
+    if (count == null) return;
+    Notifications.setBadgeCountAsync(count).catch(() => {});
+  }, [count]);
+
+  return query;
 }
