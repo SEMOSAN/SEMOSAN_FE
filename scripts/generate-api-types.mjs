@@ -5,6 +5,7 @@
  * 출력: types/api.generated.ts
  */
 
+import "dotenv/config";
 import { mkdirSync, writeFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
@@ -118,9 +119,16 @@ function operationToName(path, method, operationId) {
 
 // ─── 오퍼레이션 타입 생성 ─────────────────────────────────────────────────────
 
-function generateOperationTypes(path, method, operation) {
+function generateOperationTypes(path, method, operation, schemaNames) {
   const name = operationToName(path, method, operation.operationId);
   const lines = [];
+
+  // 오퍼레이션 이름 + 접미사가 스키마 이름과 겹치면(`LoginResponse = LoginResponse`)
+  // 중복 선언이 되므로 별칭을 만들지 않는다 — 스키마 타입을 직접 쓰면 된다
+  const pushAlias = (alias, type) => {
+    if (schemaNames.has(alias)) return;
+    lines.push(`export type ${alias} = ${type};`);
+  };
 
   // Query / Path 파라미터
   const params = (operation.parameters ?? []).filter(
@@ -135,19 +143,24 @@ function generateOperationTypes(path, method, operation) {
     lines.push(`};`);
   }
 
+  // content-type이 application/json이 아니라 */* 로 선언된 엔드포인트가 있어
+  // json 우선, 없으면 첫 번째 content 항목으로 폴백한다
+  const contentSchema = (content) =>
+    content?.["application/json"]?.schema ??
+    Object.values(content ?? {})[0]?.schema;
+
   // Request Body
-  const bodySchema =
-    operation.requestBody?.content?.["application/json"]?.schema;
+  const bodySchema = contentSchema(operation.requestBody?.content);
   if (bodySchema) {
-    lines.push(`export type ${name}Body = ${schemaToTS(bodySchema)};`);
+    pushAlias(`${name}Body`, schemaToTS(bodySchema));
   }
 
   // Response (200 또는 201)
   const responseSchema =
-    operation.responses?.["200"]?.content?.["application/json"]?.schema ??
-    operation.responses?.["201"]?.content?.["application/json"]?.schema;
+    contentSchema(operation.responses?.["200"]?.content) ??
+    contentSchema(operation.responses?.["201"]?.content);
   if (responseSchema) {
-    lines.push(`export type ${name}Response = ${schemaToTS(responseSchema)};`);
+    pushAlias(`${name}Response`, schemaToTS(responseSchema));
   }
 
   return lines;
@@ -157,7 +170,23 @@ function generateOperationTypes(path, method, operation) {
 
 async function main() {
   console.log(`Fetching ${API_DOCS_URL} ...`);
-  const res = await fetch(API_DOCS_URL);
+  // api-docs가 Basic 인증으로 보호됨 — 크리덴셜은 .env(커밋 금지)에서 읽는다
+  const user = process.env.API_DOCS_USER;
+  const password = process.env.API_DOCS_PASSWORD;
+  const headers =
+    user && password
+      ? {
+          Authorization: `Basic ${globalThis.Buffer.from(
+            `${user}:${password}`,
+          ).toString("base64")}`,
+        }
+      : {};
+  const res = await fetch(API_DOCS_URL, { headers });
+  if (res.status === 401) {
+    throw new Error(
+      "HTTP 401 — .env에 API_DOCS_USER / API_DOCS_PASSWORD를 설정하세요",
+    );
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const spec = await res.json();
 
@@ -205,11 +234,12 @@ async function main() {
   sections.push(`// Operations (Params / Body / Response)`);
   sections.push(`// ${"─".repeat(77)}`);
   const HTTP_METHODS = ["get", "post", "put", "patch", "delete"];
+  const schemaNames = new Set(Object.keys(spec.components?.schemas ?? {}));
   for (const [path, pathItem] of Object.entries(spec.paths)) {
     for (const method of HTTP_METHODS) {
       const operation = pathItem[method];
       if (!operation) continue;
-      const opLines = generateOperationTypes(path, method, operation);
+      const opLines = generateOperationTypes(path, method, operation, schemaNames);
       if (opLines.length > 0) {
         sections.push(`// ${method.toUpperCase()} ${path}`);
         sections.push(...opLines);
