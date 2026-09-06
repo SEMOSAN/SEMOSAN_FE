@@ -488,6 +488,22 @@ export default function TrackingScreen() {
     [courseDetail?.polyline],
   );
 
+  // 서버 스펙상 세그먼트 필드가 모두 optional이다. 값이 빠진 세그먼트는 그릴 수
+  // 없으므로 미리 걸러내고, 남은 게 없으면 단일 노란 경로로 폴백한다.
+  const validCourseSegments = useMemo(
+    () =>
+      (courseDetail?.segments ?? []).filter(
+        (
+          s,
+        ): s is {
+          startIdx: number;
+          endIdx: number;
+          grade: NonNullable<(typeof s)["grade"]>;
+        } => s.startIdx != null && s.endIdx != null && s.grade != null,
+      ),
+    [courseDetail?.segments],
+  );
+
   // 정상/하산까지 시간·거리 — 코스 전체의 절반 (courseProgressState useMemo보다 먼저 선언)
   const halfDurationMinutes = Math.round((courseDetail?.duration ?? 0) / 2);
   const halfDistanceM = Math.round((courseDetail?.distance ?? 0) / 2);
@@ -685,7 +701,7 @@ export default function TrackingScreen() {
         {/* 코스 경로 — segments 경사 등급별 색상 / 없으면 단일 노란 polyline */}
         {courseCoords.length > 1 && (
           <>
-            {courseDetail?.segments?.length ? (
+            {validCourseSegments.length ? (
               <>
                 {/* 흰색 베이스 — 가장자리 border 역할 */}
                 <NaverMapPathOverlay
@@ -696,21 +712,7 @@ export default function TrackingScreen() {
                   outlineColor={COLOR_WHITE}
                 />
                 {/* 컬러 segments — 베이스 위에 얹어서 가장자리만 흰색으로 보임 */}
-                {mergeShortSegments(
-                  // 서버 스펙 상 optional 필드 — 값이 없는 세그먼트는 그리지 않음
-                  courseDetail.segments.filter(
-                    (
-                      s,
-                    ): s is {
-                      startIdx: number;
-                      endIdx: number;
-                      grade: NonNullable<(typeof s)["grade"]>;
-                    } =>
-                      s.startIdx != null &&
-                      s.endIdx != null &&
-                      s.grade != null,
-                  ),
-                ).map((seg, i) => {
+                {mergeShortSegments(validCourseSegments).map((seg, i) => {
                   const coords = courseCoords.slice(
                     seg.startIdx,
                     seg.endIdx + 1,
@@ -822,7 +824,7 @@ export default function TrackingScreen() {
     ),
     [
       courseCoords,
-      courseDetail?.segments,
+      validCourseSegments,
       isFreeMode,
       recordedCoords,
       isTracking,
