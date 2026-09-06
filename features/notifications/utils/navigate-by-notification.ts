@@ -1,10 +1,7 @@
 import type { useRouter } from "expo-router";
 import { NotificationExtras, NotificationType } from "../types";
 
-/**
- * 알림 타입별 화면 이동. 푸시 알림 탭(hooks/use-push-notification.ts)과
- * 알림함 셀 탭이 같은 분기를 공유한다.
- */
+/** 알림 타입별 화면 이동. 푸시 알림 탭과 알림함 셀 탭이 공유한다. */
 export function navigateByNotificationType(
   type: NotificationType,
   extras: NotificationExtras,
@@ -17,7 +14,6 @@ export function navigateByNotificationType(
     case "COMMUNITY_COMMENT":
     case "COMMUNITY_REPLY":
     case "COMMUNITY_POST_LIKE":
-      // 대상 id가 없으면 이동하지 않는다 (undefined 경로 방지)
       if (extras.postId != null) {
         push(`/community/free-board/${extras.postId}`);
       }

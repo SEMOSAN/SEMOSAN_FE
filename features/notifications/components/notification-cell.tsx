@@ -9,7 +9,7 @@ import { AppNotification, NotificationExtras } from "../types";
 import { formatRelativeTime } from "../utils/format-relative-time";
 import { navigateByNotificationType } from "../utils/navigate-by-notification";
 
-const ICON_COLOR = "#73798C";
+const ICON_COLOR = "#73798c";
 
 function TypeIcon({ type }: { type: AppNotification["type"] }) {
   switch (type) {
@@ -25,7 +25,6 @@ function TypeIcon({ type }: { type: AppNotification["type"] }) {
   }
 }
 
-/** 서버 targetType/targetId → 라우팅용 extras 변환 */
 function toExtras(notification: AppNotification): NotificationExtras {
   if (notification.targetId == null) return {};
   switch (notification.targetType) {
@@ -61,22 +60,16 @@ export function NotificationCell({
 
   return (
     <TouchableOpacity
-      className="flex-row bg-fill-normal"
-      style={{ paddingHorizontal: 20, paddingVertical: 16, gap: 12 }}
+      className="flex-row gap-3 bg-fill-normal px-5 py-4"
       activeOpacity={0.7}
       onPress={handlePress}
     >
-      {/* 타입 아이콘 */}
-      <View
-        className="items-center justify-center rounded-full bg-fill-strong"
-        style={{ width: 40, height: 40 }}
-      >
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-fill-strong">
         <TypeIcon type={notification.type} />
       </View>
 
-      {/* 내용 */}
-      <View style={{ flex: 1, gap: 4 }}>
-        <View className="flex-row items-center" style={{ gap: 6 }}>
+      <View className="flex-1 gap-1">
+        <View className="flex-row items-center gap-1.5">
           <Text
             className={`shrink ${
               notification.isRead
@@ -88,10 +81,7 @@ export function NotificationCell({
             {notification.title ?? "알림"}
           </Text>
           {!notification.isRead && (
-            <View
-              className="shrink-0 rounded-full bg-primary-normal"
-              style={{ width: 6, height: 6 }}
-            />
+            <View className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary-normal" />
           )}
         </View>
         {!!notification.body && (

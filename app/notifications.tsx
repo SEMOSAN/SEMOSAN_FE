@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function EmptyState() {
   return (
-    <View className="flex-1 items-center justify-center" style={{ gap: 8 }}>
+    <View className="flex-1 items-center justify-center gap-2">
       <Text className="typo-body-1-normal-medium text-label-subtle">
         새로운 알림이 없어요
       </Text>
@@ -28,23 +28,14 @@ export default function NotificationsScreen() {
 
   return (
     <View className="flex-1 bg-fill-normal">
-      {/* 헤더 */}
       <View
-        className="flex-row items-center bg-fill-normal"
-        style={{
-          height: 56,
-          paddingHorizontal: 20,
-          gap: 8,
-          marginTop: insets.top,
-        }}
+        className="h-14 flex-row items-center gap-2 bg-fill-normal px-5"
+        style={{ marginTop: insets.top }}
       >
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.6}>
           <ChevronLeftIcon size={24} color="#1a1b1f" />
         </TouchableOpacity>
-        <Text
-          className="typo-headline-1-semi-bold text-label-normal"
-          style={{ flex: 1 }}
-        >
+        <Text className="flex-1 typo-headline-1-semi-bold text-label-normal">
           알림
         </Text>
         {hasUnread && (

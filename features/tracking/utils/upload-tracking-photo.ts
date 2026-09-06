@@ -2,9 +2,8 @@ import { optimizeImageForUpload } from "@/lib/optimize-image";
 import { requestPresignedUrl } from "@/lib/presigned-upload";
 
 /**
- * 트래킹 인증 사진을 tracking-photos 버킷에 업로드합니다.
- * 리사이징/압축/EXIF 제거 후 Presigned URL을 발급받아 MinIO에 직접 PUT 합니다.
- * @returns 업로드된 이미지의 최종 URL
+ * 트래킹 인증 사진을 tracking-photos 버킷에 업로드하고 최종 URL을 반환한다.
+ * 리사이징/압축/EXIF 제거 후 Presigned URL로 MinIO에 직접 PUT 한다.
  */
 export async function uploadTrackingPhoto(uri: string): Promise<string> {
   const optimizedUri = await optimizeImageForUpload(uri);

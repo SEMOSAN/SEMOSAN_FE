@@ -5,11 +5,8 @@ import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
 /**
- * 안읽음 알림 수. 헤더 벨 뱃지와 앱 아이콘 뱃지가 모두 이 값을 따른다.
- *
- * 푸시 페이로드의 badge 값에만 의존하면 서버가 보내는 고정값에 묶여 개수가
- * 늘지 않으므로, 서버의 안읽음 수를 단일 출처로 삼는다.
- * (로그아웃 시 정리는 lib/auth/session.ts의 endSession)
+ * 안읽음 알림 수. 헤더 벨과 앱 아이콘 뱃지가 모두 이 값을 따른다.
+ * 푸시 페이로드의 badge에만 의존하면 서버가 보내는 고정값에 묶여 개수가 늘지 않는다.
  */
 export function useUnreadNotificationCount() {
   const query = useQuery<number>({
