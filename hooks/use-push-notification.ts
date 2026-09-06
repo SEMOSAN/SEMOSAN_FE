@@ -199,7 +199,11 @@ function extractPushData(
 function navigateByType(data: PushData, router: ReturnType<typeof useRouter>) {
   let extras: NotificationExtras = {};
   try {
-    extras = data.extras ? JSON.parse(data.extras) : {};
+    // JSON.parse("null")은 null을 돌려주므로 객체인지 확인하고 쓴다
+    const parsed: unknown = data.extras ? JSON.parse(data.extras) : null;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      extras = parsed as NotificationExtras;
+    }
   } catch {
     extras = {};
   }
