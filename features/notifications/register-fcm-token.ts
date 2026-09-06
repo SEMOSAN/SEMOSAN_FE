@@ -98,7 +98,7 @@ async function register({
       },
     });
 
-    console.log("[Push] FCM 토큰 등록 완료:", token);
+    console.log("[Push] FCM 토큰 등록 완료");
     return true;
   } catch (error) {
     console.error("[Push] FCM 토큰 등록 실패:", error);
