@@ -696,7 +696,21 @@ export default function TrackingScreen() {
                   outlineColor={COLOR_WHITE}
                 />
                 {/* 컬러 segments — 베이스 위에 얹어서 가장자리만 흰색으로 보임 */}
-                {mergeShortSegments(courseDetail.segments).map((seg, i) => {
+                {mergeShortSegments(
+                  // 서버 스펙 상 optional 필드 — 값이 없는 세그먼트는 그리지 않음
+                  courseDetail.segments.filter(
+                    (
+                      s,
+                    ): s is {
+                      startIdx: number;
+                      endIdx: number;
+                      grade: NonNullable<(typeof s)["grade"]>;
+                    } =>
+                      s.startIdx != null &&
+                      s.endIdx != null &&
+                      s.grade != null,
+                  ),
+                ).map((seg, i) => {
                   const coords = courseCoords.slice(
                     seg.startIdx,
                     seg.endIdx + 1,
