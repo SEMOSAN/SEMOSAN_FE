@@ -11,6 +11,7 @@
     "ios:device": "expo run:ios --device",
     "web": "expo start --web",
     "lint": "expo lint",
+    "test": "jest",
     "tokens": "node scripts/tokens-build-script.mjs --verbose",
     "typegen": "node scripts/generate-api-types.mjs",
     "eas-build-pre-install": "BUNDLER_VER=$(grep -A1 'BUNDLED WITH' ios/Gemfile.lock | tail -1 | tr -d ' ') && gem install bundler -v \"$BUNDLER_VER\" --no-document 2>/dev/null || true",
@@ -77,14 +78,19 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
     "@types/suncalc": "^1.9.2",
     "dotenv": "^17.4.2",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "jest": "^29.7.0",
+    "jest-expo": "~54.0.0",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.0.0-insiders.f7d2598",
     "react-native-svg-transformer": "^1.5.3",
+    "react-test-renderer": "^19.1.0",
     "style-dictionary": "^5.4.0",
     "typescript": "~5.9.2"
   },
