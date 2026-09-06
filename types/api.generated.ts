@@ -813,6 +813,7 @@ export type ApiResponsePresignedUrlResponse = {
 export type PresignedUrlResponse = {
   uploadUrl?: string;
   imageUrl?: string;
+  contentType?: string;
 };
 export type ApiResponseHikingRecordDetailResponse = {
   isSuccess?: boolean;
@@ -1404,6 +1405,9 @@ export type CreateRestaurantSectionResponse = ApiResponseLong;
 export type Login1Body = AdminLoginRequest;
 export type Login1Response = ApiResponseAdminLoginResponse;
 
+// GET /api/users/profile
+export type GetUserProfileResponseAlias = ApiResponseGetUserProfileResponse;
+
 // PATCH /api/users/profile
 export type UpdateUserProfileBody = UpdateUserProfileRequest;
 export type UpdateUserProfileResponse = ApiResponseVoid;
@@ -1455,6 +1459,9 @@ export type UpdateSummitParams = {
 };
 export type UpdateSummitBody = AdminCourseSummitRequest;
 export type UpdateSummitResponse = ApiResponseVoid;
+
+// GET /api/users/notification-settings
+export type GetNotificationSettingResponseAlias = ApiResponseGetNotificationSettingResponse;
 
 // GET /api/users/nickname
 export type CheckNicknameParams = {
@@ -1589,6 +1596,9 @@ export type GetUserHikingRecordsParams = {
   sort?: string[];
 };
 export type GetUserHikingRecordsResponse = ApiResponsePageResponseGetUserHikingRecordResponse;
+
+// GET /api/hiking-records/me/summary
+export type GetUserHikingRecordSummaryResponseAlias = ApiResponseGetUserHikingRecordSummaryResponse;
 
 // GET /api/hiking-records/me/mountains
 export type GetUserHikingMountainRecordsParams = {

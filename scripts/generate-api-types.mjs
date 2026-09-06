@@ -123,11 +123,12 @@ function generateOperationTypes(path, method, operation, schemaNames) {
   const name = operationToName(path, method, operation.operationId);
   const lines = [];
 
-  // 오퍼레이션 이름 + 접미사가 스키마 이름과 겹치면(`LoginResponse = LoginResponse`)
-  // 중복 선언이 되므로 별칭을 만들지 않는다 — 스키마 타입을 직접 쓰면 된다
   const pushAlias = (alias, type) => {
-    if (schemaNames.has(alias)) return;
-    lines.push(`export type ${alias} = ${type};`);
+    // `LoginResponse = LoginResponse` 같은 자기 참조는 만들지 않는다
+    if (alias === type) return;
+    // 이름만 겹치고 가리키는 타입이 다르면 중복 선언이 되므로 접미사로 구분한다
+    const name = schemaNames.has(alias) ? `${alias}Alias` : alias;
+    lines.push(`export type ${name} = ${type};`);
   };
 
   // Query / Path 파라미터
@@ -143,11 +144,11 @@ function generateOperationTypes(path, method, operation, schemaNames) {
     lines.push(`};`);
   }
 
-  // content-type이 application/json이 아니라 */* 로 선언된 엔드포인트가 있어
-  // json 우선, 없으면 첫 번째 content 항목으로 폴백한다
+  // content-type이 application/json이 아니라 */* 로 선언된 엔드포인트가 있다.
+  // json을 우선하되, schema를 실제로 가진 첫 항목을 고른다.
   const contentSchema = (content) =>
     content?.["application/json"]?.schema ??
-    Object.values(content ?? {})[0]?.schema;
+    Object.values(content ?? {}).find((c) => c?.schema)?.schema;
 
   // Request Body
   const bodySchema = contentSchema(operation.requestBody?.content);
