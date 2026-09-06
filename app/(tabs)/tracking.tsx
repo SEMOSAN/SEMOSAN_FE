@@ -1,5 +1,6 @@
 import { LocationIcon } from "@/components/icons/location-icon";
 import { PinMarkerIcon } from "@/components/icons/pin-marker-icon";
+import { colors } from "@/constants/colors";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
@@ -90,9 +91,6 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
   HARD: "고급",
 };
 
-const { colors } = require("../../tokens.cjs") as {
-  colors: Record<string, Record<string, string>>;
-};
 const COLOR_WHITE = colors.common["100"]; // #ffffff
 
 // 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)

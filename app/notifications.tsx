@@ -1,4 +1,5 @@
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
+import { colors } from "@/constants/colors";
 import { NotificationCell } from "@/features/notifications/components/notification-cell";
 import { useNotifications } from "@/features/notifications/hooks/use-notifications";
 import { useReadAllNotifications } from "@/features/notifications/hooks/use-read-notification";
@@ -33,7 +34,7 @@ export default function NotificationsScreen() {
         style={{ marginTop: insets.top }}
       >
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.6}>
-          <ChevronLeftIcon size={24} color="#1a1b1f" />
+          <ChevronLeftIcon size={24} color={colors.label.normal} />
         </TouchableOpacity>
         <Text className="flex-1 typo-headline-1-semi-bold text-label-normal">
           알림

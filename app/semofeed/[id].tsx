@@ -1,3 +1,4 @@
+import { colors } from "@/constants/colors";
 import { FeedCellDetail } from "@/features/home/components/feed-cell-detail";
 import { useSemofeedItem } from "@/features/home/hooks/use-semofeed-item";
 import { ApiError } from "@/lib/api";
@@ -69,7 +70,7 @@ export default function SemofeedDetailScreen() {
 
   return (
     <View className="flex-1 items-center justify-center bg-black/80">
-      <ActivityIndicator size="large" color="#ffffff" />
+      <ActivityIndicator size="large" color={colors.common["100"]} />
     </View>
   );
 }

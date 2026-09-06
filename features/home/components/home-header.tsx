@@ -2,6 +2,7 @@ import { BellIcon } from "@/components/icons/bell-icon";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { SemosanLogo } from "@/components/icons/semosan-logo";
 import { XIcon } from "@/components/icons/x-icon";
+import { colors } from "@/constants/colors";
 import { useUnreadNotificationCount } from "@/features/notifications/hooks/use-unread-notification-count";
 import { useRouter } from "expo-router";
 import { Pressable, StyleProp, View, ViewStyle } from "react-native";
@@ -80,13 +81,13 @@ export function HomeHeader({
             >
               <View style={{ width: 24, height: 24 }}>
                 <Animated.View style={mapAnimatedStyle}>
-                  <BellIcon size={24} color="#1A1B1F" />
+                  <BellIcon size={24} color={colors.label.normal} />
                 </Animated.View>
                 <Animated.View
                   className="absolute left-0 top-0"
                   style={feedAnimatedStyle}
                 >
-                  <BellIcon size={24} color="#ffffff" />
+                  <BellIcon size={24} color={colors.common["100"]} />
                 </Animated.View>
                 {unreadCount > 0 && (
                   <View

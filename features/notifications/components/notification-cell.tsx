@@ -2,6 +2,7 @@ import { ChatIcon } from "@/components/icons/chat-icon";
 import { FaceHappyIcon } from "@/components/icons/face-happy-icon";
 import { HeartIcon } from "@/components/icons/heart-icon";
 import { MountainIcon } from "@/components/icons/mountain-icon";
+import { colors } from "@/constants/colors";
 import { useRouter } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useReadNotification } from "../hooks/use-read-notification";
@@ -9,7 +10,7 @@ import { AppNotification, NotificationExtras } from "../types";
 import { formatRelativeTime } from "../utils/format-relative-time";
 import { navigateByNotificationType } from "../utils/navigate-by-notification";
 
-const ICON_COLOR = "#73798c";
+const ICON_COLOR = colors.label.subtler;
 
 function TypeIcon({ type }: { type: AppNotification["type"] }) {
   switch (type) {
