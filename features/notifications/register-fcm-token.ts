@@ -28,12 +28,15 @@ export function resetFcmTokenRegistration(): void {
 export function registerFcmToken(
   options: RegisterFcmTokenOptions = {},
 ): Promise<boolean> {
-  registration ??= register(options).then((registered) => {
-    // 등록되지 않았으면 기록을 지워 다음 호출에서 다시 시도한다
-    if (!registered) registration = null;
+  if (registration) return registration;
+
+  const attempt: Promise<boolean> = register(options).then((registered) => {
+    // 실패는 다음 호출에서 재시도. 그 사이 저장된 새 시도는 건드리지 않는다
+    if (!registered && registration === attempt) registration = null;
     return registered;
   });
-  return registration;
+  registration = attempt;
+  return attempt;
 }
 
 async function register({
