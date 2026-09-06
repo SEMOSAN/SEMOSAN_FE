@@ -66,23 +66,28 @@ export default function PhotoReportEditScreen() {
 
   const { top, bottom } = useSafeAreaInsets();
 
-  // 이전 화면에서 저장한 사진/템플릿 상태로 초기화 (같은 세션일 때만 복원)
-  const savedState = getPhotoReportState();
-  const isSameSession = savedState.sessionId === parsedSessionId;
-  const [selectedTemplate, setSelectedTemplate] = useState(isSameSession ? (savedState.templateIndex ?? 0) : 0);
-  const [photos, setPhotos] = useState<Photo[]>(() => {
-    const src = isSameSession ? savedState.photoSource : null;
-    if (src != null) {
-      const key = typeof src === "number" ? String(src) : src.uri;
-      return [{ key, source: src }];
-    }
-    return [];
-  });
-  const [selectedPhoto, setSelectedPhoto] = useState<number | null>(
-    isSameSession && savedState.photoSource != null ? 0 : null,
-  );
+  const [selectedTemplate, setSelectedTemplate] = useState(0);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+
+  // 이전 화면에서 저장한 사진/템플릿 상태로 복원 (같은 세션일 때만)
+  useEffect(() => {
+    getPhotoReportState().then((savedState) => {
+      if (savedState.sessionId !== parsedSessionId) return;
+      setSelectedTemplate(savedState.templateIndex ?? 0);
+      const src = savedState.photoSource;
+      if (src == null) return;
+      const key = typeof src === "number" ? String(src) : src.uri;
+      setPhotos((prev) =>
+        prev.some((p) => p.key === key)
+          ? prev
+          : [{ key, source: src }, ...prev],
+      );
+      setSelectedPhoto(0);
+    });
+  }, [parsedSessionId]);
 
   useEffect(() => {
     if (trackingPhotos.length > 0) {
@@ -256,9 +261,9 @@ export default function PhotoReportEditScreen() {
       <View style={[styles.bottomBar, { paddingBottom: bottom || 16 }]}>
         <TouchableOpacity
           style={styles.doneBtn}
-          onPress={() => {
+          onPress={async () => {
             const photo = selectedPhoto !== null ? photos[selectedPhoto] : null;
-            setPhotoReportState({
+            await setPhotoReportState({
               sessionId: parsedSessionId,
               photoSource: photo ? photo.source : null,
               templateIndex: selectedTemplate,
