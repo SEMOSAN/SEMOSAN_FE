@@ -1,5 +1,6 @@
 import { queryClient } from "@/lib/query-client";
 import { authState } from "@/store/auth.store";
+import * as Notifications from "expo-notifications";
 import { tokenStorage } from "./tokenStorage";
 
 /**
@@ -10,6 +11,8 @@ import { tokenStorage } from "./tokenStorage";
 export async function endSession(): Promise<void> {
   await tokenStorage.clearTokens();
   queryClient.clear();
+  // 앱 아이콘 뱃지는 로그아웃해도 OS에 남는다
+  await Notifications.setBadgeCountAsync(0).catch(() => {});
   authState.setUnauthenticated();
 }
 

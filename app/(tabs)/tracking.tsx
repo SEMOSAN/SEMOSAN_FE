@@ -1,5 +1,6 @@
 import { LocationIcon } from "@/components/icons/location-icon";
 import { PinMarkerIcon } from "@/components/icons/pin-marker-icon";
+import { colors } from "@/constants/colors";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
@@ -90,9 +91,6 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
   HARD: "고급",
 };
 
-const { colors } = require("../../tokens.cjs") as {
-  colors: Record<string, Record<string, string>>;
-};
 const COLOR_WHITE = colors.common["100"]; // #ffffff
 
 // 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)
@@ -572,6 +570,22 @@ export default function TrackingScreen() {
     [courseDetail?.polyline],
   );
 
+  // 서버 스펙상 세그먼트 필드가 모두 optional이다. 값이 빠진 세그먼트는 그릴 수
+  // 없으므로 미리 걸러내고, 남은 게 없으면 단일 노란 경로로 폴백한다.
+  const validCourseSegments = useMemo(
+    () =>
+      (courseDetail?.segments ?? []).filter(
+        (
+          s,
+        ): s is {
+          startIdx: number;
+          endIdx: number;
+          grade: NonNullable<(typeof s)["grade"]>;
+        } => s.startIdx != null && s.endIdx != null && s.grade != null,
+      ),
+    [courseDetail?.segments],
+  );
+
   // 코스 전체 거리·시간 — 한 출처에서 확정한다.
   // liveActivityCourse와 courseDetail은 서로 다른 쿼리라 도착 순서가 다르고
   // 값의 출처도 달라(polyline 누적 vs 코스 메타), 섞어 쓰면 전체 ≠ 정상 + 하산이 된다.
@@ -817,7 +831,7 @@ export default function TrackingScreen() {
         {/* 코스 경로 — segments 경사 등급별 색상 / 없으면 단일 노란 polyline */}
         {courseCoords.length > 1 && (
           <>
-            {courseDetail?.segments?.length ? (
+            {validCourseSegments.length ? (
               <>
                 {/* 흰색 베이스 — 가장자리 border 역할 */}
                 <NaverMapPathOverlay
@@ -828,7 +842,7 @@ export default function TrackingScreen() {
                   outlineColor={COLOR_WHITE}
                 />
                 {/* 컬러 segments — 베이스 위에 얹어서 가장자리만 흰색으로 보임 */}
-                {mergeShortSegments(courseDetail.segments).map((seg, i) => {
+                {mergeShortSegments(validCourseSegments).map((seg, i) => {
                   const coords = courseCoords.slice(
                     seg.startIdx,
                     seg.endIdx + 1,
@@ -940,7 +954,7 @@ export default function TrackingScreen() {
     ),
     [
       courseCoords,
-      courseDetail?.segments,
+      validCourseSegments,
       isFreeMode,
       recordedCoords,
       isTracking,

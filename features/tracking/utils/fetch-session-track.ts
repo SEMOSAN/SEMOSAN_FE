@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { ENDPOINTS, TrackingSessionTrackResponse } from "@/types/api.generated";
+import { ENDPOINTS, TrackingTrackResponse } from "@/types/api.generated";
 
 export type LatLng = { latitude: number; longitude: number };
 
@@ -33,7 +33,7 @@ export function parseGeoJsonTrack(track?: string): LatLng[] {
  */
 export async function fetchSessionTrack(sessionId: number): Promise<LatLng[]> {
   try {
-    const res = await api.get<TrackingSessionTrackResponse>({
+    const res = await api.get<TrackingTrackResponse>({
       path: ENDPOINTS.TRACKING_SESSIONS_BY_SESSIONID_TRACK(sessionId),
     });
     return parseGeoJsonTrack(res.data?.track);

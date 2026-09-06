@@ -1,5 +1,7 @@
 import * as Sentry from "@sentry/react-native";
 import { api } from "@/lib/api";
+import type { NotificationExtras } from "@/features/notifications/types";
+import { navigateByNotificationType } from "@/features/notifications/utils/navigate-by-notification";
 import { NotificationTestRequest } from "@/types/api.generated";
 import { getApp } from "@react-native-firebase/app";
 import {
@@ -193,36 +195,17 @@ function extractPushData(
   return null;
 }
 
+// 타입별 라우팅 분기는 알림함 셀 탭과 공유한다
 function navigateByType(data: PushData, router: ReturnType<typeof useRouter>) {
-  let extras: { postId?: number | string; actorId?: number | string } = {};
+  let extras: NotificationExtras = {};
   try {
-    extras = data.extras ? JSON.parse(data.extras) : {};
+    // JSON.parse("null")은 null을 돌려주므로 객체인지 확인하고 쓴다
+    const parsed: unknown = data.extras ? JSON.parse(data.extras) : null;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      extras = parsed as NotificationExtras;
+    }
   } catch {
     extras = {};
   }
-  // expo-router typedRoutes 미등록 경로는 as any로 우회
-  const push = (path: string) => router.push(path as any);
-
-  switch (data.type) {
-    case "COMMUNITY_COMMENT":
-    case "COMMUNITY_REPLY":
-    case "COMMUNITY_POST_LIKE":
-      // 자유게시판 게시글 상세 — postId 없으면 이동하지 않음(undefined 경로 방지)
-      if (extras.postId != null) {
-        push(`/community/free-board/${extras.postId}`);
-      }
-      break;
-
-    case "TRACKING_PHOTO_MILESTONE":
-    case "TRACKING_SUMMIT_REACHED":
-      router.push("/(tabs)/tracking");
-      break;
-
-    // SEMOFEED_EMOJI는 개별 글로 이동할 라우트가 없어 이동하지 않는다.
-    // 세모피드는 홈 탭 내부 뷰라 `?tab=feed`로 목록까지만 열 수 있고,
-    // 반응이 달린 글이 목록 첫 페이지에 없으면 사용자가 찾을 수 없다.
-    // (세모피드 단건 조회 및 딥링크 지원 시 여기에 연결)
-    default:
-      break;
-  }
+  navigateByNotificationType(data.type, extras, router);
 }
