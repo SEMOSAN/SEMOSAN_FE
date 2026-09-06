@@ -27,7 +27,8 @@ export async function createTrackingStompClient(
     heartbeatIncoming: 0,
     heartbeatOutgoing: 0,
     reconnectDelay: 5000,
-    debug: (str) => console.log('[STOMP]', str),
+    // 모든 송수신 프레임(GPS publish 포함)이 전달되므로 프로덕션에서는 로깅하지 않음
+    debug: __DEV__ ? (str) => console.log("[STOMP]", str) : () => {},
     onConnect: () => {
       console.log('[STOMP] CONNECTED ✓');
       callbacks?.onConnect?.();
