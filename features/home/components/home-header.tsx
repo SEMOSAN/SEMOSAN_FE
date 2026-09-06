@@ -90,7 +90,7 @@ export function HomeHeader({
                 </Animated.View>
                 {unreadCount > 0 && (
                   <View
-                    className="absolute rounded-full bg-status-negative"
+                    className="absolute rounded-full bg-status-negative-normal"
                     style={{ top: 1, right: 1, width: 6, height: 6 }}
                   />
                 )}
