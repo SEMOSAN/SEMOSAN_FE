@@ -53,6 +53,11 @@ import {
   parseCoursePolyline,
   smoothCourseCoords,
 } from "@/features/tracking/utils/parse-course-polyline";
+import {
+  haversineMeters,
+  shouldAppendCoord,
+  totalPathMeters,
+} from "@/features/tracking/utils/track-path";
 import { fetchSessionTrack } from "@/features/tracking/utils/fetch-session-track";
 import { fetchSessionPhotoCount } from "@/features/tracking/utils/fetch-session-photo-count";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
@@ -114,6 +119,12 @@ const MAX_SPEED_MPS = 30; // 이보다 빠른 이동(≈108km/h)은 비현실적
 // 소켓 GPS 전송 최소 간격 — 경로 기록(2초)보다 낮은 해상도로 충분해 전송량만 줄임
 const MIN_GPS_PUBLISH_INTERVAL_MS = 3000;
 
+// 경로 배열에 좌표를 남길 최소 이동 거리. 정지 중에도 들어오는 좌표까지 모두 쌓으면
+// 장시간 산행에서 배열이 수천 개로 불어나 매 갱신마다 복사·네이티브 전송 비용이 커진다.
+const MIN_RECORD_DISTANCE_M = 10;
+
+const POLYLINE_WIDTH = { colored: 6, base: 10 };
+
 // GPS 응답 전 임시 중심 좌표 (서울시청)
 const FALLBACK_CAMERA = { latitude: 37.5665, longitude: 126.978, zoom: 12 };
 
@@ -123,23 +134,6 @@ const MIN_RECORD_DURATION_SEC = 60;
 // 자유 기록을 산에 귀속시킬 최대 거리 — nearby API는 거리 무관하게 최근접 산을 돌려줌
 // 산 좌표가 정상 기준이라 등산로 입구(정상까지 3~5km)를 감안해 넉넉히 잡음
 const FREE_RECORD_MAX_DISTANCE_M = 5000;
-
-// 두 좌표 간 거리(m) — Haversine
-function haversineMeters(
-  a: { latitude: number; longitude: number },
-  b: { latitude: number; longitude: number },
-): number {
-  const R = 6371000;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(b.latitude - a.latitude);
-  const dLng = toRad(b.longitude - a.longitude);
-  const lat1 = toRad(a.latitude);
-  const lat2 = toRad(b.latitude);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
 
 function mergeShortSegments(
   segments: { startIdx: number; endIdx: number; grade: string }[],
@@ -250,6 +244,11 @@ export default function TrackingScreen() {
     latitude: number;
     longitude: number;
     timestamp: number;
+  } | null>(null);
+  // 경로 배열에 마지막으로 남긴 좌표 — 최소 이동 거리 판정 기준
+  const lastRecordedCoordRef = useRef<{
+    latitude: number;
+    longitude: number;
   } | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
@@ -399,7 +398,19 @@ export default function TrackingScreen() {
 
       setUserLocation({ latitude, longitude, altitude });
       setMarkerCoord({ latitude, longitude });
-      setRecordedCoords((prev) => [...prev, { latitude, longitude }]);
+
+      // 마커는 매 좌표마다 움직이되, 경로는 일정 거리 이상 이동했을 때만 남긴다
+      const coord = { latitude, longitude };
+      if (
+        shouldAppendCoord(
+          lastRecordedCoordRef.current,
+          coord,
+          MIN_RECORD_DISTANCE_M,
+        )
+      ) {
+        lastRecordedCoordRef.current = coord;
+        setRecordedCoords((prev) => [...prev, coord]);
+      }
 
       const sid = sessionIdRef.current;
       if (
@@ -499,6 +510,7 @@ export default function TrackingScreen() {
       lastLocationTsRef.current = 0;
       lastPublishTsRef.current = 0;
       lastAcceptedCoordRef.current = null;
+      lastRecordedCoordRef.current = null;
       setLocationTaskCallback(handleBackgroundLocationUpdate);
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
@@ -749,9 +761,6 @@ export default function TrackingScreen() {
   const { markerRatio, remainingDistanceM, remainingDurationMin } =
     courseProgressState;
 
-  // 줌 레벨에 따른 폴리라인 두께 — 줌아웃 시 얇게, 줌인 시 두껍게
-  const polylineWidth = { colored: 6, base: 10 };
-
   // altitudes 문자열에서 최고 고도(m) 파싱
   const peakAltitudeM = useMemo(() => {
     const raw = courseDetail?.altitudes;
@@ -824,8 +833,8 @@ export default function TrackingScreen() {
         ? `${remainingDistanceM}m`
         : "-";
 
-  // 정적 맵 오버레이 — markerCoord 변경 시 리렌더 방지
-  const staticMapOverlays = useMemo(
+  // 코스 오버레이 — 코스가 바뀔 때만 다시 만든다 (실시간 좌표와 분리)
+  const courseOverlays = useMemo(
     () => (
       <>
         {/* 코스 경로 — segments 경사 등급별 색상 / 없으면 단일 노란 polyline */}
@@ -836,7 +845,7 @@ export default function TrackingScreen() {
                 {/* 흰색 베이스 — 가장자리 border 역할 */}
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={polylineWidth.base}
+                  width={POLYLINE_WIDTH.base}
                   color={COLOR_WHITE}
                   outlineWidth={1}
                   outlineColor={COLOR_WHITE}
@@ -854,7 +863,7 @@ export default function TrackingScreen() {
                     <NaverMapPathOverlay
                       key={i}
                       coords={coords}
-                      width={polylineWidth.colored}
+                      width={POLYLINE_WIDTH.colored}
                       color={color}
                       outlineWidth={1}
                       outlineColor={color}
@@ -866,14 +875,14 @@ export default function TrackingScreen() {
               <>
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={polylineWidth.base}
+                  width={POLYLINE_WIDTH.base}
                   color={COLOR_WHITE}
                   outlineWidth={1}
                   outlineColor={COLOR_WHITE}
                 />
                 <NaverMapPathOverlay
                   coords={courseCoords}
-                  width={polylineWidth.colored}
+                  width={POLYLINE_WIDTH.colored}
                   color="#FFD40D"
                   outlineWidth={1}
                   outlineColor="#FFD40D"
@@ -914,8 +923,15 @@ export default function TrackingScreen() {
             </NaverMapMarkerOverlay>
           </>
         )}
+      </>
+    ),
+    [courseCoords, validCourseSegments],
+  );
 
-        {/* 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커 */}
+  // 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커
+  const recordedPathOverlays = useMemo(
+    () => (
+      <>
         {isFreeMode && recordedCoords.length > 0 && (
           <>
             {recordedCoords.length > 1 && (
@@ -952,14 +968,7 @@ export default function TrackingScreen() {
         )}
       </>
     ),
-    [
-      courseCoords,
-      validCourseSegments,
-      isFreeMode,
-      recordedCoords,
-      isTracking,
-      nearbyData,
-    ],
+    [isFreeMode, recordedCoords, isTracking],
   );
 
   // [DEV] 코스 좌표를 빠르게 publish — 백엔드 마일스톤 트리거 테스트용
@@ -1177,6 +1186,7 @@ export default function TrackingScreen() {
               lastLocationTsRef.current = 0;
               lastPublishTsRef.current = 0;
               lastAcceptedCoordRef.current = null;
+              lastRecordedCoordRef.current = null;
               setLocationTaskCallback(handleBackgroundLocationUpdate);
               startLocationTask().catch((err) => {
                 console.warn("[Location] 백그라운드 위치 시작 실패:", err);
@@ -1508,11 +1518,7 @@ export default function TrackingScreen() {
     if (sessionId == null) return;
 
     // completeTracking이 상태를 초기화하므로 지표는 호출 전에 확정해 둔다
-    const trackedMeters = recordedCoords.reduce(
-      (total, coord, i) =>
-        i === 0 ? 0 : total + haversineMeters(recordedCoords[i - 1], coord),
-      0,
-    );
+    const trackedMeters = totalPathMeters(recordedCoords);
     const finishedParams = {
       tracking_type: isFreeMode ? "free" : "course",
       mountain_name: sessionMountainName,
@@ -1611,6 +1617,7 @@ export default function TrackingScreen() {
     summitPhotoWindowRef.current = null;
     setCollapsed(false);
     setRecordedCoords([]);
+    lastRecordedCoordRef.current = null;
   };
 
   /**
@@ -1657,7 +1664,8 @@ export default function TrackingScreen() {
             }
           }}
         >
-          {staticMapOverlays}
+          {courseOverlays}
+          {recordedPathOverlays}
 
           {/* 현재 사용자 위치 마커 — 삼각형(11×9) + 원(28×28), 삼각형이 원 위에 겹침 */}
           {markerCoord && isTracking && (
