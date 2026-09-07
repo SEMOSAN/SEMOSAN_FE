@@ -1,15 +1,15 @@
 import { CameraIcon } from '@/components/icons/camera-icon';
-import { useState } from 'react';
+import { useState, type RefObject } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
-import { TRACKING_TIMER_STYLE, formatElapsedTime } from '../constants';
+import { ElapsedTime } from './elapsed-time';
 
 const TOOLTIP_BG = '#2F323A'; // fill-heavy
 const TOOLTIP_TAIL_OVERLAP = 10;
 
 type Props = {
-  elapsedSeconds: number;
+  elapsedSecondsRef: RefObject<number>;
   isPaused: boolean;
   showTooltip: boolean;
   /** 자유기록 모드 — true이면 토글 화살표·펼침 섹션 숨김 */
@@ -31,7 +31,7 @@ type Props = {
 };
 
 export function TrackingSheet({
-  elapsedSeconds,
+  elapsedSecondsRef,
   isPaused,
   showTooltip,
   isFreeMode = false,
@@ -87,9 +87,7 @@ export function TrackingSheet({
       {/* 등산 시간 + 타이머 */}
       <View className="items-center py-3">
         <Text className="typo-caption-1-medium text-label-subtler">등산 시간</Text>
-        <Text className="text-label-normal" style={TRACKING_TIMER_STYLE}>
-          {formatElapsedTime(elapsedSeconds)}
-        </Text>
+        <ElapsedTime secondsRef={elapsedSecondsRef} running={!isPaused} />
       </View>
 
       {/* 펼침 상태 — 정상/하산까지 시간 & 거리 (자유기록 제외) */}

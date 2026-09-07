@@ -171,7 +171,8 @@ export default function TrackingScreen() {
   const [isTracking, setIsTracking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isFreeMode, setIsFreeMode] = useState(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // state로 두면 매초 화면 전체가 리렌더된다. 표시는 ElapsedTime이 자기만 다시 그린다
+  const elapsedSecondsRef = useRef(0);
   const [showTooltip, setShowTooltip] = useState(true);
   const [showSummitSheet, setShowSummitSheet] = useState(false);
   // 복원된 세션의 산 이름 — 서버가 준 값이 현재 위치 기반 추정보다 정확하다
@@ -549,7 +550,7 @@ export default function TrackingScreen() {
       // 강제 종료 후 재진입 시 경과 시간을 서버 기준으로 복원 (0으로 초기화 방지)
       // 등산 시간 = (기준 시각 - 시작 시각) - 누적 일시정지 시간
       //   IN_PROGRESS: 기준 시각 = 현재, PAUSED: 기준 시각 = 일시정지 시각(시간 정지)
-      setElapsedSeconds(() => {
+      elapsedSecondsRef.current = (() => {
         const startedMs = activeSession.startedAt
           ? new Date(activeSession.startedAt).getTime()
           : NaN;
@@ -564,7 +565,7 @@ export default function TrackingScreen() {
           0,
           Math.floor((refMs - startedMs) / 1000) - pausedTotal,
         );
-      });
+      })();
     }
   }, [activeSession]);
 
@@ -1254,7 +1255,9 @@ export default function TrackingScreen() {
   // 트래킹 중 경과 시간 카운트업 (일시정지 시 멈춤)
   useEffect(() => {
     if (!isTracking || isPaused) return;
-    const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
+    const interval = setInterval(() => {
+      elapsedSecondsRef.current += 1;
+    }, 1000);
     return () => clearInterval(interval);
   }, [isTracking, isPaused]);
 
@@ -1269,7 +1272,7 @@ export default function TrackingScreen() {
           const diffSeconds = Math.floor(
             (Date.now() - backgroundedAtRef.current) / 1000,
           );
-          setElapsedSeconds((s) => s + diffSeconds);
+          elapsedSecondsRef.current += diffSeconds;
           backgroundedAtRef.current = null;
         }
       },
@@ -1277,11 +1280,12 @@ export default function TrackingScreen() {
     ),
   );
 
-  // 매 초 Live Activity 업데이트
+  // Live Activity 업데이트 — 타이머는 timerStartEpoch로 위젯이 직접 굴리므로 매 초 보낼 필요가 없다
   useEffect(() => {
     if (!isTracking) return;
 
     if (isLiveActivityEnabled) {
+      const elapsedSeconds = elapsedSecondsRef.current;
       // 실행 중일 때 가상 시작 시각 계산 (위젯 네이티브 타이머용)
       const timerStartEpoch = !isPaused
         ? Date.now() - elapsedSeconds * 1000
@@ -1337,7 +1341,7 @@ export default function TrackingScreen() {
       }
     }
   }, [
-    elapsedSeconds,
+    isTracking,
     isPaused,
     isFreeMode,
     selectedCourse,
@@ -1399,7 +1403,7 @@ export default function TrackingScreen() {
               (Date.now() - backgroundedAtRef.current) / 1000,
             );
             backgroundedAtRef.current = null;
-            setElapsedSeconds((s) => s + diff);
+            elapsedSecondsRef.current += diff;
           }
           pauseTrackingRef.current();
         } else if (action === "resume") {
@@ -1524,7 +1528,7 @@ export default function TrackingScreen() {
       mountain_name: sessionMountainName,
       course_name: isFreeMode ? "" : selectedCourse.name,
       distance_km: Number((trackedMeters / 1000).toFixed(2)),
-      duration_min: Math.round(elapsedSeconds / 60),
+      duration_min: Math.round(elapsedSecondsRef.current / 60),
     };
 
     completeSession(
@@ -1547,7 +1551,8 @@ export default function TrackingScreen() {
     setShowStopModal(false);
 
     // complete는 등산 기록을 생성하므로 짧은 세션은 abandon으로 폐기
-    const tooShortToRecord = elapsedSeconds < MIN_RECORD_DURATION_SEC;
+    const tooShortToRecord =
+      elapsedSecondsRef.current < MIN_RECORD_DURATION_SEC;
 
     // 기록이 남지 않으므로 이름 입력·난이도 평가 단계도 건너뛴다
     if (tooShortToRecord) {
@@ -1604,7 +1609,7 @@ export default function TrackingScreen() {
     setIsTracking(false);
     setIsPaused(false);
     setIsFreeMode(false);
-    setElapsedSeconds(0);
+    elapsedSecondsRef.current = 0;
     setShowTooltip(true);
     setShowSummitSheet(false);
     setHasSummited(false);
@@ -1812,7 +1817,7 @@ export default function TrackingScreen() {
             />
           ) : (
             <TrackingSheet
-              elapsedSeconds={elapsedSeconds}
+              elapsedSecondsRef={elapsedSecondsRef}
               isPaused={isPaused}
               showTooltip={showTooltip}
               isFreeMode={isFreeMode}
