@@ -55,6 +55,12 @@ function onAppStateChange(status: AppStateStatus) {
     focusManager.setFocused(status === "active");
   }
 }
+// 개발 빌드에서만 마운트해 프로덕션에서 DevTools 훅이 실행되지 않도록 한다
+function ReactQueryDevTools(): null {
+  useReactQueryDevTools(queryClient);
+  return null;
+}
+
 export const unstable_settings = {
   anchor: "(tabs)",
 };
@@ -67,8 +73,6 @@ function RootLayout(): React.JSX.Element | null {
     "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
     Lexend_700Bold,
   });
-
-  useReactQueryDevTools(queryClient);
 
   useOnlineManager();
 
@@ -170,6 +174,7 @@ function RootLayout(): React.JSX.Element | null {
               options={{ headerShown: false }}
             />
           </Stack>
+          {__DEV__ && <ReactQueryDevTools />}
           {authStatus === "unauthenticated" && <Redirect href="/login" />}
           {authStatus === "needsOnboarding" && (
             <Redirect href="/onboarding" />
