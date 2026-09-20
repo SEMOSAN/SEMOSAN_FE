@@ -20,10 +20,38 @@ const OPTIONS: {
   key: Comparison;
   label: string;
   Icon: React.ComponentType<{ size?: number; color?: string }>;
+  color: string;
+  borderClass: string;
+  bgClass: string;
+  textClass: string;
 }[] = [
-  { key: "EASIER", label: "쉬워요", Icon: FaceHappyIcon },
-  { key: "SIMILAR", label: "비슷해요", Icon: FaceNeutralIcon },
-  { key: "HARDER", label: "어려워요", Icon: FaceSadIcon },
+  {
+    key: "EASIER",
+    label: "쉬워요",
+    Icon: FaceHappyIcon,
+    color: "#16A34A",
+    borderClass: "border-secondary-strong",
+    bgClass: "bg-green-50",
+    textClass: "text-secondary-strong",
+  },
+  {
+    key: "SIMILAR",
+    label: "비슷해요",
+    Icon: FaceNeutralIcon,
+    color: "#CA8A04",
+    borderClass: "border-yellow-600",
+    bgClass: "bg-yellow-50",
+    textClass: "text-yellow-600",
+  },
+  {
+    key: "HARDER",
+    label: "어려워요",
+    Icon: FaceSadIcon,
+    color: "#FF5249",
+    borderClass: "border-red-500",
+    bgClass: "bg-red-50",
+    textClass: "text-red-500",
+  },
 ];
 
 export function RecordDifficultyBottomSheet({
@@ -64,29 +92,33 @@ export function RecordDifficultyBottomSheet({
         </View>
 
         <View className="flex-row justify-center gap-4 py-5">
-          {OPTIONS.map(({ key, label, Icon }) => {
-            const isSelected = selected === key;
-            return (
-              <TouchableOpacity
-                key={key}
-                className={`size-[80px] items-center justify-center gap-1 rounded-[10px] border p-3 ${
-                  isSelected ? "border-label-normal" : "border-line-normal"
-                }`}
-                style={{ borderWidth: isSelected ? 1.5 : 1 }}
-                activeOpacity={0.7}
-                onPress={() => setSelected(key)}
-              >
-                <Icon size={28} color={isSelected ? "#1A1B1F" : "#464A57"} />
-                <Text
-                  className={`typo-body-2-normal-semi-bold ${
-                    isSelected ? "text-label-normal" : "text-label-subtle"
+          {OPTIONS.map(
+            ({ key, label, Icon, color, borderClass, bgClass, textClass }) => {
+              const isSelected = selected === key;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  className={`size-[80px] items-center justify-center gap-1 rounded-[10px] border p-3 ${
+                    isSelected
+                      ? `${borderClass} ${bgClass}`
+                      : "border-line-normal"
                   }`}
+                  style={{ borderWidth: isSelected ? 1.5 : 1 }}
+                  activeOpacity={0.7}
+                  onPress={() => setSelected(key)}
                 >
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+                  <Icon size={28} color={isSelected ? color : "#464A57"} />
+                  <Text
+                    className={`typo-body-2-normal-semi-bold ${
+                      isSelected ? textClass : "text-label-subtle"
+                    }`}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            },
+          )}
         </View>
       </View>
 
