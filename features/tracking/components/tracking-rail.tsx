@@ -91,13 +91,8 @@ export function TrackingRail({
         return (
           <View
             key={i}
-            className="items-center justify-center rounded-xl bg-fill-normal"
-            style={{
-              width: BUTTON_SIZE,
-              height: BUTTON_SIZE,
-              opacity: isFilled ? 1 : 0.4,
-              ...SHADOW,
-            }}
+            className="items-center justify-center rounded-xl bg-fill-stronger"
+            style={{ width: BUTTON_SIZE, height: BUTTON_SIZE, ...SHADOW }}
             accessibilityLabel={`인증 사진 ${i + 1} ${isFilled ? "촬영함" : "미촬영"}`}
           >
             <MountainPeaksIcon
