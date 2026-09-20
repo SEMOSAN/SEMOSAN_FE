@@ -1,5 +1,5 @@
 import { CameraIcon } from "@/components/icons/camera-icon";
-import { MountainPeaksIcon } from "@/components/icons/mountain-peaks-icon";
+import { SemosanMarkIcon } from "@/components/icons/semosan-mark-icon";
 import { colors } from "@/constants/colors";
 import { Text, TouchableOpacity, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
@@ -95,9 +95,13 @@ export function TrackingRail({
             style={{ width: BUTTON_SIZE, height: BUTTON_SIZE, ...SHADOW }}
             accessibilityLabel={`인증 사진 ${i + 1} ${isFilled ? "촬영함" : "미촬영"}`}
           >
-            <MountainPeaksIcon
-              size={24}
-              color={isFilled ? colors.secondary.normal : colors.label.disabled}
+            <SemosanMarkIcon
+              width={22}
+              color={
+                isFilled
+                  ? colors.secondary.normal
+                  : colors.label["subtler-inverse"]
+              }
             />
           </View>
         );
