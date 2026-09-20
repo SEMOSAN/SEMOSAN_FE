@@ -69,7 +69,7 @@ export function RecordDifficultyBottomSheet({
             return (
               <TouchableOpacity
                 key={key}
-                className={`h-20 w-20 items-center justify-center gap-1 rounded-[10px] border ${
+                className={`size-[80px] items-center justify-center gap-1 rounded-[10px] border p-3 ${
                   isSelected ? "border-label-normal" : "border-line-normal"
                 }`}
                 style={{ borderWidth: isSelected ? 1.5 : 1 }}
