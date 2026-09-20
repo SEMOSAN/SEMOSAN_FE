@@ -59,7 +59,7 @@ function CardShell({ selected, onPress, children, width }: CardShellProps) {
       onPress={onPress}
       activeOpacity={0.85}
       className={`justify-center rounded-2xl border-2 bg-fill-normal ${
-        selected ? "border-primary-normal" : "border-transparent"
+        selected ? "border-secondary-normal" : "border-transparent"
       }`}
       style={{ height: CARD_HEIGHT, width, ...SHADOW }}
     >
@@ -184,7 +184,7 @@ export function CourseCarousel({
       <View className="px-4" style={{ paddingBottom: CTA_PADDING_BOTTOM }}>
         <TouchableOpacity
           className={`flex-row items-center justify-center gap-2 rounded-xl ${
-            canStart ? "bg-primary-normal" : "bg-fill-neutral"
+            canStart ? "bg-secondary-normal" : "bg-fill-neutral"
           }`}
           style={{ height: CTA_HEIGHT }}
           onPress={onStart}
