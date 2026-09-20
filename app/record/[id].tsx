@@ -18,6 +18,7 @@ import { CliveBottomBar } from "@/components/clive-bottom-bar";
 import { CheckCircleIcon } from "@/components/icons/check-circle-icon";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { MountainFlagBadgeIcon } from "@/components/icons/mountain-flag-badge-icon";
+import { MountainMarkerBadgeIcon } from "@/components/icons/mountain-marker-badge-icon";
 import { PencilSimpleIcon } from "@/components/icons/pencil-simple-icon";
 import { XIcon } from "@/components/icons/x-icon";
 import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
@@ -32,8 +33,14 @@ import {
   setRecordSemoFeedState,
 } from "@/features/home/record-semofeed-storage";
 import { getRecordTitle, setRecordTitle } from "@/features/home/record-title-storage";
+import {
+  getHasSeenDifficultyPrompt,
+  markDifficultyPromptSeen,
+} from "@/features/home/record-difficulty-seen-storage";
 import { CourseNameInputModal } from "@/features/tracking/components/course-name-input-modal";
+import { RecordDifficultyBottomSheet } from "@/features/tracking/components/record-difficulty-bottom-sheet";
 import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
+import { useSaveDifficultyFeedback } from "@/features/tracking/hooks/use-save-difficulty-feedback";
 import { uploadImage } from "@/hooks/use-upload-image";
 import { api } from "@/lib/api";
 import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
@@ -126,6 +133,7 @@ export default function RecordScreen() {
   const queryClient = useQueryClient();
   const { mutateAsync: togglePublicMutateAsync, isPending: isToggling } =
     useToggleSemofeedPublic();
+  const { mutate: saveDifficultyFeedback } = useSaveDifficultyFeedback();
   const { top } = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<RecordTab>("클라이브");
   const [showSaveToast, setShowSaveToast] = useState(false);
@@ -169,6 +177,8 @@ export default function RecordScreen() {
   const [photoReportTemplate, setPhotoReportTemplate] = useState(0);
   const [titleOverride, setTitleOverride] = useState<string | null>(null);
   const [showTitleModal, setShowTitleModal] = useState(false);
+  const [showDifficultySheet, setShowDifficultySheet] = useState(false);
+  const [hasSeenDifficultyPrompt, setHasSeenDifficultyPrompt] = useState(true);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const publicTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const privateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -252,6 +262,19 @@ export default function RecordScreen() {
     }, [sessionId]),
   );
 
+  // 난이도 체감 바텀시트를 이 기록에서 이미 봤는지 확인 — 최초 조회 때만 노출
+  useEffect(() => {
+    if (hikingRecordIdNum == null) return;
+    let cancelled = false;
+    getHasSeenDifficultyPrompt(hikingRecordIdNum).then((seen) => {
+      if (cancelled) return;
+      setHasSeenDifficultyPrompt(seen);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [hikingRecordIdNum]);
+
   // 제목을 수정하는 백엔드 API가 없어, 이 기기에 저장해둔 제목을 복원
   useEffect(() => {
     if (sessionId == null) return;
@@ -325,6 +348,36 @@ export default function RecordScreen() {
       if (sessionId != null) await setRecordTitle(sessionId, trimmed);
     }
     setShowTitleModal(false);
+  };
+
+  const handleClosePress = () => {
+    if (hikingRecordIdNum != null && !hasSeenDifficultyPrompt) {
+      setShowDifficultySheet(true);
+      return;
+    }
+    router.back();
+  };
+
+  const finishDifficultyPrompt = () => {
+    if (hikingRecordIdNum != null) markDifficultyPromptSeen(hikingRecordIdNum);
+    setHasSeenDifficultyPrompt(true);
+    setShowDifficultySheet(false);
+    router.back();
+  };
+
+  const handleDifficultySave = (
+    comparison: "SIMILAR" | "EASIER" | "HARDER" | null,
+  ) => {
+    if (hikingRecordIdNum != null && comparison != null) {
+      saveDifficultyFeedback(
+        { hikingRecordId: hikingRecordIdNum, comparison },
+        {
+          onError: (err) =>
+            console.warn("[Record] 난이도 피드백 저장 실패:", err),
+        },
+      );
+    }
+    finishDifficultyPrompt();
   };
 
   const handleSavePress = async () => {
@@ -406,16 +459,14 @@ export default function RecordScreen() {
           <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
             <ChevronLeftIcon size={24} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+          <TouchableOpacity onPress={handleClosePress} hitSlop={8}>
             <XIcon size={24} />
           </TouchableOpacity>
         </View>
 
         {/* 산 이름 */}
         <View className="flex-row items-center gap-2 px-5 pb-2">
-          <View style={styles.mountainIconCircle}>
-            <View style={styles.mountainIconInner} />
-          </View>
+          <MountainMarkerBadgeIcon size={20} />
           <Text className="text-label-normal typo-body-1-normal-semi-bold">
             {name ?? "관악산"}
           </Text>
@@ -443,6 +494,14 @@ export default function RecordScreen() {
         initialValue={displayTitle}
         onSubmit={handleTitleSubmit}
         onDismiss={() => setShowTitleModal(false)}
+      />
+
+      <RecordDifficultyBottomSheet
+        visible={showDifficultySheet}
+        mountainName={name ?? "관악산"}
+        courseName={courseName}
+        onDismiss={finishDifficultyPrompt}
+        onSave={handleDifficultySave}
       />
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -942,19 +1001,6 @@ export default function RecordScreen() {
 }
 
 const styles = StyleSheet.create({
-  mountainIconCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 999,
-    backgroundColor: "#00D864",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  mountainIconInner: {
-    width: 12,
-    height: 8,
-    backgroundColor: "#DCFCE7",
-  },
   distanceNumber: {
     fontFamily: "Lexend_700Bold",
     fontSize: 60,
