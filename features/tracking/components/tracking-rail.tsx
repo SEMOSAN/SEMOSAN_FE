@@ -91,7 +91,7 @@ export function TrackingRail({
         return (
           <View
             key={i}
-            className="items-center justify-center rounded-xl bg-fill-stronger"
+            className="items-center justify-center rounded-xl border-2 border-label-normal-inverse bg-fill-stronger"
             style={{ width: BUTTON_SIZE, height: BUTTON_SIZE, ...SHADOW }}
             accessibilityLabel={`인증 사진 ${i + 1} ${isFilled ? "촬영함" : "미촬영"}`}
           >
