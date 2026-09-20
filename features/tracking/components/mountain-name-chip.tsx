@@ -1,5 +1,4 @@
-import { MountainIcon } from "@/components/icons/mountain-icon";
-import { colors } from "@/constants/colors";
+import { MountainPeaksIcon } from "@/components/icons/mountain-peaks-icon";
 import { Text, View, ViewStyle } from "react-native";
 import { SHADOW } from "../constants";
 
@@ -16,7 +15,7 @@ export function MountainNameChip({ name, style }: Props) {
       className="absolute right-4 flex-row items-center gap-1.5 rounded-full bg-fill-normal py-2 pl-3 pr-3.5"
       style={[SHADOW, style]}
     >
-      <MountainIcon size={18} color={colors.secondary.normal} />
+      <MountainPeaksIcon size={20} />
       <Text className="typo-label-normal text-label-normal">{name}</Text>
     </View>
   );
