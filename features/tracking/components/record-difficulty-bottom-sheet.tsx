@@ -70,8 +70,8 @@ export function RecordDifficultyBottomSheet({
 
   return (
     <ModalSheet visible={visible} onDismiss={onDismiss}>
-      <View className="gap-4 px-5 pt-1">
-        <View className="gap-2">
+      <View className="gap-6 px-5 pt-4">
+        <View className="gap-3">
           <View className="flex-row items-center gap-2">
             <MountainMarkerBadgeIcon size={20} />
             <Text className="text-label-normal typo-body-1-normal-semi-bold">
@@ -91,7 +91,7 @@ export function RecordDifficultyBottomSheet({
           </Text>
         </View>
 
-        <View className="flex-row justify-center gap-4 py-5">
+        <View className="flex-row justify-center gap-4 py-9">
           {OPTIONS.map(
             ({ key, label, Icon, color, borderClass, bgClass, textClass }) => {
               const isSelected = selected === key;
@@ -122,7 +122,7 @@ export function RecordDifficultyBottomSheet({
         </View>
       </View>
 
-      <View className="px-4 pb-4 pt-5">
+      <View className="px-4 pb-6 pt-8">
         <TouchableOpacity
           className="h-12 items-center justify-center rounded-[10px] bg-primary-normal"
           activeOpacity={0.8}
