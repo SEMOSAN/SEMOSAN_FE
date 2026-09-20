@@ -17,6 +17,7 @@ import {
 import { CliveBottomBar } from "@/components/clive-bottom-bar";
 import { CheckCircleIcon } from "@/components/icons/check-circle-icon";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
+import { MountainFlagBadgeIcon } from "@/components/icons/mountain-flag-badge-icon";
 import { PencilSimpleIcon } from "@/components/icons/pencil-simple-icon";
 import { XIcon } from "@/components/icons/x-icon";
 import { useHikingRecordDetail } from "@/features/home/hooks/use-hiking-record-detail";
@@ -30,6 +31,8 @@ import {
   getRecordSemoFeedState,
   setRecordSemoFeedState,
 } from "@/features/home/record-semofeed-storage";
+import { getRecordTitle, setRecordTitle } from "@/features/home/record-title-storage";
+import { CourseNameInputModal } from "@/features/tracking/components/course-name-input-modal";
 import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
 import { uploadImage } from "@/hooks/use-upload-image";
 import { api } from "@/lib/api";
@@ -37,7 +40,6 @@ import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
 import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { Image as ExpoImage, Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import * as MediaLibrary from "expo-media-library";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -60,6 +62,7 @@ import Svg, {
 import ViewShot from "react-native-view-shot";
 const ALTITUDE_LABELS = ["400m", "800m", "1200m", "1600m"];
 const CLIVE_CARD_HEIGHT = 596;
+const MAX_CLIVE_PHOTOS = 3;
 const DAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
 
 function parseTrack(track?: string): { latitude: number; longitude: number }[] {
@@ -164,6 +167,8 @@ export default function RecordScreen() {
     number | { uri: string } | null
   >(null);
   const [photoReportTemplate, setPhotoReportTemplate] = useState(0);
+  const [titleOverride, setTitleOverride] = useState<string | null>(null);
+  const [showTitleModal, setShowTitleModal] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const publicTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const privateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -177,7 +182,7 @@ export default function RecordScreen() {
       : distance
         ? parseFloat(distance) / 1000
         : null;
-  const displayPhotos = [...clivePhotos].reverse();
+  const displayPhotos = [...clivePhotos].slice(-MAX_CLIVE_PHOTOS).reverse();
   const cliveShotRef = useRef<ViewShot | null>(null);
   const photoReportShotRef = useRef<ViewShot | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
@@ -188,6 +193,7 @@ export default function RecordScreen() {
       ? displayPhotos.length > 0
       : photoReportSource != null;
   const trackCoords = parseTrack(recordDetail?.track);
+  const displayTitle = titleOverride ?? recordDetail?.recordName ?? courseName ?? "";
 
   const captureCard = async (tab: RecordTab) => {
     const targetRef = tab === "클라이브" ? cliveShotRef : photoReportShotRef;
@@ -246,6 +252,19 @@ export default function RecordScreen() {
     }, [sessionId]),
   );
 
+  // 제목을 수정하는 백엔드 API가 없어, 이 기기에 저장해둔 제목을 복원
+  useEffect(() => {
+    if (sessionId == null) return;
+    let cancelled = false;
+    getRecordTitle(sessionId).then((saved) => {
+      if (cancelled || saved == null) return;
+      setTitleOverride(saved);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
   // 세모피드 게시/공개 상태 조회 API가 없어, 이 기기에 저장해둔 상태를 복원
   useEffect(() => {
     if (sessionId == null) return;
@@ -298,6 +317,15 @@ export default function RecordScreen() {
       if (privateTimerRef.current) clearTimeout(privateTimerRef.current);
     };
   }, []);
+
+  const handleTitleSubmit = async (nextTitle: string) => {
+    const trimmed = nextTitle.trim();
+    if (trimmed) {
+      setTitleOverride(trimmed);
+      if (sessionId != null) await setRecordTitle(sessionId, trimmed);
+    }
+    setShowTitleModal(false);
+  };
 
   const handleSavePress = async () => {
     if (!canShareActiveTab) return;
@@ -383,22 +411,39 @@ export default function RecordScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 산 이름 + 코스명 */}
-        <View className="flex-row items-center gap-2 px-5 pb-3">
+        {/* 산 이름 */}
+        <View className="flex-row items-center gap-2 px-5 pb-2">
           <View style={styles.mountainIconCircle}>
             <View style={styles.mountainIconInner} />
           </View>
           <Text className="text-label-normal typo-body-1-normal-semi-bold">
             {name ?? "관악산"}
           </Text>
+        </View>
+
+        {/* 기록 제목 — 연필을 누르면 새로 지을 수 있다 */}
+        <View className="h-12 flex-row items-center gap-2 border-b border-fill-strongest px-5">
           <Text
-            className="text-label-subtle typo-body-1-normal-medium"
+            className="flex-1 text-label-subtle typo-heading-1-medium"
             numberOfLines={1}
           >
-            {courseName ?? ""}
+            {displayTitle}
           </Text>
+          <TouchableOpacity
+            onPress={() => setShowTitleModal(true)}
+            hitSlop={8}
+          >
+            <PencilSimpleIcon size={20} color="#464A57" />
+          </TouchableOpacity>
         </View>
       </View>
+
+      <CourseNameInputModal
+        visible={showTitleModal}
+        initialValue={displayTitle}
+        onSubmit={handleTitleSubmit}
+        onDismiss={() => setShowTitleModal(false)}
+      />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* 거리 */}
@@ -545,15 +590,6 @@ export default function RecordScreen() {
               style={{ width: 335, alignSelf: "center" }}
             >
               <View style={styles.cardWrap}>
-                {/* 왼쪽 그라디언트 바 — 정상 완료: 빨강까지 full */}
-                <LinearGradient
-                  colors={["#507EF4", "#4ADE80", "#FFD40D", "#FF5249"]}
-                  locations={[0, 0.33, 0.66, 1]}
-                  start={{ x: 0, y: 1 }}
-                  end={{ x: 0, y: 0 }}
-                  style={styles.gradientBar}
-                />
-
                 {displayPhotos.length > 0 ? (
                   (() => {
                     const photoHeight =
@@ -674,34 +710,21 @@ export default function RecordScreen() {
                                 height: photoHeight,
                               }}
                             >
-                              {isSummit ? (
-                                <View
-                                  style={[
-                                    StyleSheet.absoluteFill,
-                                    styles.stampSummitContainer,
-                                  ]}
-                                >
-                                  <View style={styles.summitBadge}>
-                                    <Text style={styles.summitBadgeText}>
-                                      정상
-                                    </Text>
-                                  </View>
+                              <View
+                                style={[
+                                  StyleSheet.absoluteFill,
+                                  styles.stampCenterContainer,
+                                ]}
+                              >
+                                <View style={styles.altitudeRow}>
                                   <Text style={styles.altitudeText}>
                                     {altitudeLabel}
                                   </Text>
+                                  {isSummit && (
+                                    <MountainFlagBadgeIcon size={20} />
+                                  )}
                                 </View>
-                              ) : (
-                                <View
-                                  style={[
-                                    StyleSheet.absoluteFill,
-                                    styles.stampCenterContainer,
-                                  ]}
-                                >
-                                  <Text style={styles.altitudeText}>
-                                    {altitudeLabel}
-                                  </Text>
-                                </View>
-                              )}
+                              </View>
                             </View>
                           );
                         })}
@@ -1035,39 +1058,18 @@ const styles = StyleSheet.create({
     position: "relative",
     backgroundColor: "transparent",
   },
-  gradientBar: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 6,
-    zIndex: 2,
-  },
   cardImage: {
     width: "100%",
     height: "100%",
-  },
-  stampSummitContainer: {
-    justifyContent: "flex-end",
-    paddingLeft: 24,
-    paddingBottom: 42,
-    gap: 4,
   },
   stampCenterContainer: {
     justifyContent: "center",
     paddingLeft: 24,
   },
-  summitBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(0,0,0,0.3)",
-    borderRadius: 11,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  summitBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
+  altitudeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
   altitudeText: {
     color: "#FFFFFF",
