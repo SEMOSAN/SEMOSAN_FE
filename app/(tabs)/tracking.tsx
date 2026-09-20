@@ -22,8 +22,8 @@ import { NoNearbyMountainModal } from "@/features/tracking/components/no-nearby-
 import { PhotoWindowBanner } from "@/features/tracking/components/photo-window-banner";
 import { StopConfirmModal } from "@/features/tracking/components/stop-confirm-modal";
 import { SummitSheet } from "@/features/tracking/components/summit-sheet";
-import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
-import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
+import { TrackingStatusCard } from "@/features/tracking/components/tracking-status-card";
+import { TrackingRail } from "@/features/tracking/components/tracking-rail";
 import {
   Course,
   Difficulty,
@@ -670,7 +670,7 @@ export default function TrackingScreen() {
     liveActivityCourse?.estimatedTime ?? courseDetail?.duration ?? 0,
   );
 
-  // 정상까지 거리·시간 (courseProgressState useMemo보다 먼저 선언).
+  // 정상까지 거리.
   // 서버 값을 우선 쓴다 — 마일스톤 푸시가 오는 지점과 같은 값이라 화면 표시와
   // 알림 시점이 일치한다. 정상 좌표가 없어 서버가 계산하지 못한 코스는
   // "같은 출처"의 절반으로 폴백한다. courseDetail 기준으로 폴백하면
@@ -678,150 +678,9 @@ export default function TrackingScreen() {
   const summitDistanceM = Math.round(
     liveActivityCourse?.summitDistance ?? courseTotalDistanceM / 2,
   );
-  const summitDurationMinutes = Math.round(
-    liveActivityCourse?.summitEstimatedTime ?? courseTotalDurationMin / 2,
-  );
 
   // 하산 구간 = 코스 전체 − 정상까지
   const descentDistanceM = Math.max(0, courseTotalDistanceM - summitDistanceM);
-  const descentDurationMinutes = Math.max(
-    0,
-    courseTotalDurationMin - summitDurationMinutes,
-  );
-
-  // 코스 진행 상태 — GPS 기반 실시간 (markerRatio + 남은 거리/시간 통합)
-  const courseProgressState = useMemo(() => {
-    // ── 1순위: liveActivityCourse + Haversine 실측 거리 계산 ──────────────
-    if (
-      liveActivityCourse &&
-      userLocation &&
-      liveActivityCourse.totalDistance > 0
-    ) {
-      const result = calcCourseProgress(
-        userLocation,
-        liveActivityCourse.coordinates,
-        liveActivityCourse.totalDistance,
-      );
-      // 분/m 페이스 (전체 코스 기준 일정 속도 가정)
-      const paceMinPerM =
-        liveActivityCourse.estimatedTime / liveActivityCourse.totalDistance;
-      const traveledM =
-        liveActivityCourse.totalDistance - result.remainingMeters;
-
-      if (hasSummited) {
-        // 하산 중: 코스 끝까지 남은 거리/시간.
-        // 시간은 하산 구간 페이스로 환산한다 — 전체 페이스는 오르막이 섞여 있어
-        // 하산에 적용하면 과대 추정된다.
-        const descentPaceMinPerM =
-          descentDistanceM > 0
-            ? descentDurationMinutes / descentDistanceM
-            : paceMinPerM;
-        return {
-          markerRatio: 0.0,
-          remainingDistanceM: Math.round(result.remainingMeters),
-          remainingDurationMin: Math.round(
-            result.remainingMeters * descentPaceMinPerM,
-          ),
-        };
-      }
-
-      // 등산 중: 정상까지 남은 거리/시간
-      const summitDistance =
-        liveActivityCourse.summitDistance ??
-        liveActivityCourse.totalDistance / 2;
-      const remainingToSummitM = Math.max(0, summitDistance - traveledM);
-      const ascProgress =
-        summitDistance > 0 ? Math.min(traveledM / summitDistance, 1) : 0; // 0(출발) ~ 1(정상)
-      // 정상까지 시간도 서버 값이 있으면 그 비율로 — 전체 페이스 배분보다 정확하다
-      const remainingToSummitMin =
-        liveActivityCourse.summitEstimatedTime != null
-          ? liveActivityCourse.summitEstimatedTime * (1 - ascProgress)
-          : remainingToSummitM * paceMinPerM;
-      return {
-        markerRatio: Math.max(0, 1.0 - ascProgress), // 1.0(바 하단/출발) ~ 0.0(바 상단/정상)
-        remainingDistanceM: Math.round(remainingToSummitM),
-        remainingDurationMin: Math.round(remainingToSummitMin),
-      };
-    }
-
-    // ── 2순위 폴백: 인덱스 기반 선형 보간 (liveActivityCourse 로딩 전) ──
-    const summitIdx = Math.floor(courseCoords.length / 2);
-    const totalIdx = courseCoords.length - 1;
-
-    if (hasSummited) {
-      if (!markerCoord || courseCoords.length < 2) {
-        return {
-          markerRatio: 0.0,
-          remainingDistanceM: descentDistanceM,
-          remainingDurationMin: descentDurationMinutes,
-        };
-      }
-      let closestIdx = summitIdx;
-      let minDist = Infinity;
-      for (let i = summitIdx; i <= totalIdx; i++) {
-        const dLat = courseCoords[i].latitude - markerCoord.latitude;
-        const dLng = courseCoords[i].longitude - markerCoord.longitude;
-        const dist = dLat * dLat + dLng * dLng;
-        if (dist < minDist) {
-          minDist = dist;
-          closestIdx = i;
-        }
-      }
-      const descentTotal = totalIdx - summitIdx;
-      const ratio =
-        descentTotal > 0
-          ? Math.max(
-              0,
-              Math.min(1, 1 - (closestIdx - summitIdx) / descentTotal),
-            )
-          : 0;
-      return {
-        markerRatio: 0.0,
-        remainingDistanceM: Math.round(descentDistanceM * ratio),
-        remainingDurationMin: Math.round(descentDurationMinutes * ratio),
-      };
-    }
-
-    if (!markerCoord || courseCoords.length < 2) {
-      return {
-        markerRatio: 1.0,
-        remainingDistanceM: summitDistanceM,
-        remainingDurationMin: summitDurationMinutes,
-      };
-    }
-
-    let closestIdx = 0;
-    let minDist = Infinity;
-    for (let i = 0; i <= summitIdx; i++) {
-      const dLat = courseCoords[i].latitude - markerCoord.latitude;
-      const dLng = courseCoords[i].longitude - markerCoord.longitude;
-      const dist = dLat * dLat + dLng * dLng;
-      if (dist < minDist) {
-        minDist = dist;
-        closestIdx = i;
-      }
-    }
-    const progress = summitIdx > 0 ? closestIdx / summitIdx : 0;
-    const remaining = Math.max(0, 1 - progress);
-    return {
-      markerRatio: 1.0 - progress,
-      remainingDistanceM: Math.round(summitDistanceM * remaining),
-      remainingDurationMin: Math.round(summitDurationMinutes * remaining),
-    };
-  }, [
-    markerCoord,
-    courseCoords,
-    hasSummited,
-    summitDistanceM,
-    summitDurationMinutes,
-    descentDistanceM,
-    descentDurationMinutes,
-    liveActivityCourse,
-    userLocation,
-  ]);
-
-  const { markerRatio, remainingDistanceM, remainingDurationMin } =
-    courseProgressState;
 
   // altitudes 문자열에서 최고 고도(m) 파싱
   const peakAltitudeM = useMemo(() => {
@@ -881,19 +740,6 @@ export default function TrackingScreen() {
       descentDistanceM,
     ],
   );
-
-  const timeToTarget = (() => {
-    if (remainingDurationMin <= 0) return "-";
-    const h = Math.floor(remainingDurationMin / 60);
-    const m = remainingDurationMin % 60;
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-  })();
-  const distanceToTarget =
-    remainingDistanceM >= 1000
-      ? `${(remainingDistanceM / 1000).toFixed(1)}km`
-      : remainingDistanceM > 0
-        ? `${remainingDistanceM}m`
-        : "-";
 
   // 코스 오버레이 — 코스가 바뀔 때만 다시 만든다 (실시간 좌표와 분리)
   const courseOverlays = useMemo(
@@ -1798,11 +1644,14 @@ export default function TrackingScreen() {
         )}
       </View>
 
-      {/* 트래킹 중 — 상단 코스 카드 (자유기록 제외) */}
-      {isTracking && !isFreeMode && (
-        <TrackingCourseCard
-          course={selectedCourse}
-          style={{ top: TRACKING_COURSE_CARD_TOP }}
+      {/* 트래킹 중 — 우측 레일 (카메라 + 인증 사진 슬롯) */}
+      {isTracking && !showSummitSheet && (
+        <TrackingRail
+          isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
+          photosTaken={photosTaken}
+          showTooltip={showTooltip && !isPaused}
+          onDismissTooltip={() => setShowTooltip(false)}
+          onCameraPress={handleCameraPress}
         />
       )}
 
@@ -1884,9 +1733,10 @@ export default function TrackingScreen() {
         />
       )}
 
-      {/* 트래킹 중 바텀시트 */}
+      {/* 트래킹 중 하단 — 정상 시트 또는 상태 카드. 지도 위에 떠 있다 */}
       {isTracking && (
         <View
+          className="absolute bottom-0 left-0 right-0"
           onLayout={(e: LayoutChangeEvent) =>
             setTrackingSheetHeight(e.nativeEvent.layout.height)
           }
@@ -1905,22 +1755,16 @@ export default function TrackingScreen() {
               onNotYet={() => setShowSummitSheet(false)}
             />
           ) : (
-            <TrackingSheet
-              elapsedSecondsRef={elapsedSecondsRef}
-              isPaused={isPaused}
-              showTooltip={showTooltip}
-              isFreeMode={isFreeMode}
-              isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
-              hasSummited={hasSummited}
-              timeToTarget={timeToTarget}
-              distanceToTarget={distanceToTarget}
-              onDismissTooltip={() => setShowTooltip(false)}
-              onCameraPress={handleCameraPress}
-              onPause={pauseTracking}
-              onResume={resumeTracking}
-              onStop={requestStop}
-              onSummit={() => setShowSummitSheet(true)}
-            />
+            <View style={{ paddingBottom: insets.bottom + 16 }}>
+              <TrackingStatusCard
+                course={isFreeMode ? null : selectedCourse}
+                elapsedSecondsRef={elapsedSecondsRef}
+                isPaused={isPaused}
+                onPause={pauseTracking}
+                onResume={resumeTracking}
+                onStop={requestStop}
+              />
+            </View>
           )}
         </View>
       )}
