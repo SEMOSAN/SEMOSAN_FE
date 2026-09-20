@@ -10,6 +10,8 @@ import {
   CourseCarousel,
 } from "@/features/tracking/components/course-carousel";
 import { MountainNameChip } from "@/features/tracking/components/mountain-name-chip";
+import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
 import { FreeRecordConfirmModal } from "@/features/tracking/components/free-record-confirm-modal";
 import { NoNearbyMountainModal } from "@/features/tracking/components/no-nearby-mountain-modal";
@@ -79,7 +81,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import { Tabs, useLocalSearchParams } from "expo-router";
+import { Tabs, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AppState,
@@ -154,7 +156,12 @@ function mergeShortSegments(
   );
 }
 
+/** 기록 전 상단 컨트롤(뒤로가기·산 이름 칩) 높이 */
+const HEADER_CONTROL_HEIGHT = 44;
+
 export default function TrackingScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const {
     courseId: courseIdParameter,
     mountainId: mountainIdParameter,
@@ -1640,7 +1647,7 @@ export default function TrackingScreen() {
     <View className="flex-1 bg-fill-stronger">
       {/* 트래킹 중 탭바 숨기기 */}
       <Tabs.Screen
-        options={{ tabBarStyle: isTracking ? { display: "none" } : undefined }}
+        options={{ tabBarStyle: { display: "none" } }}
       />
 
       {/* 지도 영역 */}
@@ -1649,11 +1656,13 @@ export default function TrackingScreen() {
           ref={mapRef}
           style={styles.map}
           initialCamera={FALLBACK_CAMERA}
+          isShowZoomControls={false}
           mapPadding={{
             bottom: isTracking
               ? trackingSheetHeight
-              : COURSE_CAROUSEL_AREA_HEIGHT,
-            top: 0,
+              : COURSE_CAROUSEL_AREA_HEIGHT + insets.bottom,
+            // 기록 전엔 뒤로가기·산 이름 칩 아래로 경로가 들어오게 여유를 둔다
+            top: isTracking ? 0 : TRACKING_COURSE_CARD_TOP + HEADER_CONTROL_HEIGHT + 24,
             left: 0,
             right: 0,
           }}
@@ -1748,7 +1757,7 @@ export default function TrackingScreen() {
         style={{
           bottom: isTracking
             ? trackingSheetHeight + LOCATION_BUTTON_GAP
-            : COURSE_CAROUSEL_AREA_HEIGHT + LOCATION_BUTTON_GAP,
+            : COURSE_CAROUSEL_AREA_HEIGHT + insets.bottom + LOCATION_BUTTON_GAP,
           ...SHADOW,
         }}
         onPress={() => {
@@ -1764,6 +1773,20 @@ export default function TrackingScreen() {
       >
         <LocationIcon />
       </TouchableOpacity>
+
+      {/* 기록 전 — 좌상단 뒤로가기 (탭바를 숨기므로 나갈 길이 필요) */}
+      {!isTracking && (
+        <TouchableOpacity
+          className="absolute left-4 h-11 w-11 items-center justify-center rounded-full bg-fill-normal"
+          style={{ top: TRACKING_COURSE_CARD_TOP, ...SHADOW }}
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.navigate("/(tabs)");
+          }}
+        >
+          <ChevronLeftIcon />
+        </TouchableOpacity>
+      )}
 
       {/* 기록 전 — 우상단 산 이름 */}
       {!isTracking && (
@@ -1792,6 +1815,7 @@ export default function TrackingScreen() {
             if (isFreeSelected) handleFreeRecord();
             else if (selectedCourseId_num != null) startCountdown(false);
           }}
+          bottomInset={insets.bottom}
         />
       )}
 

@@ -25,11 +25,10 @@ const CARD_HEIGHT = 96;
 const CARD_GAP = 8;
 const CAROUSEL_PADDING_Y = 12;
 const CTA_HEIGHT = 56;
-const CTA_PADDING_BOTTOM = 12;
 
-/** 하단 캐러셀 + 시작 버튼 영역의 총 높이 (지도 패딩·위치 버튼 배치용) */
+/** 하단 캐러셀 + 시작 버튼 영역의 높이 (안전영역 제외 — 호출부에서 insets.bottom을 더한다) */
 export const COURSE_CAROUSEL_AREA_HEIGHT =
-  CAROUSEL_PADDING_Y * 2 + CARD_HEIGHT + CTA_HEIGHT + CTA_PADDING_BOTTOM;
+  CAROUSEL_PADDING_Y * 2 + CARD_HEIGHT + CTA_HEIGHT;
 
 /** 분 → "3시간 50분" / "50분" */
 function formatDuration(minutes?: number): string {
@@ -76,6 +75,8 @@ type Props = {
   onSelectCourse: (id: number) => void;
   onSelectFree: () => void;
   onStart: () => void;
+  /** 홈 인디케이터 등 하단 안전영역. 시작 버튼 아래에 같은 색으로 채운다 */
+  bottomInset?: number;
 };
 
 export function CourseCarousel({
@@ -86,6 +87,7 @@ export function CourseCarousel({
   onSelectCourse,
   onSelectFree,
   onStart,
+  bottomInset = 0,
 }: Props) {
   const canStart = isFreeSelected || selectedCourseId !== null;
 
@@ -180,22 +182,18 @@ export function CourseCarousel({
         )}
       </View>
 
-      {/* 시작 버튼 */}
-      <View className="px-4" style={{ paddingBottom: CTA_PADDING_BOTTOM }}>
-        <TouchableOpacity
-          className={`flex-row items-center justify-center gap-2 rounded-xl ${
-            canStart ? "bg-secondary-normal" : "bg-fill-neutral"
-          }`}
-          style={{ height: CTA_HEIGHT }}
-          onPress={onStart}
-          disabled={!canStart}
-        >
-          <Text className="text-common-100 typo-label-large">▶</Text>
-          <Text className="text-common-100 typo-label-large">
-            기록 시작하기
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* 시작 버튼 — 화면 하단에 꽉 찬 바, 안전영역까지 같은 색으로 채움 */}
+      <TouchableOpacity
+        className={`flex-row items-center justify-center gap-2 ${
+          canStart ? "bg-secondary-normal" : "bg-fill-neutral"
+        }`}
+        style={{ height: CTA_HEIGHT + bottomInset, paddingBottom: bottomInset }}
+        onPress={onStart}
+        disabled={!canStart}
+      >
+        <Text className="text-common-100 typo-label-large">▶</Text>
+        <Text className="text-common-100 typo-label-large">기록 시작하기</Text>
+      </TouchableOpacity>
     </View>
   );
 }
