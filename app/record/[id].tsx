@@ -358,11 +358,15 @@ export default function RecordScreen() {
     router.back();
   };
 
-  const finishDifficultyPrompt = () => {
+  const markDifficultyPromptDone = () => {
     if (hikingRecordIdNum != null) markDifficultyPromptSeen(hikingRecordIdNum);
     setHasSeenDifficultyPrompt(true);
     setShowDifficultySheet(false);
-    router.back();
+  };
+
+  // 바텀시트 밖을 눌러 닫은 경우 — 다시 묻지는 않지만 화면을 나가지는 않는다
+  const handleDifficultyDismiss = () => {
+    markDifficultyPromptDone();
   };
 
   const handleDifficultySave = (
@@ -377,7 +381,8 @@ export default function RecordScreen() {
         },
       );
     }
-    finishDifficultyPrompt();
+    markDifficultyPromptDone();
+    router.back();
   };
 
   const handleSavePress = async () => {
@@ -500,7 +505,7 @@ export default function RecordScreen() {
         visible={showDifficultySheet}
         mountainName={name ?? "관악산"}
         courseName={courseName}
-        onDismiss={finishDifficultyPrompt}
+        onDismiss={handleDifficultyDismiss}
         onSave={handleDifficultySave}
       />
 
