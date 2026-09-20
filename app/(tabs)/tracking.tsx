@@ -9,7 +9,11 @@ import {
   COURSE_CAROUSEL_AREA_HEIGHT,
   CourseCarousel,
 } from "@/features/tracking/components/course-carousel";
-import { MountainNameChip } from "@/features/tracking/components/mountain-name-chip";
+import {
+  MountainDropdown,
+  MountainOption,
+} from "@/features/tracking/components/mountain-dropdown";
+import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
@@ -178,6 +182,10 @@ export default function TrackingScreen() {
   const [isFreeMode, setIsFreeMode] = useState(false);
   // 캐러셀에서 "코스 선택 안 함" 카드를 고른 상태
   const [isFreeSelected, setIsFreeSelected] = useState(false);
+  // 드롭다운에서 고른 산. null이면 URL 파라미터 > 현재 위치 기반 순으로 정한다
+  const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
+    null,
+  );
   // state로 두면 매초 화면 전체가 리렌더된다. 표시는 ElapsedTime이 자기만 다시 그린다
   const elapsedSecondsRef = useRef(0);
   const [showTooltip, setShowTooltip] = useState(true);
@@ -305,22 +313,70 @@ export default function TrackingScreen() {
     lng: nearbyQueryCoord?.lng ?? null,
   });
 
-  // 세션이 생성되는 산 — URL 파라미터(코스 상세에서 진입) > 현재 위치 기반
-  const sessionMountainId = mountainIdParameter
-    ? Number(mountainIdParameter)
-    : nearbyData?.mountain?.mountainId;
+  // 명시적으로 고른 산 — 드롭다운 선택 > URL 파라미터(코스 상세에서 진입). 없으면 null
+  const chosenMountainId =
+    selectedMountainId ??
+    (mountainIdParameter ? Number(mountainIdParameter) : null);
 
-  // 파라미터로 진입하면 근처 산과 다를 수 있어 해당 산 이름을 따로 조회한다.
-  // (코스 상세 응답에는 mountainName이 없다)
-  const { data: sessionMountainDetail } = useMountainDetail(
-    mountainIdParameter ? Number(mountainIdParameter) : 0,
-  );
-  // 우선순위: 복원된 세션(서버 값) > URL 파라미터 조회 > 현재 위치 기반
+  // 세션이 생성되는 산 — 명시적으로 고른 산 > 현재 위치 기반
+  const sessionMountainId = chosenMountainId ?? nearbyData?.mountain?.mountainId;
+
+  // 고른 산은 근처 산과 다를 수 있어 이름·좌표·코스를 따로 조회한다.
+  const { data: chosenMountainDetail, isLoading: isChosenMountainLoading } =
+    useMountainDetail(chosenMountainId ?? 0);
+  // 우선순위: 복원된 세션(서버 값) > 고른 산 조회 > 현재 위치 기반
   const sessionMountainName =
     restoredMountainName ??
-    (mountainIdParameter
-      ? sessionMountainDetail?.mountain?.name
+    (chosenMountainId != null
+      ? chosenMountainDetail?.mountain?.name
       : nearbyData?.mountain?.name);
+
+  // 화면에 쓰는 산과 코스 — 고른 산이 있으면 그 산, 없으면 근처 산
+  const activeMountain =
+    chosenMountainId != null
+      ? chosenMountainDetail?.mountain
+      : nearbyData?.mountain;
+  const activeCourses =
+    chosenMountainId != null
+      ? chosenMountainDetail?.courses
+      : nearbyData?.courses;
+  const isActiveLoading =
+    chosenMountainId != null ? isChosenMountainLoading : isNearbyLoading;
+
+  // 드롭다운 후보 — 전체 산 목록에서 현재 위치에 가까운 순으로 3개. 활성 산은 항상 포함
+  const { data: mountainsPage } = useMountains({ size: 100 });
+  const mountainOptions = useMemo<MountainOption[]>(() => {
+    const all = (mountainsPage?.content ?? []).filter(
+      (m): m is typeof m & { mountainId: number; name: string } =>
+        m.mountainId != null && m.name != null,
+    );
+    const origin = userLocation;
+    const nearest = origin
+      ? [...all]
+          .filter((m) => m.latitude != null && m.longitude != null)
+          .sort(
+            (a, b) =>
+              haversineMeters(origin, {
+                latitude: a.latitude!,
+                longitude: a.longitude!,
+              }) -
+              haversineMeters(origin, {
+                latitude: b.latitude!,
+                longitude: b.longitude!,
+              }),
+          )
+      : all;
+    const top = nearest.slice(0, 3);
+    const activeId = activeMountain?.mountainId;
+    if (
+      activeId != null &&
+      activeMountain?.name &&
+      !top.some((m) => m.mountainId === activeId)
+    ) {
+      top.unshift({ mountainId: activeId, name: activeMountain.name });
+    }
+    return top.map(({ mountainId, name }) => ({ mountainId, name }));
+  }, [mountainsPage, userLocation, activeMountain]);
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
     console.log("[PhotoWindow] 수신:", JSON.stringify(payload));
@@ -1012,7 +1068,6 @@ export default function TrackingScreen() {
   const didInitialCameraMoveRef = useRef(false);
   // 사용자가 먼저 지도를 움직였으면 뒤늦게 도착한 좌표로 덮어쓰지 않음
   const didUserMoveMapRef = useRef(false);
-  const nearbyMountain = nearbyData?.mountain;
   useEffect(() => {
     if (didInitialCameraMoveRef.current || didUserMoveMapRef.current) return;
     // 트래킹이 시작되면 초기 이동은 포기 — 종료 후 카메라가 뒤늦게 튀는 것 방지
@@ -1024,10 +1079,10 @@ export default function TrackingScreen() {
     if (selectedCourseId != null || courseCoords.length >= 2) return;
 
     const target =
-      nearbyMountain?.latitude != null && nearbyMountain?.longitude != null
+      activeMountain?.latitude != null && activeMountain?.longitude != null
         ? {
-            latitude: nearbyMountain.latitude,
-            longitude: nearbyMountain.longitude,
+            latitude: activeMountain.latitude,
+            longitude: activeMountain.longitude,
             zoom: 12,
           }
         : !isNearbyLoading && userLocation
@@ -1043,7 +1098,7 @@ export default function TrackingScreen() {
     mapRef.current?.animateCameraTo({ ...target, duration: 500 });
   }, [
     selectedCourseId,
-    nearbyMountain,
+    activeMountain,
     isNearbyLoading,
     userLocation,
     isTracking,
@@ -1118,28 +1173,28 @@ export default function TrackingScreen() {
   };
 
   // 현위치 ~ 근처 산 거리(m), 좌표 없으면 null
-  const nearbyMountainDistanceM = useMemo(() => {
+  const activeMountainDistanceM = useMemo(() => {
     if (!userLocation) return null;
-    const latitude = nearbyMountain?.latitude;
-    const longitude = nearbyMountain?.longitude;
+    const latitude = activeMountain?.latitude;
+    const longitude = activeMountain?.longitude;
     if (latitude == null || longitude == null) return null;
     return haversineMeters(userLocation, { latitude, longitude });
-  }, [userLocation, nearbyMountain]);
+  }, [userLocation, activeMountain]);
 
   const handleFreeRecord = () => {
     logAnalyticsEvent("free_record_start_click", {
       mountain_name: sessionMountainName,
     });
 
-    // 산을 골라 진입한 경우엔 좌표를 알 수 없어 거리 판정 제외
-    if (mountainIdParameter) {
+    // 산을 직접 고른 경우(드롭다운·코스 상세 진입)엔 거리 판정 제외
+    if (chosenMountainId != null) {
       startCountdown(true);
       return;
     }
     if (
-      nearbyMountain?.mountainId == null ||
-      nearbyMountainDistanceM == null ||
-      nearbyMountainDistanceM > FREE_RECORD_MAX_DISTANCE_M
+      activeMountain?.mountainId == null ||
+      activeMountainDistanceM == null ||
+      activeMountainDistanceM > FREE_RECORD_MAX_DISTANCE_M
     ) {
       setShowNoNearbyMountainModal(true);
       return;
@@ -1788,10 +1843,20 @@ export default function TrackingScreen() {
         </TouchableOpacity>
       )}
 
-      {/* 기록 전 — 우상단 산 이름 */}
+      {/* 기록 전 — 우상단 산 선택 드롭다운 */}
       {!isTracking && (
-        <MountainNameChip
-          name={nearbyData?.mountain?.name}
+        <MountainDropdown
+          selected={
+            activeMountain?.mountainId != null && activeMountain.name
+              ? { mountainId: activeMountain.mountainId, name: activeMountain.name }
+              : undefined
+          }
+          options={mountainOptions}
+          onSelect={(id) => {
+            setSelectedMountainId(id);
+            setSelectedCourseId(null);
+            setIsFreeSelected(false);
+          }}
           style={{ top: TRACKING_COURSE_CARD_TOP }}
         />
       )}
@@ -1799,8 +1864,8 @@ export default function TrackingScreen() {
       {/* 기록 전 — 하단 코스 캐러셀 + 시작 버튼 */}
       {!isTracking && (
         <CourseCarousel
-          courses={nearbyData?.courses}
-          isLoading={isNearbyLoading}
+          courses={activeCourses}
+          isLoading={isActiveLoading}
           selectedCourseId={isFreeSelected ? null : selectedCourseId_num}
           isFreeSelected={isFreeSelected}
           onSelectCourse={(id) => {
