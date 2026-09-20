@@ -1,4 +1,4 @@
-import { CheckIcon } from "@/components/icons/check-icon";
+import { CheckMarkIcon } from "@/components/icons/check-mark-icon";
 import { DropdownCaretIcon } from "@/components/icons/dropdown-caret-icon";
 import { MountainPeaksIcon } from "@/components/icons/mountain-peaks-icon";
 import { useState } from "react";
@@ -78,7 +78,7 @@ export function MountainDropdown({
                   <Text className="typo-label-normal text-label-normal">
                     {option.name}
                   </Text>
-                  {isSelected && <CheckIcon size={16} />}
+                  {isSelected && <CheckMarkIcon />}
                 </TouchableOpacity>
               );
             })}
