@@ -1,3 +1,4 @@
+import { CircleSlashIcon } from "@/components/icons/circle-slash-icon";
 import { DistanceIcon } from "@/components/icons/distance-icon";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { NearbyMountainCourseInfo } from "@/types/api.generated";
@@ -112,9 +113,7 @@ export function CourseCarousel({
               width={104}
             >
               <View className="items-center gap-2">
-                <View className="h-7 w-7 items-center justify-center rounded-full border-2 border-label-subtler">
-                  <View className="h-4 w-0.5 rotate-45 bg-label-subtler" />
-                </View>
+                <CircleSlashIcon size={28} />
                 <Text className="typo-label-normal text-label-normal">
                   코스 선택 안 함
                 </Text>
