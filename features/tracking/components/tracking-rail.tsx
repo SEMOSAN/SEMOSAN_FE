@@ -72,14 +72,17 @@ export function TrackingRail({
         style={{
           width: BUTTON_SIZE,
           height: BUTTON_SIZE,
-          opacity: isPhotoWindowOpen ? 1 : 0.4,
           ...SHADOW,
         }}
         onPress={onCameraPress}
         disabled={!isPhotoWindowOpen}
         accessibilityLabel="인증 사진 촬영"
       >
-        <CameraIcon />
+        <CameraIcon
+          color={
+            isPhotoWindowOpen ? colors.label.normal : colors.label.disabled
+          }
+        />
       </TouchableOpacity>
 
       {/* 인증 사진 슬롯 — 찍은 만큼 초록으로 채워진다 */}
