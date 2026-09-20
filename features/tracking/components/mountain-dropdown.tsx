@@ -1,5 +1,5 @@
 import { CheckIcon } from "@/components/icons/check-icon";
-import { ChevronDownIcon } from "@/components/icons/chevron-down-icon";
+import { DropdownCaretIcon } from "@/components/icons/dropdown-caret-icon";
 import { MountainPeaksIcon } from "@/components/icons/mountain-peaks-icon";
 import { useState } from "react";
 import {
@@ -54,7 +54,7 @@ export function MountainDropdown({
           <Text className="typo-label-normal text-label-normal">
             {selected.name}
           </Text>
-          {canOpen && <ChevronDownIcon size={16} />}
+          {canOpen && <DropdownCaretIcon />}
         </TouchableOpacity>
 
         {open && (
