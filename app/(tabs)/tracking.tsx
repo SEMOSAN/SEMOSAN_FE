@@ -3,10 +3,13 @@ import { PinMarkerIcon } from "@/components/icons/pin-marker-icon";
 import { colors } from "@/constants/colors";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
-import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
 import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
 import { CourseNameInputModal } from "@/features/tracking/components/course-name-input-modal";
-import { CourseSelectSheet } from "@/features/tracking/components/course-select-sheet";
+import {
+  COURSE_CAROUSEL_AREA_HEIGHT,
+  CourseCarousel,
+} from "@/features/tracking/components/course-carousel";
+import { MountainNameChip } from "@/features/tracking/components/mountain-name-chip";
 import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
 import { FreeRecordConfirmModal } from "@/features/tracking/components/free-record-confirm-modal";
 import { NoNearbyMountainModal } from "@/features/tracking/components/no-nearby-mountain-modal";
@@ -16,10 +19,8 @@ import { SummitSheet } from "@/features/tracking/components/summit-sheet";
 import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
 import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
 import {
-  COLLAPSED_PEEK_HEIGHT,
   Course,
   Difficulty,
-  FLOATING_CARD_GAP,
   LOCATION_BUTTON_GAP,
   SHADOW,
   TRACKING_COURSE_CARD_TOP,
@@ -155,22 +156,21 @@ function mergeShortSegments(
 
 export default function TrackingScreen() {
   const {
-    collapse: collapseParameter,
     courseId: courseIdParameter,
     mountainId: mountainIdParameter,
   } = useLocalSearchParams<{
-    collapse?: string;
     courseId?: string;
     mountainId?: string;
   }>();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
     courseIdParameter ?? null,
   );
-  const [collapsed, setCollapsed] = useState(collapseParameter === "true");
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isFreeMode, setIsFreeMode] = useState(false);
+  // 캐러셀에서 "코스 선택 안 함" 카드를 고른 상태
+  const [isFreeSelected, setIsFreeSelected] = useState(false);
   // state로 두면 매초 화면 전체가 리렌더된다. 표시는 ElapsedTime이 자기만 다시 그린다
   const elapsedSecondsRef = useRef(0);
   const [showTooltip, setShowTooltip] = useState(true);
@@ -263,9 +263,7 @@ export default function TrackingScreen() {
 
   useEffect(() => {
     if (courseIdParameter) setSelectedCourseId(courseIdParameter);
-    if (collapseParameter !== undefined)
-      setCollapsed(collapseParameter === "true");
-  }, [courseIdParameter, collapseParameter]);
+  }, [courseIdParameter]);
 
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
@@ -1620,7 +1618,7 @@ export default function TrackingScreen() {
     setPhotosTaken(0);
     photosTakenRef.current = 0;
     summitPhotoWindowRef.current = null;
-    setCollapsed(false);
+    setIsFreeSelected(false);
     setRecordedCoords([]);
     lastRecordedCoordRef.current = null;
   };
@@ -1637,7 +1635,6 @@ export default function TrackingScreen() {
     completeTracking(null);
   };
 
-  const floatingCardBottom = COLLAPSED_PEEK_HEIGHT + FLOATING_CARD_GAP;
 
   return (
     <View className="flex-1 bg-fill-stronger">
@@ -1655,9 +1652,7 @@ export default function TrackingScreen() {
           mapPadding={{
             bottom: isTracking
               ? trackingSheetHeight
-              : collapsed
-                ? COLLAPSED_PEEK_HEIGHT
-                : 448,
+              : COURSE_CAROUSEL_AREA_HEIGHT,
             top: 0,
             left: 0,
             right: 0,
@@ -1753,9 +1748,7 @@ export default function TrackingScreen() {
         style={{
           bottom: isTracking
             ? trackingSheetHeight + LOCATION_BUTTON_GAP
-            : collapsed
-              ? floatingCardBottom + FLOATING_CARD_GAP
-              : 448 + FLOATING_CARD_GAP,
+            : COURSE_CAROUSEL_AREA_HEIGHT + LOCATION_BUTTON_GAP,
           ...SHADOW,
         }}
         onPress={() => {
@@ -1772,26 +1765,33 @@ export default function TrackingScreen() {
         <LocationIcon />
       </TouchableOpacity>
 
-      {/* Expanded 바텀시트 */}
-      {!isTracking && !collapsed && (
-        <CourseSelectSheet
-          mountain={nearbyData?.mountain}
-          courses={nearbyData?.courses}
-          isLoading={isNearbyLoading}
-          selectedCourseId={selectedCourseId_num}
-          onSelectCourse={(id) => setSelectedCourseId(String(id))}
-          onFreeRecord={handleFreeRecord}
-          onStartCountdown={startCountdown}
-          onCollapse={() => setCollapsed(true)}
+      {/* 기록 전 — 우상단 산 이름 */}
+      {!isTracking && (
+        <MountainNameChip
+          name={nearbyData?.mountain?.name}
+          style={{ top: TRACKING_COURSE_CARD_TOP }}
         />
       )}
 
-      {/* Collapsed 바텀시트 */}
-      {!isTracking && collapsed && (
-        <CollapsedCourseCard
-          course={selectedCourse}
-          onExpand={() => setCollapsed(false)}
-          onStartCountdown={startCountdown}
+      {/* 기록 전 — 하단 코스 캐러셀 + 시작 버튼 */}
+      {!isTracking && (
+        <CourseCarousel
+          courses={nearbyData?.courses}
+          isLoading={isNearbyLoading}
+          selectedCourseId={isFreeSelected ? null : selectedCourseId_num}
+          isFreeSelected={isFreeSelected}
+          onSelectCourse={(id) => {
+            setIsFreeSelected(false);
+            setSelectedCourseId(String(id));
+          }}
+          onSelectFree={() => {
+            setIsFreeSelected(true);
+            setSelectedCourseId(null);
+          }}
+          onStart={() => {
+            if (isFreeSelected) handleFreeRecord();
+            else if (selectedCourseId_num != null) startCountdown(false);
+          }}
         />
       )}
 
