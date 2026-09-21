@@ -67,6 +67,9 @@ import Svg, {
   Rect as SvgRect,
 } from "react-native-svg";
 import ViewShot from "react-native-view-shot";
+const { colors } = require("@/tokens.cjs") as {
+  colors: Record<string, Record<string, string>>;
+};
 const ALTITUDE_LABELS = ["400m", "800m", "1200m", "1600m"];
 const CLIVE_CARD_HEIGHT = 596;
 const MAX_CLIVE_PHOTOS = 3;
@@ -133,7 +136,7 @@ export default function RecordScreen() {
   const queryClient = useQueryClient();
   const { mutateAsync: togglePublicMutateAsync, isPending: isToggling } =
     useToggleSemofeedPublic();
-  const { mutate: saveDifficultyFeedback } = useSaveDifficultyFeedback();
+  const { mutateAsync: saveDifficultyFeedback } = useSaveDifficultyFeedback();
   const { top } = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<RecordTab>("클라이브");
   const [showSaveToast, setShowSaveToast] = useState(false);
@@ -343,10 +346,19 @@ export default function RecordScreen() {
 
   const handleTitleSubmit = async (nextTitle: string) => {
     const trimmed = nextTitle.trim();
-    if (trimmed) {
-      setTitleOverride(trimmed);
-      if (sessionId != null) await setRecordTitle(sessionId, trimmed);
+    if (!trimmed) {
+      setShowTitleModal(false);
+      return;
     }
+    if (sessionId != null) {
+      try {
+        await setRecordTitle(sessionId, trimmed);
+      } catch (error) {
+        console.warn("[Record] 제목 저장 실패:", error);
+        return;
+      }
+    }
+    setTitleOverride(trimmed);
     setShowTitleModal(false);
   };
 
@@ -369,17 +381,19 @@ export default function RecordScreen() {
     markDifficultyPromptDone();
   };
 
-  const handleDifficultySave = (
+  const handleDifficultySave = async (
     comparison: "SIMILAR" | "EASIER" | "HARDER" | null,
   ) => {
     if (hikingRecordIdNum != null && comparison != null) {
-      saveDifficultyFeedback(
-        { hikingRecordId: hikingRecordIdNum, comparison },
-        {
-          onError: (err) =>
-            console.warn("[Record] 난이도 피드백 저장 실패:", err),
-        },
-      );
+      try {
+        await saveDifficultyFeedback({
+          hikingRecordId: hikingRecordIdNum,
+          comparison,
+        });
+      } catch (err) {
+        console.warn("[Record] 난이도 피드백 저장 실패:", err);
+        return;
+      }
     }
     markDifficultyPromptDone();
     router.back();
@@ -489,7 +503,7 @@ export default function RecordScreen() {
             onPress={() => setShowTitleModal(true)}
             hitSlop={8}
           >
-            <PencilSimpleIcon size={20} color="#464A57" />
+            <PencilSimpleIcon size={20} color={colors.label.subtle} />
           </TouchableOpacity>
         </View>
       </View>
@@ -780,7 +794,7 @@ export default function RecordScreen() {
                                   styles.stampCenterContainer,
                                 ]}
                               >
-                                <View style={styles.altitudeRow}>
+                                <View className="flex-row items-center gap-1">
                                   <Text style={styles.altitudeText}>
                                     {altitudeLabel}
                                   </Text>
@@ -1116,11 +1130,6 @@ const styles = StyleSheet.create({
   stampCenterContainer: {
     justifyContent: "center",
     paddingLeft: 24,
-  },
-  altitudeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
   },
   altitudeText: {
     color: "#FFFFFF",
