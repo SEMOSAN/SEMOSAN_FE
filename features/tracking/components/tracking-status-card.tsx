@@ -10,6 +10,9 @@ import {
 import { ElapsedTime } from "./elapsed-time";
 import type { RefObject } from "react";
 
+// 디자인 스펙 값 — 토큰에 없는 색
+const COURSE_DIVIDER = "rgba(192, 192, 192, 0.2)";
+
 function PauseIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
@@ -81,7 +84,10 @@ export function TrackingStatusCard({
       style={SHADOW}
     >
       {course && (
-        <View className="flex-row items-center gap-2">
+        <View
+          className="flex-row items-center gap-2 pb-4"
+          style={{ borderBottomWidth: 1, borderBottomColor: COURSE_DIVIDER }}
+        >
           <View
             className={`rounded px-1.5 py-0.5 ${DIFFICULTY_BG[course.difficulty]}`}
           >
