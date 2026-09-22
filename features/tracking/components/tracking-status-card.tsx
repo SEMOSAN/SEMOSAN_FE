@@ -80,12 +80,12 @@ export function TrackingStatusCard({
 }: Props) {
   return (
     <View
-      className="mx-4 gap-4 rounded-2xl bg-fill-normal px-4 py-4"
+      className="mx-4 items-start gap-3 rounded-2xl bg-fill-normal px-5 py-3.5"
       style={SHADOW}
     >
       {course && (
         <View
-          className="flex-row items-center gap-2 pb-4"
+          className="w-full flex-row items-center gap-2 pb-3"
           style={{ borderBottomWidth: 1, borderBottomColor: COURSE_DIVIDER }}
         >
           <View
@@ -106,7 +106,7 @@ export function TrackingStatusCard({
         </View>
       )}
 
-      <View className="flex-row items-center justify-between">
+      <View className="w-full flex-row items-center justify-between">
         <View className="gap-1">
           <Text className="text-label-subtler typo-caption-1-medium">
             등산 시간
