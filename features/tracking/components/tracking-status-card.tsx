@@ -114,14 +114,14 @@ export function TrackingStatusCard({
         {isPaused ? (
           <View className="flex-row gap-2">
             <TouchableOpacity
-              className="h-12 w-12 items-center justify-center rounded-xl bg-fill-stronger"
+              className="h-12 w-12 items-center justify-center rounded-[10px] bg-fill-stronger"
               onPress={onStop}
               accessibilityLabel="기록 종료"
             >
               <StopIcon />
             </TouchableOpacity>
             <TouchableOpacity
-              className="h-12 w-12 items-center justify-center rounded-xl bg-secondary-normal"
+              className="h-12 w-12 items-center justify-center rounded-[10px] bg-secondary-normal"
               onPress={onResume}
               accessibilityLabel="다시 시작"
             >
@@ -130,7 +130,7 @@ export function TrackingStatusCard({
           </View>
         ) : (
           <TouchableOpacity
-            className="h-12 w-12 items-center justify-center rounded-xl bg-fill-stronger"
+            className="h-12 w-12 items-center justify-center rounded-[10px] bg-fill-stronger"
             onPress={onPause}
             accessibilityLabel="일시 정지"
           >
