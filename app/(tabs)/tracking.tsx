@@ -167,6 +167,13 @@ function mergeShortSegments(
   );
 }
 
+/** URL 파라미터 등 문자열 ID — 유한한 양의 정수만 인정하고 나머지는 null (NaN 전파 방지) */
+function parsePositiveIntId(raw: string | null | undefined): number | null {
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
 /** 기록 전 상단 컨트롤(뒤로가기·산 이름 칩) 높이 */
 const HEADER_CONTROL_HEIGHT = 44;
 
@@ -323,8 +330,7 @@ export default function TrackingScreen() {
 
   // 명시적으로 고른 산 — 드롭다운 선택 > URL 파라미터(코스 상세에서 진입). 없으면 null
   const chosenMountainId =
-    selectedMountainId ??
-    (mountainIdParameter ? Number(mountainIdParameter) : null);
+    selectedMountainId ?? parsePositiveIntId(mountainIdParameter);
 
   // 세션이 생성되는 산 — 명시적으로 고른 산 > 현재 위치 기반
   const sessionMountainId = chosenMountainId ?? nearbyData?.mountain?.mountainId;
@@ -641,9 +647,7 @@ export default function TrackingScreen() {
     }
   }, [activeSession]);
 
-  const selectedCourseId_num = selectedCourseId
-    ? Number(selectedCourseId)
-    : null;
+  const selectedCourseId_num = parsePositiveIntId(selectedCourseId);
   const { data: courseDetail } = useCourseDetail(
     isFreeMode ? null : selectedCourseId_num,
   );
