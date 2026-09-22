@@ -193,7 +193,6 @@ export default function TrackingScreen() {
   );
   // state로 두면 매초 화면 전체가 리렌더된다. 표시는 ElapsedTime이 자기만 다시 그린다
   const elapsedSecondsRef = useRef(0);
-  const [showTooltip, setShowTooltip] = useState(true);
   const [showSummitSheet, setShowSummitSheet] = useState(false);
   // 복원된 세션의 산 이름 — 서버가 준 값이 현재 위치 기반 추정보다 정확하다
   const [restoredMountainName, setRestoredMountainName] = useState<
@@ -1536,7 +1535,6 @@ export default function TrackingScreen() {
     setIsPaused(false);
     setIsFreeMode(false);
     elapsedSecondsRef.current = 0;
-    setShowTooltip(true);
     setShowSummitSheet(false);
     setHasSummited(false);
     // 세션이 끝났으니 로컬에 캐시한 인증 사진도 치운다
@@ -1673,8 +1671,6 @@ export default function TrackingScreen() {
         <TrackingRail
           isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
           photos={trackingPhotos}
-          showTooltip={showTooltip && !isPaused}
-          onDismissTooltip={() => setShowTooltip(false)}
           onCameraPress={handleCameraPress}
         />
       )}
