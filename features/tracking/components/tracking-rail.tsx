@@ -15,6 +15,8 @@ const BUTTON_SIZE = 48;
 
 type Props = {
   isPhotoWindowOpen: boolean;
+  /** 촬영→업로드→저장 진행 중. 끝날 때까지 카메라를 잠근다 */
+  isBusy?: boolean;
   /** 찍은 인증 사진. 위에서부터 썸네일로 쌓인다 */
   photos: TrackingPhoto[];
   onCameraPress: () => void;
@@ -42,6 +44,7 @@ function PhotoThumbnail({ photo }: { photo: TrackingPhoto }) {
 /** 트래킹 중 우측 레일 — 찍은 사진 → 카메라 → 빈 슬롯 (항상 4칸) */
 export function TrackingRail({
   isPhotoWindowOpen,
+  isBusy = false,
   photos,
   onCameraPress,
 }: Props) {
@@ -68,7 +71,7 @@ export function TrackingRail({
           className="items-center justify-center rounded-xl bg-fill-normal"
           style={{ width: BUTTON_SIZE, height: BUTTON_SIZE, ...SHADOW }}
           onPress={onCameraPress}
-          disabled={!isPhotoWindowOpen}
+          disabled={!isPhotoWindowOpen || isBusy}
           accessibilityLabel="인증 사진 촬영"
         >
           <CameraOutlineIcon color={colors.label.normal} />

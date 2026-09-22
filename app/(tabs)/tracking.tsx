@@ -226,6 +226,9 @@ export default function TrackingScreen() {
   );
   // 이번 세션에서 촬영한 사진 수 (최대 4장) — 라이브 액티비티 "남은 사진 장수" 표시용
   const [photosTaken, setPhotosTaken] = useState(0);
+  // 촬영→업로드→저장이 끝날 때까지 잠금. ref는 동기 재진입 차단, state는 버튼 비활성용
+  const isSavingPhotoRef = useRef(false);
+  const [isSavingPhoto, setIsSavingPhoto] = useState(false);
   // 레일에 보여줄 인증 사진. 개수(photosTaken)는 라이브 액티비티 계산용으로 따로 둔다
   const [trackingPhotos, setTrackingPhotos] = useState<TrackingPhoto[]>([]);
   // 업로드 완료 콜백에서 최신 촬영 수를 참조하기 위한 미러.
@@ -1366,107 +1369,117 @@ export default function TrackingScreen() {
   const requestStop = () => setShowStopModal(true);
 
   const handleCameraPress = async () => {
-    // 카메라를 열기 전에 인증 창을 먼저 확정 — 촬영 도중 창이 닫혀 사진이
-    // 조용히 버려지는 것을 막고, 이미 닫혔다면 촬영 전에 바로 안내한다.
-    const isWindowOpen = photoWindow?.status === "OPEN";
-    const activeWindow = isWindowOpen
-      ? photoWindow
-      : hasSummited
-        ? summitPhotoWindowRef.current
-        : null;
-
-    if (activeWindow == null || sessionId == null) {
-      toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", {
-        type: "error",
-      });
-      return;
-    }
-
-    // 상한 검사를 촬영 전에 한다. 카운터는 저장 성공 후에 오르므로, 검사가
-    // 없으면 연속 촬영으로 4장을 넘겨 업로드할 수 있다.
-    if (photosTakenRef.current >= MAX_TRACKING_PHOTOS) {
-      toast.show(
-        `인증 사진은 ${MAX_TRACKING_PHOTOS}장까지만 찍을 수 있어요.`,
-        { type: "error" },
-      );
-      return;
-    }
-
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      console.warn("[Camera] 카메라 권한 거부됨");
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-      allowsEditing: false,
-    });
-
-    if (result.canceled || !result.assets?.[0]?.uri) return;
-
-    // 업로드/저장이 진행되는 동안 세션이 종료·교체될 수 있어 촬영 시점의 세션을 고정
-    const capturedSessionId = sessionId;
-
+    // 업로드·저장 완료 전 재진입 차단 — 상한 검사만으로는 연속 입력이 모두 통과해
+    // 같은 세션에 5장째가 저장될 수 있다
+    if (isSavingPhotoRef.current) return;
+    isSavingPhotoRef.current = true;
+    setIsSavingPhoto(true);
     try {
-      const capturedAt = new Date().toISOString();
-      const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
-      console.log("[Tracking] 인증 사진 업로드 완료:", imageUrl);
+      // 카메라를 열기 전에 인증 창을 먼저 확정 — 촬영 도중 창이 닫혀 사진이
+      // 조용히 버려지는 것을 막고, 이미 닫혔다면 촬영 전에 바로 안내한다.
+      const isWindowOpen = photoWindow?.status === "OPEN";
+      const activeWindow = isWindowOpen
+        ? photoWindow
+        : hasSummited
+          ? summitPhotoWindowRef.current
+          : null;
 
-      await savePhoto({
-        sessionId,
-        body: {
-          milestoneIndex: activeWindow.milestoneIndex,
-          milestoneDistanceM: activeWindow.milestoneDistance,
-          imageUrl,
-          capturedAt,
-          lat: userLocation?.latitude ?? 0,
-          lng: userLocation?.longitude ?? 0,
-          altitude: userLocation?.altitude ?? 0,
-        },
-      });
-      console.log("[Tracking] 사진 메타 저장 완료");
-      // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음.
-      // 이때는 isFreeMode·산 이름도 이미 초기화된 상태라 분석 이벤트도 함께 건너뛴다.
-      const capturedPhoto: TrackingPhoto = {
-        milestoneIndex: activeWindow.milestoneIndex,
-        localUri: result.assets[0].uri,
-        imageUrl,
-      };
-      // 세션을 나갔다 들어와도 썸네일이 남도록 로컬에도 둔다
-      addLocalTrackingPhoto(capturedSessionId, capturedPhoto);
+      if (activeWindow == null || sessionId == null) {
+        toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", {
+          type: "error",
+        });
+        return;
+      }
 
-      if (sessionIdRef.current === capturedSessionId) {
-        const nextPhotoCount = Math.min(
-          photosTakenRef.current + 1,
-          MAX_TRACKING_PHOTOS,
-        );
-        photosTakenRef.current = nextPhotoCount;
-        setPhotosTaken(nextPhotoCount);
-        setTrackingPhotos((prev) =>
-          [...prev, capturedPhoto].slice(0, MAX_TRACKING_PHOTOS),
-        );
-
-        const remainingPhotos = MAX_TRACKING_PHOTOS - nextPhotoCount;
+      // 상한 검사를 촬영 전에 한다. 카운터는 저장 성공 후에 오르므로, 검사가
+      // 없으면 연속 촬영으로 4장을 넘겨 업로드할 수 있다.
+      if (photosTakenRef.current >= MAX_TRACKING_PHOTOS) {
         toast.show(
-          remainingPhotos > 0
-            ? `${remainingPhotos}장 더 찍을 수 있어요!`
-            : "인증 사진을 모두 찍었어요!",
+          `인증 사진은 ${MAX_TRACKING_PHOTOS}장까지만 찍을 수 있어요.`,
+          { type: "error" },
         );
+        return;
+      }
 
-        logAnalyticsEvent("clive_photo_taken", {
-          tracking_type: isFreeMode ? "free" : "course",
-          mountain_name: sessionMountainName,
-          photo_order: activeWindow.milestoneIndex,
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        console.warn("[Camera] 카메라 권한 거부됨");
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        quality: 0.8,
+        allowsEditing: false,
+      });
+
+      if (result.canceled || !result.assets?.[0]?.uri) return;
+
+      // 업로드/저장이 진행되는 동안 세션이 종료·교체될 수 있어 촬영 시점의 세션을 고정
+      const capturedSessionId = sessionId;
+
+      try {
+        const capturedAt = new Date().toISOString();
+        const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
+        console.log("[Tracking] 인증 사진 업로드 완료:", imageUrl);
+
+        await savePhoto({
+          sessionId,
+          body: {
+            milestoneIndex: activeWindow.milestoneIndex,
+            milestoneDistanceM: activeWindow.milestoneDistance,
+            imageUrl,
+            capturedAt,
+            lat: userLocation?.latitude ?? 0,
+            lng: userLocation?.longitude ?? 0,
+            altitude: userLocation?.altitude ?? 0,
+          },
+        });
+        console.log("[Tracking] 사진 메타 저장 완료");
+        // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음.
+        // 이때는 isFreeMode·산 이름도 이미 초기화된 상태라 분석 이벤트도 함께 건너뛴다.
+        const capturedPhoto: TrackingPhoto = {
+          milestoneIndex: activeWindow.milestoneIndex,
+          localUri: result.assets[0].uri,
+          imageUrl,
+        };
+        // 세션을 나갔다 들어와도 썸네일이 남도록 로컬에도 둔다
+        addLocalTrackingPhoto(capturedSessionId, capturedPhoto);
+
+        if (sessionIdRef.current === capturedSessionId) {
+          const nextPhotoCount = Math.min(
+            photosTakenRef.current + 1,
+            MAX_TRACKING_PHOTOS,
+          );
+          photosTakenRef.current = nextPhotoCount;
+          setPhotosTaken(nextPhotoCount);
+          setTrackingPhotos((prev) =>
+            [...prev, capturedPhoto].slice(0, MAX_TRACKING_PHOTOS),
+          );
+
+          const remainingPhotos = MAX_TRACKING_PHOTOS - nextPhotoCount;
+          toast.show(
+            remainingPhotos > 0
+              ? `${remainingPhotos}장 더 찍을 수 있어요!`
+              : "인증 사진을 모두 찍었어요!",
+          );
+
+          logAnalyticsEvent("clive_photo_taken", {
+            tracking_type: isFreeMode ? "free" : "course",
+            mountain_name: sessionMountainName,
+            photo_order: activeWindow.milestoneIndex,
+          });
+        }
+      } catch (err) {
+        console.warn("[Tracking] 인증 사진 처리 실패:", err);
+        Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
+        toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", {
+          type: "error",
         });
       }
-    } catch (err) {
-      console.warn("[Tracking] 인증 사진 처리 실패:", err);
-      Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
-      toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", {
-        type: "error",
-      });
+    } finally {
+      isSavingPhotoRef.current = false;
+      if (isMountedRef.current) setIsSavingPhoto(false);
     }
   };
 
@@ -1702,6 +1715,7 @@ export default function TrackingScreen() {
       {isTracking && !showSummitSheet && (
         <TrackingRail
           isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
+          isBusy={isSavingPhoto}
           photos={trackingPhotos}
           onCameraPress={handleCameraPress}
         />
