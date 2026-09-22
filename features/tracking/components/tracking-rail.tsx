@@ -78,11 +78,7 @@ export function TrackingRail({
         disabled={!isPhotoWindowOpen}
         accessibilityLabel="인증 사진 촬영"
       >
-        <CameraOutlineIcon
-          color={
-            isPhotoWindowOpen ? colors.label.normal : colors.label.disabled
-          }
-        />
+        <CameraOutlineIcon color={colors.label.normal} />
       </TouchableOpacity>
 
       {/* 인증 사진 슬롯 — 찍은 만큼 초록으로 채워진다 */}
