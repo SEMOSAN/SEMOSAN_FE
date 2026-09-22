@@ -1,4 +1,4 @@
-import { CameraIcon } from "@/components/icons/camera-icon";
+import { CameraOutlineIcon } from "@/components/icons/camera-outline-icon";
 import { SemosanMarkIcon } from "@/components/icons/semosan-mark-icon";
 import { colors } from "@/constants/colors";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -78,7 +78,7 @@ export function TrackingRail({
         disabled={!isPhotoWindowOpen}
         accessibilityLabel="인증 사진 촬영"
       >
-        <CameraIcon
+        <CameraOutlineIcon
           color={
             isPhotoWindowOpen ? colors.label.normal : colors.label.disabled
           }
