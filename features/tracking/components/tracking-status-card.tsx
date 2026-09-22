@@ -35,14 +35,10 @@ function PauseIcon() {
 
 function StopIcon() {
   return (
-    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-      <Rect
-        x={2.5}
-        y={2.5}
-        width={11}
-        height={11}
-        rx={2}
-        fill={colors.label.normal}
+    <Svg width={17} height={17} viewBox="0 0 17 17" fill="none">
+      <Path
+        d="M15 0H1.5C1.10218 0 0.720644 0.158035 0.43934 0.43934C0.158035 0.720644 0 1.10218 0 1.5V15C0 15.3978 0.158035 15.7794 0.43934 16.0607C0.720644 16.342 1.10218 16.5 1.5 16.5H15C15.3978 16.5 15.7794 16.342 16.0607 16.0607C16.342 15.7794 16.5 15.3978 16.5 15V1.5C16.5 1.10218 16.342 0.720644 16.0607 0.43934C15.7794 0.158035 15.3978 0 15 0Z"
+        fill={colors.label.subtle}
       />
     </Svg>
   );
