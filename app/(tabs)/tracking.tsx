@@ -66,7 +66,12 @@ import {
   totalPathMeters,
 } from "@/features/tracking/utils/track-path";
 import { fetchSessionTrack } from "@/features/tracking/utils/fetch-session-track";
-import { fetchSessionPhotoCount } from "@/features/tracking/utils/fetch-session-photo-count";
+import {
+  addLocalTrackingPhoto,
+  clearLocalTrackingPhotos,
+  restoreTrackingPhotos,
+  TrackingPhoto,
+} from "@/features/tracking/tracking-photo-storage";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
 import { toast } from "@/store/toast.store";
@@ -213,6 +218,8 @@ export default function TrackingScreen() {
   );
   // 이번 세션에서 촬영한 사진 수 (최대 4장) — 라이브 액티비티 "남은 사진 장수" 표시용
   const [photosTaken, setPhotosTaken] = useState(0);
+  // 레일에 보여줄 인증 사진. 개수(photosTaken)는 라이브 액티비티 계산용으로 따로 둔다
+  const [trackingPhotos, setTrackingPhotos] = useState<TrackingPhoto[]>([]);
   // 업로드 완료 콜백에서 최신 촬영 수를 참조하기 위한 미러.
   // 렌더 중에는 쓰지 않는다 — React가 렌더를 버리거나 재실행할 수 있어
   // 커밋되지 않은 값이 새어나갈 수 있다. setPhotosTaken을 호출하는 세 지점
@@ -577,18 +584,20 @@ export default function TrackingScreen() {
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
-      // 강제 종료 후 재진입 시 이미 촬영한 사진 수 복원 — 라이브 액티비티 "남은 사진 장수" 정확도 보장
+      // 강제 종료 후 재진입 시 이미 촬영한 사진 복원 — 레일 썸네일과
+      // 라이브 액티비티 "남은 사진 장수" 둘 다. 서버 목록 기준, 로컬 파일이 있으면 붙인다
       {
         const restoringPhotoSessionId = activeSession.sessionId;
-        fetchSessionPhotoCount(restoringPhotoSessionId).then((count) => {
+        restoreTrackingPhotos(restoringPhotoSessionId).then((photos) => {
           if (
             !isMountedRef.current ||
             sessionIdRef.current !== restoringPhotoSessionId
           )
             return;
-          const restored = Math.min(count, MAX_TRACKING_PHOTOS);
+          const restored = Math.min(photos.length, MAX_TRACKING_PHOTOS);
           photosTakenRef.current = restored;
           setPhotosTaken(restored);
+          setTrackingPhotos(photos.slice(0, MAX_TRACKING_PHOTOS));
         });
       }
       // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원 — 자유기록
@@ -1389,6 +1398,14 @@ export default function TrackingScreen() {
       console.log("[Tracking] 사진 메타 저장 완료");
       // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음.
       // 이때는 isFreeMode·산 이름도 이미 초기화된 상태라 분석 이벤트도 함께 건너뛴다.
+      const capturedPhoto: TrackingPhoto = {
+        milestoneIndex: activeWindow.milestoneIndex,
+        localUri: result.assets[0].uri,
+        imageUrl,
+      };
+      // 세션을 나갔다 들어와도 썸네일이 남도록 로컬에도 둔다
+      addLocalTrackingPhoto(capturedSessionId, capturedPhoto);
+
       if (sessionIdRef.current === capturedSessionId) {
         const nextPhotoCount = Math.min(
           photosTakenRef.current + 1,
@@ -1396,6 +1413,9 @@ export default function TrackingScreen() {
         );
         photosTakenRef.current = nextPhotoCount;
         setPhotosTaken(nextPhotoCount);
+        setTrackingPhotos((prev) =>
+          [...prev, capturedPhoto].slice(0, MAX_TRACKING_PHOTOS),
+        );
 
         const remainingPhotos = MAX_TRACKING_PHOTOS - nextPhotoCount;
         toast.show(
@@ -1519,12 +1539,16 @@ export default function TrackingScreen() {
     setShowTooltip(true);
     setShowSummitSheet(false);
     setHasSummited(false);
+    // 세션이 끝났으니 로컬에 캐시한 인증 사진도 치운다
+    if (sessionIdRef.current != null)
+      clearLocalTrackingPhotos(sessionIdRef.current);
     setSessionId(null);
     setRestoredMountainName(null);
     setHikingRecordId(null);
     setPhotoWindow(null);
     setPhotosTaken(0);
     photosTakenRef.current = 0;
+    setTrackingPhotos([]);
     summitPhotoWindowRef.current = null;
     setIsFreeSelected(false);
     setRecordedCoords([]);
@@ -1648,7 +1672,7 @@ export default function TrackingScreen() {
       {isTracking && !showSummitSheet && (
         <TrackingRail
           isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
-          photosTaken={photosTaken}
+          photos={trackingPhotos}
           showTooltip={showTooltip && !isPaused}
           onDismissTooltip={() => setShowTooltip(false)}
           onCameraPress={handleCameraPress}
