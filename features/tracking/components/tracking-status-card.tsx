@@ -33,6 +33,21 @@ function PauseIcon() {
   );
 }
 
+function StopIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+      <Rect
+        x={2.5}
+        y={2.5}
+        width={11}
+        height={11}
+        rx={2}
+        fill={colors.label.normal}
+      />
+    </Svg>
+  );
+}
+
 function PlayIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
@@ -51,7 +66,7 @@ type Props = {
   isPaused: boolean;
   onPause: () => void;
   onResume: () => void;
-  /** 일시 정지 중 기록 종료. 일시 정지 디자인이 나오기 전까지의 임시 자리 */
+  /** 일시 정지 중 기록 종료(■) */
   onStop: () => void;
 };
 
@@ -96,24 +111,33 @@ export function TrackingStatusCard({
           </Text>
           <ElapsedTime secondsRef={elapsedSecondsRef} running={!isPaused} />
         </View>
-        <TouchableOpacity
-          className="h-12 w-12 items-center justify-center rounded-xl bg-fill-stronger"
-          onPress={isPaused ? onResume : onPause}
-          accessibilityLabel={isPaused ? "다시 시작" : "일시 정지"}
-        >
-          {isPaused ? <PlayIcon /> : <PauseIcon />}
-        </TouchableOpacity>
+        {isPaused ? (
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              className="h-12 w-12 items-center justify-center rounded-xl bg-fill-stronger"
+              onPress={onStop}
+              accessibilityLabel="기록 종료"
+            >
+              <StopIcon />
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="h-12 w-12 items-center justify-center rounded-xl bg-secondary-normal"
+              onPress={onResume}
+              accessibilityLabel="다시 시작"
+            >
+              <PlayIcon />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            className="h-12 w-12 items-center justify-center rounded-xl bg-fill-stronger"
+            onPress={onPause}
+            accessibilityLabel="일시 정지"
+          >
+            <PauseIcon />
+          </TouchableOpacity>
+        )}
       </View>
-
-      {/* TODO: 일시 정지 디자인이 나오면 교체 */}
-      {isPaused && (
-        <TouchableOpacity
-          className="h-11 items-center justify-center rounded-[10px] bg-fill-stronger"
-          onPress={onStop}
-        >
-          <Text className="text-label-subtle typo-label-large">기록 종료</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
