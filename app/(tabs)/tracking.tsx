@@ -16,7 +16,6 @@ import {
 import { useMountains } from "@/features/mountains/hooks/use-mountains";
 import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
 import { FreeRecordConfirmModal } from "@/features/tracking/components/free-record-confirm-modal";
 import { NoNearbyMountainModal } from "@/features/tracking/components/no-nearby-mountain-modal";
 import { PhotoWindowBanner } from "@/features/tracking/components/photo-window-banner";
@@ -41,7 +40,6 @@ import { useLiveActivityCourse } from "@/features/tracking/hooks/use-live-activi
 import { useNearbyMountain } from "@/features/tracking/hooks/use-nearby-mountain";
 import { usePauseTrackingSession } from "@/features/tracking/hooks/use-pause-tracking-session";
 import { useResumeTrackingSession } from "@/features/tracking/hooks/use-resume-tracking-session";
-import { useSaveDifficultyFeedback } from "@/features/tracking/hooks/use-save-difficulty-feedback";
 import { useSaveTrackingPhoto } from "@/features/tracking/hooks/use-save-tracking-photo";
 import { useStartTrackingSession } from "@/features/tracking/hooks/use-start-tracking-session";
 import { useTrackingFcm } from "@/features/tracking/hooks/use-tracking-fcm";
@@ -217,9 +215,7 @@ export default function TrackingScreen() {
     TRACKING_SHEET_HEIGHT,
   );
   const [showStopModal, setShowStopModal] = useState(false);
-  const [showDifficultyRating, setShowDifficultyRating] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
-  const [hikingRecordId, setHikingRecordId] = useState<number | null>(null);
   const [hasSummited, setHasSummited] = useState(false);
   const [photoWindow, setPhotoWindow] = useState<PhotoWindowPayload | null>(
     null,
@@ -545,7 +541,6 @@ export default function TrackingScreen() {
   const { mutate: completeSession } = useCompleteTrackingSession();
   const { mutate: abandonSession } = useAbandonTrackingSession();
   const { mutateAsync: savePhoto } = useSaveTrackingPhoto();
-  const { mutate: saveDifficultyFeedback } = useSaveDifficultyFeedback();
   const { data: activeSession, refetch: refetchActiveSession } =
     useActiveTrackingSession();
   const { data: profile } = useProfile();
@@ -1504,9 +1499,8 @@ export default function TrackingScreen() {
     completeSession(
       { sessionId, name },
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           logAnalyticsEvent("tracking_finished", finishedParams);
-          if (data.hikingRecordId != null) setHikingRecordId(data.hikingRecordId);
         },
         onError: (err) => {
           console.warn("[Tracking] 세션 종료 실패:", err);
@@ -1516,7 +1510,7 @@ export default function TrackingScreen() {
     );
   };
 
-  /** StopConfirmModal → 기록 이름 입력 / 난이도 체감 화면으로 전환 */
+  /** StopConfirmModal → 기록 이름 입력 후 종료 */
   const finishTracking = () => {
     setShowStopModal(false);
 
@@ -1524,7 +1518,7 @@ export default function TrackingScreen() {
     const tooShortToRecord =
       elapsedSecondsRef.current < MIN_RECORD_DURATION_SEC;
 
-    // 기록이 남지 않으므로 이름 입력·난이도 평가 단계도 건너뛴다
+    // 기록이 남지 않으므로 이름 입력 단계도 건너뛴다
     if (tooShortToRecord) {
       if (sessionId != null) {
         abandonSession(sessionId, {
@@ -1534,7 +1528,7 @@ export default function TrackingScreen() {
           },
         });
       }
-      completeTracking(null);
+      completeTracking();
       toast.show(
         `${MIN_RECORD_DURATION_SEC / 60}분 미만은 기록으로 저장되지 않아요`,
       );
@@ -1548,33 +1542,17 @@ export default function TrackingScreen() {
     }
 
     runCompleteSession();
-    setShowDifficultyRating(true);
+    completeTracking();
   };
 
-  const DIFFICULTY_COMPARISON = {
-    similar: "SIMILAR",
-    easier: "EASIER",
-    harder: "HARDER",
-  } as const;
-
-  /** 난이도 체감 완료 후 피드백 저장 + 상태 초기화 */
-  const completeTracking = (option: "similar" | "easier" | "harder" | null) => {
-    if (hikingRecordId != null && option != null) {
-      saveDifficultyFeedback(
-        { hikingRecordId, comparison: DIFFICULTY_COMPARISON[option] },
-        {
-          onError: (err) =>
-            console.warn("[Tracking] 난이도 피드백 저장 실패:", err),
-        },
-      );
-    }
+  /** 트래킹 종료 후 상태 초기화 — 난이도 체감은 기록 상세 화면에서 최초 조회 시 물어본다 */
+  const completeTracking = () => {
     if (isLiveActivityEnabled)
       LiveActivity.stop().catch((e: unknown) => {
         console.warn("[LiveActivity] stop() 실패:", e);
       });
     stopLocationTask().catch(() => {});
     disconnectSocket();
-    setShowDifficultyRating(false);
     setShowCourseNameModal(false);
     setIsTracking(false);
     setIsPaused(false);
@@ -1587,7 +1565,6 @@ export default function TrackingScreen() {
       clearLocalTrackingPhotos(sessionIdRef.current);
     setSessionId(null);
     setRestoredMountainName(null);
-    setHikingRecordId(null);
     setPhotoWindow(null);
     setPhotosTaken(0);
     photosTakenRef.current = 0;
@@ -1607,7 +1584,7 @@ export default function TrackingScreen() {
     setFreeRecordCourseName(trimmed || null);
     setShowCourseNameModal(false);
     runCompleteSession(trimmed || undefined);
-    completeTracking(null);
+    completeTracking();
   };
 
 
@@ -1872,15 +1849,6 @@ export default function TrackingScreen() {
         initialValue={freeRecordCourseName ?? ""}
         onSubmit={handleCourseNameSubmit}
         onDismiss={() => handleCourseNameSubmit("")}
-      />
-
-      {/* 난이도 체감 모달 */}
-      <DifficultyRatingModal
-        visible={showDifficultyRating}
-        course={selectedCourse}
-        mountainName={nearbyData?.mountain?.name ?? ""}
-        onClose={() => completeTracking(null)}
-        onComplete={completeTracking}
       />
     </View>
   );
