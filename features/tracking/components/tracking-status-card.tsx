@@ -46,10 +46,10 @@ function StopIcon() {
 
 function PlayIcon() {
   return (
-    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+    <Svg width={15} height={17} viewBox="0 0 15 17" fill="none">
       <Path
-        d="M4 2.5v11a1 1 0 0 0 1.5.86l9-5.5a1 1 0 0 0 0-1.72l-9-5.5A1 1 0 0 0 4 2.5Z"
-        fill={colors.label.normal}
+        d="M0 15.4692V1.00154C0 0.224247 0.847972 -0.255865 1.5145 0.14405L13.5708 7.37786C14.2182 7.76626 14.2182 8.70444 13.5708 9.09284L1.5145 16.3267C0.847971 16.7266 0 16.2465 0 15.4692Z"
+        fill={colors.label.subtle}
       />
     </Svg>
   );
