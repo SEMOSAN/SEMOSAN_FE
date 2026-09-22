@@ -98,7 +98,7 @@ export function TrackingStatusCard({
             </Text>
           </View>
           <Text
-            className="typo-label-normal flex-1 text-label-normal"
+            className="typo-body-2-normal-semi-bold flex-1 text-label-normal"
             numberOfLines={1}
           >
             {course.name}
