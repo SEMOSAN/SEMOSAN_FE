@@ -968,6 +968,29 @@ export default function TrackingScreen() {
     courseCoords.length,
   ]);
 
+  // 드롭다운에서 산을 고르면 그 산으로 카메라 이동. 초기 이동 effect는 1회만 돌고
+  // 잠기므로 따로 둔다. 상세 조회가 끝나 좌표가 생긴 뒤에 움직이고, 같은 산으로는
+  // 다시 움직이지 않는다. 사용자가 고른 것이니 이전 지도 조작 여부는 무시한다.
+  const cameraMovedToMountainIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (isTracking || selectedMountainId == null) return;
+    if (cameraMovedToMountainIdRef.current === selectedMountainId) return;
+    if (
+      activeMountain?.mountainId !== selectedMountainId ||
+      activeMountain.latitude == null ||
+      activeMountain.longitude == null
+    )
+      return;
+
+    cameraMovedToMountainIdRef.current = selectedMountainId;
+    mapRef.current?.animateCameraTo({
+      latitude: activeMountain.latitude,
+      longitude: activeMountain.longitude,
+      zoom: 12,
+      duration: 500,
+    });
+  }, [selectedMountainId, activeMountain, isTracking]);
+
   // 트래킹 시작/종료 시 follow 모드 토글
   // 트래킹 중(코스·자유기록 공통): 현위치가 지도 중앙에 오도록 follow 활성
   // (사용자가 직접 지도를 조작하면 onCameraChanged에서 follow 해제)
