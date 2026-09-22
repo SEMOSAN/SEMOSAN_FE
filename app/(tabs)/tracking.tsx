@@ -109,6 +109,8 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
 };
 
 const COLOR_WHITE = colors.common["100"]; // #ffffff
+// 사용자가 지나간 경로 — 코스 위를 덮는다 (global/neutral/400)
+const COLOR_TRAVELED = colors.neutral["400"];
 
 // 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)
 const SEGMENT_COLORS: Record<string, { color: string }> = {
@@ -599,8 +601,9 @@ export default function TrackingScreen() {
           setTrackingPhotos(photos.slice(0, MAX_TRACKING_PHOTOS));
         });
       }
-      // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원 — 자유기록
-      if (activeSession.isFreeRecording) {
+      // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원.
+      // 코스 모드도 지나간 구간을 덮어야 하므로 모드와 무관하게 복원한다
+      {
         // 요청 시점의 세션 ID를 캡처 — 응답 지연 중 다른 세션으로 바뀌면 폐기
         const restoringSessionId = activeSession.sessionId;
         fetchSessionTrack(restoringSessionId).then((saved) => {
@@ -844,21 +847,23 @@ export default function TrackingScreen() {
     [courseCoords, validCourseSegments],
   );
 
-  // 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커
+  // 사용자가 지나간 경로 — 회색 polyline. 코스 모드에선 코스 색 구간 위를 덮고,
+  // 자유기록에선 출발/도착 마커까지 함께 그린다
   const recordedPathOverlays = useMemo(
     () => (
       <>
+        {recordedCoords.length > 1 && (
+          <NaverMapPathOverlay
+            coords={recordedCoords}
+            width={POLYLINE_WIDTH.colored}
+            color={COLOR_TRAVELED}
+            outlineWidth={1}
+            outlineColor={COLOR_WHITE}
+            zIndex={1}
+          />
+        )}
         {isFreeMode && recordedCoords.length > 0 && (
           <>
-            {recordedCoords.length > 1 && (
-              <NaverMapPathOverlay
-                coords={recordedCoords}
-                width={6}
-                color="#9CA3AF"
-                outlineWidth={1}
-                outlineColor="#6B7280"
-              />
-            )}
             <NaverMapMarkerOverlay
               latitude={recordedCoords[0].latitude}
               longitude={recordedCoords[0].longitude}
