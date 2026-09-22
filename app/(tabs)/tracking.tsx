@@ -3,23 +3,30 @@ import { PinMarkerIcon } from "@/components/icons/pin-marker-icon";
 import { colors } from "@/constants/colors";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
-import { CollapsedCourseCard } from "@/features/tracking/components/collapsed-course-card";
 import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
 import { CourseNameInputModal } from "@/features/tracking/components/course-name-input-modal";
-import { CourseSelectSheet } from "@/features/tracking/components/course-select-sheet";
+import {
+  COURSE_CAROUSEL_AREA_HEIGHT,
+  CourseCarousel,
+} from "@/features/tracking/components/course-carousel";
+import {
+  MountainDropdown,
+  MountainOption,
+} from "@/features/tracking/components/mountain-dropdown";
+import { useMountains } from "@/features/mountains/hooks/use-mountains";
+import { ChevronLeftIcon } from "@/components/icons/chevron-left-icon";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DifficultyRatingModal } from "@/features/tracking/components/difficulty-rating-modal";
 import { FreeRecordConfirmModal } from "@/features/tracking/components/free-record-confirm-modal";
 import { NoNearbyMountainModal } from "@/features/tracking/components/no-nearby-mountain-modal";
 import { PhotoWindowBanner } from "@/features/tracking/components/photo-window-banner";
 import { StopConfirmModal } from "@/features/tracking/components/stop-confirm-modal";
 import { SummitSheet } from "@/features/tracking/components/summit-sheet";
-import { TrackingCourseCard } from "@/features/tracking/components/tracking-course-card";
-import { TrackingSheet } from "@/features/tracking/components/tracking-sheet";
+import { TrackingStatusCard } from "@/features/tracking/components/tracking-status-card";
+import { TrackingRail } from "@/features/tracking/components/tracking-rail";
 import {
-  COLLAPSED_PEEK_HEIGHT,
   Course,
   Difficulty,
-  FLOATING_CARD_GAP,
   LOCATION_BUTTON_GAP,
   SHADOW,
   TRACKING_COURSE_CARD_TOP,
@@ -59,7 +66,12 @@ import {
   totalPathMeters,
 } from "@/features/tracking/utils/track-path";
 import { fetchSessionTrack } from "@/features/tracking/utils/fetch-session-track";
-import { fetchSessionPhotoCount } from "@/features/tracking/utils/fetch-session-photo-count";
+import {
+  addLocalTrackingPhoto,
+  clearLocalTrackingPhotos,
+  restoreTrackingPhotos,
+  TrackingPhoto,
+} from "@/features/tracking/tracking-photo-storage";
 import { uploadTrackingPhoto } from "@/features/tracking/utils/upload-tracking-photo";
 import { useAppState } from "@/hooks/use-app-state";
 import { toast } from "@/store/toast.store";
@@ -78,7 +90,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import { Tabs, useLocalSearchParams } from "expo-router";
+import { Tabs, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AppState,
@@ -97,6 +109,8 @@ const DIFFICULTY_KO: Record<string, Difficulty> = {
 };
 
 const COLOR_WHITE = colors.common["100"]; // #ffffff
+// 사용자가 지나간 경로 — 코스 위를 덮는다 (global/neutral/400)
+const COLOR_TRAVELED = colors.neutral["400"];
 
 // 경사 등급별 polyline 색상 (outline은 디자인 토큰 common-100 사용)
 const SEGMENT_COLORS: Record<string, { color: string }> = {
@@ -153,27 +167,41 @@ function mergeShortSegments(
   );
 }
 
+/** URL 파라미터 등 문자열 ID — 유한한 양의 정수만 인정하고 나머지는 null (NaN 전파 방지) */
+function parsePositiveIntId(raw: string | null | undefined): number | null {
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+/** 기록 전 상단 컨트롤(뒤로가기·산 이름 칩) 높이 */
+const HEADER_CONTROL_HEIGHT = 44;
+
 export default function TrackingScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const {
-    collapse: collapseParameter,
     courseId: courseIdParameter,
     mountainId: mountainIdParameter,
   } = useLocalSearchParams<{
-    collapse?: string;
     courseId?: string;
     mountainId?: string;
   }>();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
     courseIdParameter ?? null,
   );
-  const [collapsed, setCollapsed] = useState(collapseParameter === "true");
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isFreeMode, setIsFreeMode] = useState(false);
+  // 캐러셀에서 "코스 선택 안 함" 카드를 고른 상태
+  const [isFreeSelected, setIsFreeSelected] = useState(false);
+  // 드롭다운에서 고른 산. null이면 URL 파라미터 > 현재 위치 기반 순으로 정한다
+  const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
+    null,
+  );
   // state로 두면 매초 화면 전체가 리렌더된다. 표시는 ElapsedTime이 자기만 다시 그린다
   const elapsedSecondsRef = useRef(0);
-  const [showTooltip, setShowTooltip] = useState(true);
   const [showSummitSheet, setShowSummitSheet] = useState(false);
   // 복원된 세션의 산 이름 — 서버가 준 값이 현재 위치 기반 추정보다 정확하다
   const [restoredMountainName, setRestoredMountainName] = useState<
@@ -198,6 +226,11 @@ export default function TrackingScreen() {
   );
   // 이번 세션에서 촬영한 사진 수 (최대 4장) — 라이브 액티비티 "남은 사진 장수" 표시용
   const [photosTaken, setPhotosTaken] = useState(0);
+  // 촬영→업로드→저장이 끝날 때까지 잠금. ref는 동기 재진입 차단, state는 버튼 비활성용
+  const isSavingPhotoRef = useRef(false);
+  const [isSavingPhoto, setIsSavingPhoto] = useState(false);
+  // 레일에 보여줄 인증 사진. 개수(photosTaken)는 라이브 액티비티 계산용으로 따로 둔다
+  const [trackingPhotos, setTrackingPhotos] = useState<TrackingPhoto[]>([]);
   // 업로드 완료 콜백에서 최신 촬영 수를 참조하기 위한 미러.
   // 렌더 중에는 쓰지 않는다 — React가 렌더를 버리거나 재실행할 수 있어
   // 커밋되지 않은 값이 새어나갈 수 있다. setPhotosTaken을 호출하는 세 지점
@@ -263,9 +296,7 @@ export default function TrackingScreen() {
 
   useEffect(() => {
     if (courseIdParameter) setSelectedCourseId(courseIdParameter);
-    if (collapseParameter !== undefined)
-      setCollapsed(collapseParameter === "true");
-  }, [courseIdParameter, collapseParameter]);
+  }, [courseIdParameter]);
 
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
@@ -300,22 +331,69 @@ export default function TrackingScreen() {
     lng: nearbyQueryCoord?.lng ?? null,
   });
 
-  // 세션이 생성되는 산 — URL 파라미터(코스 상세에서 진입) > 현재 위치 기반
-  const sessionMountainId = mountainIdParameter
-    ? Number(mountainIdParameter)
-    : nearbyData?.mountain?.mountainId;
+  // 명시적으로 고른 산 — 드롭다운 선택 > URL 파라미터(코스 상세에서 진입). 없으면 null
+  const chosenMountainId =
+    selectedMountainId ?? parsePositiveIntId(mountainIdParameter);
 
-  // 파라미터로 진입하면 근처 산과 다를 수 있어 해당 산 이름을 따로 조회한다.
-  // (코스 상세 응답에는 mountainName이 없다)
-  const { data: sessionMountainDetail } = useMountainDetail(
-    mountainIdParameter ? Number(mountainIdParameter) : 0,
-  );
-  // 우선순위: 복원된 세션(서버 값) > URL 파라미터 조회 > 현재 위치 기반
+  // 세션이 생성되는 산 — 명시적으로 고른 산 > 현재 위치 기반
+  const sessionMountainId = chosenMountainId ?? nearbyData?.mountain?.mountainId;
+
+  // 고른 산은 근처 산과 다를 수 있어 이름·좌표·코스를 따로 조회한다.
+  const { data: chosenMountainDetail, isLoading: isChosenMountainLoading } =
+    useMountainDetail(chosenMountainId ?? 0);
+  // 우선순위: 복원된 세션(서버 값) > 고른 산 조회 > 현재 위치 기반
   const sessionMountainName =
     restoredMountainName ??
-    (mountainIdParameter
-      ? sessionMountainDetail?.mountain?.name
+    (chosenMountainId != null
+      ? chosenMountainDetail?.mountain?.name
       : nearbyData?.mountain?.name);
+
+  // 화면에 쓰는 산과 코스 — 고른 산이 있으면 그 산, 없으면 근처 산
+  const activeMountain =
+    chosenMountainId != null
+      ? chosenMountainDetail?.mountain
+      : nearbyData?.mountain;
+  const activeCourses =
+    chosenMountainId != null
+      ? chosenMountainDetail?.courses
+      : nearbyData?.courses;
+  const isActiveLoading =
+    chosenMountainId != null ? isChosenMountainLoading : isNearbyLoading;
+
+  // 드롭다운 후보 — 전체 산 목록에서 현재 위치에 가까운 순으로 3개. 활성 산은 항상 포함
+  const { data: mountainsPage } = useMountains({ size: 100 });
+  const mountainOptions = useMemo<MountainOption[]>(() => {
+    const all = (mountainsPage?.content ?? []).filter(
+      (m): m is typeof m & { mountainId: number; name: string } =>
+        m.mountainId != null && m.name != null,
+    );
+    const origin = userLocation;
+    const nearest = origin
+      ? [...all]
+          .filter((m) => m.latitude != null && m.longitude != null)
+          .sort(
+            (a, b) =>
+              haversineMeters(origin, {
+                latitude: a.latitude!,
+                longitude: a.longitude!,
+              }) -
+              haversineMeters(origin, {
+                latitude: b.latitude!,
+                longitude: b.longitude!,
+              }),
+          )
+      : all;
+    const top = nearest.slice(0, 3);
+    const activeId = activeMountain?.mountainId;
+    if (
+      activeId != null &&
+      activeMountain?.name &&
+      !top.some((m) => m.mountainId === activeId)
+    ) {
+      top.unshift({ mountainId: activeId, name: activeMountain.name });
+    }
+    return top.map(({ mountainId, name }) => ({ mountainId, name }));
+  }, [mountainsPage, userLocation, activeMountain]);
 
   const handlePhotoWindow = useCallback((payload: PhotoWindowPayload) => {
     console.log("[PhotoWindow] 수신:", JSON.stringify(payload));
@@ -516,22 +594,25 @@ export default function TrackingScreen() {
       startLocationTask().catch((err) =>
         console.warn("[Location] 백그라운드 위치 재시작 실패:", err),
       );
-      // 강제 종료 후 재진입 시 이미 촬영한 사진 수 복원 — 라이브 액티비티 "남은 사진 장수" 정확도 보장
+      // 강제 종료 후 재진입 시 이미 촬영한 사진 복원 — 레일 썸네일과
+      // 라이브 액티비티 "남은 사진 장수" 둘 다. 서버 목록 기준, 로컬 파일이 있으면 붙인다
       {
         const restoringPhotoSessionId = activeSession.sessionId;
-        fetchSessionPhotoCount(restoringPhotoSessionId).then((count) => {
+        restoreTrackingPhotos(restoringPhotoSessionId).then((photos) => {
           if (
             !isMountedRef.current ||
             sessionIdRef.current !== restoringPhotoSessionId
           )
             return;
-          const restored = Math.min(count, MAX_TRACKING_PHOTOS);
+          const restored = Math.min(photos.length, MAX_TRACKING_PHOTOS);
           photosTakenRef.current = restored;
           setPhotosTaken(restored);
+          setTrackingPhotos(photos.slice(0, MAX_TRACKING_PHOTOS));
         });
       }
-      // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원 — 자유기록
-      if (activeSession.isFreeRecording) {
+      // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원.
+      // 코스 모드도 지나간 구간을 덮어야 하므로 모드와 무관하게 복원한다
+      {
         // 요청 시점의 세션 ID를 캡처 — 응답 지연 중 다른 세션으로 바뀌면 폐기
         const restoringSessionId = activeSession.sessionId;
         fetchSessionTrack(restoringSessionId).then((saved) => {
@@ -569,9 +650,7 @@ export default function TrackingScreen() {
     }
   }, [activeSession]);
 
-  const selectedCourseId_num = selectedCourseId
-    ? Number(selectedCourseId)
-    : null;
+  const selectedCourseId_num = parsePositiveIntId(selectedCourseId);
   const { data: courseDetail } = useCourseDetail(
     isFreeMode ? null : selectedCourseId_num,
   );
@@ -609,7 +688,7 @@ export default function TrackingScreen() {
     liveActivityCourse?.estimatedTime ?? courseDetail?.duration ?? 0,
   );
 
-  // 정상까지 거리·시간 (courseProgressState useMemo보다 먼저 선언).
+  // 정상까지 거리.
   // 서버 값을 우선 쓴다 — 마일스톤 푸시가 오는 지점과 같은 값이라 화면 표시와
   // 알림 시점이 일치한다. 정상 좌표가 없어 서버가 계산하지 못한 코스는
   // "같은 출처"의 절반으로 폴백한다. courseDetail 기준으로 폴백하면
@@ -617,150 +696,9 @@ export default function TrackingScreen() {
   const summitDistanceM = Math.round(
     liveActivityCourse?.summitDistance ?? courseTotalDistanceM / 2,
   );
-  const summitDurationMinutes = Math.round(
-    liveActivityCourse?.summitEstimatedTime ?? courseTotalDurationMin / 2,
-  );
 
   // 하산 구간 = 코스 전체 − 정상까지
   const descentDistanceM = Math.max(0, courseTotalDistanceM - summitDistanceM);
-  const descentDurationMinutes = Math.max(
-    0,
-    courseTotalDurationMin - summitDurationMinutes,
-  );
-
-  // 코스 진행 상태 — GPS 기반 실시간 (markerRatio + 남은 거리/시간 통합)
-  const courseProgressState = useMemo(() => {
-    // ── 1순위: liveActivityCourse + Haversine 실측 거리 계산 ──────────────
-    if (
-      liveActivityCourse &&
-      userLocation &&
-      liveActivityCourse.totalDistance > 0
-    ) {
-      const result = calcCourseProgress(
-        userLocation,
-        liveActivityCourse.coordinates,
-        liveActivityCourse.totalDistance,
-      );
-      // 분/m 페이스 (전체 코스 기준 일정 속도 가정)
-      const paceMinPerM =
-        liveActivityCourse.estimatedTime / liveActivityCourse.totalDistance;
-      const traveledM =
-        liveActivityCourse.totalDistance - result.remainingMeters;
-
-      if (hasSummited) {
-        // 하산 중: 코스 끝까지 남은 거리/시간.
-        // 시간은 하산 구간 페이스로 환산한다 — 전체 페이스는 오르막이 섞여 있어
-        // 하산에 적용하면 과대 추정된다.
-        const descentPaceMinPerM =
-          descentDistanceM > 0
-            ? descentDurationMinutes / descentDistanceM
-            : paceMinPerM;
-        return {
-          markerRatio: 0.0,
-          remainingDistanceM: Math.round(result.remainingMeters),
-          remainingDurationMin: Math.round(
-            result.remainingMeters * descentPaceMinPerM,
-          ),
-        };
-      }
-
-      // 등산 중: 정상까지 남은 거리/시간
-      const summitDistance =
-        liveActivityCourse.summitDistance ??
-        liveActivityCourse.totalDistance / 2;
-      const remainingToSummitM = Math.max(0, summitDistance - traveledM);
-      const ascProgress =
-        summitDistance > 0 ? Math.min(traveledM / summitDistance, 1) : 0; // 0(출발) ~ 1(정상)
-      // 정상까지 시간도 서버 값이 있으면 그 비율로 — 전체 페이스 배분보다 정확하다
-      const remainingToSummitMin =
-        liveActivityCourse.summitEstimatedTime != null
-          ? liveActivityCourse.summitEstimatedTime * (1 - ascProgress)
-          : remainingToSummitM * paceMinPerM;
-      return {
-        markerRatio: Math.max(0, 1.0 - ascProgress), // 1.0(바 하단/출발) ~ 0.0(바 상단/정상)
-        remainingDistanceM: Math.round(remainingToSummitM),
-        remainingDurationMin: Math.round(remainingToSummitMin),
-      };
-    }
-
-    // ── 2순위 폴백: 인덱스 기반 선형 보간 (liveActivityCourse 로딩 전) ──
-    const summitIdx = Math.floor(courseCoords.length / 2);
-    const totalIdx = courseCoords.length - 1;
-
-    if (hasSummited) {
-      if (!markerCoord || courseCoords.length < 2) {
-        return {
-          markerRatio: 0.0,
-          remainingDistanceM: descentDistanceM,
-          remainingDurationMin: descentDurationMinutes,
-        };
-      }
-      let closestIdx = summitIdx;
-      let minDist = Infinity;
-      for (let i = summitIdx; i <= totalIdx; i++) {
-        const dLat = courseCoords[i].latitude - markerCoord.latitude;
-        const dLng = courseCoords[i].longitude - markerCoord.longitude;
-        const dist = dLat * dLat + dLng * dLng;
-        if (dist < minDist) {
-          minDist = dist;
-          closestIdx = i;
-        }
-      }
-      const descentTotal = totalIdx - summitIdx;
-      const ratio =
-        descentTotal > 0
-          ? Math.max(
-              0,
-              Math.min(1, 1 - (closestIdx - summitIdx) / descentTotal),
-            )
-          : 0;
-      return {
-        markerRatio: 0.0,
-        remainingDistanceM: Math.round(descentDistanceM * ratio),
-        remainingDurationMin: Math.round(descentDurationMinutes * ratio),
-      };
-    }
-
-    if (!markerCoord || courseCoords.length < 2) {
-      return {
-        markerRatio: 1.0,
-        remainingDistanceM: summitDistanceM,
-        remainingDurationMin: summitDurationMinutes,
-      };
-    }
-
-    let closestIdx = 0;
-    let minDist = Infinity;
-    for (let i = 0; i <= summitIdx; i++) {
-      const dLat = courseCoords[i].latitude - markerCoord.latitude;
-      const dLng = courseCoords[i].longitude - markerCoord.longitude;
-      const dist = dLat * dLat + dLng * dLng;
-      if (dist < minDist) {
-        minDist = dist;
-        closestIdx = i;
-      }
-    }
-    const progress = summitIdx > 0 ? closestIdx / summitIdx : 0;
-    const remaining = Math.max(0, 1 - progress);
-    return {
-      markerRatio: 1.0 - progress,
-      remainingDistanceM: Math.round(summitDistanceM * remaining),
-      remainingDurationMin: Math.round(summitDurationMinutes * remaining),
-    };
-  }, [
-    markerCoord,
-    courseCoords,
-    hasSummited,
-    summitDistanceM,
-    summitDurationMinutes,
-    descentDistanceM,
-    descentDurationMinutes,
-    liveActivityCourse,
-    userLocation,
-  ]);
-
-  const { markerRatio, remainingDistanceM, remainingDurationMin } =
-    courseProgressState;
 
   // altitudes 문자열에서 최고 고도(m) 파싱
   const peakAltitudeM = useMemo(() => {
@@ -820,19 +758,6 @@ export default function TrackingScreen() {
       descentDistanceM,
     ],
   );
-
-  const timeToTarget = (() => {
-    if (remainingDurationMin <= 0) return "-";
-    const h = Math.floor(remainingDurationMin / 60);
-    const m = remainingDurationMin % 60;
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-  })();
-  const distanceToTarget =
-    remainingDistanceM >= 1000
-      ? `${(remainingDistanceM / 1000).toFixed(1)}km`
-      : remainingDistanceM > 0
-        ? `${remainingDistanceM}m`
-        : "-";
 
   // 코스 오버레이 — 코스가 바뀔 때만 다시 만든다 (실시간 좌표와 분리)
   const courseOverlays = useMemo(
@@ -929,21 +854,23 @@ export default function TrackingScreen() {
     [courseCoords, validCourseSegments],
   );
 
-  // 자유기록 실시간 경로 — 회색 polyline + 출발/도착 마커
+  // 사용자가 지나간 경로 — 회색 polyline. 코스 모드에선 코스 색 구간 위를 덮고,
+  // 자유기록에선 출발/도착 마커까지 함께 그린다
   const recordedPathOverlays = useMemo(
     () => (
       <>
+        {recordedCoords.length > 1 && (
+          <NaverMapPathOverlay
+            coords={recordedCoords}
+            width={POLYLINE_WIDTH.colored}
+            color={COLOR_TRAVELED}
+            outlineWidth={1}
+            outlineColor={COLOR_WHITE}
+            zIndex={1}
+          />
+        )}
         {isFreeMode && recordedCoords.length > 0 && (
           <>
-            {recordedCoords.length > 1 && (
-              <NaverMapPathOverlay
-                coords={recordedCoords}
-                width={6}
-                color="#9CA3AF"
-                outlineWidth={1}
-                outlineColor="#6B7280"
-              />
-            )}
             <NaverMapMarkerOverlay
               latitude={recordedCoords[0].latitude}
               longitude={recordedCoords[0].longitude}
@@ -1007,7 +934,6 @@ export default function TrackingScreen() {
   const didInitialCameraMoveRef = useRef(false);
   // 사용자가 먼저 지도를 움직였으면 뒤늦게 도착한 좌표로 덮어쓰지 않음
   const didUserMoveMapRef = useRef(false);
-  const nearbyMountain = nearbyData?.mountain;
   useEffect(() => {
     if (didInitialCameraMoveRef.current || didUserMoveMapRef.current) return;
     // 트래킹이 시작되면 초기 이동은 포기 — 종료 후 카메라가 뒤늦게 튀는 것 방지
@@ -1019,10 +945,10 @@ export default function TrackingScreen() {
     if (selectedCourseId != null || courseCoords.length >= 2) return;
 
     const target =
-      nearbyMountain?.latitude != null && nearbyMountain?.longitude != null
+      activeMountain?.latitude != null && activeMountain?.longitude != null
         ? {
-            latitude: nearbyMountain.latitude,
-            longitude: nearbyMountain.longitude,
+            latitude: activeMountain.latitude,
+            longitude: activeMountain.longitude,
             zoom: 12,
           }
         : !isNearbyLoading && userLocation
@@ -1038,12 +964,35 @@ export default function TrackingScreen() {
     mapRef.current?.animateCameraTo({ ...target, duration: 500 });
   }, [
     selectedCourseId,
-    nearbyMountain,
+    activeMountain,
     isNearbyLoading,
     userLocation,
     isTracking,
     courseCoords.length,
   ]);
+
+  // 드롭다운에서 산을 고르면 그 산으로 카메라 이동. 초기 이동 effect는 1회만 돌고
+  // 잠기므로 따로 둔다. 상세 조회가 끝나 좌표가 생긴 뒤에 움직이고, 같은 산으로는
+  // 다시 움직이지 않는다. 사용자가 고른 것이니 이전 지도 조작 여부는 무시한다.
+  const cameraMovedToMountainIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (isTracking || selectedMountainId == null) return;
+    if (cameraMovedToMountainIdRef.current === selectedMountainId) return;
+    if (
+      activeMountain?.mountainId !== selectedMountainId ||
+      activeMountain.latitude == null ||
+      activeMountain.longitude == null
+    )
+      return;
+
+    cameraMovedToMountainIdRef.current = selectedMountainId;
+    mapRef.current?.animateCameraTo({
+      latitude: activeMountain.latitude,
+      longitude: activeMountain.longitude,
+      zoom: 12,
+      duration: 500,
+    });
+  }, [selectedMountainId, activeMountain, isTracking]);
 
   // 트래킹 시작/종료 시 follow 모드 토글
   // 트래킹 중(코스·자유기록 공통): 현위치가 지도 중앙에 오도록 follow 활성
@@ -1113,28 +1062,28 @@ export default function TrackingScreen() {
   };
 
   // 현위치 ~ 근처 산 거리(m), 좌표 없으면 null
-  const nearbyMountainDistanceM = useMemo(() => {
+  const activeMountainDistanceM = useMemo(() => {
     if (!userLocation) return null;
-    const latitude = nearbyMountain?.latitude;
-    const longitude = nearbyMountain?.longitude;
+    const latitude = activeMountain?.latitude;
+    const longitude = activeMountain?.longitude;
     if (latitude == null || longitude == null) return null;
     return haversineMeters(userLocation, { latitude, longitude });
-  }, [userLocation, nearbyMountain]);
+  }, [userLocation, activeMountain]);
 
   const handleFreeRecord = () => {
     logAnalyticsEvent("free_record_start_click", {
       mountain_name: sessionMountainName,
     });
 
-    // 산을 골라 진입한 경우엔 좌표를 알 수 없어 거리 판정 제외
-    if (mountainIdParameter) {
+    // 산을 직접 고른 경우(드롭다운·코스 상세 진입)엔 거리 판정 제외
+    if (chosenMountainId != null) {
       startCountdown(true);
       return;
     }
     if (
-      nearbyMountain?.mountainId == null ||
-      nearbyMountainDistanceM == null ||
-      nearbyMountainDistanceM > FREE_RECORD_MAX_DISTANCE_M
+      activeMountain?.mountainId == null ||
+      activeMountainDistanceM == null ||
+      activeMountainDistanceM > FREE_RECORD_MAX_DISTANCE_M
     ) {
       setShowNoNearbyMountainModal(true);
       return;
@@ -1420,96 +1369,117 @@ export default function TrackingScreen() {
   const requestStop = () => setShowStopModal(true);
 
   const handleCameraPress = async () => {
-    // 카메라를 열기 전에 인증 창을 먼저 확정 — 촬영 도중 창이 닫혀 사진이
-    // 조용히 버려지는 것을 막고, 이미 닫혔다면 촬영 전에 바로 안내한다.
-    const isWindowOpen = photoWindow?.status === "OPEN";
-    const activeWindow = isWindowOpen
-      ? photoWindow
-      : hasSummited
-        ? summitPhotoWindowRef.current
-        : null;
-
-    if (activeWindow == null || sessionId == null) {
-      toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", {
-        type: "error",
-      });
-      return;
-    }
-
-    // 상한 검사를 촬영 전에 한다. 카운터는 저장 성공 후에 오르므로, 검사가
-    // 없으면 연속 촬영으로 4장을 넘겨 업로드할 수 있다.
-    if (photosTakenRef.current >= MAX_TRACKING_PHOTOS) {
-      toast.show(
-        `인증 사진은 ${MAX_TRACKING_PHOTOS}장까지만 찍을 수 있어요.`,
-        { type: "error" },
-      );
-      return;
-    }
-
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      console.warn("[Camera] 카메라 권한 거부됨");
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-      allowsEditing: false,
-    });
-
-    if (result.canceled || !result.assets?.[0]?.uri) return;
-
-    // 업로드/저장이 진행되는 동안 세션이 종료·교체될 수 있어 촬영 시점의 세션을 고정
-    const capturedSessionId = sessionId;
-
+    // 업로드·저장 완료 전 재진입 차단 — 상한 검사만으로는 연속 입력이 모두 통과해
+    // 같은 세션에 5장째가 저장될 수 있다
+    if (isSavingPhotoRef.current) return;
+    isSavingPhotoRef.current = true;
+    setIsSavingPhoto(true);
     try {
-      const capturedAt = new Date().toISOString();
-      const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
-      console.log("[Tracking] 인증 사진 업로드 완료:", imageUrl);
+      // 카메라를 열기 전에 인증 창을 먼저 확정 — 촬영 도중 창이 닫혀 사진이
+      // 조용히 버려지는 것을 막고, 이미 닫혔다면 촬영 전에 바로 안내한다.
+      const isWindowOpen = photoWindow?.status === "OPEN";
+      const activeWindow = isWindowOpen
+        ? photoWindow
+        : hasSummited
+          ? summitPhotoWindowRef.current
+          : null;
 
-      await savePhoto({
-        sessionId,
-        body: {
-          milestoneIndex: activeWindow.milestoneIndex,
-          milestoneDistanceM: activeWindow.milestoneDistance,
-          imageUrl,
-          capturedAt,
-          lat: userLocation?.latitude ?? 0,
-          lng: userLocation?.longitude ?? 0,
-          altitude: userLocation?.altitude ?? 0,
-        },
-      });
-      console.log("[Tracking] 사진 메타 저장 완료");
-      // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음.
-      // 이때는 isFreeMode·산 이름도 이미 초기화된 상태라 분석 이벤트도 함께 건너뛴다.
-      if (sessionIdRef.current === capturedSessionId) {
-        const nextPhotoCount = Math.min(
-          photosTakenRef.current + 1,
-          MAX_TRACKING_PHOTOS,
-        );
-        photosTakenRef.current = nextPhotoCount;
-        setPhotosTaken(nextPhotoCount);
+      if (activeWindow == null || sessionId == null) {
+        toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", {
+          type: "error",
+        });
+        return;
+      }
 
-        const remainingPhotos = MAX_TRACKING_PHOTOS - nextPhotoCount;
+      // 상한 검사를 촬영 전에 한다. 카운터는 저장 성공 후에 오르므로, 검사가
+      // 없으면 연속 촬영으로 4장을 넘겨 업로드할 수 있다.
+      if (photosTakenRef.current >= MAX_TRACKING_PHOTOS) {
         toast.show(
-          remainingPhotos > 0
-            ? `${remainingPhotos}장 더 찍을 수 있어요!`
-            : "인증 사진을 모두 찍었어요!",
+          `인증 사진은 ${MAX_TRACKING_PHOTOS}장까지만 찍을 수 있어요.`,
+          { type: "error" },
         );
+        return;
+      }
 
-        logAnalyticsEvent("clive_photo_taken", {
-          tracking_type: isFreeMode ? "free" : "course",
-          mountain_name: sessionMountainName,
-          photo_order: activeWindow.milestoneIndex,
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        console.warn("[Camera] 카메라 권한 거부됨");
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        quality: 0.8,
+        allowsEditing: false,
+      });
+
+      if (result.canceled || !result.assets?.[0]?.uri) return;
+
+      // 업로드/저장이 진행되는 동안 세션이 종료·교체될 수 있어 촬영 시점의 세션을 고정
+      const capturedSessionId = sessionId;
+
+      try {
+        const capturedAt = new Date().toISOString();
+        const imageUrl = await uploadTrackingPhoto(result.assets[0].uri);
+        console.log("[Tracking] 인증 사진 업로드 완료:", imageUrl);
+
+        await savePhoto({
+          sessionId,
+          body: {
+            milestoneIndex: activeWindow.milestoneIndex,
+            milestoneDistanceM: activeWindow.milestoneDistance,
+            imageUrl,
+            capturedAt,
+            lat: userLocation?.latitude ?? 0,
+            lng: userLocation?.longitude ?? 0,
+            altitude: userLocation?.altitude ?? 0,
+          },
+        });
+        console.log("[Tracking] 사진 메타 저장 완료");
+        // 저장 완료 시점에 세션이 이미 바뀌었다면(종료 후 재시작 등) 새 세션 카운터에 반영하지 않음.
+        // 이때는 isFreeMode·산 이름도 이미 초기화된 상태라 분석 이벤트도 함께 건너뛴다.
+        const capturedPhoto: TrackingPhoto = {
+          milestoneIndex: activeWindow.milestoneIndex,
+          localUri: result.assets[0].uri,
+          imageUrl,
+        };
+        // 세션을 나갔다 들어와도 썸네일이 남도록 로컬에도 둔다
+        addLocalTrackingPhoto(capturedSessionId, capturedPhoto);
+
+        if (sessionIdRef.current === capturedSessionId) {
+          const nextPhotoCount = Math.min(
+            photosTakenRef.current + 1,
+            MAX_TRACKING_PHOTOS,
+          );
+          photosTakenRef.current = nextPhotoCount;
+          setPhotosTaken(nextPhotoCount);
+          setTrackingPhotos((prev) =>
+            [...prev, capturedPhoto].slice(0, MAX_TRACKING_PHOTOS),
+          );
+
+          const remainingPhotos = MAX_TRACKING_PHOTOS - nextPhotoCount;
+          toast.show(
+            remainingPhotos > 0
+              ? `${remainingPhotos}장 더 찍을 수 있어요!`
+              : "인증 사진을 모두 찍었어요!",
+          );
+
+          logAnalyticsEvent("clive_photo_taken", {
+            tracking_type: isFreeMode ? "free" : "course",
+            mountain_name: sessionMountainName,
+            photo_order: activeWindow.milestoneIndex,
+          });
+        }
+      } catch (err) {
+        console.warn("[Tracking] 인증 사진 처리 실패:", err);
+        Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
+        toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", {
+          type: "error",
         });
       }
-    } catch (err) {
-      console.warn("[Tracking] 인증 사진 처리 실패:", err);
-      Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
-      toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", {
-        type: "error",
-      });
+    } finally {
+      isSavingPhotoRef.current = false;
+      if (isMountedRef.current) setIsSavingPhoto(false);
     }
   };
 
@@ -1610,17 +1580,20 @@ export default function TrackingScreen() {
     setIsPaused(false);
     setIsFreeMode(false);
     elapsedSecondsRef.current = 0;
-    setShowTooltip(true);
     setShowSummitSheet(false);
     setHasSummited(false);
+    // 세션이 끝났으니 로컬에 캐시한 인증 사진도 치운다
+    if (sessionIdRef.current != null)
+      clearLocalTrackingPhotos(sessionIdRef.current);
     setSessionId(null);
     setRestoredMountainName(null);
     setHikingRecordId(null);
     setPhotoWindow(null);
     setPhotosTaken(0);
     photosTakenRef.current = 0;
+    setTrackingPhotos([]);
     summitPhotoWindowRef.current = null;
-    setCollapsed(false);
+    setIsFreeSelected(false);
     setRecordedCoords([]);
     lastRecordedCoordRef.current = null;
   };
@@ -1637,13 +1610,12 @@ export default function TrackingScreen() {
     completeTracking(null);
   };
 
-  const floatingCardBottom = COLLAPSED_PEEK_HEIGHT + FLOATING_CARD_GAP;
 
   return (
     <View className="flex-1 bg-fill-stronger">
       {/* 트래킹 중 탭바 숨기기 */}
       <Tabs.Screen
-        options={{ tabBarStyle: isTracking ? { display: "none" } : undefined }}
+        options={{ tabBarStyle: { display: "none" } }}
       />
 
       {/* 지도 영역 */}
@@ -1652,13 +1624,13 @@ export default function TrackingScreen() {
           ref={mapRef}
           style={styles.map}
           initialCamera={FALLBACK_CAMERA}
+          isShowZoomControls={false}
           mapPadding={{
             bottom: isTracking
               ? trackingSheetHeight
-              : collapsed
-                ? COLLAPSED_PEEK_HEIGHT
-                : 448,
-            top: 0,
+              : COURSE_CAROUSEL_AREA_HEIGHT + insets.bottom,
+            // 기록 전엔 뒤로가기·산 이름 칩 아래로 경로가 들어오게 여유를 둔다
+            top: isTracking ? 0 : TRACKING_COURSE_CARD_TOP + HEADER_CONTROL_HEIGHT + 24,
             left: 0,
             right: 0,
           }}
@@ -1739,11 +1711,13 @@ export default function TrackingScreen() {
         )}
       </View>
 
-      {/* 트래킹 중 — 상단 코스 카드 (자유기록 제외) */}
-      {isTracking && !isFreeMode && (
-        <TrackingCourseCard
-          course={selectedCourse}
-          style={{ top: TRACKING_COURSE_CARD_TOP }}
+      {/* 트래킹 중 — 우측 레일 (카메라 + 인증 사진 슬롯) */}
+      {isTracking && !showSummitSheet && (
+        <TrackingRail
+          isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
+          isBusy={isSavingPhoto}
+          photos={trackingPhotos}
+          onCameraPress={handleCameraPress}
         />
       )}
 
@@ -1753,9 +1727,7 @@ export default function TrackingScreen() {
         style={{
           bottom: isTracking
             ? trackingSheetHeight + LOCATION_BUTTON_GAP
-            : collapsed
-              ? floatingCardBottom + FLOATING_CARD_GAP
-              : 448 + FLOATING_CARD_GAP,
+            : COURSE_CAROUSEL_AREA_HEIGHT + insets.bottom + LOCATION_BUTTON_GAP,
           ...SHADOW,
         }}
         onPress={() => {
@@ -1772,32 +1744,65 @@ export default function TrackingScreen() {
         <LocationIcon />
       </TouchableOpacity>
 
-      {/* Expanded 바텀시트 */}
-      {!isTracking && !collapsed && (
-        <CourseSelectSheet
-          mountain={nearbyData?.mountain}
-          courses={nearbyData?.courses}
-          isLoading={isNearbyLoading}
-          selectedCourseId={selectedCourseId_num}
-          onSelectCourse={(id) => setSelectedCourseId(String(id))}
-          onFreeRecord={handleFreeRecord}
-          onStartCountdown={startCountdown}
-          onCollapse={() => setCollapsed(true)}
+      {/* 기록 전 — 좌상단 뒤로가기 (탭바를 숨기므로 나갈 길이 필요) */}
+      {!isTracking && (
+        <TouchableOpacity
+          className="absolute left-4 h-11 w-11 items-center justify-center rounded-full bg-fill-normal"
+          style={{ top: TRACKING_COURSE_CARD_TOP, ...SHADOW }}
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.navigate("/(tabs)");
+          }}
+        >
+          <ChevronLeftIcon />
+        </TouchableOpacity>
+      )}
+
+      {/* 기록 전 — 우상단 산 선택 드롭다운 */}
+      {!isTracking && (
+        <MountainDropdown
+          selected={
+            activeMountain?.mountainId != null && activeMountain.name
+              ? { mountainId: activeMountain.mountainId, name: activeMountain.name }
+              : undefined
+          }
+          options={mountainOptions}
+          onSelect={(id) => {
+            setSelectedMountainId(id);
+            setSelectedCourseId(null);
+            setIsFreeSelected(false);
+          }}
+          style={{ top: TRACKING_COURSE_CARD_TOP }}
         />
       )}
 
-      {/* Collapsed 바텀시트 */}
-      {!isTracking && collapsed && (
-        <CollapsedCourseCard
-          course={selectedCourse}
-          onExpand={() => setCollapsed(false)}
-          onStartCountdown={startCountdown}
+      {/* 기록 전 — 하단 코스 캐러셀 + 시작 버튼 */}
+      {!isTracking && (
+        <CourseCarousel
+          courses={activeCourses}
+          isLoading={isActiveLoading}
+          selectedCourseId={isFreeSelected ? null : selectedCourseId_num}
+          isFreeSelected={isFreeSelected}
+          onSelectCourse={(id) => {
+            setIsFreeSelected(false);
+            setSelectedCourseId(String(id));
+          }}
+          onSelectFree={() => {
+            setIsFreeSelected(true);
+            setSelectedCourseId(null);
+          }}
+          onStart={() => {
+            if (isFreeSelected) handleFreeRecord();
+            else if (selectedCourseId_num != null) startCountdown(false);
+          }}
+          bottomInset={insets.bottom}
         />
       )}
 
-      {/* 트래킹 중 바텀시트 */}
+      {/* 트래킹 중 하단 — 정상 시트 또는 상태 카드. 지도 위에 떠 있다 */}
       {isTracking && (
         <View
+          className="absolute bottom-0 left-0 right-0"
           onLayout={(e: LayoutChangeEvent) =>
             setTrackingSheetHeight(e.nativeEvent.layout.height)
           }
@@ -1816,22 +1821,16 @@ export default function TrackingScreen() {
               onNotYet={() => setShowSummitSheet(false)}
             />
           ) : (
-            <TrackingSheet
-              elapsedSecondsRef={elapsedSecondsRef}
-              isPaused={isPaused}
-              showTooltip={showTooltip}
-              isFreeMode={isFreeMode}
-              isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
-              hasSummited={hasSummited}
-              timeToTarget={timeToTarget}
-              distanceToTarget={distanceToTarget}
-              onDismissTooltip={() => setShowTooltip(false)}
-              onCameraPress={handleCameraPress}
-              onPause={pauseTracking}
-              onResume={resumeTracking}
-              onStop={requestStop}
-              onSummit={() => setShowSummitSheet(true)}
-            />
+            <View style={{ paddingBottom: insets.bottom + 16 }}>
+              <TrackingStatusCard
+                course={isFreeMode ? null : selectedCourse}
+                elapsedSecondsRef={elapsedSecondsRef}
+                isPaused={isPaused}
+                onPause={pauseTracking}
+                onResume={resumeTracking}
+                onStop={requestStop}
+              />
+            </View>
           )}
         </View>
       )}
