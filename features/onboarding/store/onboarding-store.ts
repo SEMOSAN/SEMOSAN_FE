@@ -87,8 +87,10 @@ export const useOnboardingStore = create<OnboardingState & OnboardingActions>(
     toRequest: () => {
       const s = get();
       if (!s.hikingLevel) return null;
+      // 서버 스펙 변경으로 nickname이 필수가 됨 — 없으면 요청을 만들지 않는다
+      if (!s.nickname) return null;
       return {
-        nickname: s.nickname || undefined,
+        nickname: s.nickname,
         profileUrl: s.profileUrl || undefined,
         birthDate: s.birthDate,
         gender: s.gender,

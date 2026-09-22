@@ -119,10 +119,13 @@ export const COUNTDOWN_NUMBER_STYLE = {
 } as const;
 
 /** 트래킹 타이머 타이포그래피 */
+/** 트래킹 타이머 — Lexend 600 / 32px / 150% / +0.64px. Lexend는 타이포 토큰에 없어 상수로 둔다 */
 export const TRACKING_TIMER_STYLE = {
   fontFamily: 'Lexend-SemiBold',
-  fontSize: 48,
-  letterSpacing: -0.75,
+  fontSize: 32,
+  lineHeight: 48,
+  letterSpacing: 0.64,
+  textAlign: 'center',
 } as const;
 
 export const TRAIL_BAR_COLORS = ['#507EF4', '#4ADE80', '#FFD40D', '#FF5249'] as const;
