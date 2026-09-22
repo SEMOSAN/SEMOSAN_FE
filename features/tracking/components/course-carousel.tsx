@@ -91,6 +91,11 @@ export function CourseCarousel({
   bottomInset = 0,
 }: Props) {
   const canStart = isFreeSelected || selectedCourseId !== null;
+  // courseId가 없으면 선택할 수도, key로 쓸 수도 없어 카드로 그리지 않는다
+  const selectableCourses = (courses ?? []).filter(
+    (c): c is NearbyMountainCourseInfo & { courseId: number } =>
+      c.courseId != null,
+  );
 
   return (
     <View className="absolute bottom-0 left-0 right-0">
@@ -120,15 +125,13 @@ export function CourseCarousel({
               </View>
             </CardShell>
 
-            {(courses ?? []).map((course) => {
+            {selectableCourses.map((course) => {
               const difficulty = course.difficulty ?? "";
               return (
                 <CardShell
                   key={course.courseId}
                   selected={selectedCourseId === course.courseId}
-                  onPress={() =>
-                    course.courseId != null && onSelectCourse(course.courseId)
-                  }
+                  onPress={() => onSelectCourse(course.courseId)}
                   width={220}
                 >
                   <View className="gap-1 px-4">
@@ -167,7 +170,7 @@ export function CourseCarousel({
               );
             })}
 
-            {!isLoading && !courses?.length && (
+            {!isLoading && selectableCourses.length === 0 && (
               <View
                 className="justify-center px-4"
                 style={{ height: CARD_HEIGHT }}
