@@ -41,16 +41,28 @@ import { CourseNameInputModal } from "@/features/tracking/components/course-name
 import { RecordDifficultyBottomSheet } from "@/features/tracking/components/record-difficulty-bottom-sheet";
 import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
 import { useSaveDifficultyFeedback } from "@/features/tracking/hooks/use-save-difficulty-feedback";
+import {
+  getCliveCompositeUrl,
+  removeCliveCompositeUrl,
+  setCliveCompositeUrl,
+} from "@/features/tracking/utils/clive-composite-storage";
 import { uploadImage } from "@/hooks/use-upload-image";
 import { api } from "@/lib/api";
 import { ENDPOINTS, SemoFeedResponse } from "@/types/api.generated";
 import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { Image as ExpoImage, Image } from "expo-image";
+import { Image as ExpoImage } from "expo-image";
 import * as MediaLibrary from "expo-media-library";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
+  Image as RNImage,
   ScrollView,
   StyleSheet,
   Text,
@@ -66,13 +78,16 @@ import Svg, {
   LinearGradient as SvgLinearGradient,
   Rect as SvgRect,
 } from "react-native-svg";
-import ViewShot from "react-native-view-shot";
+import ViewShot, { captureRef } from "react-native-view-shot";
 const { colors } = require("@/tokens.cjs") as {
   colors: Record<string, Record<string, string>>;
 };
 const ALTITUDE_LABELS = ["400m", "800m", "1200m", "1600m"];
 const CLIVE_CARD_HEIGHT = 596;
 const MAX_CLIVE_PHOTOS = 3;
+
+// 합성본 캡처용. 세모피드 캡처(ViewShot prop의 png)와 별개로 쓴다
+const CLIVE_CAPTURE_OPTIONS = { format: "jpg" as const, quality: 0.9 };
 const DAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
 
 function parseTrack(track?: string): { latitude: number; longitude: number }[] {
@@ -195,7 +210,19 @@ export default function RecordScreen() {
       : distance
         ? parseFloat(distance) / 1000
         : null;
-  const displayPhotos = [...clivePhotos].slice(-MAX_CLIVE_PHOTOS).reverse();
+  const displayPhotos = useMemo(
+    () => [...clivePhotos].slice(-MAX_CLIVE_PHOTOS).reverse(),
+    [clivePhotos],
+  );
+  // 이전 진입에서 합성해 둔 단일 이미지. 있으면 사진 N장 대신 이것만 그린다.
+  // undefined = 저장소 조회 전 (조회가 끝나기 전에는 새로 만들지 않는다)
+  const [cliveComposite, setCliveComposite] = useState<
+    string | null | undefined
+  >(undefined);
+  const cliveCompositeBuildingRef = useRef(false);
+  // SVG로 로드 완료된 사진 URL. 전부 로드된 뒤에만 캡처한다 (빈 카드 방지)
+  const svgLoadedUrlsRef = useRef(new Set<string>());
+  const [svgLoadedVersion, setSvgLoadedVersion] = useState(0);
   const cliveShotRef = useRef<ViewShot | null>(null);
   const photoReportShotRef = useRef<ViewShot | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
@@ -327,14 +354,73 @@ export default function RecordScreen() {
     }, 300);
   }, [trackCoords.length]);
 
-  // 클라이브 사진 프리페치 + 포토리포트 기본 사진 = 마지막 사진(정상)
+  // 사진 프리페치 + 포토리포트 기본 사진 = 마지막 사진(정상).
+  // 포토리포트는 ExpoImage로, 클라이브는 react-native-svg(RN 기본 로더)로
+  // 그리므로 캐시가 달라 각자 데운다. 합성본이 있으면 클라이브 쪽은 생략.
   useEffect(() => {
     if (clivePhotos.length === 0) return;
-    clivePhotos.forEach((url) => Image.prefetch(url));
+    clivePhotos.forEach((url) => ExpoImage.prefetch(url));
+    if (!cliveComposite) displayPhotos.forEach((url) => RNImage.prefetch(url));
     if (photoReportSource === null) {
       setPhotoReportSource({ uri: clivePhotos[clivePhotos.length - 1] });
     }
-  }, [clivePhotos]);
+  }, [clivePhotos, displayPhotos, cliveComposite]);
+
+  useEffect(() => {
+    if (sessionId == null) return;
+    let cancelled = false;
+    getCliveCompositeUrl(sessionId).then((url) => {
+      if (!cancelled) setCliveComposite(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
+  // 합성본이 없으면 이번 진입에서 한 번 만들어 올려둔다. 지금 화면은 이미
+  // N장 경로로 그려진 상태라 교체하지 않고, 다음 진입부터 쓴다.
+  useEffect(() => {
+    if (sessionId == null || cliveComposite !== null) return;
+    if (displayPhotos.length === 0 || activeTab !== "클라이브") return;
+    // SVG가 사진을 전부 로드하기 전에 캡처하면 빈 카드가 담긴다
+    if (!displayPhotos.every((url) => svgLoadedUrlsRef.current.has(url)))
+      return;
+    if (cliveCompositeBuildingRef.current) return;
+    cliveCompositeBuildingRef.current = true;
+
+    let cancelled = false;
+    let uploaded = false;
+    (async () => {
+      try {
+        // 로드 완료 후 실제 페인트까지 두 프레임 대기
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        );
+        if (cancelled || !cliveShotRef.current) return;
+        const uri = await captureRef(cliveShotRef, CLIVE_CAPTURE_OPTIONS);
+        if (!uri || cancelled) return;
+        const imageUrl = await uploadImage(
+          uri,
+          `clive-${sessionId}.jpg`,
+          "tracking-photos",
+        );
+        if (cancelled) return;
+        await setCliveCompositeUrl(sessionId, imageUrl);
+        uploaded = true;
+      } catch (error) {
+        // 실패해도 화면은 N장 경로로 정상 동작한다
+        console.warn("[Clive] 합성본 생성 실패:", error);
+        Sentry.captureException(new Error("CliveCompositeBuildFailed"));
+      } finally {
+        // 성공 시엔 잠가둬 재생성을 막고, 취소된 작업은 새 작업의 잠금을 풀지 않는다
+        if (!cancelled && !uploaded) cliveCompositeBuildingRef.current = false;
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (!uploaded) cliveCompositeBuildingRef.current = false;
+    };
+  }, [sessionId, cliveComposite, displayPhotos, activeTab, svgLoadedVersion]);
 
   useEffect(() => {
     return () => {
@@ -668,7 +754,21 @@ export default function RecordScreen() {
               style={{ width: 335, alignSelf: "center" }}
             >
               <View style={styles.cardWrap}>
-                {displayPhotos.length > 0 ? (
+                {cliveComposite ? (
+                  <ExpoImage
+                    source={{ uri: cliveComposite }}
+                    style={styles.cardImage}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    onError={() => {
+                      // URL이 만료됐으면 무효화하고 원본 N장 경로로 폴백
+                      if (sessionId != null) {
+                        removeCliveCompositeUrl(sessionId).catch(() => {});
+                      }
+                      setCliveComposite(null);
+                    }}
+                  />
+                ) : displayPhotos.length > 0 ? (
                   (() => {
                     const photoHeight =
                       CLIVE_CARD_HEIGHT / displayPhotos.length;
@@ -764,6 +864,12 @@ export default function RecordScreen() {
                                 height={d.totalH}
                                 preserveAspectRatio="xMidYMid slice"
                                 mask={`url(#mask-${i})`}
+                                onLoad={() => {
+                                  if (svgLoadedUrlsRef.current.has(url))
+                                    return;
+                                  svgLoadedUrlsRef.current.add(url);
+                                  setSvgLoadedVersion((v) => v + 1);
+                                }}
                               />
                             );
                           })}
