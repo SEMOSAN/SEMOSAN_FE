@@ -40,3 +40,10 @@ export async function setCliveCompositeUrl(
     JSON.stringify({ imageUrl }),
   );
 }
+
+/** 저장된 URL이 더 이상 로드되지 않을 때(만료 등) 무효화한다 */
+export async function removeCliveCompositeUrl(
+  sessionId: number,
+): Promise<void> {
+  await AsyncStorage.removeItem(cliveCompositeKey(sessionId));
+}

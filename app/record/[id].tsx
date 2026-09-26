@@ -43,6 +43,7 @@ import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
 import { useSaveDifficultyFeedback } from "@/features/tracking/hooks/use-save-difficulty-feedback";
 import {
   getCliveCompositeUrl,
+  removeCliveCompositeUrl,
   setCliveCompositeUrl,
 } from "@/features/tracking/utils/clive-composite-storage";
 import { uploadImage } from "@/hooks/use-upload-image";
@@ -87,8 +88,6 @@ const MAX_CLIVE_PHOTOS = 3;
 
 // 합성본 캡처용. 세모피드 캡처(ViewShot prop의 png)와 별개로 쓴다
 const CLIVE_CAPTURE_OPTIONS = { format: "jpg" as const, quality: 0.9 };
-// 프리페치 완료 후 SVG가 실제로 그려질 시간. 이 전에 캡처하면 빈 카드가 담긴다
-const CLIVE_COMPOSITE_PAINT_DELAY_MS = 400;
 const DAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
 
 function parseTrack(track?: string): { latitude: number; longitude: number }[] {
@@ -221,6 +220,9 @@ export default function RecordScreen() {
     string | null | undefined
   >(undefined);
   const cliveCompositeBuildingRef = useRef(false);
+  // SVG로 로드 완료된 사진 URL. 전부 로드된 뒤에만 캡처한다 (빈 카드 방지)
+  const svgLoadedUrlsRef = useRef(new Set<string>());
+  const [svgLoadedVersion, setSvgLoadedVersion] = useState(0);
   const cliveShotRef = useRef<ViewShot | null>(null);
   const photoReportShotRef = useRef<ViewShot | null>(null);
   const mapRef = useRef<NaverMapViewRef>(null);
@@ -380,15 +382,19 @@ export default function RecordScreen() {
   useEffect(() => {
     if (sessionId == null || cliveComposite !== null) return;
     if (displayPhotos.length === 0 || activeTab !== "클라이브") return;
+    // SVG가 사진을 전부 로드하기 전에 캡처하면 빈 카드가 담긴다
+    if (!displayPhotos.every((url) => svgLoadedUrlsRef.current.has(url)))
+      return;
     if (cliveCompositeBuildingRef.current) return;
     cliveCompositeBuildingRef.current = true;
 
     let cancelled = false;
+    let uploaded = false;
     (async () => {
       try {
-        await Promise.all(displayPhotos.map((url) => RNImage.prefetch(url)));
+        // 로드 완료 후 실제 페인트까지 두 프레임 대기
         await new Promise((resolve) =>
-          setTimeout(resolve, CLIVE_COMPOSITE_PAINT_DELAY_MS),
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
         );
         if (cancelled || !cliveShotRef.current) return;
         const uri = await captureRef(cliveShotRef, CLIVE_CAPTURE_OPTIONS);
@@ -400,16 +406,21 @@ export default function RecordScreen() {
         );
         if (cancelled) return;
         await setCliveCompositeUrl(sessionId, imageUrl);
+        uploaded = true;
       } catch (error) {
-        // 실패해도 화면은 N장 경로로 정상 동작한다. 다음 진입에서 재시도
+        // 실패해도 화면은 N장 경로로 정상 동작한다
         console.warn("[Clive] 합성본 생성 실패:", error);
         Sentry.captureException(new Error("CliveCompositeBuildFailed"));
+      } finally {
+        // 성공 시엔 잠가둬 재생성을 막고, 취소된 작업은 새 작업의 잠금을 풀지 않는다
+        if (!cancelled && !uploaded) cliveCompositeBuildingRef.current = false;
       }
     })();
     return () => {
       cancelled = true;
+      if (!uploaded) cliveCompositeBuildingRef.current = false;
     };
-  }, [sessionId, cliveComposite, displayPhotos, activeTab]);
+  }, [sessionId, cliveComposite, displayPhotos, activeTab, svgLoadedVersion]);
 
   useEffect(() => {
     return () => {
@@ -749,6 +760,13 @@ export default function RecordScreen() {
                     style={styles.cardImage}
                     contentFit="cover"
                     cachePolicy="memory-disk"
+                    onError={() => {
+                      // URL이 만료됐으면 무효화하고 원본 N장 경로로 폴백
+                      if (sessionId != null) {
+                        removeCliveCompositeUrl(sessionId).catch(() => {});
+                      }
+                      setCliveComposite(null);
+                    }}
                   />
                 ) : displayPhotos.length > 0 ? (
                   (() => {
@@ -846,6 +864,12 @@ export default function RecordScreen() {
                                 height={d.totalH}
                                 preserveAspectRatio="xMidYMid slice"
                                 mask={`url(#mask-${i})`}
+                                onLoad={() => {
+                                  if (svgLoadedUrlsRef.current.has(url))
+                                    return;
+                                  svgLoadedUrlsRef.current.add(url);
+                                  setSvgLoadedVersion((v) => v + 1);
+                                }}
                               />
                             );
                           })}

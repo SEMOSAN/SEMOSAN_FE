@@ -3,6 +3,7 @@ import {
   CLIVE_COMPOSITE_VERSION,
   cliveCompositeKey,
   getCliveCompositeUrl,
+  removeCliveCompositeUrl,
   setCliveCompositeUrl,
 } from "../clive-composite-storage";
 
@@ -12,6 +13,10 @@ jest.mock("@react-native-async-storage/async-storage", () => {
     getItem: jest.fn((k: string) => Promise.resolve(store.get(k) ?? null)),
     setItem: jest.fn((k: string, v: string) => {
       store.set(k, v);
+      return Promise.resolve();
+    }),
+    removeItem: jest.fn((k: string) => {
+      store.delete(k);
       return Promise.resolve();
     }),
     __store: store,
@@ -66,6 +71,12 @@ describe("getCliveCompositeUrl", () => {
 
   it("null이 저장돼 있어도 터지지 않는다", async () => {
     store.set(cliveCompositeKey(7), "null");
+    await expect(getCliveCompositeUrl(7)).resolves.toBeNull();
+  });
+
+  it("무효화하면 null로 돌아간다", async () => {
+    await setCliveCompositeUrl(7, "https://cdn.example.com/clive-7.jpg");
+    await removeCliveCompositeUrl(7);
     await expect(getCliveCompositeUrl(7)).resolves.toBeNull();
   });
 
