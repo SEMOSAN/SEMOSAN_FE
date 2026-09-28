@@ -95,7 +95,8 @@ export default function BottomSheet({
                   id: String(record?.sessionId ?? hikingRecordId),
                   hikingRecordId: String(hikingRecordId ?? ""),
                   name: selectedCard.mountainName,
-                  courseName: record?.courseName ?? "",
+                  // 상세 조회 전에 헤더에 보여줄 이름 — 새로 지은 이름이 우선
+                  courseName: record?.recordName || record?.courseName || "",
                   courseId: String(record?.courseId ?? ""),
                   imageUri: "",
                   distance: String(record?.distance ?? ""),

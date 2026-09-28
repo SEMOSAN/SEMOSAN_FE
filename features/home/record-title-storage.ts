@@ -4,17 +4,14 @@ function storageKey(sessionId: number): string {
   return `@record_title:${sessionId}`;
 }
 
-// 기록 제목을 나중에 수정하는 백엔드 API가 없어, 이 기기에서 새로 지은
-// 제목을 로컬에 저장해 앱 재시작 후에도 복원한다.
+// 기록 제목 수정 API가 생기기 전(앱 1.3.0)에 이 기기에만 저장해둔 제목.
+// 기록 상세에서 서버로 한 번 올린 뒤 지우는 용도로만 남아 있다.
 export async function getRecordTitle(
   sessionId: number,
 ): Promise<string | null> {
   return AsyncStorage.getItem(storageKey(sessionId));
 }
 
-export async function setRecordTitle(
-  sessionId: number,
-  title: string,
-): Promise<void> {
-  await AsyncStorage.setItem(storageKey(sessionId), title);
+export async function clearRecordTitle(sessionId: number): Promise<void> {
+  await AsyncStorage.removeItem(storageKey(sessionId));
 }

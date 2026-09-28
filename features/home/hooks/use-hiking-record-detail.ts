@@ -11,7 +11,7 @@ export type RecordPhotoMarker = {
 
 export type HikingRecordDetail = {
   hikingRecordId: number;
-  /** 자유기록 이름 — 목록 API는 courseName만 주고 이 값을 내려주지 않는다 */
+  /** 기록 이름 — 사용자가 새로 지었으면 그 이름, 아니면 서버 기본 이름 */
   recordName?: string;
   distanceMeters?: number;
   durationSeconds?: number;
