@@ -85,6 +85,7 @@ import {
 } from "@mj-studio/react-native-naver-map";
 import { logAnalyticsEvent } from "@/utils/analytics";
 import { useFocusEffect } from "@react-navigation/native";
+import { ApiError } from "@/lib/api";
 import * as Sentry from "@sentry/react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
@@ -232,8 +233,16 @@ export default function TrackingScreen() {
   // 커밋되지 않은 값이 새어나갈 수 있다. setPhotosTaken을 호출하는 세 지점
   // (세션 복원 / 촬영 성공 / 트래킹 종료)에서만 함께 갱신한다.
   const photosTakenRef = useRef(0);
+  // 사진을 이미 남긴 마일스톤. 서버는 마일스톤당 1장만 받고 중복은 409로 거절하는데,
+  // 프론트가 MinIO 업로드를 먼저 끝내는 구조라 거절 시점엔 이미 파일이 올라가 버린다.
+  // 그래서 업로드 전에 여기서 막는다. photosTakenRef와 같은 세 지점에서 갱신한다.
+  const capturedMilestonesRef = useRef<Set<number>>(new Set());
   // 정상 인증 시점의 photoWindow 저장 — 인증 후 photoWindow가 닫혀도 메타 업로드에 사용
   const summitPhotoWindowRef = useRef<PhotoWindowPayload | null>(null);
+  // 위 ref의 렌더용 미러 — 정상 인증 창의 촬영 여부로 레일 카메라를 여닫는다
+  const [summitMilestoneIndex, setSummitMilestoneIndex] = useState<
+    number | null
+  >(null);
   const [showFreeRecordModal, setShowFreeRecordModal] = useState(false);
   const [showNoNearbyMountainModal, setShowNoNearbyMountainModal] =
     useState(false);
@@ -411,6 +420,7 @@ export default function TrackingScreen() {
   const handleSummitReached = useCallback((payload: PhotoWindowPayload) => {
     console.log("[Summit] 정상 도달 수신:", JSON.stringify(payload));
     summitPhotoWindowRef.current = payload;
+    setSummitMilestoneIndex(payload.milestoneIndex);
     setShowSummitSheet(true);
   }, []);
 
@@ -599,10 +609,14 @@ export default function TrackingScreen() {
             sessionIdRef.current !== restoringPhotoSessionId
           )
             return;
-          const restored = Math.min(photos.length, MAX_TRACKING_PHOTOS);
-          photosTakenRef.current = restored;
-          setPhotosTaken(restored);
-          setTrackingPhotos(photos.slice(0, MAX_TRACKING_PHOTOS));
+          const restoredPhotos = photos.slice(0, MAX_TRACKING_PHOTOS);
+          photosTakenRef.current = restoredPhotos.length;
+          // 나갔다 들어와도 이미 찍은 마일스톤은 다시 못 찍게 한다
+          capturedMilestonesRef.current = new Set(
+            restoredPhotos.map((p) => p.milestoneIndex),
+          );
+          setPhotosTaken(restoredPhotos.length);
+          setTrackingPhotos(restoredPhotos);
         });
       }
       // 강제 종료 후 재진입 시 저장된 이동 경로(회색 polyline) 복원.
@@ -1363,6 +1377,21 @@ export default function TrackingScreen() {
 
   const requestStop = () => setShowStopModal(true);
 
+  // 이미 사진을 남긴 마일스톤의 촬영 UI는 닫는다 — 배너를 내리고 카메라를 잠근다.
+  // 촬영 성공/세션 복원 모두 trackingPhotos에 반영되므로 여기서 함께 파생된다.
+  const capturedMilestones = useMemo(
+    () => new Set(trackingPhotos.map((p) => p.milestoneIndex)),
+    [trackingPhotos],
+  );
+  const isPhotoWindowOpen =
+    photoWindow?.status === "OPEN" &&
+    !capturedMilestones.has(photoWindow.milestoneIndex);
+  // 정상 창은 인덱스를 아직 모를 수 있는데, 그때는 기존대로 열어둔다
+  const isSummitPhotoOpen =
+    hasSummited &&
+    (summitMilestoneIndex == null ||
+      !capturedMilestones.has(summitMilestoneIndex));
+
   const handleCameraPress = async () => {
     // 업로드·저장 완료 전 재진입 차단 — 상한 검사만으로는 연속 입력이 모두 통과해
     // 같은 세션에 5장째가 저장될 수 있다
@@ -1383,6 +1412,13 @@ export default function TrackingScreen() {
         toast.show("인증 사진을 찍을 수 있는 시간이 지났어요.", {
           type: "error",
         });
+        return;
+      }
+
+      // 마일스톤당 1장. 서버는 중복을 409로 거절하지만 그때는 이미 MinIO에
+      // 파일이 올라간 뒤라 고아 오브젝트가 남는다. 업로드 전에 여기서 끊는다.
+      if (capturedMilestonesRef.current.has(activeWindow.milestoneIndex)) {
+        toast.show("이 지점의 인증 사진은 이미 남겼어요.", { type: "error" });
         return;
       }
 
@@ -1447,6 +1483,7 @@ export default function TrackingScreen() {
             MAX_TRACKING_PHOTOS,
           );
           photosTakenRef.current = nextPhotoCount;
+          capturedMilestonesRef.current.add(activeWindow.milestoneIndex);
           setPhotosTaken(nextPhotoCount);
           setTrackingPhotos((prev) =>
             [...prev, capturedPhoto].slice(0, MAX_TRACKING_PHOTOS),
@@ -1466,6 +1503,17 @@ export default function TrackingScreen() {
           });
         }
       } catch (err) {
+        // 409 = 서버에 이 마일스톤 사진이 이미 있다. 재시도해도 같은 결과이고
+        // 업로드만 또 나가므로, 이 마일스톤을 닫아 추가 업로드를 막는다.
+        if (err instanceof ApiError && err.statusCode === 409) {
+          console.warn(
+            "[Tracking] 이미 저장된 마일스톤:",
+            activeWindow.milestoneIndex,
+          );
+          capturedMilestonesRef.current.add(activeWindow.milestoneIndex);
+          toast.show("이 지점의 인증 사진은 이미 남겼어요.", { type: "error" });
+          return;
+        }
         console.warn("[Tracking] 인증 사진 처리 실패:", err);
         Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
         toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", {
@@ -1568,8 +1616,10 @@ export default function TrackingScreen() {
     setPhotoWindow(null);
     setPhotosTaken(0);
     photosTakenRef.current = 0;
+    capturedMilestonesRef.current = new Set();
     setTrackingPhotos([]);
     summitPhotoWindowRef.current = null;
+    setSummitMilestoneIndex(null);
     setIsFreeSelected(false);
     setRecordedCoords([]);
     lastRecordedCoordRef.current = null;
@@ -1670,7 +1720,7 @@ export default function TrackingScreen() {
         </NaverMapView>
 
         {/* 사진 윈도우 배너 — 지도 위 오버레이 */}
-        {isTracking && photoWindow?.status === "OPEN" && (
+        {isTracking && isPhotoWindowOpen && (
           <View
             style={{
               position: "absolute",
@@ -1691,7 +1741,7 @@ export default function TrackingScreen() {
       {/* 트래킹 중 — 우측 레일 (카메라 + 인증 사진 슬롯) */}
       {isTracking && !showSummitSheet && (
         <TrackingRail
-          isPhotoWindowOpen={photoWindow?.status === "OPEN" || hasSummited}
+          isPhotoWindowOpen={isPhotoWindowOpen || isSummitPhotoOpen}
           isBusy={isSavingPhoto}
           photos={trackingPhotos}
           onCameraPress={handleCameraPress}
@@ -1790,8 +1840,10 @@ export default function TrackingScreen() {
                 // 정상 인증 → 인증 사진 창 확보 후 하산 시트로 전환.
                 // 정상 알림으로 이미 확보해 둔 창이 있으면 유지하고(4/4 촬영
                 // 창이 누락된 경우에도 촬영 가능), 없을 때만 현재 창을 쓴다.
-                summitPhotoWindowRef.current =
+                const summitWindow =
                   summitPhotoWindowRef.current ?? photoWindow;
+                summitPhotoWindowRef.current = summitWindow;
+                setSummitMilestoneIndex(summitWindow?.milestoneIndex ?? null);
                 setHasSummited(true);
                 setShowSummitSheet(false);
               }}
