@@ -45,6 +45,7 @@ export const ENDPOINTS = {
   ADMIN_MOUNTAINS_BY_MOUNTAINID_TRANSPORTATIONS: (mountainId: number | string) => `/api/admin/mountains/${mountainId}/transportations`,
   ADMIN_MOUNTAINS_BY_MOUNTAINID_RESTAURANT_SECTIONS: (mountainId: number | string) => `/api/admin/mountains/${mountainId}/restaurant-sections`,
   ADMIN_LOGIN: "/api/admin/login",
+  ADMIN_COURSES: "/api/admin/courses",
   USERS_PROFILE: "/api/users/profile",
   USERS_NOTIFICATION_SETTINGS_VOICE: "/api/users/notification-settings/voice",
   USERS_NOTIFICATION_SETTINGS_PUSH: "/api/users/notification-settings/push",
@@ -52,6 +53,7 @@ export const ENDPOINTS = {
   SEMOFEED_BY_SEMOFEEDID_PUBLIC: (semoFeedId: number | string) => `/api/semofeed/${semoFeedId}/public`,
   NOTIFICATIONS_BY_NOTIFICATIONID_READ: (notificationId: number | string) => `/api/notifications/${notificationId}/read`,
   NOTIFICATIONS_READ_ALL: "/api/notifications/read-all",
+  HIKING_RECORDS_BY_HIKINGRECORDID: (hikingRecordId: number | string) => `/api/hiking-records/${hikingRecordId}`,
   ADMIN_SEMOFEED_BY_SEMOFEEDID_VISIBILITY: (semoFeedId: number | string) => `/api/admin/semofeed/${semoFeedId}/visibility`,
   ADMIN_MOUNTAINS_BY_MOUNTAINID_VISIBILITY: (mountainId: number | string) => `/api/admin/mountains/${mountainId}/visibility`,
   ADMIN_COURSES_BY_COURSEID_SUMMIT: (courseId: number | string) => `/api/admin/courses/${courseId}/summit`,
@@ -74,7 +76,6 @@ export const ENDPOINTS = {
   MOUNTAINS_MAP: "/api/mountains/map",
   MOUNTAINS_LIKES: "/api/mountains/likes",
   IMAGES_PRESIGNED_URL: "/api/images/presigned-url",
-  HIKING_RECORDS_BY_HIKINGRECORDID: (hikingRecordId: number | string) => `/api/hiking-records/${hikingRecordId}`,
   HIKING_RECORDS_ME: "/api/hiking-records/me",
   HIKING_RECORDS_ME_SUMMARY: "/api/hiking-records/me/summary",
   HIKING_RECORDS_ME_MOUNTAINS: "/api/hiking-records/me/mountains",
@@ -93,6 +94,7 @@ export const ENDPOINTS = {
   COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/community/comments/${commentId}`,
   AUTH_WITHDRAW: "/api/auth/withdraw",
   ADMIN_SEMOFEED_BY_SEMOFEEDID: (semoFeedId: number | string) => `/api/admin/semofeed/${semoFeedId}`,
+  ADMIN_COURSES_BY_COURSEID: (courseId: number | string) => `/api/admin/courses/${courseId}`,
   ADMIN_COMMUNITY_POSTS_BY_POSTID: (postId: number | string) => `/api/admin/community/posts/${postId}`,
   ADMIN_COMMUNITY_COMMENTS_BY_COMMENTID: (commentId: number | string) => `/api/admin/community/comments/${commentId}`,
 } as const;
@@ -176,7 +178,7 @@ export type PlatformVersion = {
   maintenanceMessage?: string;
 };
 export type AdminTransportationRequest = {
-  type: "SUBWAY" | "BUS" | "PARKING";
+  type: "SUBWAY" | "BUS" | "PARKING" | "TRAIN";
   direction: string;
   name: string;
   description?: string;
@@ -484,6 +486,20 @@ export type ApiResponseAdminLoginResponse = {
   message?: string;
   data?: AdminLoginResponse;
 };
+export type AdminCourseCreateRequest = {
+  mountainId: number;
+  name: string;
+  difficulty: "EASY" | "NORMAL" | "HARD";
+  duration: number;
+  points: PointRequest[];
+  summitPointIndex?: number;
+  startName?: string;
+  endName?: string;
+};
+export type PointRequest = {
+  lat: number;
+  lng: number;
+};
 export type UpdateUserProfileRequest = {
   profileUrl?: string;
   nickname?: string;
@@ -502,6 +518,19 @@ export type ApiResponseBoolean = {
   code?: string;
   message?: string;
   data?: boolean;
+};
+export type UpdateHikingRecordNameRequest = {
+  name: string;
+};
+export type ApiResponseUpdateHikingRecordNameResponse = {
+  isSuccess?: boolean;
+  code?: string;
+  message?: string;
+  data?: UpdateHikingRecordNameResponse;
+};
+export type UpdateHikingRecordNameResponse = {
+  hikingRecordId?: number;
+  recordName?: string;
 };
 export type AdminSemoFeedVisibilityRequest = {
   isPublic: boolean;
@@ -608,9 +637,14 @@ export type NearbyMountainInfo = {
   longitude?: number;
   imageUrls?: string[];
 };
+export type NearbyMountainOption = {
+  mountainId?: number;
+  name?: string;
+};
 export type NearbyMountainResponse = {
   mountain?: NearbyMountainInfo;
   courses?: NearbyMountainCourseInfo[];
+  nearbyMountains?: NearbyMountainOption[];
 };
 export type ApiResponseLiveActivityCourseResponse = {
   isSuccess?: boolean;
@@ -676,6 +710,7 @@ export type MountainListResponse = {
   imageUrls?: string[];
   latitude?: number;
   longitude?: number;
+  likedByMe?: boolean;
 };
 export type PageResponseMountainListResponse = {
   content?: MountainListResponse[];
@@ -718,6 +753,7 @@ export type MountainInfo = {
   imageUrls?: string[];
   latitude?: number;
   longitude?: number;
+  likedByMe?: boolean;
 };
 export type RestaurantInfo = {
   restaurantId?: number;
@@ -745,7 +781,7 @@ export type TransportationGroup = {
 };
 export type TransportationItem = {
   transportationId?: number;
-  type?: "SUBWAY" | "BUS" | "PARKING";
+  type?: "SUBWAY" | "BUS" | "PARKING" | "TRAIN";
   name?: string;
   description?: string;
 };
@@ -1405,6 +1441,10 @@ export type CreateRestaurantSectionResponse = ApiResponseLong;
 export type Login1Body = AdminLoginRequest;
 export type Login1Response = ApiResponseAdminLoginResponse;
 
+// POST /api/admin/courses
+export type Create5Body = AdminCourseCreateRequest;
+export type Create5Response = ApiResponseLong;
+
 // GET /api/users/profile
 export type GetUserProfileResponseAlias = ApiResponseGetUserProfileResponse;
 
@@ -1438,6 +1478,19 @@ export type MarkAsReadResponse = ApiResponseVoid;
 
 // PATCH /api/notifications/read-all
 export type MarkAllAsReadResponse = ApiResponseVoid;
+
+// GET /api/hiking-records/{hikingRecordId}
+export type GetHikingRecordDetailParams = {
+  hikingRecordId: number;
+};
+export type GetHikingRecordDetailResponse = ApiResponseHikingRecordDetailResponse;
+
+// PATCH /api/hiking-records/{hikingRecordId}
+export type UpdateHikingRecordNameParams = {
+  hikingRecordId: number;
+};
+export type UpdateHikingRecordNameBody = UpdateHikingRecordNameRequest;
+export type UpdateHikingRecordNameResponseAlias = ApiResponseUpdateHikingRecordNameResponse;
 
 // PATCH /api/admin/semofeed/{semoFeedId}/visibility
 export type UpdateVisibilityParams = {
@@ -1583,12 +1636,6 @@ export type GetPresignedUrlParams = {
 };
 export type GetPresignedUrlResponse = ApiResponsePresignedUrlResponse;
 
-// GET /api/hiking-records/{hikingRecordId}
-export type GetHikingRecordDetailParams = {
-  hikingRecordId: number;
-};
-export type GetHikingRecordDetailResponse = ApiResponseHikingRecordDetailResponse;
-
 // GET /api/hiking-records/me
 export type GetUserHikingRecordsParams = {
   page?: number;
@@ -1710,6 +1757,12 @@ export type Delete5Params = {
   semoFeedId: number;
 };
 export type Delete5Response = ApiResponseVoid;
+
+// DELETE /api/admin/courses/{courseId}
+export type Delete6Params = {
+  courseId: number;
+};
+export type Delete6Response = ApiResponseVoid;
 
 // DELETE /api/admin/community/posts/{postId}
 export type DeletePostParams = {
