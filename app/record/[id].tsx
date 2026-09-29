@@ -32,11 +32,16 @@ import {
   getRecordSemoFeedState,
   setRecordSemoFeedState,
 } from "@/features/home/record-semofeed-storage";
-import { getRecordTitle, setRecordTitle } from "@/features/home/record-title-storage";
+import { useUpdateRecordName } from "@/features/home/hooks/use-update-record-name";
+import {
+  clearRecordTitle,
+  getRecordTitle,
+} from "@/features/home/record-title-storage";
 import {
   getHasSeenDifficultyPrompt,
   markDifficultyPromptSeen,
 } from "@/features/home/record-difficulty-seen-storage";
+import { toast } from "@/store/toast.store";
 import { CourseNameInputModal } from "@/features/tracking/components/course-name-input-modal";
 import { RecordDifficultyBottomSheet } from "@/features/tracking/components/record-difficulty-bottom-sheet";
 import { useClivePhotos } from "@/features/tracking/hooks/use-clive-photos";
@@ -193,7 +198,6 @@ export default function RecordScreen() {
     number | { uri: string } | null
   >(null);
   const [photoReportTemplate, setPhotoReportTemplate] = useState(0);
-  const [titleOverride, setTitleOverride] = useState<string | null>(null);
   const [showTitleModal, setShowTitleModal] = useState(false);
   const [showDifficultySheet, setShowDifficultySheet] = useState(false);
   const [hasSeenDifficultyPrompt, setHasSeenDifficultyPrompt] = useState(true);
@@ -204,6 +208,7 @@ export default function RecordScreen() {
   const { data: hikingSummary } = useHikingSummary();
   const { data: recordDetail } = useHikingRecordDetail(hikingRecordIdNum);
   const { data: courseDetail } = useCourseDetail(courseIdNum);
+  const { mutateAsync: updateRecordName } = useUpdateRecordName();
   const distanceKm =
     recordDetail?.distanceMeters != null
       ? recordDetail.distanceMeters / 1000
@@ -233,7 +238,7 @@ export default function RecordScreen() {
       ? displayPhotos.length > 0
       : photoReportSource != null;
   const trackCoords = parseTrack(recordDetail?.track);
-  const displayTitle = titleOverride ?? recordDetail?.recordName ?? courseName ?? "";
+  const displayTitle = recordDetail?.recordName ?? courseName ?? "";
 
   const captureCard = async (tab: RecordTab) => {
     const targetRef = tab === "클라이브" ? cliveShotRef : photoReportShotRef;
@@ -305,18 +310,33 @@ export default function RecordScreen() {
     };
   }, [hikingRecordIdNum]);
 
-  // 제목을 수정하는 백엔드 API가 없어, 이 기기에 저장해둔 제목을 복원
+  // 제목 수정 API가 없던 시절 이 기기에만 저장해둔 제목을 서버로 한 번 올린다.
+  // 올리고 나면 로컬 값은 지워 다음 진입부터는 서버 값만 쓴다.
   useEffect(() => {
-    if (sessionId == null) return;
+    if (sessionId == null || hikingRecordIdNum == null) return;
+    if (recordDetail == null) return;
     let cancelled = false;
-    getRecordTitle(sessionId).then((saved) => {
-      if (cancelled || saved == null) return;
-      setTitleOverride(saved);
+    getRecordTitle(sessionId).then(async (saved) => {
+      if (cancelled || !saved) return;
+      if (saved === recordDetail.recordName) {
+        await clearRecordTitle(sessionId);
+        return;
+      }
+      try {
+        await updateRecordName({
+          hikingRecordId: hikingRecordIdNum,
+          name: saved,
+        });
+        await clearRecordTitle(sessionId);
+      } catch (error) {
+        // 실패하면 로컬 값을 남겨둬 다음 진입에서 다시 시도한다
+        console.warn("[Record] 로컬 제목 서버 이관 실패:", error);
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [sessionId]);
+  }, [sessionId, hikingRecordIdNum, recordDetail, updateRecordName]);
 
   // 세모피드 게시/공개 상태 조회 API가 없어, 이 기기에 저장해둔 상태를 복원
   useEffect(() => {
@@ -436,15 +456,21 @@ export default function RecordScreen() {
       setShowTitleModal(false);
       return;
     }
-    if (sessionId != null) {
-      try {
-        await setRecordTitle(sessionId, trimmed);
-      } catch (error) {
-        console.warn("[Record] 제목 저장 실패:", error);
-        return;
-      }
+    if (hikingRecordIdNum == null) {
+      setShowTitleModal(false);
+      return;
     }
-    setTitleOverride(trimmed);
+    try {
+      await updateRecordName({
+        hikingRecordId: hikingRecordIdNum,
+        name: trimmed,
+      });
+    } catch (error) {
+      // 저장에 실패하면 모달을 닫지 않아 사용자가 다시 시도할 수 있게 둔다
+      console.warn("[Record] 제목 저장 실패:", error);
+      toast.show("제목을 저장하지 못했어요. 다시 시도해주세요.");
+      return;
+    }
     setShowTitleModal(false);
   };
 
@@ -585,12 +611,15 @@ export default function RecordScreen() {
           >
             {displayTitle}
           </Text>
-          <TouchableOpacity
-            onPress={() => setShowTitleModal(true)}
-            hitSlop={8}
-          >
-            <PencilSimpleIcon size={20} color={colors.label.subtle} />
-          </TouchableOpacity>
+          {/* 기록 ID가 없으면 수정 API를 부를 수 없어 연필을 감춘다 */}
+          {hikingRecordIdNum != null && (
+            <TouchableOpacity
+              onPress={() => setShowTitleModal(true)}
+              hitSlop={8}
+            >
+              <PencilSimpleIcon size={20} color={colors.label.subtle} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 

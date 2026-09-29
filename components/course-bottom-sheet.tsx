@@ -161,17 +161,23 @@ function CourseItem({
   mountainId?: number;
   onPress?: () => void;
 }) {
-  // 목록 요약 API는 자유기록의 이름(recordName)을 내려주지 않고 distance/duration도
+  // 목록 요약 API는 이름(recordName)을 내려주지 않거나 distance/duration이
   // 비어있는 경우가 있어, 부족한 값은 상세 API로 폴백한다
   const needsDetailFallback =
-    !course.courseName || !course.distance || !course.duration;
+    (!course.recordName && !course.courseName) ||
+    !course.distance ||
+    !course.duration;
   const { data: recordDetail } = useHikingRecordDetail(
     needsDetailFallback ? (course.hikingRecordId ?? null) : null,
   );
   const distanceMeters = course.distance || recordDetail?.distanceMeters;
   const durationSeconds = course.duration || recordDetail?.durationSeconds;
+  // 사용자가 새로 지은 이름(recordName)이 코스명보다 우선한다
   const displayName =
-    course.courseName || recordDetail?.recordName || FREE_RECORD_FALLBACK_NAME;
+    course.recordName ||
+    recordDetail?.recordName ||
+    course.courseName ||
+    FREE_RECORD_FALLBACK_NAME;
 
   return (
     <TouchableOpacity
