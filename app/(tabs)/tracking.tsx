@@ -4,7 +4,6 @@ import { colors } from "@/constants/colors";
 import { isLiveActivityEnabled } from "@/constants/platform";
 import { useProfile } from "@/features/mypage/hooks/use-profile";
 import { CountdownOverlay } from "@/features/tracking/components/countdown-overlay";
-import { CourseNameInputModal } from "@/features/tracking/components/course-name-input-modal";
 import {
   COURSE_CAROUSEL_AREA_HEIGHT,
   CourseCarousel,
@@ -207,11 +206,7 @@ export default function TrackingScreen() {
     string | null
   >(null);
   // 자유기록 종료 후 코스 이름 입력 모달
-  const [showCourseNameModal, setShowCourseNameModal] = useState(false);
   // 사용자가 입력한 자유기록 코스 이름 (미입력 시 null)
-  const [freeRecordCourseName, setFreeRecordCourseName] = useState<
-    string | null
-  >(null);
   const [trackingSheetHeight, setTrackingSheetHeight] = useState(
     TRACKING_SHEET_HEIGHT,
   );
@@ -1065,7 +1060,6 @@ export default function TrackingScreen() {
 
   const startCountdown = (freeMode = false) => {
     setIsFreeMode(freeMode === true); // 이벤트 객체 등 non-boolean 방지
-    setFreeRecordCourseName(null);
     setRestoredMountainName(null);
     setCountdown(3);
   };
@@ -1531,7 +1525,7 @@ export default function TrackingScreen() {
    * 자유기록은 사용자가 입력한 기록 이름을 함께 보내고, 비워 보내면 서버가 기본 이름을 채운다.
    * 코스 기록은 코스명으로 표시되므로 이름을 보내지 않는다.
    */
-  const runCompleteSession = (name?: string) => {
+  const runCompleteSession = () => {
     if (sessionId == null) return;
 
     // completeTracking이 상태를 초기화하므로 지표는 호출 전에 확정해 둔다
@@ -1545,7 +1539,7 @@ export default function TrackingScreen() {
     };
 
     completeSession(
-      { sessionId, name },
+      { sessionId },
       {
         onSuccess: () => {
           logAnalyticsEvent("tracking_finished", finishedParams);
@@ -1583,12 +1577,6 @@ export default function TrackingScreen() {
       return;
     }
 
-    // 자유기록은 이름을 complete 요청에 실어 보내야 하므로 입력을 먼저 받는다
-    if (isFreeMode) {
-      setShowCourseNameModal(true);
-      return;
-    }
-
     runCompleteSession();
     completeTracking();
   };
@@ -1601,7 +1589,6 @@ export default function TrackingScreen() {
       });
     stopLocationTask().catch(() => {});
     disconnectSocket();
-    setShowCourseNameModal(false);
     setIsTracking(false);
     setIsPaused(false);
     setIsFreeMode(false);
@@ -1623,18 +1610,6 @@ export default function TrackingScreen() {
     setIsFreeSelected(false);
     setRecordedCoords([]);
     lastRecordedCoordRef.current = null;
-  };
-
-  /**
-   * 입력한 이름으로 자유기록을 마감.
-   * 비워두고 저장하면 이름 없이 보내 서버 기본 이름으로 저장된다.
-   */
-  const handleCourseNameSubmit = (name: string) => {
-    const trimmed = name.trim();
-    setFreeRecordCourseName(trimmed || null);
-    setShowCourseNameModal(false);
-    runCompleteSession(trimmed || undefined);
-    completeTracking();
   };
 
 
@@ -1895,13 +1870,6 @@ export default function TrackingScreen() {
         onConfirm={finishTracking}
       />
 
-      {/* 자유기록 코스 이름 입력 모달 */}
-      <CourseNameInputModal
-        visible={showCourseNameModal}
-        initialValue={freeRecordCourseName ?? ""}
-        onSubmit={handleCourseNameSubmit}
-        onDismiss={() => handleCourseNameSubmit("")}
-      />
     </View>
   );
 }
