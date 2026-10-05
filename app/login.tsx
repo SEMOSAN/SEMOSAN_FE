@@ -116,6 +116,20 @@ export default function LoginScreen(): React.JSX.Element {
       return;
     }
 
+    // Alert.prompt는 iOS 전용이라 Android에선 입력 없이 기본값으로 바로 로그인한다
+    if (Platform.OS === "android") {
+      testLoginAsync({ testUserId: 1 })
+        .then((result) => {
+          router.replace(
+            result.onboardingCompleted ? "/(tabs)" : "/onboarding",
+          );
+        })
+        .catch((e: unknown) => {
+          console.error("Test login error:", e);
+        });
+      return;
+    }
+
     Alert.prompt(
       "테스트 로그인",
       "testUserId를 입력하세요",
@@ -179,19 +193,21 @@ export default function LoginScreen(): React.JSX.Element {
             </Text>
           </Pressable>
 
-          <Pressable
-            className="h-[45px] flex-row items-center justify-center gap-3 overflow-hidden rounded-lg bg-white"
-            android_ripple={{ color: "rgba(0,0,0,0.1)" }}
-            onPress={() => openTermsSheet("apple")}
-          >
-            <AppleIcon size={20} />
-            <Text
-              className="typo-body-1-normal-semi-bold"
-              style={{ color: "#000000" }}
+          {/* Apple 로그인은 iOS 전용 — Android에선 누르면 실패하므로 숨긴다 */}
+          {Platform.OS === "ios" && (
+            <Pressable
+              className="h-[45px] flex-row items-center justify-center gap-3 overflow-hidden rounded-lg bg-white"
+              onPress={() => openTermsSheet("apple")}
             >
-              Apple로 시작하기
-            </Text>
-          </Pressable>
+              <AppleIcon size={20} />
+              <Text
+                className="typo-body-1-normal-semi-bold"
+                style={{ color: "#000000" }}
+              >
+                Apple로 시작하기
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         {isDevMode && (
