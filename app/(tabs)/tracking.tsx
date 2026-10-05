@@ -1514,8 +1514,21 @@ export default function TrackingScreen() {
           toast.show("이 지점의 인증 사진은 이미 남겼어요.", { type: "error" });
           return;
         }
-        console.warn("[Tracking] 인증 사진 처리 실패:", err);
-        Sentry.captureException(new Error("TrackingPhotoUploadFailed"));
+        // 실제 에러를 그대로 올린다. 고정 문자열만 보내면 Sentry에 전부
+        // 한 덩어리로 묶여 업로드 실패인지 중복(409)인지 구분할 수 없다.
+        const statusCode = err instanceof ApiError ? err.statusCode : undefined;
+        console.warn(
+          `[Tracking] 인증 사진 처리 실패 (milestone=${activeWindow.milestoneIndex}, status=${statusCode ?? "-"}):`,
+          err,
+        );
+        Sentry.captureException(err, {
+          tags: { feature: "tracking-photo", statusCode: statusCode ?? "none" },
+          extra: {
+            sessionId: capturedSessionId,
+            milestoneIndex: activeWindow.milestoneIndex,
+            photosTaken: photosTakenRef.current,
+          },
+        });
         toast.show("사진 저장에 실패했어요. 다시 시도해주세요.", {
           type: "error",
         });
