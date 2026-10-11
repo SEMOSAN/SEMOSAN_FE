@@ -92,7 +92,16 @@ export default function CourseDetailScreen() {
         >
           <Pressable
             onPress={() =>
-              router.push(`/(tabs)/tracking?collapse=true&courseId=${id}${mountainId ? `&mountainId=${mountainId}` : ''}`)
+              // push는 탭 네비게이터를 루트 스택에 한 번 더 쌓아 올려(헤더가 없어
+              // 돌아올 수도 없다) 기존 트래킹 탭으로 넘어가지 않는다. navigate로
+              // 이미 떠 있는 탭에 파라미터만 전달한다.
+              router.navigate({
+                pathname: "/(tabs)/tracking",
+                params: {
+                  courseId: String(id),
+                  ...(mountainId ? { mountainId: String(mountainId) } : {}),
+                },
+              })
             }
             className="flex-row items-center gap-2 rounded-full bg-primary-normal px-5 py-3"
           >

@@ -89,7 +89,12 @@ import { ApiError } from "@/lib/api";
 import * as Sentry from "@sentry/react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import { Tabs, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Tabs,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AppState,
@@ -178,6 +183,13 @@ const HEADER_CONTROL_HEIGHT = 44;
 
 export default function TrackingScreen() {
   const router = useRouter();
+  // 이 화면의 라우트 파라미터를 지우는 용도 — 타입 추론이 setParams를 비워둬 직접 좁힌다
+  const navigation = useNavigation<{
+    setParams: (params: {
+      courseId?: string;
+      mountainId?: string;
+    }) => void;
+  }>();
   const insets = useSafeAreaInsets();
   const {
     courseId: courseIdParameter,
@@ -195,10 +207,17 @@ export default function TrackingScreen() {
   const [isFreeMode, setIsFreeMode] = useState(false);
   // 캐러셀에서 "코스 선택 안 함" 카드를 고른 상태
   const [isFreeSelected, setIsFreeSelected] = useState(false);
-  // 드롭다운에서 고른 산. null이면 URL 파라미터 > 현재 위치 기반 순으로 정한다
+  // 드롭다운에서 고르거나 코스 상세에서 넘어온 산. null이면 현재 위치 기반
   const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
-    null,
+    () => parsePositiveIntId(mountainIdParameter),
   );
+  // 코스 상세에서 파라미터를 달고 들어온 진입인지 — 탭 버튼 진입과 구분한다
+  const enteredWithParamsRef = useRef(false);
+  // 포커스 콜백에서 최신 값을 보기 위한 미러 (sessionIdRef와 같은 방식)
+  const isTrackingRef = useRef(false);
+  isTrackingRef.current = isTracking;
+  const countdownRef = useRef<number | null>(null);
+  countdownRef.current = countdown;
   // state로 두면 매초 화면 전체가 리렌더된다. 표시는 ElapsedTime이 자기만 다시 그린다
   const elapsedSecondsRef = useRef(0);
   const [showSummitSheet, setShowSummitSheet] = useState(false);
@@ -299,9 +318,35 @@ export default function TrackingScreen() {
     [],
   );
 
+  // 코스 상세에서 넘어온 파라미터는 한 번만 쓰고 지운다. 탭 라우트에 남겨두면
+  // 나중에 탭 버튼으로 들어와도 계속 적용되고, 같은 코스로 다시 들어올 때는
+  // 값이 안 바뀌어 이 effect가 아예 돌지 않는다.
   useEffect(() => {
+    if (!courseIdParameter && !mountainIdParameter) return;
+    enteredWithParamsRef.current = true;
     if (courseIdParameter) setSelectedCourseId(courseIdParameter);
-  }, [courseIdParameter]);
+    const parsedMountainId = parsePositiveIntId(mountainIdParameter);
+    if (parsedMountainId != null) setSelectedMountainId(parsedMountainId);
+    // 전역 router.setParams는 "현재 포커스된" 라우트를 건드리므로, 탭 전환
+    // 타이밍에 엉뚱한 화면에 적용될 수 있다. 이 화면의 navigation을 쓴다.
+    navigation.setParams({ courseId: undefined, mountainId: undefined });
+  }, [courseIdParameter, mountainIdParameter, navigation]);
+
+  // 탭 버튼으로 들어오면 늘 기본 화면에서 시작한다. 코스 상세에서 넘어온
+  // 진입은 위 effect가 표시해 두므로 그때는 고른 코스를 유지하고,
+  // 진행 중인 세션이 있으면 어느 쪽이든 건드리지 않는다.
+  useFocusEffect(
+    useCallback(() => {
+      if (enteredWithParamsRef.current) {
+        enteredWithParamsRef.current = false;
+        return;
+      }
+      if (isTrackingRef.current || countdownRef.current != null) return;
+      setSelectedCourseId(null);
+      setSelectedMountainId(null);
+      setIsFreeSelected(false);
+    }, []),
+  );
 
   // 위치 권한 요청 및 현재 위치 조회 (진입 시 1회)
   useEffect(() => {
@@ -336,9 +381,8 @@ export default function TrackingScreen() {
     lng: nearbyQueryCoord?.lng ?? null,
   });
 
-  // 명시적으로 고른 산 — 드롭다운 선택 > URL 파라미터(코스 상세에서 진입). 없으면 null
-  const chosenMountainId =
-    selectedMountainId ?? parsePositiveIntId(mountainIdParameter);
+  // 명시적으로 고른 산(드롭다운 선택 또는 코스 상세에서 진입). 없으면 null
+  const chosenMountainId = selectedMountainId;
 
   // 세션이 생성되는 산 — 명시적으로 고른 산 > 현재 위치 기반
   const sessionMountainId = chosenMountainId ?? nearbyData?.mountain?.mountainId;
