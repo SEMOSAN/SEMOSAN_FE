@@ -5,12 +5,19 @@ import { Pressable } from "react-native";
 
 type Props = {
   mountainId: number;
+  /** 화면이 받은 서버 응답의 likedByMe */
+  liked: boolean;
   mountainData?: LikedMountainResponse;
 };
 
-export function MountainBookmarkButton({ mountainId, mountainData }: Props) {
+export function MountainBookmarkButton({
+  mountainId,
+  liked,
+  mountainData,
+}: Props) {
   const { isBookmarked, isPending, toggle } = useMountainBookmark(
     mountainId,
+    liked,
     mountainData,
   );
 

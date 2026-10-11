@@ -58,7 +58,11 @@ function SavedMountainItem({ mountain }: { mountain: LikedMountainResponse }) {
 
       {/* 북마크 버튼 */}
       {mountain.mountainId != null && (
-        <MountainBookmarkButton mountainId={mountain.mountainId} mountainData={mountain} />
+        <MountainBookmarkButton
+          mountainId={mountain.mountainId}
+          liked
+          mountainData={mountain}
+        />
       )}
     </TouchableOpacity>
   );
@@ -82,8 +86,7 @@ export default function SavedMountainsScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading } = useSavedMountains();
 
-  // 낙관적 업데이트로 임시 추가된 불완전한 항목(name 없는 항목) 필터링
-  const mountains = (data?.content ?? []).filter((m) => !!m.name);
+  const mountains = data?.content ?? [];
 
   return (
     <View className="flex-1 bg-fill-normal">
