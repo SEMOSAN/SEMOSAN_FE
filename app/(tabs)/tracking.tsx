@@ -324,9 +324,18 @@ export default function TrackingScreen() {
   useEffect(() => {
     if (!courseIdParameter && !mountainIdParameter) return;
     enteredWithParamsRef.current = true;
-    if (courseIdParameter) setSelectedCourseId(courseIdParameter);
-    const parsedMountainId = parsePositiveIntId(mountainIdParameter);
-    if (parsedMountainId != null) setSelectedMountainId(parsedMountainId);
+    // 기록 중이거나 카운트다운 중이면 선택을 덮어쓰지 않는다. 진행 중인 세션의
+    // 코스와 지도 경로가 바뀌거나, 카운트다운이 다른 코스로 시작될 수 있다.
+    // 파라미터는 이 경우에도 아래에서 지워 나중에 다시 적용되지 않게 한다.
+    if (!isTrackingRef.current && countdownRef.current == null) {
+      if (courseIdParameter) {
+        setSelectedCourseId(courseIdParameter);
+        // "코스 선택 안 함"을 고른 상태면 풀어줘야 고른 코스로 시작된다
+        setIsFreeSelected(false);
+      }
+      const parsedMountainId = parsePositiveIntId(mountainIdParameter);
+      if (parsedMountainId != null) setSelectedMountainId(parsedMountainId);
+    }
     // 전역 router.setParams는 "현재 포커스된" 라우트를 건드리므로, 탭 전환
     // 타이밍에 엉뚱한 화면에 적용될 수 있다. 이 화면의 navigation을 쓴다.
     navigation.setParams({ courseId: undefined, mountainId: undefined });
