@@ -1632,7 +1632,10 @@ export default function TrackingScreen() {
     setTrackingPhotos([]);
     summitPhotoWindowRef.current = null;
     setSummitMilestoneIndex(null);
-    setIsFreeSelected(false);
+    // isFreeSelected는 일부러 초기화하지 않는다. 코스 기록을 마치면 그 코스가
+    // 선택된 채로 남는 것과 같이, 자유 기록을 마치면 "코스 선택 안 함"이 남아야
+    // 한다. 여기서 false로 되돌리면 selectedCourseId가 null인 상태와 겹쳐
+    // 자동 선택 effect가 첫 코스를 다시 고른다.
     setRecordedCoords([]);
     lastRecordedCoordRef.current = null;
   };
