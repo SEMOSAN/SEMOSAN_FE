@@ -151,6 +151,7 @@ export default function MountainDetailScreen() {
                 </View>
                 <MountainBookmarkButton
                   mountainId={Number(id)}
+                  liked={data.mountain?.likedByMe ?? false}
                   mountainData={data.mountain ?? undefined}
                 />
               </View>
