@@ -98,6 +98,7 @@ const config = {
     "./plugins/withModularHeaders",
     "./plugins/withAndroidMavenRepos",
     "./plugins/withNotificationColorFix",
+    "./plugins/withAndroidLintFix",
     "./plugins/withLiveActivity",
     [
       "expo-notifications",
