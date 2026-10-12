@@ -360,6 +360,18 @@ export default function TrackingScreen() {
   const isActiveLoading =
     chosenMountainId != null ? isChosenMountainLoading : isNearbyLoading;
 
+  // 진입 시 첫 코스를 기본 선택 — 지도에 코스가 보이는 상태가 기본값이다.
+  // "코스 선택 안 함"을 직접 고른 경우(isFreeSelected)와 트래킹 중에는 건드리지 않고,
+  // 산을 바꾸면 선택이 초기화되므로 바뀐 산의 첫 코스가 다시 선택된다.
+  useEffect(() => {
+    if (isTracking || isFreeSelected || selectedCourseId != null) return;
+    const firstCourseId = activeCourses?.find(
+      (c) => c.courseId != null,
+    )?.courseId;
+    if (firstCourseId == null) return;
+    setSelectedCourseId(String(firstCourseId));
+  }, [activeCourses, isTracking, isFreeSelected, selectedCourseId]);
+
   // 드롭다운 후보 — 전체 산 목록에서 현재 위치에 가까운 순으로 3개. 활성 산은 항상 포함
   const { data: mountainsPage } = useMountains({ size: 100 });
   const mountainOptions = useMemo<MountainOption[]>(() => {
