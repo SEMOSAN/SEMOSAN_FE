@@ -13,6 +13,9 @@
       },
       "ios": {
         "image": "macos-sonoma-14.6-xcode-16.1"
+      },
+      "android": {
+        "buildType": "apk"
       }
     },
     "preview": {
@@ -22,6 +25,9 @@
       },
       "ios": {
         "image": "macos-sonoma-14.6-xcode-16.1"
+      },
+      "android": {
+        "buildType": "apk"
       }
     },
     "production": {
@@ -31,6 +37,9 @@
       },
       "ios": {
         "image": "macos-sequoia-15.6-xcode-26.2"
+      },
+      "android": {
+        "buildType": "app-bundle"
       }
     }
   },
