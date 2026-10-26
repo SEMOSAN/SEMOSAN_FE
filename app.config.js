@@ -55,6 +55,14 @@ const config = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     permissions: [],
+    // 라이브러리가 자동으로 넣지만 실제로 쓰지 않는 권한. 안 쓰는 권한이 있으면
+    // Play 콘솔에서 사용 사유를 소명해야 하고 심사에서도 불리하다.
+    // 사진 선택은 전부 mediaTypes: ["images"]이고 녹음·동영상 기능은 없다.
+    blockedPermissions: [
+      "android.permission.READ_MEDIA_VIDEO",
+      "android.permission.READ_MEDIA_AUDIO",
+      "android.permission.RECORD_AUDIO",
+    ],
     package: "com.tastyhiking.semosanapp",
   },
   web: {
