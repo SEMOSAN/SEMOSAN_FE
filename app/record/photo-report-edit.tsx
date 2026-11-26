@@ -46,6 +46,10 @@ const NAV_BTN_TOP = 12 + (CARD_H - NAV_BTN_SIZE) / 2;
 
 const THUMB_SIZE = 85;
 
+// 하단 바는 absolute라 콘텐츠를 덮는다. 그만큼 스크롤 영역 아래를 비워둬야
+// 작은 화면에서 썸네일 줄이 완료 버튼에 가려지지 않는다. (safe-area는 런타임에 더함)
+const BOTTOM_BAR_CONTENT_HEIGHT = 16 + 56;
+
 const OVERLAY_TEMPLATES = [{ id: 1 }, { id: 2 }, { id: 3 }];
 
 const PhotoReportBg = require("@/assets/photo-report-bg.png");
@@ -165,75 +169,83 @@ export default function PhotoReportEditScreen() {
         </View>
       </View>
 
-      <View style={styles.templateContainer}>
-        <ScrollView
-          ref={scrollRef}
-          horizontal
-          scrollEnabled={false}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: CARD_PEEK,
-            gap: CARD_GAP,
-            alignItems: "center",
-            height: CARD_H + 24,
-            paddingVertical: 12,
-          }}
-          style={styles.templateScroll}
-        >
-          {(hasPhotos ? OVERLAY_TEMPLATES : OVERLAY_TEMPLATES.slice(0, 1)).map((template, index) => {
-            const OverlayComponent = OVERLAY_COMPONENTS[index];
-            return (
-              <TouchableOpacity
-                key={template.id}
-                activeOpacity={0.9}
-                disabled={!hasPhotos}
-                onPress={() => { setSelectedTemplate(index); scrollTo(index); }}
-                className={!hasPhotos || selectedTemplate === index ? "opacity-100" : "opacity-40"}
-              >
-                <View style={styles.templateCard}>
-                  <ExpoImage
-                    key={selectedPhoto ?? "default"}
-                    source={selectedPhoto !== null ? photos[selectedPhoto].source : PhotoReportBg}
-                    style={StyleSheet.absoluteFill}
-                    contentFit="cover"
-                  />
-                  {hasPhotos && <OverlayComponent {...overlayProps} />}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        {hasPhotos && selectedTemplate > 0 && (
-          <TouchableOpacity style={[styles.navBtn, { left: 16, top: NAV_BTN_TOP }]} onPress={handleLeft} activeOpacity={0.8}>
-            <CaretLeftIcon color="#1A1B1F" />
-          </TouchableOpacity>
-        )}
-        {hasPhotos && selectedTemplate < OVERLAY_TEMPLATES.length - 1 && (
-          <TouchableOpacity style={[styles.navBtn, { right: 16, top: NAV_BTN_TOP }]} onPress={handleRight} activeOpacity={0.8}>
-            <CaretRightIcon size={24} color="#1A1B1F" />
-          </TouchableOpacity>
-        )}
-      </View>
-
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.photoRow}
-        style={styles.photoRowScroll}
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingBottom: BOTTOM_BAR_CONTENT_HEIGHT + (bottom || 16),
+        }}
+        showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity style={styles.importBtn} activeOpacity={0.7} onPress={handleImport}>
-          <ImageIcon size={24} color="#73798C" />
-          <Text style={styles.importLabel}>가져오기</Text>
-        </TouchableOpacity>
-        {photos.map((photo, index) => (
-          <TouchableOpacity key={photo.key} style={styles.thumbWrap} onPress={() => setSelectedPhoto(index)} activeOpacity={0.8}>
-            <ExpoImage source={photo.source} style={styles.thumb} contentFit="cover" />
-            <View style={[styles.selectOverlay, selectedPhoto === index ? styles.selectOverlayActive : styles.selectOverlayInactive]}>
-              {selectedPhoto === index && <CheckCircleIcon size={20} color="#00D864" />}
-            </View>
+        <View style={styles.templateContainer}>
+          <ScrollView
+            ref={scrollRef}
+            horizontal
+            scrollEnabled={false}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: CARD_PEEK,
+              gap: CARD_GAP,
+              alignItems: "center",
+              height: CARD_H + 24,
+              paddingVertical: 12,
+            }}
+            style={styles.templateScroll}
+          >
+            {(hasPhotos ? OVERLAY_TEMPLATES : OVERLAY_TEMPLATES.slice(0, 1)).map((template, index) => {
+              const OverlayComponent = OVERLAY_COMPONENTS[index];
+              return (
+                <TouchableOpacity
+                  key={template.id}
+                  activeOpacity={0.9}
+                  disabled={!hasPhotos}
+                  onPress={() => { setSelectedTemplate(index); scrollTo(index); }}
+                  className={!hasPhotos || selectedTemplate === index ? "opacity-100" : "opacity-40"}
+                >
+                  <View style={styles.templateCard}>
+                    <ExpoImage
+                      key={selectedPhoto ?? "default"}
+                      source={selectedPhoto !== null ? photos[selectedPhoto].source : PhotoReportBg}
+                      style={StyleSheet.absoluteFill}
+                      contentFit="cover"
+                    />
+                    {hasPhotos && <OverlayComponent {...overlayProps} />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {hasPhotos && selectedTemplate > 0 && (
+            <TouchableOpacity style={[styles.navBtn, { left: 16, top: NAV_BTN_TOP }]} onPress={handleLeft} activeOpacity={0.8}>
+              <CaretLeftIcon color="#1A1B1F" />
+            </TouchableOpacity>
+          )}
+          {hasPhotos && selectedTemplate < OVERLAY_TEMPLATES.length - 1 && (
+            <TouchableOpacity style={[styles.navBtn, { right: 16, top: NAV_BTN_TOP }]} onPress={handleRight} activeOpacity={0.8}>
+              <CaretRightIcon size={24} color="#1A1B1F" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.photoRow}
+          style={styles.photoRowScroll}
+        >
+          <TouchableOpacity style={styles.importBtn} activeOpacity={0.7} onPress={handleImport}>
+            <ImageIcon size={24} color="#73798C" />
+            <Text style={styles.importLabel}>가져오기</Text>
           </TouchableOpacity>
-        ))}
+          {photos.map((photo, index) => (
+            <TouchableOpacity key={photo.key} style={styles.thumbWrap} onPress={() => setSelectedPhoto(index)} activeOpacity={0.8}>
+              <ExpoImage source={photo.source} style={styles.thumb} contentFit="cover" />
+              <View style={[styles.selectOverlay, selectedPhoto === index ? styles.selectOverlayActive : styles.selectOverlayInactive]}>
+                {selectedPhoto === index && <CheckCircleIcon size={20} color="#00D864" />}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </ScrollView>
 
       <Modal visible={showExitDialog} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setShowExitDialog(false)}>
