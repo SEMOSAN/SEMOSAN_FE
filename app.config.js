@@ -6,6 +6,14 @@ const hasAndroidGoogleServiceFile = fs.existsSync("./google-services.json");
 const hasNaverMapClientId = !!process.env.NAVER_MAP_CLIENT_ID;
 const hasKakaoNativeAppKey = !!process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 
+// 디자인 토큰(typography-plugin.cjs)이 쓰는 weight만 넣는다 — 400/500/600/700
+const PRETENDARD_WEIGHTS = [
+  { path: "./assets/fonts/pretendard/Pretendard-Regular.ttf", weight: 400 },
+  { path: "./assets/fonts/pretendard/Pretendard-Medium.ttf", weight: 500 },
+  { path: "./assets/fonts/pretendard/Pretendard-SemiBold.ttf", weight: 600 },
+  { path: "./assets/fonts/pretendard/Pretendard-Bold.ttf", weight: 700 },
+];
+
 /** @type {import('expo/config').ExpoConfig} */
 const config = {
   name: "semosan",
@@ -73,7 +81,30 @@ const config = {
       },
     ],
     "expo-router",
-    "expo-font",
+    [
+      "expo-font",
+      {
+        // 안드로이드는 weight별 파일을 묶은 font family를 네이티브로 등록해야
+        // fontWeight(500/600)가 가짜 볼드로 합성되지 않고 실제 굵기로 나온다.
+        // 디자인 토큰이 'Pretendard'와 'Pretendard Variable' 두 이름을 섞어 쓰므로
+        // (tokens 자동 생성물이라 수정 불가) 양쪽 다 같은 파일에 매핑한다.
+        android: {
+          fonts: [
+            {
+              fontFamily: "Pretendard",
+              fontDefinitions: PRETENDARD_WEIGHTS,
+            },
+            {
+              fontFamily: "Pretendard Variable",
+              fontDefinitions: PRETENDARD_WEIGHTS,
+            },
+          ],
+        },
+        ios: {
+          fonts: PRETENDARD_WEIGHTS.map((f) => f.path),
+        },
+      },
+    ],
     "@react-native-firebase/app",
     [
       "expo-location",
