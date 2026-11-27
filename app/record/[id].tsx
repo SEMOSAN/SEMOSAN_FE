@@ -964,7 +964,10 @@ export default function RecordScreen() {
                       className="mt-6 flex-row items-center gap-1.5 rounded-full bg-primary-normal px-5 py-3"
                       activeOpacity={0.85}
                       onPress={() =>
-                        router.push({
+                        // push하면 탭 네비게이터가 루트 스택에 한 번 더 쌓여,
+                        // 안드로이드 뒤로가기가 이 기록 화면이 아니라 첫 탭(홈)으로
+                        // 빠져버린다. navigate로 이미 떠 있는 탭에 파라미터만 넘긴다.
+                        router.navigate({
                           pathname: "/(tabs)",
                           params: { tab: "feed" },
                         })

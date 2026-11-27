@@ -21,7 +21,9 @@ export function navigateByNotificationType(
 
     case "TRACKING_PHOTO_MILESTONE":
     case "TRACKING_SUMMIT_REACHED":
-      router.push("/(tabs)/tracking");
+      // 탭 경로는 push하면 탭 네비게이터가 스택에 중복으로 쌓여 뒤로가기가
+      // 첫 탭(홈)으로 빠진다. 이미 떠 있는 탭으로 보낸다.
+      router.navigate("/(tabs)/tracking");
       break;
 
     case "SEMOFEED_EMOJI":
