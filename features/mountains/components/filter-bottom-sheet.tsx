@@ -83,8 +83,13 @@ export function FilterBottomSheet({
   };
 
   // .runOnJS(true): 콜백을 JS 스레드에서 실행 → runOnJS 래퍼 불필요
+  // activeOffsetY/failOffsetX: 아래로 끄는 동작만 받고 가로 움직임은 실패 처리한다.
+  // 제약이 없으면 Pan이 방향 불문하고 터치를 먼저 가져가, 시트 안의
+  // ScrollView(세로 목록·가로 탭)가 전혀 동작하지 않는다.
   const panGesture = Gesture.Pan()
     .runOnJS(true)
+    .activeOffsetY(10)
+    .failOffsetX([-10, 10])
     .onUpdate((e) => {
       if (e.translationY > 0) {
         translateY.value = e.translationY;
@@ -128,31 +133,33 @@ export function FilterBottomSheet({
         </Animated.View>
 
         {/* Sheet */}
-        <GestureDetector gesture={panGesture}>
-          <Animated.View
-            className="absolute bottom-0 left-0 right-0 overflow-hidden rounded-tl-[20px] rounded-tr-[20px] bg-fill-normal"
-            style={[{ paddingBottom: insets.bottom }, sheetStyle]}
-          >
-            <TouchableWithoutFeedback
-              onPress={Keyboard.dismiss}
-              accessible={false}
-            >
-              <View>
-                {/* Drag handle */}
-                <View className="items-center pb-2" />
+        <Animated.View
+          className="absolute bottom-0 left-0 right-0 overflow-hidden rounded-tl-[20px] rounded-tr-[20px] bg-fill-normal"
+          style={[{ paddingBottom: insets.bottom }, sheetStyle]}
+        >
+          {/* 드래그로 닫는 영역은 상단 핸들·타이틀로 제한한다. 시트 전체를 감싸면
+              Pan이 본문 ScrollView의 터치까지 가로채 스크롤이 죽는다. */}
+          <GestureDetector gesture={panGesture}>
+            <View>
+              {/* Drag handle */}
+              <View className="items-center pb-2" />
 
-                {/* Title */}
-                <View className="px-5 pb-1 pt-3">
-                  <Text className="text-label-subtle typo-body-2-normal-medium">
-                    {title}
-                  </Text>
-                </View>
-
-                {children}
+              {/* Title */}
+              <View className="px-5 pb-1 pt-3">
+                <Text className="text-label-subtle typo-body-2-normal-medium">
+                  {title}
+                </Text>
               </View>
-            </TouchableWithoutFeedback>
-          </Animated.View>
-        </GestureDetector>
+            </View>
+          </GestureDetector>
+
+          <TouchableWithoutFeedback
+            onPress={Keyboard.dismiss}
+            accessible={false}
+          >
+            <View>{children}</View>
+          </TouchableWithoutFeedback>
+        </Animated.View>
       </GestureHandlerRootView>
     </Modal>
   );
