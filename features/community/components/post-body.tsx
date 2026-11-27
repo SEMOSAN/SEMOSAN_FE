@@ -30,17 +30,9 @@ import {
 } from "react-native";
 import { ImageViewerModal } from "./image-viewer-modal";
 import { PostAvatar } from "./post-avatar";
+import { ReportReasonSheet } from "./report-reason-sheet";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
-
-const REASON_MAP: { label: string; value: FreePostReportRequest["reason"] }[] =
-  [
-    { label: "스팸", value: "SPAM" },
-    { label: "욕설/혐오", value: "ABUSE" },
-    { label: "음란/부적절", value: "OBSCENE" },
-    { label: "허위정보", value: "FALSE_INFO" },
-    { label: "기타", value: "ETC" },
-  ];
 
 type PostBodyProps = {
   post: FreePostDetailResponse;
@@ -65,6 +57,7 @@ export function PostBody({
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const [blockModalVisible, setBlockModalVisible] = useState(false);
+  const [reportSheetVisible, setReportSheetVisible] = useState(false);
   const buttonRef = useRef<View>(null);
 
   const isAuthor =
@@ -120,22 +113,19 @@ export function PostBody({
 
   function handleReport(): void {
     setMenuVisible(false);
-    Alert.alert("신고 사유 선택", "신고 사유를 선택해주세요.", [
-      ...REASON_MAP.map(({ label, value }) => ({
-        text: label,
-        onPress: () =>
-          reportPost(value, {
-            onSuccess: () =>
-              Alert.alert(
-                "신고 완료",
-                "정상적으로 신고 접수되었습니다.\n\n신고된 게시글은 커뮤니티 가이드라인에 따라 모니터링 및 조치될 예정입니다.",
-              ),
-            onError: () =>
-              Alert.alert("오류", "신고 처리 중 오류가 발생했습니다."),
-          }),
-      })),
-      { text: "취소", style: "cancel" as const },
-    ]);
+    setReportSheetVisible(true);
+  }
+
+  function submitReport(reason: FreePostReportRequest["reason"]): void {
+    setReportSheetVisible(false);
+    reportPost(reason, {
+      onSuccess: () =>
+        Alert.alert(
+          "신고 완료",
+          "정상적으로 신고 접수되었습니다.\n\n신고된 게시글은 커뮤니티 가이드라인에 따라 모니터링 및 조치될 예정입니다.",
+        ),
+      onError: () => Alert.alert("오류", "신고 처리 중 오류가 발생했습니다."),
+    });
   }
 
   return (
@@ -385,6 +375,12 @@ export function PostBody({
           </View>
         </View>
       </Modal>
+
+      <ReportReasonSheet
+        visible={reportSheetVisible}
+        onDismiss={() => setReportSheetVisible(false)}
+        onSubmit={submitReport}
+      />
 
       <ImageViewerModal
         uri={selectedImage}

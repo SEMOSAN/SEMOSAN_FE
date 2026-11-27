@@ -22,6 +22,7 @@ export function ModalSheet({ visible, onDismiss, children }: Props) {
       transparent
       animationType="slide"
       statusBarTranslucent
+      onRequestClose={onDismiss}
     >
       <TouchableWithoutFeedback onPress={onDismiss}>
         <View style={styles.overlay}>
