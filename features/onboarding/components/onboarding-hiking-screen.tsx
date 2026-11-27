@@ -4,6 +4,7 @@ import {
   HIKING_OPTIONS,
   HikingLevel,
 } from "@/features/onboarding/constants/hiking";
+import { OnboardingHeader } from "@/features/onboarding/components/onboarding-header";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -30,6 +31,8 @@ export function OnboardingHikingScreen(): React.JSX.Element {
       <View className="h-1 w-full bg-fill-neutral">
         <View className="h-1 w-2/4 bg-secondary-normal" />
       </View>
+
+      <OnboardingHeader />
 
       <View className="flex-1 px-5 pt-7">
         <Text className="text-label-normal typo-heading-1-semi-bold">

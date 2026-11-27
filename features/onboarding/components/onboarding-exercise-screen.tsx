@@ -4,6 +4,7 @@ import {
   EXERCISE_OPTIONS,
   ExerciseType,
 } from "@/features/onboarding/constants/exercise";
+import { OnboardingHeader } from "@/features/onboarding/components/onboarding-header";
 import { useCompleteOnboarding } from "@/features/onboarding/hooks/use-complete-onboarding";
 import { useOnboardingStore } from "@/features/onboarding/store/onboarding-store";
 import { router } from "expo-router";
@@ -39,6 +40,8 @@ export function OnboardingExerciseScreen(): React.JSX.Element {
       <View className="h-1 w-full bg-fill-neutral">
         <View className="h-1 w-3/4 bg-secondary-normal" />
       </View>
+
+      <OnboardingHeader />
 
       <ScrollView
         className="flex-1"
