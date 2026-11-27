@@ -163,14 +163,20 @@ const [selectedMountainId, setSelectedMountainId] = useState<number | null>(
     const { data: profile } = useProfile();
 
     const moveToCurrentLocation = async () => {
-      const { status } = await requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
-      const location = await getCurrentPositionAsync({});
-      setRegion((prev) => ({
-        ...prev,
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      }));
+      // onPress에 직접 연결돼 있어 여기서 안 잡으면 unhandled rejection이 된다.
+      // 기기 위치를 못 읽는 상황(위치 서비스 꺼짐 등)에서도 지도는 그대로 둔다.
+      try {
+        const { status } = await requestForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        const location = await getCurrentPositionAsync({});
+        setRegion((prev) => ({
+          ...prev,
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        }));
+      } catch (error) {
+        console.warn("[Location] 현재 위치 조회 실패:", error);
+      }
     };
 
     const handleDetailOpenChange = (isOpen: boolean) => {
